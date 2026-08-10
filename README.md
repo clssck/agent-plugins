@@ -187,3 +187,45 @@ The scheduled workflow refreshes upstream commits once per day. To publish a new
 gh workflow run sync-upstreams.yml --repo clssck/agent-plugins --ref main
 ```
 
+## Author a plugin here
+
+Plugins in [`plugins/`](./plugins) must conform to Agent Plugins v1.0.0. Minimum shape:
+
+```text
+plugins/my-plugin/
+├── plugin.json
+└── skills/
+    └── my-skill/
+        └── SKILL.md
+```
+
+`plugin.json` must declare the canonical schema identifier and a name matching Agent Plugins §5.5 (1-64 chars, lowercase alphanumeric plus `-` and `.`, alphanumeric at both ends, no `--` or `..`):
+
+```json
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "my-plugin",
+  "version": "1.0.0"
+}
+```
+
+Add the directory to `localPlugins` in [`sources.json`](./sources.json). The sync validates every locally authored manifest and fails rather than publishing a non-conformant package. Upstream links are exempt: their layout is not ours to control.
+
+## Migrating from clssck/skill-bazaar
+
+This marketplace supersedes [`clssck/skill-bazaar`](https://github.com/clssck/skill-bazaar). It tracks the same upstream providers, so plugin names are unchanged and only the marketplace suffix moves.
+
+```bash
+omp plugin marketplace add clssck/agent-plugins
+
+# Repoint each installed plugin, e.g.
+omp plugin uninstall bro@clssck-skills
+omp plugin install bro@agent-plugins
+
+omp plugin marketplace remove clssck-skills
+```
+
+`omp plugin marketplace remove` drops the registry entry and catalog cache; it does not uninstall plugins, so repoint them first or they keep resolving from the stale cache.
+
+Two deliberate differences from the old repository: locally authored plugins target the Agent Plugins format rather than `.claude-plugin/plugin.json`, and the 68 vendored Snowflake Cortex Code directories were not carried over. Those were proprietary, absent from `localPlugins`, and contributed no catalog entries.
+
