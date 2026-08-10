@@ -22,7 +22,8 @@
         "writing",
         "clarity",
         "plain-language"
-      ]
+      ],
+      "skills": "./skills/bro"
     },
     {
       "name": "emilkowalski-skills",
@@ -38,7 +39,19 @@
         "name": "emilkowalski"
       },
       "repository": "https://github.com/emilkowalski/skills",
-      "license": "MIT"
+      "license": "MIT",
+      "skills": [
+        "./skills/animate",
+        "./skills/animation-vocabulary",
+        "./skills/apple-design",
+        "./skills/ask-sonner",
+        "./skills/emil-design-eng",
+        "./skills/find-animation-opportunities",
+        "./skills/improve-animations",
+        "./skills/pick-ui-library",
+        "./skills/prototype",
+        "./skills/review-animations"
+      ]
     },
     {
       "name": "improve",
@@ -63,7 +76,8 @@
         "agents",
         "tech-debt",
         "security"
-      ]
+      ],
+      "skills": "./skills/improve"
     },
     {
       "name": "lavish-axi",
@@ -88,7 +102,8 @@
         "html",
         "review",
         "collaboration"
-      ]
+      ],
+      "skills": "./skills/lavish"
     },
     {
       "name": "document-skills",
@@ -191,7 +206,17 @@
       },
       "repository": "https://github.com/greensock/gsap-skills",
       "license": "MIT",
-      "category": "productivity"
+      "category": "productivity",
+      "skills": [
+        "./skills/gsap-core",
+        "./skills/gsap-frameworks",
+        "./skills/gsap-performance",
+        "./skills/gsap-plugins",
+        "./skills/gsap-react",
+        "./skills/gsap-scrolltrigger",
+        "./skills/gsap-timeline",
+        "./skills/gsap-utils"
+      ]
     },
     {
       "name": "obsidian",
@@ -215,85 +240,108 @@
         "canvas",
         "pkm",
         "notes"
+      ],
+      "skills": [
+        "./skills/defuddle",
+        "./skills/json-canvas",
+        "./skills/obsidian-bases",
+        "./skills/obsidian-cli",
+        "./skills/obsidian-markdown"
       ]
     },
     {
       "name": "audit-context-building",
-      "version": "2.0.1786134195",
+      "version": "2.0.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/audit-context-building",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Understand a codebase before looking for bugs in it. Reads it function by function, records what each one assumes and depends on, and saves the write-ups to files instead of filling up the conversation.",
       "author": {
         "name": "Omar Inuwa"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/audit-context-building"
     },
     {
       "name": "building-secure-contracts",
-      "version": "1.1.1786134195",
+      "version": "1.1.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/building-secure-contracts",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Comprehensive smart contract security toolkit based on Trail of Bits' Building Secure Contracts framework. Includes vulnerability scanners for 6 blockchains and 5 development guideline assistants.",
       "author": {
         "name": "Omar Inuwa && Paweł Płatek"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": [
+        "./skills/algorand-vulnerability-scanner",
+        "./skills/audit-prep-assistant",
+        "./skills/cairo-vulnerability-scanner",
+        "./skills/code-maturity-assessor",
+        "./skills/cosmos-vulnerability-scanner",
+        "./skills/guidelines-advisor",
+        "./skills/secure-workflow-guide",
+        "./skills/solana-vulnerability-scanner",
+        "./skills/substrate-vulnerability-scanner",
+        "./skills/token-integration-analyzer",
+        "./skills/ton-vulnerability-scanner"
+      ]
     },
     {
       "name": "burpsuite-project-parser",
-      "version": "1.0.1786134195",
+      "version": "1.0.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/burpsuite-project-parser",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Search and extract data from Burp Suite project files (.burp) for security analysis",
       "author": {
         "name": "Will Vandevanter"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/burpsuite-project-parser"
     },
     {
       "name": "claude-in-chrome-troubleshooting",
-      "version": "1.1.1786134195",
+      "version": "1.1.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/claude-in-chrome-troubleshooting",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Diagnose and fix Claude in Chrome MCP extension connectivity issues",
       "author": {
         "name": "Dan Guido"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/chrome-mcp-troubleshooting"
     },
     {
       "name": "constant-time-analysis",
-      "version": "0.2.1786134195",
+      "version": "0.2.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/constant-time-analysis",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Detect compiler-induced timing side-channels in cryptographic code",
       "author": {
@@ -301,85 +349,90 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/constant-time-analysis"
     },
     {
       "name": "culture-index",
-      "version": "1.1.1786134195",
+      "version": "1.1.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/culture-index",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Interprets Culture Index survey results for individuals and teams",
       "author": {
         "name": "Dan Guido"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/interpreting-culture-index"
     },
     {
       "name": "devcontainer-setup",
-      "version": "0.2.1786134195",
+      "version": "0.2.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/devcontainer-setup",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Create pre-configured devcontainers with Claude Code and language-specific tooling",
       "author": {
         "name": "Alexis Challande"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/devcontainer-setup"
     },
     {
       "name": "differential-review",
-      "version": "1.1.1786134195",
+      "version": "1.1.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/differential-review",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Security-focused differential review of code changes with git history analysis and blast radius estimation",
       "author": {
         "name": "Omar Inuwa"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/differential-review"
     },
     {
       "name": "firebase-apk-scanner",
-      "version": "2.1.1786134195",
+      "version": "2.1.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/firebase-apk-scanner",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Scan Android APKs for Firebase security misconfigurations including open databases, storage buckets, authentication issues, and exposed cloud functions. For authorized security research only.",
       "author": {
         "name": "Nick Sellier"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/firebase-apk-scanner"
     },
     {
       "name": "gh-cli",
-      "version": "1.5.1786134195",
+      "version": "1.5.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/gh-cli",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Intercepts GitHub URL fetches and curl/wget commands, redirecting to the authenticated gh CLI.",
       "author": {
@@ -387,17 +440,18 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/gh-cli"
     },
     {
       "name": "dwarf-expert",
-      "version": "1.1.1786134195",
+      "version": "1.1.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/dwarf-expert",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Analyze DWARF debug information: parse and search DIEs with dwarfdump and readelf, verify debug info integrity, and write DWARF parsing code",
       "author": {
@@ -405,17 +459,18 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/dwarf-expert"
     },
     {
       "name": "entry-point-analyzer",
-      "version": "1.0.1786134195",
+      "version": "1.0.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/entry-point-analyzer",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Analyzes smart contract codebases to identify state-changing entry points for security auditing. Detects externally callable functions that modify state, categorizes them by access level, and generates structured audit reports.",
       "author": {
@@ -423,17 +478,18 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/entry-point-analyzer"
     },
     {
       "name": "mutation-testing",
-      "version": "1.0.1786134195",
+      "version": "1.0.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/mutation-testing",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Configures mewt or muton mutation testing campaigns — scopes targets, tunes timeouts, and optimizes long-running runs. Use when the user mentions mewt, muton, mutation testing, or wants to configure or optimize a mutation testing campaign.",
       "author": {
@@ -441,17 +497,18 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/mutation-testing"
     },
     {
       "name": "property-based-testing",
-      "version": "1.1.1786134195",
+      "version": "1.1.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/property-based-testing",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Property-based testing guidance for multiple languages and smart contracts",
       "author": {
@@ -459,34 +516,36 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/property-based-testing"
     },
     {
       "name": "semgrep-rule-creator",
-      "version": "1.2.1786134195",
+      "version": "1.2.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/semgrep-rule-creator",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Create custom Semgrep rules for detecting bug patterns and security vulnerabilities",
       "author": {
         "name": "Maciej Domanski"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/semgrep-rule-creator"
     },
     {
       "name": "semgrep-rule-variant-creator",
-      "version": "1.1.1786134195",
+      "version": "1.1.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/semgrep-rule-variant-creator",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Creates language variants of existing Semgrep rules with proper applicability analysis and test-driven validation",
       "author": {
@@ -494,17 +553,18 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/semgrep-rule-variant-creator"
     },
     {
       "name": "sharp-edges",
-      "version": "1.1.1786134195",
+      "version": "1.1.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/sharp-edges",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Identify error-prone APIs, dangerous configurations, and footgun designs that enable security mistakes",
       "author": {
@@ -512,102 +572,143 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/sharp-edges"
     },
     {
       "name": "static-analysis",
-      "version": "1.2.1786134195",
+      "version": "1.3.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/static-analysis",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Static analysis toolkit with CodeQL, Semgrep, and SARIF parsing for security vulnerability detection",
       "author": {
         "name": "Axel Mierczuk & Paweł Płatek"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": [
+        "./skills/codeql",
+        "./skills/sarif-parsing",
+        "./skills/semgrep"
+      ]
     },
     {
       "name": "spec-to-code-compliance",
-      "version": "2.0.1786134195",
+      "version": "2.0.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/spec-to-code-compliance",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Check code against the documentation that specifies it: one agent per requirement, divergences refuted before they are reported, evidence cited to the line",
       "author": {
         "name": "Omar Inuwa"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/spec-to-code-compliance"
     },
     {
       "name": "testing-handbook-skills",
-      "version": "1.0.1786134195",
+      "version": "1.0.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/testing-handbook-skills",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Skills from the Trail of Bits Application Security Testing Handbook (appsec.guide)",
       "author": {
         "name": "Paweł Płatek"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": [
+        "./skills/address-sanitizer",
+        "./skills/aflpp",
+        "./skills/atheris",
+        "./skills/cargo-fuzz",
+        "./skills/constant-time-testing",
+        "./skills/coverage-analysis",
+        "./skills/fuzzing-dictionary",
+        "./skills/fuzzing-obstacles",
+        "./skills/harness-writing",
+        "./skills/libafl",
+        "./skills/libfuzzer",
+        "./skills/ossfuzz",
+        "./skills/ruzzy",
+        "./skills/testing-handbook-generator",
+        "./skills/wycheproof"
+      ]
     },
     {
       "name": "trailmark",
-      "version": "0.10.1786134195",
+      "version": "0.10.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/trailmark",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Builds multi-language source and binary code graphs for security analysis: call graphs, attack surface mapping, blast radius, taint propagation, complexity hotspots, entry point enumeration, proxy/unresolved-call tracking, type/reference analysis, and structural diffs. Creates bounded, graph-informed source packets for delegating focused work to constrained subagents. Generates Mermaid diagrams, runs graph-informed mutation testing triage (genotoxic), generates mutation-driven test vectors (vector-forge), extracts crypto protocol message flows, converts Mermaid diagrams to ProVerif models, projects SARIF/weAudit/binary findings onto code graphs, triages single findings with graph evidence, gates branch diffs for structural review regressions, and expands seed findings into variant-neighborhood candidates. Use when analyzing call paths, slicing source context for smaller models, mapping attack surface, visualizing code architecture, triaging survived mutants, generating cryptographic test vectors, diagramming crypto protocols, formally verifying protocols, augmenting audits with static analysis findings, deciding whether one candidate issue is reachable, reviewing graph-level PR risk, or seeding variant analysis.",
       "author": {
         "name": "Scott Arciszewski"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": [
+        "./skills/audit-augmentation",
+        "./skills/crypto-protocol-diagram",
+        "./skills/diagramming-code",
+        "./skills/genotoxic",
+        "./skills/graph-evolution",
+        "./skills/mermaid-to-proverif",
+        "./skills/slicing-code-context",
+        "./skills/trailmark-finding-triage",
+        "./skills/trailmark-review-gate",
+        "./skills/trailmark-structural",
+        "./skills/trailmark-summary",
+        "./skills/trailmark-variant-neighborhood",
+        "./skills/trailmark",
+        "./skills/vector-forge"
+      ]
     },
     {
       "name": "variant-analysis",
-      "version": "2.0.1786134195",
+      "version": "2.0.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/variant-analysis",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Find similar vulnerabilities and bugs across codebases using pattern-based analysis",
       "author": {
         "name": "Axel Mierczuk"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/variant-analysis"
     },
     {
       "name": "c-review",
-      "version": "1.2.1786134195",
+      "version": "1.2.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/c-review",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Comprehensive C/C++ security code review with specialized bug-finding agents covering memory safety, type safety, concurrency, and Linux/Windows userspace-specific issues",
       "author": {
@@ -626,17 +727,18 @@
         "macos",
         "posix",
         "windows"
-      ]
+      ],
+      "skills": "./skills/c-review"
     },
     {
       "name": "rust-review",
-      "version": "1.0.1786134195",
+      "version": "1.0.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/rust-review",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Comprehensive Rust security code review with specialized bug-finding agents covering the safe/unsafe boundary, memory safety in unsafe blocks, concurrency, panic-induced DoS, recursion-induced stack overflow, FFI, and async runtime hazards",
       "author": {
@@ -654,17 +756,18 @@
         "concurrency",
         "async",
         "memory-safety"
-      ]
+      ],
+      "skills": "./skills/rust-review"
     },
     {
       "name": "modern-python",
-      "version": "1.5.1786134195",
+      "version": "1.5.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/modern-python",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Modern Python best practices. Use when creating new Python projects, and writing Python scripts, or migrating existing projects from legacy tools.",
       "author": {
@@ -672,17 +775,18 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/modern-python"
     },
     {
       "name": "insecure-defaults",
-      "version": "2.0.1786134195",
+      "version": "2.0.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/insecure-defaults",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Detects insecure default configurations including hardcoded credentials, fallback secrets, weak authentication defaults, and dangerous values in production",
       "author": {
@@ -694,30 +798,31 @@
     },
     {
       "name": "second-opinion",
-      "version": "1.7.1786134195",
+      "version": "1.7.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/second-opinion",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Runs code reviews using external LLM CLIs (OpenAI Codex, Google Gemini) on uncommitted changes, branch diffs, or specific commits. Bundles Codex's built-in MCP server for direct tool access.",
       "author": {
         "name": "Dan Guido"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/second-opinion"
     },
     {
       "name": "yara-authoring",
-      "version": "2.1.1786134195",
+      "version": "2.1.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/yara-authoring",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "YARA-X detection rule authoring with linting and quality analysis",
       "author": {
@@ -725,17 +830,18 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/yara-rule-authoring"
     },
     {
       "name": "git-cleanup",
-      "version": "1.0.1786134195",
+      "version": "1.0.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/git-cleanup",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Safely analyzes and cleans up local git branches and worktrees by categorizing them as merged, squash-merged, superseded, or active work.",
       "author": {
@@ -743,34 +849,36 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/git-cleanup"
     },
     {
       "name": "supply-chain-risk-auditor",
-      "version": "1.0.1786134195",
+      "version": "1.0.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/supply-chain-risk-auditor",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Audit supply-chain threat landscape of project dependencies for exploitation or takeover risk",
       "author": {
         "name": "Spencer Michaels"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/supply-chain-risk-auditor"
     },
     {
       "name": "zeroize-audit",
-      "version": "0.1.1786134195",
+      "version": "0.1.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/zeroize-audit",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Detects missing or compiler-optimized zeroization of sensitive data with assembly and control-flow analysis",
       "author": {
@@ -778,85 +886,90 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/zeroize-audit"
     },
     {
       "name": "let-fate-decide",
-      "version": "1.2.1786134195",
+      "version": "1.2.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/let-fate-decide",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Draws the 12 Houses of the Zodiac Tarot spread using cryptographic randomness to add 100+ bits of entropy to vague or underspecified planning. Interprets the spread to guide next steps. Use when feeling lucky, invoking heart-of-the-cards energy, or when prompts are ambiguous.",
       "author": {
         "name": "Scott Arciszewski"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/let-fate-decide"
     },
     {
       "name": "agentic-actions-auditor",
-      "version": "1.2.1786134195",
+      "version": "1.2.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/agentic-actions-auditor",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Audits GitHub Actions workflows for security vulnerabilities in AI agent integrations (Claude Code Action, Gemini CLI, OpenAI Codex, GitHub AI Inference)",
       "author": {
         "name": "Emilio López & Will Vandevanter"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/agentic-actions-auditor"
     },
     {
       "name": "skill-improver",
-      "version": "1.0.1786134195",
+      "version": "1.0.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/skill-improver",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Automatically reviews and fixes Claude Code skills through iterative refinement until they meet quality standards. Requires plugin-dev plugin.",
       "author": {
         "name": "Paweł Płatek"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/skill-improver"
     },
     {
       "name": "fp-check",
-      "version": "1.0.1786134195",
+      "version": "1.0.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/fp-check",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Systematic false positive verification for security bug analysis with mandatory gate reviews",
       "author": {
         "name": "Maciej Domanski"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/fp-check"
     },
     {
       "name": "dimensional-analysis",
-      "version": "3.0.1786134195",
+      "version": "3.0.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/dimensional-analysis",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Annotates codebases with dimensional analysis comments documenting units, dimensions, and decimal scaling. Use when someone asks to annotate units in a codebase, perform a dimensional analysis, or find vulnerabilities in a DeFi protocol. Prevents dimensional mismatches and catches formula bugs early.",
       "author": {
@@ -864,17 +977,18 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/dimensional-analysis"
     },
     {
       "name": "vulnerability-triage-brocards",
-      "version": "0.1.1786134195",
+      "version": "0.1.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/vulnerability-triage-brocards",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Principled framework for triaging vulnerability reports using 7 brocards (rules of thumb). Evaluates incoming CVEs, bug bounty submissions, and security findings against structured dismissal/acceptance criteria before escalating to deeper analysis.",
       "author": {
@@ -882,17 +996,18 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/vulnerability-triage-brocards"
     },
     {
       "name": "github-triage",
-      "version": "0.1.1786134195",
+      "version": "0.1.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/github-triage",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Triages a repository's open GitHub issues and pull requests via the gh CLI: optionally merges ready bot and maintainer-approved PRs and spawns review subagents for unreviewed ones, closes already-resolved issues with referenced explanations, cross-links issues with pending fix PRs, and assigns local-only priority and change-size estimates.",
       "author": {
@@ -900,17 +1015,18 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/github-triage"
     },
     {
       "name": "open-sourcing",
-      "version": "0.1.1786134195",
+      "version": "0.1.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/open-sourcing",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Prepares a repository for public open-source release: secrets-history hygiene, license selection, documentation and CI readiness checks, and language-specific packaging and release guidance.",
       "author": {
@@ -918,17 +1034,18 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/open-sourcing"
     },
     {
       "name": "writing-lean-proofs",
-      "version": "0.1.1786134195",
+      "version": "0.1.1786392193",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/writing-lean-proofs",
         "ref": "main",
-        "sha": "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+        "sha": "94abac91caaacad4a27985456d0ce0838d74ec42"
       },
       "description": "Structured Lean 4 proof writing and library design following Mathlib conventions",
       "author": {
@@ -936,7 +1053,8 @@
         "email": "opensource@trailofbits.com"
       },
       "repository": "https://github.com/trailofbits/skills",
-      "license": "CC-BY-SA-4.0"
+      "license": "CC-BY-SA-4.0",
+      "skills": "./skills/writing-lean-proofs"
     },
     {
       "name": "snowflake-labs-coco-skills",
@@ -951,7 +1069,30 @@
       "author": {
         "name": "Snowflake-Labs"
       },
-      "repository": "https://github.com/Snowflake-Labs/coco-skills"
+      "repository": "https://github.com/Snowflake-Labs/coco-skills",
+      "skills": [
+        "./skills/check-agent-access",
+        "./skills/dcr-v1-to-v2",
+        "./skills/manage-zerocopy-sapbdc",
+        "./skills/mlops",
+        "./skills/ontology-stack-builder",
+        "./skills/openflow-spcs-privatelink",
+        "./skills/quickstart-guide",
+        "./skills/rbac",
+        "./skills/review-skill-sflabs",
+        "./skills/semantic-view-patterns",
+        "./skills/snowflake-docs",
+        "./skills/snowpipe-bcdr",
+        "./skills/snowpro-study",
+        "./skills/solutions-installer",
+        "./skills/spec-driven",
+        "./skills/spec-driven/bugfix",
+        "./skills/spec-driven/evolve",
+        "./skills/spec-driven/feature",
+        "./skills/spec-driven/implement",
+        "./skills/spec-driven/refactor",
+        "./skills/well-architected-framework-assessment"
+      ]
     }
   ]
 }

@@ -340,12 +340,19 @@ async function recordPluginSkills(
   if (roots.size === 0) roots.add(posix.join(subdirectory, "skills"));
 
   const seen = new Set();
+  const discoveredSkills = [];
   for (const entry of context.files.filter(file => /(^|\/)SKILL\.md$/.test(file.path))) {
     if (![...roots].some(directory => pathIsInside(entry.path, directory)) || seen.has(entry.path)) continue;
     seen.add(entry.path);
     const fallback = posix.basename(posix.dirname(entry.path));
     const frontmatter = parseSkillFrontmatter((await readBlob(context, entry.sha)).toString("utf8"), fallback);
+    const directory = posix.dirname(entry.path);
+    const relativeDirectory = subdirectory ? posix.relative(subdirectory, directory) : directory;
+    discoveredSkills.push(relativeDirectory === "." ? "." : `./${relativeDirectory}`);
     skillRecords.push({ plugin, context, skillPath: entry.path, name: frontmatter.name, ...recordMetadata });
+  }
+  if (plugin.skills === undefined && discoveredSkills.length > 0) {
+    plugin.skills = discoveredSkills.length === 1 ? discoveredSkills[0] : discoveredSkills;
   }
 }
 
