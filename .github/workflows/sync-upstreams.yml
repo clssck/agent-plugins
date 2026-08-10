@@ -1,0 +1,39 @@
+name: Sync GitHub skills
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: sync-github-skills
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve GitHub skill repositories
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/sync-catalog.mjs
+
+      - name: Publish resolved skill links
+        run: |
+          if git diff --quiet -- .omp-plugin/marketplace.json README.md; then
+            echo "GitHub skill catalog and README are current."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .omp-plugin/marketplace.json README.md
+          git commit -m "Update GitHub skill index"
+          git push

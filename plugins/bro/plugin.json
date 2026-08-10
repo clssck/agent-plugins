@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "bro",
+  "version": "1.1.0",
+  "description": "Restate the assistant's previous response in plain, concise language.",
+  "author": {
+    "name": "clssck"
+  },
+  "homepage": "https://github.com/clssck/agent-plugins/tree/main/plugins/bro",
+  "repository": "https://github.com/clssck/agent-plugins",
+  "license": "MIT",
+  "keywords": ["writing", "clarity", "plain-language"]
+}
