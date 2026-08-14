@@ -92,12 +92,12 @@
     },
     {
       "name": "document-skills",
-      "version": "1.0.1786122854",
+      "version": "1.0.1786644594",
       "source": {
         "source": "github",
         "repo": "anthropics/skills",
         "ref": "main",
-        "sha": "f17010c9bb483898c1d9c9f42dde2b3a98889434"
+        "sha": "f6656c1256d5a8adfa37db9110046ef20bac644c"
       },
       "skills": [
         "./skills/xlsx",
@@ -113,12 +113,12 @@
     },
     {
       "name": "example-skills",
-      "version": "1.0.1786122854",
+      "version": "1.0.1786644594",
       "source": {
         "source": "github",
         "repo": "anthropics/skills",
         "ref": "main",
-        "sha": "f17010c9bb483898c1d9c9f42dde2b3a98889434"
+        "sha": "f6656c1256d5a8adfa37db9110046ef20bac644c"
       },
       "skills": [
         "./skills/algorithmic-art",
@@ -142,12 +142,12 @@
     },
     {
       "name": "claude-api",
-      "version": "1.0.1786122854",
+      "version": "1.0.1786644594",
       "source": {
         "source": "github",
         "repo": "anthropics/skills",
         "ref": "main",
-        "sha": "f17010c9bb483898c1d9c9f42dde2b3a98889434"
+        "sha": "f6656c1256d5a8adfa37db9110046ef20bac644c"
       },
       "skills": [
         "./skills/claude-api"
