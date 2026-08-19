@@ -26,12 +26,12 @@
     },
     {
       "name": "emilkowalski-skills",
-      "version": "1.0.1786370304",
+      "version": "1.0.1787058990",
       "source": {
         "source": "github",
         "repo": "emilkowalski/skills",
         "ref": "main",
-        "sha": "78761e1b57f97dce65b983d640c70a68f39e8163"
+        "sha": "e879241fab3cdb22e8d95587cdbf40b57a88d7da"
       },
       "description": "Skills for Designers and Engineers.",
       "author": {
@@ -67,12 +67,12 @@
     },
     {
       "name": "lavish-axi",
-      "version": "0.1.1786943699",
+      "version": "0.1.1787077372",
       "source": {
         "source": "github",
         "repo": "kunchenguid/lavish-axi",
         "ref": "main",
-        "sha": "303de23c72ae65e2e994dbc1935b7643125af533"
+        "sha": "98f9f649bd6a976ce3c93e117743921b414fed15"
       },
       "description": "HTML is the new markdown. Lavish is the new editor for your HTML artifacts.",
       "author": {
@@ -92,12 +92,12 @@
     },
     {
       "name": "document-skills",
-      "version": "1.0.1786987390",
+      "version": "1.0.1787068925",
       "source": {
         "source": "github",
         "repo": "anthropics/skills",
         "ref": "main",
-        "sha": "f379e5ad66e2febc1616cf8d6284666fecbe514e"
+        "sha": "0a64e398ec6bb34a494f0c347e8ccae53a862f8e"
       },
       "skills": [
         "./skills/xlsx",
@@ -113,12 +113,12 @@
     },
     {
       "name": "example-skills",
-      "version": "1.0.1786987390",
+      "version": "1.0.1787068925",
       "source": {
         "source": "github",
         "repo": "anthropics/skills",
         "ref": "main",
-        "sha": "f379e5ad66e2febc1616cf8d6284666fecbe514e"
+        "sha": "0a64e398ec6bb34a494f0c347e8ccae53a862f8e"
       },
       "skills": [
         "./skills/algorithmic-art",
@@ -142,12 +142,12 @@
     },
     {
       "name": "claude-api",
-      "version": "1.0.1786987390",
+      "version": "1.0.1787068925",
       "source": {
         "source": "github",
         "repo": "anthropics/skills",
         "ref": "main",
-        "sha": "f379e5ad66e2febc1616cf8d6284666fecbe514e"
+        "sha": "0a64e398ec6bb34a494f0c347e8ccae53a862f8e"
       },
       "skills": [
         "./skills/claude-api"
@@ -159,16 +159,16 @@
       "repository": "https://github.com/anthropics/skills"
     },
     {
-      "name": "claude-academy-guide",
-      "version": "1.0.1786987390",
+      "name": "academy-guide",
+      "version": "1.0.1787068925",
       "source": {
         "source": "github",
         "repo": "anthropics/skills",
         "ref": "main",
-        "sha": "f379e5ad66e2febc1616cf8d6284666fecbe514e"
+        "sha": "0a64e398ec6bb34a494f0c347e8ccae53a862f8e"
       },
       "skills": [
-        "./skills/claude-academy-guide"
+        "./skills/academy-guide"
       ],
       "description": "Recommends relevant Claude Academy courses, tutorials, and use cases when users ask how to use Claude",
       "author": {
@@ -178,12 +178,12 @@
     },
     {
       "name": "discernment-nudge",
-      "version": "1.0.1786987390",
+      "version": "1.0.1787068925",
       "source": {
         "source": "github",
         "repo": "anthropics/skills",
         "ref": "main",
-        "sha": "f379e5ad66e2febc1616cf8d6284666fecbe514e"
+        "sha": "0a64e398ec6bb34a494f0c347e8ccae53a862f8e"
       },
       "skills": [
         "./skills/discernment-nudge"
@@ -196,13 +196,13 @@
     },
     {
       "name": "hf-cli",
-      "version": "1.0.1786107268",
+      "version": "1.0.1787067309",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/huggingface/skills.git",
         "path": "skills/hf-cli",
         "ref": "main",
-        "sha": "ec0108293521ef698e451ec044e8b4feba6b732b"
+        "sha": "020194918dc4a27d5a5d9a154b6b56cc2bd21364"
       },
       "skills": "./",
       "description": "Execute Hugging Face Hub operations using the hf CLI. Install additional Hugging Face skills, discover agent resources, download models/datasets, upload files, manage repos, and run cloud compute jobs.",
@@ -255,13 +255,13 @@
     },
     {
       "name": "audit-context-building",
-      "version": "2.0.1786970064",
+      "version": "2.0.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/audit-context-building",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Understand a codebase before looking for bugs in it. Reads it function by function, records what each one assumes and depends on, and saves the write-ups to files instead of filling up the conversation.",
       "author": {
@@ -272,13 +272,13 @@
     },
     {
       "name": "building-secure-contracts",
-      "version": "1.1.1786970064",
+      "version": "1.1.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/building-secure-contracts",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Comprehensive smart contract security toolkit based on Trail of Bits' Building Secure Contracts framework. Includes vulnerability scanners for 6 blockchains and 5 development guideline assistants.",
       "author": {
@@ -289,13 +289,13 @@
     },
     {
       "name": "burpsuite-project-parser",
-      "version": "1.0.1786970064",
+      "version": "1.0.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/burpsuite-project-parser",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Search and extract data from Burp Suite project files (.burp) for security analysis",
       "author": {
@@ -306,13 +306,13 @@
     },
     {
       "name": "claude-in-chrome-troubleshooting",
-      "version": "1.1.1786970064",
+      "version": "1.1.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/claude-in-chrome-troubleshooting",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Diagnose and fix Claude in Chrome MCP extension connectivity issues",
       "author": {
@@ -323,13 +323,13 @@
     },
     {
       "name": "constant-time-analysis",
-      "version": "0.2.1786970064",
+      "version": "0.2.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/constant-time-analysis",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Detect compiler-induced timing side-channels in cryptographic code",
       "author": {
@@ -341,13 +341,13 @@
     },
     {
       "name": "culture-index",
-      "version": "1.1.1786970064",
+      "version": "1.1.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/culture-index",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Interprets Culture Index survey results for individuals and teams",
       "author": {
@@ -358,13 +358,13 @@
     },
     {
       "name": "devcontainer-setup",
-      "version": "0.2.1786970064",
+      "version": "0.2.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/devcontainer-setup",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Create pre-configured devcontainers with Claude Code and language-specific tooling",
       "author": {
@@ -375,13 +375,13 @@
     },
     {
       "name": "differential-review",
-      "version": "1.1.1786970064",
+      "version": "1.1.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/differential-review",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Security-focused differential review of code changes with git history analysis and blast radius estimation",
       "author": {
@@ -392,13 +392,13 @@
     },
     {
       "name": "firebase-apk-scanner",
-      "version": "2.1.1786970064",
+      "version": "2.1.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/firebase-apk-scanner",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Scan Android APKs for Firebase security misconfigurations including open databases, storage buckets, authentication issues, and exposed cloud functions. For authorized security research only.",
       "author": {
@@ -409,13 +409,13 @@
     },
     {
       "name": "gh-cli",
-      "version": "1.5.1786970064",
+      "version": "1.5.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/gh-cli",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Intercepts GitHub URL fetches and curl/wget commands, redirecting to the authenticated gh CLI.",
       "author": {
@@ -427,13 +427,13 @@
     },
     {
       "name": "dwarf-expert",
-      "version": "1.1.1786970064",
+      "version": "1.1.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/dwarf-expert",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Analyze DWARF debug information: parse and search DIEs with dwarfdump and readelf, verify debug info integrity, and write DWARF parsing code",
       "author": {
@@ -445,13 +445,13 @@
     },
     {
       "name": "entry-point-analyzer",
-      "version": "1.0.1786970064",
+      "version": "1.0.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/entry-point-analyzer",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Analyzes smart contract codebases to identify state-changing entry points for security auditing. Detects externally callable functions that modify state, categorizes them by access level, and generates structured audit reports.",
       "author": {
@@ -463,13 +463,13 @@
     },
     {
       "name": "mutation-testing",
-      "version": "1.0.1786970064",
+      "version": "1.0.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/mutation-testing",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Configures mewt or muton mutation testing campaigns — scopes targets, tunes timeouts, and optimizes long-running runs. Use when the user mentions mewt, muton, mutation testing, or wants to configure or optimize a mutation testing campaign.",
       "author": {
@@ -481,13 +481,13 @@
     },
     {
       "name": "property-based-testing",
-      "version": "1.2.1786970064",
+      "version": "1.2.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/property-based-testing",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Write, review, and triage property-based tests — Hypothesis, fast-check, proptest, and Echidna or Medusa for Solidity invariants",
       "author": {
@@ -499,13 +499,13 @@
     },
     {
       "name": "semgrep-rule-creator",
-      "version": "1.2.1786970064",
+      "version": "1.2.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/semgrep-rule-creator",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Create custom Semgrep rules for detecting bug patterns and security vulnerabilities",
       "author": {
@@ -516,13 +516,13 @@
     },
     {
       "name": "semgrep-rule-variant-creator",
-      "version": "1.1.1786970064",
+      "version": "1.1.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/semgrep-rule-variant-creator",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Creates language variants of existing Semgrep rules with proper applicability analysis and test-driven validation",
       "author": {
@@ -534,13 +534,13 @@
     },
     {
       "name": "sharp-edges",
-      "version": "1.1.1786970064",
+      "version": "1.1.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/sharp-edges",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Identify error-prone APIs, dangerous configurations, and footgun designs that enable security mistakes",
       "author": {
@@ -552,13 +552,13 @@
     },
     {
       "name": "static-analysis",
-      "version": "1.3.1786970064",
+      "version": "1.3.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/static-analysis",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Static analysis toolkit with CodeQL, Semgrep, and SARIF parsing for security vulnerability detection",
       "author": {
@@ -569,13 +569,13 @@
     },
     {
       "name": "spec-to-code-compliance",
-      "version": "2.0.1786970064",
+      "version": "2.0.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/spec-to-code-compliance",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Check code against the documentation that specifies it: one agent per requirement, divergences refuted before they are reported, evidence cited to the line",
       "author": {
@@ -586,13 +586,13 @@
     },
     {
       "name": "testing-handbook-skills",
-      "version": "1.0.1786970064",
+      "version": "1.0.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/testing-handbook-skills",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Skills from the Trail of Bits Application Security Testing Handbook (appsec.guide)",
       "author": {
@@ -603,13 +603,13 @@
     },
     {
       "name": "trailmark",
-      "version": "0.10.1786970064",
+      "version": "0.10.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/trailmark",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Builds multi-language source and binary code graphs for security analysis: call graphs, attack surface mapping, blast radius, taint propagation, complexity hotspots, entry point enumeration, proxy/unresolved-call tracking, type/reference analysis, and structural diffs. Creates bounded, graph-informed source packets for delegating focused work to constrained subagents. Generates Mermaid diagrams, runs graph-informed mutation testing triage (genotoxic), generates mutation-driven test vectors (vector-forge), extracts crypto protocol message flows, converts Mermaid diagrams to ProVerif models, projects SARIF/weAudit/binary findings onto code graphs, triages single findings with graph evidence, gates branch diffs for structural review regressions, and expands seed findings into variant-neighborhood candidates. Use when analyzing call paths, slicing source context for smaller models, mapping attack surface, visualizing code architecture, triaging survived mutants, generating cryptographic test vectors, diagramming crypto protocols, formally verifying protocols, augmenting audits with static analysis findings, deciding whether one candidate issue is reachable, reviewing graph-level PR risk, or seeding variant analysis.",
       "author": {
@@ -620,13 +620,13 @@
     },
     {
       "name": "variant-analysis",
-      "version": "2.0.1786970064",
+      "version": "2.0.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/variant-analysis",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Find similar vulnerabilities and bugs across codebases using pattern-based analysis",
       "author": {
@@ -637,13 +637,13 @@
     },
     {
       "name": "c-review",
-      "version": "1.2.1786970064",
+      "version": "1.2.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/c-review",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Comprehensive C/C++ security code review with specialized bug-finding agents covering memory safety, type safety, concurrency, and Linux/Windows userspace-specific issues",
       "author": {
@@ -666,13 +666,13 @@
     },
     {
       "name": "rust-review",
-      "version": "1.0.1786970064",
+      "version": "1.0.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/rust-review",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Comprehensive Rust security code review with specialized bug-finding agents covering the safe/unsafe boundary, memory safety in unsafe blocks, concurrency, panic-induced DoS, recursion-induced stack overflow, FFI, and async runtime hazards",
       "author": {
@@ -694,13 +694,13 @@
     },
     {
       "name": "modern-python",
-      "version": "1.5.1786970064",
+      "version": "1.6.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/modern-python",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Modern Python best practices. Use when creating new Python projects, and writing Python scripts, or migrating existing projects from legacy tools.",
       "author": {
@@ -712,13 +712,13 @@
     },
     {
       "name": "insecure-defaults",
-      "version": "2.0.1786970064",
+      "version": "2.0.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/insecure-defaults",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Detects insecure default configurations including hardcoded credentials, fallback secrets, weak authentication defaults, and dangerous values in production",
       "author": {
@@ -730,13 +730,13 @@
     },
     {
       "name": "second-opinion",
-      "version": "1.7.1786970064",
+      "version": "1.7.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/second-opinion",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Runs code reviews using external LLM CLIs (OpenAI Codex, Google Gemini) on uncommitted changes, branch diffs, or specific commits. Bundles Codex's built-in MCP server for direct tool access.",
       "author": {
@@ -747,13 +747,13 @@
     },
     {
       "name": "yara-authoring",
-      "version": "2.1.1786970064",
+      "version": "2.1.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/yara-authoring",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "YARA-X detection rule authoring with linting and quality analysis",
       "author": {
@@ -765,13 +765,13 @@
     },
     {
       "name": "git-cleanup",
-      "version": "1.0.1786970064",
+      "version": "1.0.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/git-cleanup",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Safely analyzes and cleans up local git branches and worktrees by categorizing them as merged, squash-merged, superseded, or active work.",
       "author": {
@@ -782,14 +782,31 @@
       "license": "CC-BY-SA-4.0"
     },
     {
+      "name": "goal-prompt",
+      "version": "0.1.1787115762",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/trailofbits/skills.git",
+        "path": "plugins/goal-prompt",
+        "ref": "main",
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
+      },
+      "description": "Drafts copy-ready /goal commands for goal mode in Claude Code and Codex: verifiable completion conditions with stop bounds, normalized to a single line under the 4,000-character cap.",
+      "author": {
+        "name": "Paweł Płatek"
+      },
+      "repository": "https://github.com/trailofbits/skills",
+      "license": "CC-BY-SA-4.0"
+    },
+    {
       "name": "supply-chain-risk-auditor",
-      "version": "2.0.1786970064",
+      "version": "2.0.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/supply-chain-risk-auditor",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Audit a project's npm, PyPI, and Go dependencies for supply-chain risk: version-matched advisories for direct dependencies and the full lockfile tree, abandoned upstreams, npm publisher concentration, and install scripts",
       "author": {
@@ -810,13 +827,13 @@
     },
     {
       "name": "zeroize-audit",
-      "version": "0.1.1786970064",
+      "version": "0.1.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/zeroize-audit",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Detects missing or compiler-optimized zeroization of sensitive data with assembly and control-flow analysis",
       "author": {
@@ -828,13 +845,13 @@
     },
     {
       "name": "let-fate-decide",
-      "version": "1.2.1786970064",
+      "version": "1.2.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/let-fate-decide",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Draws the 12 Houses of the Zodiac Tarot spread using cryptographic randomness to add 100+ bits of entropy to vague or underspecified planning. Interprets the spread to guide next steps. Use when feeling lucky, invoking heart-of-the-cards energy, or when prompts are ambiguous.",
       "author": {
@@ -845,13 +862,13 @@
     },
     {
       "name": "agentic-actions-auditor",
-      "version": "1.2.1786970064",
+      "version": "1.2.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/agentic-actions-auditor",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Audits GitHub Actions workflows for security vulnerabilities in AI agent integrations (Claude Code Action, Gemini CLI, OpenAI Codex, GitHub AI Inference)",
       "author": {
@@ -862,13 +879,13 @@
     },
     {
       "name": "skill-improver",
-      "version": "1.1.1786970064",
+      "version": "1.1.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/skill-improver",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Automatically reviews and fixes Claude Code skills through iterative refinement until they meet quality standards. Requires plugin-dev plugin.",
       "author": {
@@ -879,13 +896,13 @@
     },
     {
       "name": "fp-check",
-      "version": "1.0.1786970064",
+      "version": "1.0.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/fp-check",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Systematic false positive verification for security bug analysis with mandatory gate reviews",
       "author": {
@@ -896,13 +913,13 @@
     },
     {
       "name": "dimensional-analysis",
-      "version": "3.0.1786970064",
+      "version": "3.0.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/dimensional-analysis",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Annotates codebases with dimensional analysis comments documenting units, dimensions, and decimal scaling. Use when someone asks to annotate units in a codebase, perform a dimensional analysis, or find vulnerabilities in a DeFi protocol. Prevents dimensional mismatches and catches formula bugs early.",
       "author": {
@@ -914,13 +931,13 @@
     },
     {
       "name": "vulnerability-triage-brocards",
-      "version": "0.1.1786970064",
+      "version": "0.1.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/vulnerability-triage-brocards",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Principled framework for triaging vulnerability reports using 7 brocards (rules of thumb). Evaluates incoming CVEs, bug bounty submissions, and security findings against structured dismissal/acceptance criteria before escalating to deeper analysis.",
       "author": {
@@ -932,13 +949,13 @@
     },
     {
       "name": "github-triage",
-      "version": "0.1.1786970064",
+      "version": "0.1.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/github-triage",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Triages a repository's open GitHub issues and pull requests via the gh CLI: optionally merges ready bot and maintainer-approved PRs and spawns review subagents for unreviewed ones, closes already-resolved issues with referenced explanations, cross-links issues with pending fix PRs, and assigns local-only priority and change-size estimates.",
       "author": {
@@ -950,13 +967,13 @@
     },
     {
       "name": "open-sourcing",
-      "version": "0.1.1786970064",
+      "version": "0.1.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/open-sourcing",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Prepares a repository for public open-source release: secrets-history hygiene, license selection, documentation and CI readiness checks, and language-specific packaging and release guidance.",
       "author": {
@@ -968,13 +985,13 @@
     },
     {
       "name": "writing-lean-proofs",
-      "version": "0.1.1786970064",
+      "version": "0.1.1787115762",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/trailofbits/skills.git",
         "path": "plugins/writing-lean-proofs",
         "ref": "main",
-        "sha": "04b241176fd9c10738a61df53d2c677c53e42990"
+        "sha": "07bce8a2c8ccc56c5b44b7067a04b8bf46128f05"
       },
       "description": "Structured Lean 4 proof writing and library design following Mathlib conventions",
       "author": {
