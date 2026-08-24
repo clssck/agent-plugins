@@ -31,8 +31,7 @@
       "description": "Astronomer data-engineering and Airflow skills bundled with Snowflake Cortex Code (CoCo).",
       "author": {
         "name": "Astronomer",
-        "email": "support@astronomer.io",
-        "url": "https://github.com/astronomer/agents"
+        "email": "support@astronomer.io"
       },
       "homepage": "https://github.com/astronomer/agents",
       "repository": "https://github.com/clssck/agent-plugins",
