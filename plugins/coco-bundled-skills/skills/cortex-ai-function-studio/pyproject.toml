@@ -1,0 +1,133 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+
+[project]
+name = "cortex-ai-function-studio"
+version = "0.1.0"
+description = "Cortex AI Function Studio: Create, evaluate, and optimize custom AI functions using Snowflake Cortex AI_COMPLETE"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "datasets>=2.0.0",
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "scikit-learn>=1.3.0",
+    "snowflake-connector-python>=3.0.0",
+    "snowflake-snowpark-python>=1.0.0",
+    # Provides the snowflake.ml.dataset API used by the eval/opt YAML handler to
+    # read a Snowflake DATASET object's selected version as a Snowpark DataFrame
+    # (SNOW-3802299). Ships in the caifs sproc bundle alongside snowpark; the
+    # monorepo frozen_solve is updated separately.
+    "snowflake-ml-python>=1.0.0",
+    "gepa==0.1.1",
+    "jinja2>=3.0.0",
+    "pyyaml>=6.0",
+]
+
+[tool.uv]
+constraint-dependencies = [
+    # snowflake-ml-python→shap→numba/llvmlite: old versions of both packages
+    # hide their Python version guards in setup.py (not in wheel metadata), so
+    # uv picks them during fresh resolution and then fails to build from source.
+    # llvmlite<0.43 setup.py rejects Python>=3.10; numba<0.59 has no cp312
+    # wheels and depends on numpy.distutils (removed in NumPy 2.0).
+    # These floors keep fresh resolutions (no lock file, e.g. cortex-code-skills
+    # CI) on the compatible branch for the macOS-Intel platform variant.
+    "llvmlite>=0.43.0",
+    "numba>=0.59.0",
+]
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+snowflake-ai-optimize-core = { workspace = true }
+snowflake-ai-optimize-gepa = { workspace = true }
+snowflake-ai-optimize-synthetic = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "mypy>=1.10",
+    "hydra-core>=1.3",
+    "hydra-zen>=0.12",
+    "omegaconf>=2.3",
+    "snowflake-ai-optimize-core",
+    "snowflake-ai-optimize-gepa",
+    "snowflake-ai-optimize-synthetic",
+    "ruff>=0.15.17",
+    "pre-commit>=4.6.0",
+]
+test = [
+    "pytest>=8.0.0",
+    "pytest-xdist>=3.0",
+    # Parse the optimize input-type scenario YAMLs
+    # (tests/_optimize_scenario.py, used by the input-types e2e test).
+    "pyyaml>=6.0",
+    # Transitive deps of the vendored ``openevolve`` package (imported via
+    # a sys.path shim in tests/conftest.py) so the evolve / evolve_agent
+    # modes register in-process for the all-modes benchmark e2e test.
+    # ``openevolve`` itself is vendored (not pip-installable); these are
+    # the only Anaconda deps it needs that aren't already top-level deps.
+    "dacite>=1.8",
+    "openai>=1.0",
+    "snowflake-ai-optimize-core",
+    "snowflake-ai-optimize-gepa",
+    "snowflake-ai-optimize-synthetic",
+]
+
+[tool.ruff]
+line-length = 88
+exclude = ["packages/snowflake-ai-optimize-evolve/src/snowflake_ai_optimize/evolve/openevolve"]
+
+[tool.ruff.lint]
+select = [
+    "B",
+    "C4",   # flake8-comprehensions
+    "D",
+    "E",
+    "F",
+    "I",
+    "RUF",
+    "SIM",
+    "UP",
+    "W",
+]
+ignore = [
+    "C408",   # unnecessary dict/list/tuple call — prefer literals
+    "D1",     # missing docstring rules — enforce gradually
+    "D203",  # incompatible with D211 (no-blank-line-before-class); google convention uses D211
+    "D213",  # incompatible with D212 (multi-line-summary-first-line); google convention uses D212
+    "E501",   # line length — handled by ruff-format
+    "E731",
+    "E741",
+    "RUF001",
+    "RUF002",
+    "RUF003",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["snowflake_ai_optimize", "handlers"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.pycodestyle]
+max-doc-length = 88
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true  # snowflake-connector/snowpark lack complete stubs
+exclude = ["packages/snowflake-ai-optimize-evolve/src/snowflake_ai_optimize/evolve/openevolve"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["handlers", "scripts", "tests"]
+# Run test files in parallel; --dist=loadfile keeps all tests within the same
+# file on one worker, so module-scoped fixtures are not split across workers.
+addopts = "-n auto --dist=loadfile"
+markers = [
+    "e2e: end-to-end tests requiring a Snowflake connection",
+]

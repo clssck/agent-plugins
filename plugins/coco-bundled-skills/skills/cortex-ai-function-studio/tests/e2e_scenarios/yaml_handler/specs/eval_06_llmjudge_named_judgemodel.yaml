@@ -1,0 +1,19 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+#
+# Eval SPEC: user function, llm-judge metric with an explicit judge_model
+# (normalizes to metric_name=llm_judge on the run), single run.
+function:
+  function_name: __FUNCTION__
+metrics:
+  - name: llm-judge
+    judge_model: llama3.1-8b
+dataset:
+  name: __TABLE__
+  column_mapping:
+    argument_mapping:
+      TEXT: TEXT
+    ground_truth: EXPECTED_LABEL
+evaluation:
+  num_eval_runs: 1

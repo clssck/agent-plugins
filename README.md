@@ -261,5 +261,5 @@ omp plugin marketplace remove clssck-skills
 
 `omp plugin marketplace remove` drops the registry entry and catalog cache; it does not uninstall plugins, so repoint them first or they keep resolving from the stale cache.
 
-Two deliberate differences from the old repository: locally authored plugins target the Agent Plugins format rather than `.claude-plugin/plugin.json`, and the 68 vendored Snowflake Cortex Code directories were not carried over. Those were proprietary, absent from `localPlugins`, and contributed no catalog entries.
+Two deliberate differences from the old repository: locally authored plugins target the Agent Plugins format rather than `.claude-plugin/plugin.json`, and the Snowflake Cortex Code (CoCo) bundled skills are now packaged as `coco-bundled-skills` under written redistribution permission; CoCo and every included skill are named in the repository catalog and plugin attribution.
 

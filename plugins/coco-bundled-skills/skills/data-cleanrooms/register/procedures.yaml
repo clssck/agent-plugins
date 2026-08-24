@@ -1,0 +1,63 @@
+# Machine-readable procedure definitions for register sub-skill
+# This file is the source of truth for:
+#   1. Generating intent YAML files (native_app)
+#   2. Validating SKILL.md documentation
+#
+# Usage:
+#   python ../scripts/skill_intent_converter.py skill-to-intent --skill-dir . --output register.yaml
+#   python ../scripts/skill_intent_converter.py validate --skill-dir .
+
+metadata:
+  intent_id: register
+  intent_name: Register Data Offerings and Templates
+  intent_description: User wants to register data offerings or templates for use in collaborations.
+  intent_category: collaboration
+  enabled_for_agents:
+    - dcr_agent
+    - dcr_agent_next
+  release_status: released
+
+triggers:
+  - "register data offering"
+  - "register offering"
+  - "register table"
+  - "share table"
+  - "create data offering"
+  - "register template"
+  - "create template"
+  - "define template"
+  - "add analysis template"
+
+procedures:
+  - name: "{DB}.REGISTRY.REGISTER_DATA_OFFERING"
+    description: "Register a data offering (tables/views) for use in collaborations"
+    params: [OFFERING_SPEC]
+    output_format: json
+    when: "User wants to share their data in a collaboration"
+    display: "registration confirmation"
+    stopping_point: true
+    stopping_reason: "Confirm data offering specification before registration"
+
+  - name: "{DB}.REGISTRY.REGISTER_TEMPLATE"
+    description: "Register a JinjaSQL template for use in collaboration analyses"
+    params: [TEMPLATE_SPEC]
+    output_format: json
+    when: "User wants to create a new analysis template"
+    display: "registration confirmation"
+    stopping_point: true
+    stopping_reason: "Confirm template specification before registration"
+
+  - name: "{DB}.REGISTRY.VIEW_REGISTERED_DATA_OFFERINGS"
+    description: "List all data offerings registered in the account"
+    params: []
+    output_format: table
+    when: "User wants to verify data offering registration"
+    display: "all registered data offerings"
+
+  - name: "{DB}.REGISTRY.VIEW_REGISTERED_TEMPLATES"
+    description: "List all templates registered in the account"
+    params: []
+    output_format: table
+    when: "User wants to verify template registration"
+    display: "all registered templates"
+

@@ -1,0 +1,1408 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+
+"""Synthetic Data and pseudo-label generation for AI function workflows.
+
+This file is designed to be embedded directly into Snowflake Python SPROCs.
+It supports:
+1) Fully synthetic data generation from task descriptions
+2) Pseudo-labeling existing input-only tables
+"""
+
+import ast
+import json
+import re
+from collections.abc import Mapping
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from textwrap import dedent
+from typing import Any
+
+from snowflake.snowpark import Session
+from snowflake.snowpark.functions import col, parse_json
+
+from snowflake_ai_optimize.core.session import RobustAIComplete
+from snowflake_ai_optimize.core.sproc_decorators import (
+    surface_sproc_error,
+    with_custom_ai_function_query_tag,
+)
+from snowflake_ai_optimize.core.sql_utils import describe_function
+
+_IDENTIFIER_RE = re.compile(r"^[A-Z_][A-Z0-9_]*$")
+_MISSING = object()
+PSEUDO_LABEL_MODEL = "claude-opus-4-6"
+
+
+def _sf_null_to_none[T](val: T) -> T | None:
+    """Convert Snowflake sqlNullWrapper (and other null-like) values to Python None."""
+    if val is None:
+        return None
+    if type(val).__name__ == "sqlNullWrapper":
+        return None
+    return val
+
+
+def _normalize_identifier(name: str) -> str:
+    """Normalize and validate a Snowflake identifier (unquoted).
+
+    We keep this intentionally strict to prevent SQL injection via dynamic
+    column names. Identifiers are uppercased and must match [A-Z_][A-Z0-9_]*.
+    """
+    if not isinstance(name, str):
+        raise TypeError(f"Identifier must be a string, got {type(name).__name__}")
+    normalized = name.strip().upper()
+    if not normalized:
+        raise ValueError("Identifier cannot be empty")
+    if not _IDENTIFIER_RE.fullmatch(normalized):
+        raise ValueError(
+            f"Invalid identifier: {name!r}. Use only letters, digits, and underscores; "
+            "start with a letter or underscore."
+        )
+    return normalized
+
+
+def _normalize_columns(columns: object | None, *, name: str) -> list[str]:
+    """Normalize required column identifiers from ARRAY/list/CSV inputs."""
+    if columns is None:
+        raise ValueError(f"{name} is required and cannot be NULL")
+    if isinstance(columns, list | tuple):
+        cols = list(columns)
+    elif isinstance(columns, str):
+        # Allow passing a comma-separated string for convenience.
+        cols = [c.strip() for c in columns.split(",") if c.strip()]
+    else:
+        raise TypeError(
+            f"{name} must be an ARRAY/list or comma-separated string; got {type(columns).__name__}"
+        )
+
+    if not cols:
+        raise ValueError(f"{name} is required and cannot be empty")
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for c in cols:
+        col_name = _normalize_identifier(str(c))
+        if col_name in seen:
+            continue
+        normalized.append(col_name)
+        seen.add(col_name)
+
+    if not normalized:
+        raise ValueError(f"{name} is required and cannot be empty")
+    return normalized
+
+
+def _normalize_input_columns(input_columns: object | None) -> list[str]:
+    """Normalize INPUT_COLUMNS argument into a validated list of identifiers."""
+    return _normalize_columns(input_columns, name="INPUT_COLUMNS")
+
+
+# Helper utilities for FUNCTION_NAME -> DESCRIBE FUNCTION -> response_format.schema.
+def _extract_balanced_parenthesized_content(text: str) -> str:
+    """Extract the argument type list from SHOW FUNCTIONS output.
+
+    Reads the argument type list from a ``SHOW FUNCTIONS`` ``arguments`` value
+    so ``_extract_input_type_map()`` can map input columns to their declared
+    SQL types.
+    """
+    start = text.find("(")
+    if start < 0:
+        raise ValueError(f"Could not parse function signature: {text}")
+
+    depth = 0
+    content_start = -1
+    for idx in range(start, len(text)):
+        ch = text[idx]
+        if ch == "(":
+            depth += 1
+            if depth == 1:
+                content_start = idx + 1
+        elif ch == ")":
+            if depth == 0:
+                raise ValueError(f"Could not parse function signature: {text}")
+            depth -= 1
+            if depth == 0 and content_start >= 0:
+                return text[content_start:idx]
+
+    raise ValueError(f"Could not parse function signature: {text}")
+
+
+def _extract_balanced_object_literal(text: str, start_idx: int) -> str | None:
+    """Extract the `response_format` object literal for schema inference.
+
+    Reads the `response_format` object literal from function DDL while
+    ignoring braces that appear inside quoted SQL/Python strings.
+    """
+    if start_idx < 0 or start_idx >= len(text) or text[start_idx] != "{":
+        return None
+
+    i = start_idx
+    depth = 0
+    in_single = False
+    in_double = False
+    escape = False
+
+    while i < len(text):
+        ch = text[i]
+
+        if in_single:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == "'":
+                # SQL-escaped apostrophe inside single-quoted string.
+                if i + 1 < len(text) and text[i + 1] == "'":
+                    i += 1
+                else:
+                    in_single = False
+            i += 1
+            continue
+
+        if in_double:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_double = False
+            i += 1
+            continue
+
+        if ch == "'":
+            in_single = True
+        elif ch == '"':
+            in_double = True
+        elif ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start_idx : i + 1]
+            if depth < 0:
+                return None
+
+        i += 1
+
+    return None
+
+
+def _normalize_sql_single_quotes_for_python(text: str) -> str:
+    """Convert SQL-style single-quote escaping for schema inference.
+
+    Converts SQL-style single-quote escaping from the function body into a
+    form that `ast.literal_eval()` can safely parse when recovering
+    `response_format`.
+    """
+    out: list[str] = []
+    i = 0
+    in_single = False
+    in_double = False
+    escape = False
+
+    while i < len(text):
+        ch = text[i]
+
+        if in_single:
+            if escape:
+                out.append(ch)
+                escape = False
+                i += 1
+                continue
+
+            if ch == "\\":
+                out.append(ch)
+                escape = True
+                i += 1
+                continue
+
+            if ch == "'":
+                if i + 1 < len(text) and text[i + 1] == "'":
+                    out.append("\\'")
+                    i += 2
+                    continue
+                out.append(ch)
+                in_single = False
+                i += 1
+                continue
+
+            out.append(ch)
+            i += 1
+            continue
+
+        if in_double:
+            out.append(ch)
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_double = False
+            i += 1
+            continue
+
+        out.append(ch)
+        if ch == "'":
+            in_single = True
+        elif ch == '"':
+            in_double = True
+        i += 1
+
+    return "".join(out)
+
+
+def _parse_response_format_from_body(body: str) -> dict[str, object]:
+    """Extract the response_format dict from a function body.
+
+    *body* is the raw function body (``FunctionDefinition.body`` from
+    ``describe_function``).  Handles two body styles:
+    1. Named parameter: response_format=>PARSE_JSON('{"type":"json","schema":{...}}')
+    2. Dict literal:    'response_format': {'type': 'json', 'schema': {...}}
+    """
+    ddl = body
+
+    # Style 1: named parameter with PARSE_JSON('...')
+    named_match = re.search(
+        r"response_format\s*=>\s*PARSE_JSON\s*\(\s*'", ddl, re.IGNORECASE
+    )
+    if named_match:
+        json_start = named_match.end()
+        # Walk forward to find the closing single quote, handling SQL-escaped ''
+        i = json_start
+        chars: list[str] = []
+        while i < len(ddl):
+            ch = ddl[i]
+            if ch == "'" and i + 1 < len(ddl) and ddl[i + 1] == "'":
+                chars.append("'")
+                i += 2
+            elif ch == "'":
+                break
+            else:
+                chars.append(ch)
+                i += 1
+        if i >= len(ddl):
+            raise ValueError(
+                "Unterminated PARSE_JSON string in function DDL: "
+                "no closing quote found after response_format=>PARSE_JSON('..."
+            )
+        json_str = "".join(chars)
+        try:
+            result: dict[str, object] = json.loads(json_str)
+            return result
+        except json.JSONDecodeError as exc:
+            raise ValueError(
+                f"Failed to parse response_format JSON from function DDL: {exc}"
+            ) from exc
+
+    # Style 2: dict-literal key inside an options object
+    rf_match = re.search(r"""['"]response_format['"]\s*:\s*""", ddl)
+    if not rf_match:
+        raise ValueError(
+            "Could not infer output schema: function DDL has no response_format. "
+            "Recreate function with a structured response_format."
+        )
+    start = rf_match.end()
+    while start < len(ddl) and ddl[start].isspace():
+        start += 1
+    if start >= len(ddl) or ddl[start] != "{":
+        raise ValueError(
+            "Could not parse response_format object from function DDL. "
+            "Recreate function with structured response_format."
+        )
+    snippet = _extract_balanced_object_literal(ddl, start)
+    if not snippet:
+        raise ValueError(
+            "Could not parse balanced response_format object in function DDL."
+        )
+    try:
+        result = ast.literal_eval(snippet)
+        return result
+    except (ValueError, SyntaxError):
+        pass
+    try:
+        normalized_snippet = _normalize_sql_single_quotes_for_python(snippet)
+        result = ast.literal_eval(normalized_snippet)
+        return result
+    except (ValueError, SyntaxError) as exc:
+        raise ValueError(
+            f"Failed to parse response_format from function DDL: {exc}"
+        ) from exc
+
+
+def _extract_input_type_map(
+    session: Session, function_name: str, input_cols: list[str]
+) -> dict[str, str]:
+    """Extract a mapping from input column names to SQL types from a function's DDL.
+
+    Returns a dict like ``{"INPUT": "VARCHAR", "CATEGORIES": "ARRAY"}``.
+    Falls back to all-VARCHAR if the function cannot be found or parsed.
+    """
+    fn = str(function_name).strip()
+    if not fn:
+        return {}
+    base_name = fn
+    if "(" in fn:
+        base_name = fn[: fn.index("(")]
+    parts = base_name.split(".")
+    if len(parts) != 3:
+        return {}
+    try:
+        db, schema, func = (_normalize_identifier(p) for p in parts)
+    except ValueError:
+        return {}
+
+    try:
+        rows = session.sql(
+            f"SHOW FUNCTIONS LIKE '{func}' IN SCHEMA {db}.{schema}"
+        ).collect()
+    except Exception:
+        return {}
+    if not rows:
+        return {}
+
+    arguments = str(rows[0]["arguments"])
+    try:
+        param_types_str = _extract_balanced_parenthesized_content(arguments)
+    except ValueError:
+        return {}
+
+    # Split on commas that are NOT inside parentheses so types like
+    # NUMBER(10,2) stay intact.
+    param_types: list[str] = []
+    depth = 0
+    current: list[str] = []
+    for ch in param_types_str:
+        if ch == "(":
+            depth += 1
+            current.append(ch)
+        elif ch == ")":
+            depth -= 1
+            current.append(ch)
+        elif ch == "," and depth == 0:
+            param_types.append("".join(current).strip())
+            current = []
+        else:
+            current.append(ch)
+    if current:
+        param_types.append("".join(current).strip())
+    type_map: dict[str, str] = {}
+    for i, col_name in enumerate(input_cols):
+        if i < len(param_types):
+            # The type is the last word in each param spec
+            # (e.g. "VARCHAR" from '"INPUT" VARCHAR')
+            type_parts = param_types[i].split()
+            sql_type = type_parts[-1].upper() if type_parts else "VARCHAR"
+            type_map[col_name] = sql_type
+        else:
+            type_map[col_name] = "VARCHAR"
+    return type_map
+
+
+def _extract_response_schema_from_function(
+    session: Session, function_name: str
+) -> dict[str, object]:
+    """Infer output schema from an existing function signature/DDL.
+
+    Purpose:
+        Provide output-shape inference when users follow the function-first path
+        (function already created, then data generation/pseudo-labeling).
+
+    Notes:
+        This is an optional convenience path. Data-first flows should still work
+        with explicit OUTPUT_SCHEMA without FUNCTION_NAME.
+
+    """
+    fn = str(function_name).strip()
+    if not fn:
+        raise ValueError("FUNCTION_NAME is required for pseudo-label schema inference.")
+
+    # Introspect the function via DESCRIBE FUNCTION.  ``describe_function``
+    # resolves any overload signature (e.g. DB.SCHEMA.FUNC(VARCHAR)) via SHOW
+    # FUNCTIONS and returns the raw (un-escaped) body from which the
+    # response_format schema is recovered.
+    function_def = describe_function(session, fn)
+    response_format = _parse_response_format_from_body(function_def.body)
+
+    if not isinstance(response_format, dict):
+        raise ValueError("response_format in function DDL is not an object.")
+
+    schema_obj = response_format.get("schema")
+    if not isinstance(schema_obj, dict):
+        raise ValueError(
+            "response_format.schema missing in function DDL. "
+            "Recreate function with structured response_format.schema."
+        )
+
+    props = schema_obj.get("properties")
+    if not isinstance(props, dict) or not props:
+        raise ValueError(
+            "response_format.schema.properties missing/empty in function DDL."
+        )
+
+    return schema_obj
+
+
+def _resolve_output_spec(
+    *,
+    output_schema: object | None,
+    session: Session,
+    function_name: str | None,
+) -> tuple[list[str], dict[str, dict[str, object]]]:
+    """Resolve the canonical output shape for synthetic/pseudo-label generation.
+
+    Accepted sources (in precedence order):
+    1) Explicit `OUTPUT_SCHEMA`
+    2) Inferred schema from `FUNCTION_NAME` response_format
+
+    Returns:
+        A tuple of:
+        - output column names in normalized identifier form
+        - per-column property objects (empty dict when no typed schema is available)
+
+    This function centralizes validation so downstream generation logic can assume
+    a consistent, non-empty output contract regardless of which input path users took.
+
+    """
+    schema_obj = output_schema
+    if isinstance(output_schema, str):
+        try:
+            schema_obj = RobustAIComplete.parse_ai_complete_payload(output_schema)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"OUTPUT_SCHEMA is not valid JSON: {exc}") from exc
+    if schema_obj is not None and not isinstance(schema_obj, dict):
+        raise ValueError(
+            f"OUTPUT_SCHEMA must parse to an object, got {type(schema_obj).__name__}"
+        )
+    if schema_obj is None and function_name:
+        schema_obj = _extract_response_schema_from_function(session, function_name)
+
+    if schema_obj is None:
+        raise ValueError(
+            "Output schema is required. Provide OUTPUT_SCHEMA or "
+            "FUNCTION_NAME with a structured response_format."
+        )
+
+    props = schema_obj.get("properties")
+    if not isinstance(props, dict) or not props:
+        raise ValueError("Output schema must include non-empty properties.")
+    raw_props: dict[str, object] = {
+        _normalize_identifier(str(k)): v for k, v in props.items() if str(k).strip()
+    }
+
+    output_cols = list(raw_props.keys())
+    if not output_cols:
+        raise ValueError(
+            "Output schema must contain at least one property. Provide OUTPUT_SCHEMA "
+            "or FUNCTION_NAME with a structured response_format."
+        )
+
+    output_properties: dict[str, dict[str, object]] = {}
+    for col_name in output_cols:
+        prop = raw_props[col_name]
+        if isinstance(prop, Mapping):
+            output_properties[col_name] = dict(prop)
+        elif isinstance(prop, str) and prop.strip():
+            output_properties[col_name] = {"type": prop.strip()}
+        else:
+            output_properties[col_name] = {}
+
+    return output_cols, output_properties
+
+
+def _coerce_int(name: str, value: object, *, minimum: int | None = None) -> int:
+    """Coerce numeric SPROC inputs once with consistent validation errors."""
+    try:
+        parsed = int(value)  # type: ignore[call-overload]
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{name} must be an integer.") from exc
+    if minimum is not None and parsed < minimum:
+        if minimum == 1:
+            raise ValueError(f"{name} must be > 0.")
+        raise ValueError(f"{name} must be >= {minimum}.")
+    return int(parsed)
+
+
+def _coerce_optional_int(
+    name: str, value: object | None, *, minimum: int | None = None
+) -> int | None:
+    if value is None:
+        return None
+    return _coerce_int(name, value, minimum=minimum)
+
+
+def _normalize_optional_text(value: object | None) -> str:
+    if isinstance(value, str):
+        return value.strip()
+    return ""
+
+
+def _resolve_model_name(model: object | None, *, pseudo_mode: bool) -> str:
+    model_name = _normalize_optional_text(model)
+    if model_name:
+        return model_name
+    if pseudo_mode:
+        return PSEUDO_LABEL_MODEL
+    raise ValueError("MODEL is required for synthetic generation mode.")
+
+
+def _prepare_generation_request(
+    *,
+    session: Session,
+    input_columns: object,
+    model: object | None,
+    source_table: object | None,
+    function_name: object | None,
+    output_schema: object | None,
+    num_examples: object,
+    max_source_rows: object | None,
+) -> dict[str, Any]:
+    """Normalize and validate all request preconditions in one place."""
+    model = _sf_null_to_none(model)
+    source_table = _sf_null_to_none(source_table)
+    function_name = _sf_null_to_none(function_name)
+    output_schema = _sf_null_to_none(output_schema)
+    max_source_rows = _sf_null_to_none(max_source_rows)
+
+    source_table_str = _normalize_optional_text(source_table)
+    is_pseudo_mode = bool(source_table_str)
+    function_name_str = _normalize_optional_text(function_name)
+    resolved_model = _resolve_model_name(model, pseudo_mode=is_pseudo_mode)
+
+    num_examples_int = _coerce_int("NUM_EXAMPLES", num_examples)
+    max_source_rows_int = _coerce_optional_int(
+        "MAX_SOURCE_ROWS", max_source_rows, minimum=1
+    )
+
+    input_cols = _normalize_input_columns(input_columns)
+    reserved = {"ID", "EXPECTED"}
+    collisions = sorted([c for c in input_cols if c in reserved])
+    if collisions:
+        raise ValueError(
+            f"INPUT_COLUMNS contains reserved column name(s): {', '.join(collisions)}"
+        )
+
+    output_cols, output_properties = _resolve_output_spec(
+        output_schema=output_schema,
+        session=session,
+        function_name=function_name_str or None,
+    )
+
+    # Extract input parameter types from function DDL when available.
+    # This allows the LLM to generate type-appropriate values (e.g. JSON
+    # arrays for ARRAY-typed parameters instead of plain comma-separated strings).
+    input_types: dict[str, str] = {}
+    if function_name_str:
+        input_types = _extract_input_type_map(session, function_name_str, input_cols)
+
+    request: dict[str, object] = {
+        "mode": "pseudo_label" if is_pseudo_mode else "synthetic",
+        "model": resolved_model,
+        "input_cols": input_cols,
+        "output_cols": output_cols,
+        "output_properties": output_properties,
+        "input_types": input_types,
+        "num_examples": num_examples_int,
+        "source_table": source_table_str,
+        "max_source_rows": max_source_rows_int,
+    }
+
+    if is_pseudo_mode:
+        return request
+
+    if num_examples_int <= 0:
+        raise ValueError("NUM_EXAMPLES must be > 0.")
+    return request
+
+
+class ExampleNormalizer:
+    """Validate and normalize LLM examples into strict input/output shapes."""
+
+    def __init__(self, input_cols: list[str], output_cols: list[str]) -> None:
+        self.input_cols = input_cols
+        self.output_cols = output_cols
+
+    def _coerce_input_value(self, val: object) -> str:
+        if val is None:
+            return ""
+        if isinstance(val, dict | list | tuple):
+            return json.dumps(val, ensure_ascii=False)
+        return str(val)
+
+    def _get_case_insensitive(self, raw_dict: dict, key: str) -> object:
+        if key in raw_dict:
+            return raw_dict[key]
+        for k, v in raw_dict.items():
+            if isinstance(k, str) and k.strip().upper() == key:
+                return v
+        return _MISSING
+
+    def _normalize_inputs(self, ex: dict) -> tuple[dict[str, str] | None, str | None]:
+        raw_inputs = ex.get("inputs")
+        if raw_inputs is None:
+            return None, "inputs value missing"
+        if not isinstance(raw_inputs, dict):
+            return None, "inputs must be a JSON object"
+
+        out: dict[str, str] = {}
+        missing: list[str] = []
+        for col_name in self.input_cols:
+            val = self._get_case_insensitive(raw_inputs, col_name)
+            if val is _MISSING:
+                missing.append(col_name)
+                continue
+            out[col_name] = self._coerce_input_value(val)
+        if missing:
+            return None, f"missing input keys: {', '.join(missing)}"
+        return out, None
+
+    def _normalize_outputs(
+        self, ex: dict
+    ) -> tuple[dict[str, object] | None, str | None]:
+        """Normalize outputs nested under the "outputs" key."""
+        raw_outputs = ex.get("outputs")
+        if raw_outputs is None:
+            return None, "outputs value missing"
+        if not isinstance(raw_outputs, dict):
+            return None, "outputs must be a JSON object"
+
+        out: dict[str, object] = {}
+        missing: list[str] = []
+        for col_name in self.output_cols:
+            val = self._get_case_insensitive(raw_outputs, col_name)
+            if val is _MISSING:
+                missing.append(col_name)
+                continue
+            if isinstance(val, tuple):
+                out[col_name] = list(val)
+            elif isinstance(val, Mapping):
+                out[col_name] = dict(val)
+            else:
+                out[col_name] = val
+        if missing:
+            return None, f"missing output keys: {', '.join(missing)}"
+        return out, None
+
+    def normalize_examples(self, parsed: list) -> list[dict]:
+        examples: list[dict] = []
+        invalid_counts = {"non_dict": 0, "invalid_inputs": 0, "invalid_outputs": 0}
+        first_error = None
+
+        for ex in parsed:
+            if not isinstance(ex, dict):
+                invalid_counts["non_dict"] += 1
+                if first_error is None:
+                    first_error = "example is not an object"
+                continue
+
+            inputs, input_err = self._normalize_inputs(ex)
+            if input_err:
+                invalid_counts["invalid_inputs"] += 1
+                if first_error is None:
+                    first_error = f"inputs: {input_err}"
+                continue
+
+            outputs, outputs_err = self._normalize_outputs(ex)
+            if outputs_err:
+                invalid_counts["invalid_outputs"] += 1
+                if first_error is None:
+                    first_error = f"outputs: {outputs_err}"
+                continue
+
+            examples.append(
+                {
+                    "inputs": inputs,
+                    "outputs": outputs,
+                    "category": ex.get("category")
+                    if isinstance(ex.get("category"), str)
+                    else "",
+                }
+            )
+
+        if not examples:
+            details = ", ".join(
+                f"{key}={count}" for key, count in invalid_counts.items() if count
+            )
+            detail_msg = details or "no valid examples"
+            if first_error:
+                detail_msg = f"{detail_msg}. First error: {first_error}"
+            raise ValueError(
+                f"Model returned {len(parsed)} items but 0 were valid ({detail_msg}). "
+                f"Check input columns {self.input_cols} and output columns {self.output_cols}."
+            )
+
+        return examples
+
+
+def _generate_batch(
+    session: Session,
+    task_description: str,
+    batch_size: int,
+    batch_idx: int,
+    model: str,
+    *,
+    input_columns: list[str],
+    output_keys: list[str],
+    output_properties: dict[str, dict[str, object]] | None = None,
+    input_types: dict[str, str] | None = None,
+) -> list[dict]:
+    """Generate a single batch of synthetic examples.
+
+    Args:
+        session: Snowpark session
+        task_description: Description of the AI function task
+        batch_size: Number of examples to generate in this batch
+        batch_idx: Current batch index (for diversity hints)
+        model: Cortex model name to use for generation
+        input_columns: Names of the input columns to generate values for.
+        output_keys: Names of the output columns to generate values for.
+        output_properties: Optional per-output-column JSON-schema property
+            definitions used to constrain generated values.
+        input_types: Optional mapping of input column name to SQL type
+            (e.g. ``ARRAY``, ``VARIANT``), used to shape example values.
+
+    Returns:
+        List of example dicts
+
+    """
+    input_cols = input_columns
+    output_cols = output_keys
+    output_props = output_properties or {col_name: {} for col_name in output_cols}
+
+    diversity_hints = [
+        "Focus on realistic production-like examples.",
+        "Include varied formatting and structure.",
+        "Include domain-specific terminology.",
+        "Include examples with varying input lengths.",
+    ]
+    hint = diversity_hints[batch_idx % len(diversity_hints)]
+
+    col_list = ", ".join(input_cols)
+    _itypes = input_types or {}
+    col_pair_parts = []
+    input_properties: dict[str, object] = {}
+    structured_cols: list[str] = []
+    for c in input_cols:
+        sql_type = _itypes.get(c, "VARCHAR").upper()
+        if sql_type == "ARRAY":
+            col_pair_parts.append(f'"{c}": ["item1", "item2"]')
+            input_properties[c] = {"type": "array", "items": {"type": "string"}}
+            structured_cols.append(c)
+        elif sql_type in ("VARIANT", "OBJECT"):
+            col_pair_parts.append(f'"{c}": {{"key1": "value1", "key2": "value2"}}')
+            input_properties[c] = {"type": "object"}
+            structured_cols.append(c)
+        else:
+            col_pair_parts.append(f'"{c}": "..."')
+            input_properties[c] = {"type": "string"}
+    col_pairs = ", ".join(col_pair_parts)
+    output_properties_schema: dict[str, object] = {
+        c: (
+            dict(output_props.get(c, {}))
+            if isinstance(output_props.get(c, {}), Mapping)
+            else {}
+        )
+        for c in output_cols
+    }
+    output_shape = ", ".join(output_cols)
+    output_instructions = (
+        f'- "outputs": a JSON object with exactly these keys: {output_shape}'
+    )
+    out_pairs = ", ".join([f'"{c}": "..."' for c in output_cols])
+    example_payload = f'{{"inputs": {{{col_pairs}}}, "outputs": {{{out_pairs}}}}}'
+
+    structured_type_note = ""
+    if structured_cols:
+        structured_col_list = ", ".join(structured_cols)
+        structured_type_note = (
+            f"\n          IMPORTANT: The following input keys must be structured JSON "
+            f"(arrays or objects, not plain strings): {structured_col_list}"
+        )
+
+    input_instructions = dedent(f"""\
+        Each example must include:
+        - "inputs": a JSON object with exactly these keys: {col_list}
+          (string values should be under 200 chars){structured_type_note}
+        {output_instructions}
+        - Input values must be nested under the "inputs" key (do NOT use top-level keys or "input").
+        - Output values must be nested under the "outputs" key (do NOT use "expected").
+
+        Keys are case-sensitive; use the keys exactly as shown above.
+        """).strip()
+
+    json_mode_instructions = dedent(f"""\
+        Return a JSON object with key "examples", where "examples" is a JSON array.
+        Return ONLY valid JSON, no markdown.
+
+        Example format:
+        {{"examples": [{example_payload}]}}
+        """).strip()
+
+    base_prompt = dedent(f"""\
+        Generate exactly {batch_size} UNIQUE test examples for this AI function.
+        Include a mix of straightforward cases and moderately challenging edge cases.
+        Make examples diverse and different from typical examples.
+
+        Function intention: {task_description}
+
+        Additional guidance: {hint}
+
+        {input_instructions}
+        """).strip()
+
+    def _build_prompt(*, include_json_instructions: bool) -> str:
+        if not include_json_instructions:
+            return base_prompt
+        return f"{base_prompt}\n\n{json_mode_instructions}"
+
+    # JSON schema for strict JSON mode output validation.
+    # Keep this schema minimal to maximize yield; validate exact columns in Python.
+    # Include additionalProperties=false to improve compatibility with strict
+    # OpenAI-style schema validation in some backends.
+    response_schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "examples": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {
+                        "inputs": {
+                            "type": "object",
+                            "additionalProperties": False,
+                            "properties": input_properties,
+                            "required": input_cols,
+                        },
+                        "outputs": {
+                            "type": "object",
+                            "additionalProperties": False,
+                            "properties": output_properties_schema,
+                            "required": output_cols,
+                        },
+                    },
+                    "required": ["inputs", "outputs"],
+                },
+            }
+        },
+        "required": ["examples"],
+    }
+    max_tokens = 8192
+    temperature = 0.8
+
+    parsed = RobustAIComplete.run_ai_complete_with_json_fallback(
+        session=session,
+        model=model,
+        primary_prompt=_build_prompt(include_json_instructions=False),
+        fallback_prompt=_build_prompt(include_json_instructions=True),
+        response_schema=response_schema,
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
+    if parsed is None:
+        return []
+
+    if isinstance(parsed, dict) and "examples" in parsed:
+        parsed = parsed.get("examples")
+
+    if not isinstance(parsed, list):
+        raise ValueError(
+            f"Expected JSON object with 'examples' array, got {type(parsed).__name__}"
+        )
+
+    normalizer = ExampleNormalizer(input_cols, output_cols)
+    return normalizer.normalize_examples(parsed)
+
+
+def _generate_examples(
+    session: Session,
+    task_description: str,
+    num_examples: int,
+    model: str,
+    *,
+    input_columns: list[str],
+    output_keys: list[str],
+    output_properties: dict[str, dict[str, object]] | None = None,
+    input_types: dict[str, str] | None = None,
+) -> tuple[list[dict], list[str]]:
+    """Generate synthetic examples using batched LLM calls with retries.
+
+    Initial batches run in parallel via a thread pool. If any batch fails or
+    returns fewer examples than requested, sequential retry calls fill the gap.
+
+    Returns:
+        Tuple of (examples list, errors list)
+
+    """
+    batch_size = min(100, num_examples)
+    examples: list[dict] = []
+    errors: list[str] = []
+
+    required_batches = max(1, (num_examples + batch_size - 1) // batch_size)
+    batch_specs: list[tuple[int, int]] = []
+    remaining = num_examples
+    for i in range(required_batches):
+        current = min(batch_size, remaining)
+        batch_specs.append((i, current))
+        remaining -= current
+
+    with ThreadPoolExecutor(max_workers=required_batches) as executor:
+        future_to_idx = {
+            executor.submit(
+                _generate_batch,
+                session=session,
+                task_description=task_description,
+                batch_size=size,
+                batch_idx=idx,
+                model=model,
+                input_columns=input_columns,
+                output_keys=output_keys,
+                output_properties=output_properties,
+                input_types=input_types,
+            ): idx
+            for idx, size in batch_specs
+        }
+
+        for future in as_completed(future_to_idx):
+            idx = future_to_idx[future]
+            try:
+                batch_examples = future.result()
+                if batch_examples:
+                    examples.extend(batch_examples)
+                else:
+                    errors.append(f"batch {idx + 1} returned 0 examples")
+            except Exception as e:
+                errors.append(f"batch {idx + 1} error: {e!s}")
+
+    max_retries = required_batches * 2
+    retry_idx = 0
+    call_offset = required_batches
+    while len(examples) < num_examples and retry_idx < max_retries:
+        remaining = num_examples - len(examples)
+        current_batch_size = min(batch_size, remaining)
+
+        try:
+            batch_examples = _generate_batch(
+                session=session,
+                task_description=task_description,
+                batch_size=current_batch_size,
+                batch_idx=call_offset + retry_idx,
+                model=model,
+                input_columns=input_columns,
+                output_keys=output_keys,
+                output_properties=output_properties,
+                input_types=input_types,
+            )
+        except Exception as e:
+            errors.append(f"retry {retry_idx + 1} error: {e!s}")
+            retry_idx += 1
+            continue
+
+        if not batch_examples:
+            errors.append(f"retry {retry_idx + 1} returned 0 examples")
+            retry_idx += 1
+            continue
+
+        examples.extend(batch_examples)
+        retry_idx += 1
+
+    if len(examples) < num_examples:
+        raise RuntimeError(
+            f"Failed to generate {num_examples} examples after "
+            f"{required_batches} parallel + {retry_idx} retry call(s) "
+            f"(generated {len(examples)}). Errors: {errors}"
+        )
+
+    return examples[:num_examples], errors
+
+
+def _create_output_table(
+    session: Session, output_table: str, input_cols: list[str]
+) -> None:
+    """Create or replace output table with the canonical labeled schema."""
+    input_col_ddl = ",\n            ".join([f'"{c}" VARCHAR' for c in input_cols])
+    session.sql(f"""
+        CREATE TABLE {output_table} (
+            ID INT AUTOINCREMENT,
+            {input_col_ddl},
+            EXPECTED VARIANT
+        )
+    """).collect()
+
+
+def _insert_examples(
+    session: Session,
+    output_table: str,
+    input_cols: list[str],
+    output_cols: list[str],
+    examples: list[dict],
+) -> int:
+    """Insert normalized examples in batches and return total count."""
+    if not examples:
+        return 0
+
+    insert_rows: list[list[object]] = []
+    for example in examples:
+        raw_inputs = example.get("inputs")
+        inputs: dict[str, object] = raw_inputs if isinstance(raw_inputs, dict) else {}
+        raw_outputs = example.get("outputs")
+        output_vals: dict[str, object] = (
+            raw_outputs if isinstance(raw_outputs, dict) else {}
+        )
+
+        row_values: list[object] = []
+        for col_name in input_cols:
+            val = inputs.get(col_name, "")
+            if isinstance(val, list | tuple | dict):
+                row_values.append(json.dumps(val, ensure_ascii=False))
+            else:
+                row_values.append(str(val))
+        expected_obj = {col_name: output_vals.get(col_name) for col_name in output_cols}
+        expected_json = json.dumps(expected_obj, ensure_ascii=False)
+        row_values.append(expected_json)
+        insert_rows.append(row_values)
+
+    source_schema = [*input_cols, "EXPECTED_JSON"]
+    batch_size = 1000
+    for start_idx in range(0, len(insert_rows), batch_size):
+        chunk_rows = insert_rows[start_idx : start_idx + batch_size]
+        chunk_df = session.create_dataframe(chunk_rows, schema=source_schema)
+        payload_df = chunk_df.select(
+            *[col(name) for name in input_cols],
+            parse_json(col("EXPECTED_JSON")).alias("EXPECTED"),
+        )
+        payload_df.write.mode("append").save_as_table(output_table, column_order="name")
+
+    return len(insert_rows)
+
+
+def _build_pseudo_label_system_prompt(
+    task_description: str,
+    output_schema: dict[str, object],
+) -> str:
+    """Build the static system prompt shared by every row in a batch.
+
+    ``task_description`` and ``output_schema`` are per-run constants, so they
+    live in the system message but go AFTER the task-independent boilerplate —
+    that way the boilerplate can be reused as a cached prefix across different
+    functions/runs, not just across rows of one batch.  The per-row input lives
+    in the user message (see ``_build_pseudo_label_user_prompt``).
+    """
+    output_schema_json = json.dumps(output_schema, ensure_ascii=False, sort_keys=True)
+    return dedent(f"""\
+        You are generating expected labels for supervised evaluation. For each
+        input row you are given, produce a JSON object that satisfies the
+        output schema below.
+
+        Task description:
+        {task_description}
+
+        Output schema:
+        {output_schema_json}
+        """).strip()
+
+
+def _build_pseudo_label_user_prompt(inputs: dict[str, str]) -> str:
+    """Build the per-row user prompt — only the varying input row."""
+    input_json = json.dumps(inputs, ensure_ascii=False)
+    return dedent(f"""\
+        Input row (JSON):
+        {input_json}
+        """).strip()
+
+
+def _pseudo_label_batch(
+    session: Session,
+    *,
+    task_description: str,
+    inputs_batch: list[dict[str, str]],
+    model: str,
+    output_cols: list[str],
+    output_properties: dict[str, dict[str, object]],
+) -> list[dict[str, object]]:
+    """Pseudo-label one batch of input rows via a single multi-row AI_COMPLETE call."""
+    if not inputs_batch:
+        return []
+
+    response_schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            col_name: (
+                dict(output_properties.get(col_name, {}))
+                if isinstance(output_properties.get(col_name, {}), Mapping)
+                else {}
+            )
+            for col_name in output_cols
+        },
+        "required": output_cols,
+    }
+    normalizer = ExampleNormalizer(input_cols=[], output_cols=output_cols)
+
+    # Static instructions + schema are identical across the batch, so they go
+    # in the system message (a constant prefix the serving layer can cache);
+    # only the per-row input varies in each user prompt.
+    system_prompt = _build_pseudo_label_system_prompt(task_description, response_schema)
+    user_prompts = [_build_pseudo_label_user_prompt(inputs) for inputs in inputs_batch]
+
+    # Single multi-row AI_COMPLETE call — Snowflake parallelizes server-side
+    raw_responses = RobustAIComplete.call_ai_complete(
+        session,
+        model=model,
+        user_prompts=user_prompts,
+        temperature=0.0,
+        max_tokens=8192,
+        response_schema=response_schema,
+        system_prompt=system_prompt,
+    )
+
+    if raw_responses is None or len(raw_responses) != len(inputs_batch):
+        raise RuntimeError(
+            f"AI_COMPLETE returned {len(raw_responses) if raw_responses else 0} "
+            f"responses, expected {len(inputs_batch)}"
+        )
+
+    outputs: list[dict[str, object]] = []
+    for idx_val, parsed in enumerate(raw_responses):
+        if parsed is None:
+            raise ValueError(f"Model returned empty response for row index {idx_val}")
+        if isinstance(parsed, dict) and isinstance(parsed.get("outputs"), dict):
+            parsed = parsed["outputs"]
+        if not isinstance(parsed, dict):
+            raise ValueError(
+                f"Expected JSON object output for row index {idx_val}, "
+                f"got {type(parsed).__name__}"
+            )
+
+        normalized = normalizer.normalize_examples([{"inputs": {}, "outputs": parsed}])[
+            0
+        ]["outputs"]
+        outputs.append(normalized)
+
+    return outputs
+
+
+def _load_source_inputs(
+    session: Session,
+    *,
+    source_table: str,
+    input_cols: list[str],
+    max_source_rows: int | None,
+) -> list[dict[str, str]]:
+    """Load input rows from source table for pseudo-labeling."""
+    col_expr = ", ".join([f'"{col_name}"' for col_name in input_cols])
+    query = f"SELECT {col_expr} FROM {source_table}"
+    if max_source_rows is not None:
+        query += f" LIMIT {int(max_source_rows)}"
+
+    rows = session.sql(query).collect()
+    inputs_list: list[dict[str, str]] = []
+    for row in rows:
+        if not hasattr(row, "asDict"):
+            raise TypeError("Snowpark row object does not support asDict().")
+        row_dict = row.asDict()
+        normalized_row = {
+            str(key).strip().upper(): value
+            for key, value in row_dict.items()
+            if isinstance(key, str) and str(key).strip()
+        }
+        item: dict[str, str] = {}
+        for col_name in input_cols:
+            val = normalized_row.get(col_name, _MISSING)
+            if val is _MISSING:
+                raise ValueError(
+                    f"Source table {source_table} is missing required input column: {col_name}"
+                )
+            if val is None:
+                item[col_name] = ""
+            elif isinstance(val, dict | list | tuple):
+                item[col_name] = json.dumps(val, ensure_ascii=False)
+            else:
+                item[col_name] = str(val)
+        inputs_list.append(item)
+    return inputs_list
+
+
+def _generate_pseudo_labeled_examples(
+    session: Session,
+    *,
+    task_description: str,
+    source_table: str,
+    input_cols: list[str],
+    output_cols: list[str],
+    output_properties: dict[str, dict[str, object]],
+    batch_size: int,
+    max_source_rows: int | None,
+    model: str,
+) -> list[dict]:
+    """Generate pseudo labels for existing source rows."""
+    source_inputs = _load_source_inputs(
+        session,
+        source_table=source_table,
+        input_cols=input_cols,
+        max_source_rows=max_source_rows,
+    )
+    if not source_inputs:
+        return []
+
+    all_examples: list[dict] = []
+    effective_batch_size = max(1, min(batch_size, len(source_inputs)))
+
+    for start in range(0, len(source_inputs), effective_batch_size):
+        batch = source_inputs[start : start + effective_batch_size]
+        batch_num = start // effective_batch_size + 1
+        outputs = _pseudo_label_batch(
+            session,
+            task_description=task_description,
+            inputs_batch=batch,
+            model=model,
+            output_cols=output_cols,
+            output_properties=output_properties,
+        )
+        if len(outputs) != len(batch):
+            raise RuntimeError(
+                f"Output count mismatch in batch {batch_num}: "
+                f"expected {len(batch)}, got {len(outputs)}"
+            )
+        for inputs, outputs_obj in zip(batch, outputs, strict=True):
+            all_examples.append({"inputs": inputs, "outputs": outputs_obj})
+
+    return all_examples
+
+
+@surface_sproc_error()
+@with_custom_ai_function_query_tag("SPROC_GEN_SYNTH_DATA")
+def generate_synthetic_data(
+    session: Session,
+    task_description: str,
+    output_table: str,
+    input_columns: object,
+    model: str | None = None,
+    num_examples: int = 50,
+    source_table: str | None = None,
+    function_name: str | None = None,
+    output_schema: object | None = None,
+    max_source_rows: int | None = None,
+) -> dict:
+    """Generate synthetic data or pseudo labels and store in a Snowflake table.
+
+    This is the main SPROC handler function.
+
+    Args:
+        session: Snowpark session
+        task_description: Description of the AI function task
+        output_table: Fully qualified table name for output
+        input_columns: Input columns to generate/map
+        model: Cortex model name (required for synthetic mode; optional in
+            pseudo-label mode)
+        num_examples: Total number of synthetic examples to generate
+        source_table: Optional source table for pseudo-label mode
+        function_name: Optional function name used for output schema inference
+        output_schema: Optional explicit JSON schema for outputs
+        max_source_rows: Optional cap for pseudo-label rows (preview mode)
+
+    Returns:
+        Dict with generation statistics and mode metadata.
+
+    """
+    _db, _schema, _table = output_table.strip().split(".")
+    if _db and _schema:
+        session.sql(f"USE DATABASE {_db}").collect()
+        session.sql(f"USE SCHEMA {_schema}").collect()
+
+    request = _prepare_generation_request(
+        session=session,
+        input_columns=input_columns,
+        model=model,
+        source_table=source_table,
+        function_name=function_name,
+        output_schema=output_schema,
+        num_examples=num_examples,
+        max_source_rows=max_source_rows,
+    )
+
+    input_cols = request["input_cols"]
+    output_cols = request["output_cols"]
+    output_properties = request["output_properties"]
+    input_types = request.get("input_types") or {}
+    resolved_model = str(request["model"])
+
+    if request["mode"] == "pseudo_label":
+        source_table_str = str(request["source_table"])
+        max_source_rows_val = request["max_source_rows"]
+        max_source_rows_int = (
+            int(max_source_rows_val) if max_source_rows_val is not None else None
+        )
+        batch_size = min(100, max_source_rows_int or 100)
+        all_examples = _generate_pseudo_labeled_examples(
+            session,
+            task_description=task_description,
+            source_table=source_table_str,
+            input_cols=input_cols,
+            output_cols=output_cols,
+            output_properties=output_properties,
+            batch_size=batch_size,
+            max_source_rows=max_source_rows_int,
+            model=resolved_model,
+        )
+        _create_output_table(session, output_table, input_cols)
+        _insert_examples(
+            session,
+            output_table=output_table,
+            input_cols=input_cols,
+            output_cols=output_cols,
+            examples=all_examples,
+        )
+        return {
+            "success": True,
+            "mode": "pseudo_label",
+            "model_used": resolved_model,
+            "source_table": source_table_str,
+            "output_table": output_table,
+            "total_generated": len(all_examples),
+            "input_columns": input_cols,
+            "expected_keys": output_cols,
+            "is_preview": max_source_rows_val is not None,
+            "batch_errors": None,
+        }
+
+    # Synthetic generation mode.
+    num_examples = int(request["num_examples"])
+
+    all_examples, batch_errors = _generate_examples(
+        session=session,
+        task_description=task_description,
+        num_examples=num_examples,
+        model=resolved_model,
+        input_columns=input_cols,
+        output_keys=output_cols,
+        output_properties=output_properties,
+        input_types=input_types,
+    )
+
+    if not all_examples:
+        return {
+            "success": False,
+            "error": "Failed to generate any examples",
+            "batch_errors": batch_errors,
+        }
+
+    _create_output_table(session, output_table, input_cols)
+    _insert_examples(
+        session,
+        output_table=output_table,
+        input_cols=input_cols,
+        output_cols=output_cols,
+        examples=all_examples,
+    )
+
+    return {
+        "success": True,
+        "mode": "synthetic",
+        "model_used": resolved_model,
+        "output_table": output_table,
+        "total_generated": len(all_examples),
+        "input_columns": input_cols,
+        "expected_keys": output_cols,
+        "batch_errors": batch_errors if batch_errors else None,
+    }

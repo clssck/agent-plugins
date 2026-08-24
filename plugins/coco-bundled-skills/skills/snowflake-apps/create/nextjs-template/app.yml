@@ -1,0 +1,21 @@
+install:
+  commands:
+    - ["npm", "ci", "--include=dev"]
+
+run:
+  command: ["node", ".next/standalone/server.js"]
+
+# Secrets read via getSecret(name, type) in lib/snowflake.ts must be declared here so
+# the SPCS runtime mounts them under /secrets/<name>/. Map a logical `name` to an
+# existing Snowflake SECRET object. `secrets:` (and `environment_variables:`) are
+# TOP-LEVEL keys — siblings of install/run/profile at column 0. Do NOT nest them under
+# `run:`. Uncomment when the app uses secrets. See README → Secrets.
+# secrets:
+#   - name: SOME_API_KEY
+#     secret: DB.SCHEMA.API_KEY
+#   - name: SOME_USER_PASS
+#     secret: DB.SCHEMA.API_KEY_2
+#
+# environment_variables:
+#   - name: LOG_LEVEL
+#     value: "INFO"

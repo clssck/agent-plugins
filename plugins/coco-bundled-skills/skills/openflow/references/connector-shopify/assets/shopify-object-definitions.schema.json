@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Shopify Object Definitions Override",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/objectDefinition"
+  },
+  "$defs": {
+    "objectDefinition": {
+      "type": "object",
+      "required": [
+        "apiType",
+        "tableName",
+        "graphqlFields"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "apiType": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+        },
+        "tableName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "graphqlFields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "gidTypeName": {
+          "type": "string"
+        },
+        "additionalGidTypeNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "supportsIncremental": {
+          "type": "boolean"
+        },
+        "supportsBulk": {
+          "type": "boolean"
+        },
+        "incrementalField": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sortKeys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sortKeyStyle": {
+          "enum": [
+            "ENUM",
+            "STRING"
+          ]
+        },
+        "refreshStrategy": {
+          "enum": [
+            "INCREMENTAL",
+            "FULL_PERIODIC",
+            "PARENT_PIGGYBACKED"
+          ]
+        },
+        "supportsDeletes": {
+          "type": "boolean"
+        },
+        "ignoredFields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "requiredQueryArgs": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^(true|false|-?\\d+|[A-Z][A-Z0-9_]*|\"[^\"\\\\\\n]*\")$"
+          }
+        },
+        "promotedColumns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/promotedColumn"
+          }
+        },
+        "childFields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/childField"
+          }
+        }
+      }
+    },
+    "promotedColumn": {
+      "type": "object",
+      "required": [
+        "name",
+        "path",
+        "type"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^\\$\\."
+        },
+        "type": {
+          "enum": [
+            "id",
+            "gid",
+            "timestamp",
+            "date",
+            "money",
+            "float",
+            "string",
+            "boolean",
+            "integer",
+            "json"
+          ]
+        }
+      }
+    },
+    "childField": {
+      "type": "object",
+      "required": [
+        "fieldName",
+        "tableName"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "fieldName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tableName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gidTypeName": {
+          "type": "string"
+        },
+        "additionalGidTypeNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "connectionType": {
+          "enum": [
+            "edges",
+            "array"
+          ]
+        },
+        "pageSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 250
+        },
+        "graphqlFields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "promotedColumns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/promotedColumn"
+          }
+        }
+      }
+    }
+  }
+}

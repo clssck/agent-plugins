@@ -1,0 +1,13 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+
+files: ^(cortex-ai-function-studio|evals/cortex-ai-function-studio)/
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.20
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+

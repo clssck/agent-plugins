@@ -1,0 +1,50 @@
+# Machine-readable procedure definitions for rbac sub-skill
+# This file is the source of truth for:
+#   1. Generating intent YAML files (native_app)
+#   2. Validating SKILL.md documentation
+#
+# Usage:
+#   python ../../scripts/skill_intent_converter.py skill-to-intent --skill-dir . --output rbac.yaml
+#   python ../../scripts/skill_intent_converter.py validate --skill-dir .
+
+metadata:
+  intent_id: dcr_rbac
+  intent_name: DCR RBAC — Role & Privilege Management
+  intent_description: Create custom roles and assign DCR collaboration privileges using the Collaboration API RBAC system. Supports account-level, collaboration-level, and registry-level privilege grants/revokes, and persona-based role setup.
+  intent_category: collaboration
+  enabled_for_agents:
+    - dcr_agent
+    - dcr_agent_next
+  release_status: released
+
+triggers:
+  - "create roles for data clean rooms"
+  - "assign DCR privileges"
+  - "grant collaboration privileges"
+  - "revoke DCR privileges"
+  - "set up DCR roles"
+  - "RBAC for clean rooms"
+  - "privileges for data engineers"
+  - "privileges for campaign manager"
+
+procedures:
+  - name: "{DB}.ADMIN.GRANT_PRIVILEGE_ON_ACCOUNT_TO_ROLE"
+    description: "Grant an account-level DCR privilege to a Snowflake role"
+    params: [PRIVILEGE_NAME, ROLE_NAME]
+    output_format: json
+    when: "User wants to grant account-level DCR access (e.g., CREATE COLLABORATION, VIEW COLLABORATIONS)"
+    display: "confirmation that privilege was granted"
+
+  - name: "{DB}.ADMIN.GRANT_PRIVILEGE_ON_OBJECT_TO_ROLE"
+    description: "Grant a collaboration-level or registry-level DCR privilege to a Snowflake role"
+    params: [PRIVILEGE_NAME, OBJECT_TYPE, OBJECT_NAME, ROLE_NAME]
+    output_format: json
+    when: "User wants to grant collaboration-level (e.g., RUN, VIEW DATA OFFERINGS) or registry-level (REGISTER, READ) privileges"
+    display: "confirmation that privilege was granted"
+
+  - name: "{DB}.ADMIN.REVOKE_PRIVILEGE_ON_OBJECT_FROM_ROLE"
+    description: "Revoke a collaboration-level or registry-level DCR privilege from a Snowflake role"
+    params: [PRIVILEGE_NAME, OBJECT_TYPE, OBJECT_NAME, ROLE_NAME]
+    output_format: json
+    when: "User wants to revoke collaboration-level or registry-level privileges from a role"
+    display: "confirmation that privilege was revoked"

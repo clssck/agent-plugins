@@ -1,0 +1,35 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+
+name: float_number
+description: Single FLOAT input — classify a body temperature as fever/normal.
+seed_model: llama3.1-8b
+inputs:
+  - {name: TEMP_C, sql_type: FLOAT}
+output:
+  name: label
+  json_type: string
+  description: One of "fever" or "normal".
+function_intention: Classify a body temperature reading in Celsius.
+system_prompt: A temperature at or above 38.0 C is a fever; anything below is normal. Reply with only the lowercase word "fever" or "normal".
+user_prompt_template: "Body temperature: {TEMP_C} C"
+metric_name: exact_match
+optimize_models: ["llama3.1-8b"]
+reflection_model: claude-sonnet-4-5
+auto_budget: demo
+label_column: EXPECTED_LABEL
+input_columns: ["TEMP_C"]
+rows:
+  - {TEMP_C: 39.5, EXPECTED_LABEL: fever}
+  - {TEMP_C: 38.2, EXPECTED_LABEL: fever}
+  - {TEMP_C: 40.1, EXPECTED_LABEL: fever}
+  - {TEMP_C: 38.0, EXPECTED_LABEL: fever}
+  - {TEMP_C: 38.9, EXPECTED_LABEL: fever}
+  - {TEMP_C: 41.3, EXPECTED_LABEL: fever}
+  - {TEMP_C: 36.6, EXPECTED_LABEL: normal}
+  - {TEMP_C: 37.0, EXPECTED_LABEL: normal}
+  - {TEMP_C: 36.9, EXPECTED_LABEL: normal}
+  - {TEMP_C: 37.4, EXPECTED_LABEL: normal}
+  - {TEMP_C: 35.8, EXPECTED_LABEL: normal}
+  - {TEMP_C: 37.9, EXPECTED_LABEL: normal}

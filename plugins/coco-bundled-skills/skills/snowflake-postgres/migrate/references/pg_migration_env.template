@@ -1,0 +1,46 @@
+# Template for ~/.pg_migration_env
+#
+# Copy this file to ~/.pg_migration_env, fill in your values, then `source`
+# it before running the legacy psql-based migration examples (which read
+# PG* env vars). Chat-safe Python scripts under migrate/scripts/ do NOT
+# need this file — prefer --source-service / --target-service flags there
+# (see migrate/SKILL.md "Credentials" callout).
+#
+# Passwords should NOT be stored in this file. Use ~/.pgpass (chmod 600)
+# or set PGPASSWORD / SOURCE_PGPASSWORD / TARGET_PGPASSWORD in the shell
+# session itself, not in a sourced file that may end up in backups or
+# version control.
+
+# --- Source PostgreSQL ---
+export SOURCE_PGHOST="source-host.example.com"
+export SOURCE_PGPORT="5432"
+export SOURCE_PGDATABASE="mydb"
+export SOURCE_PGUSER="migration_user"
+# export SOURCE_PGSSLMODE="require"   # or verify-ca / verify-full
+
+# --- Target Snowflake Postgres ---
+export TARGET_PGHOST="your-snowflake-pg-host"
+export TARGET_PGPORT="5432"
+export TARGET_PGDATABASE="postgres"
+export TARGET_PGUSER="admin"
+# export TARGET_PGSSLMODE="verify-ca" # Snowflake Postgres typically requires verify-ca
+
+# --- setup_connection helper ---
+# Several legacy reference docs (replicate/, dump-restore/, rollback/,
+# validate/references/) call `setup_connection "SOURCE"` or
+# `setup_connection "TARGET"` before invoking psql. The helper below maps
+# the prefixed SOURCE_PG* / TARGET_PG* vars above onto plain PG* vars that
+# psql reads. Keep this function in the file so a single `source` makes
+# every legacy example runnable.
+setup_connection() {
+    local prefix=$1   # "SOURCE" or "TARGET"
+    eval "export PGHOST=\${${prefix}_PGHOST}"
+    eval "export PGPORT=\${${prefix}_PGPORT:-5432}"
+    eval "export PGDATABASE=\${${prefix}_PGDATABASE}"
+    eval "export PGUSER=\${${prefix}_PGUSER}"
+    eval "export PGPASSWORD=\${${prefix}_PGPASSWORD}"
+    local sslmode_var="${prefix}_PGSSLMODE"
+    if [[ -n "${!sslmode_var}" ]]; then
+        export PGSSLMODE="${!sslmode_var}"
+    fi
+}

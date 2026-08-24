@@ -1,0 +1,85 @@
+Snowflake Cortex Code (CoCo) Bundled Skills
+
+Source release: CoCo 1.1.66+001753.801adc2b71d7 (darwin-arm64)
+Source directory: bundled_skills/
+Copyright: Snowflake Inc.
+Permission: See LICENSE in this plugin.
+
+Included top-level skills:
+- access-troubleshooter
+- agent-studio
+- ai-data-share
+- ai-functions-pipeline-builder
+- ai-readiness-score
+- alert
+- attach-ai-products-to-share
+- automation
+- billing
+- business-ontology
+- certified-data-product-discovery
+- certify-object
+- cortex-ai-function-studio
+- cortex-code-guide
+- cortex-secrets
+- cortex-sense
+- cost-intelligence
+- data-cleanrooms
+- data-governance
+- internal-marketplace-org-listing (source: data-products)
+- data-quality
+- data-sharing
+- dbt-projects-on-snowflake
+- dcm
+- declarative-sharing
+- deploy-to-spcs
+- developing-with-streamlit-in-snowflake
+- document-intelligence
+- dynamic-tables
+- error-tables-ops
+- event-table
+- find-skill-and-plugin
+- get-marketplace-listing-details
+- guardrails-guide
+- html-authoring
+- iceberg
+- integrations
+- snowflake-interactive (source: interactive)
+- security-investigation (source: investigation)
+- key-and-secret-management
+- lineage
+- machine-learning
+- manage-authentication-policy
+- manage-zerocopy-sapbdc
+- marketplace-search
+- migration-guide
+- native-app-consumer
+- native-app-provider
+- network-security
+- notification
+- openflow
+- openflow-observability
+- organization-management
+- marketplace-provider (source: provider-onboarding-v2)
+- recommend-object
+- sar-actions-desktop
+- setup-snowflake-sso
+- share-skill-and-plugin
+- sharing
+- skill-development (source: skill_development)
+- snowflake-apps
+- snowflake-notebooks
+- snowflake-postgres
+- snowflake-publish-report
+- snowflake-tasks
+- snowpark-python (source: snowpark)
+- snowpipe-streaming
+- spark-migration
+- sql-author
+- storage-lifecycle-policy
+- team-workflow
+- trust-center
+- warehouse
+- workload-performance-analysis
+- snowflake-workspace (source: workspaces)
+
+Nested skills, references, scripts, assets, and fixtures remain attributed to their enclosing top-level CoCo skill. The generated repository catalog lists every included SKILL.md by name.

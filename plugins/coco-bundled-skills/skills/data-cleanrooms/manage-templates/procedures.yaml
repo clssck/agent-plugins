@@ -1,0 +1,102 @@
+# Machine-readable procedure definitions for manage-templates sub-skill
+# This file is the source of truth for:
+#   1. Generating intent YAML files (native_app)
+#   2. Validating SKILL.md documentation
+#
+# Usage:
+#   python ../../scripts/skill_intent_converter.py skill-to-intent --skill-dir . --output manage_templates.yaml
+#   python ../../scripts/skill_intent_converter.py validate --skill-dir .
+
+metadata:
+  intent_id: manage_templates
+  intent_name: Manage Templates
+  intent_description: User wants to add or remove templates in an existing collaboration.
+  intent_category: collaboration
+  enabled_for_agents:
+    - dcr_agent_next
+  release_status: staging
+
+triggers:
+  - "add template to collaboration"
+  - "add template"
+  - "share template"
+  - "remove template from collaboration"
+  - "remove template"
+  - "view templates"
+  - "manage templates in collaboration"
+
+procedures:
+  - name: "{DB}.COLLABORATION.ADD_TEMPLATE_REQUEST"
+    description: "Send a request to add a registered template to an existing collaboration"
+    params: [COLLABORATION_NAME, TEMPLATE_ID, SHARE_WITH]
+    output_format: table
+    when: "User wants to add a template to an existing collaboration"
+    display: "confirmation that the add template request was submitted"
+    stopping_point: true
+    stopping_reason: "Confirm template details and share_with list before submitting request"
+
+  - name: "{DB}.COLLABORATION.REMOVE_TEMPLATE"
+    description: "Remove a template from a collaboration for specified analysis runners"
+    params: [COLLABORATION_NAME, TEMPLATE_ID, REMOVE_FOR]
+    output_format: table
+    when: "User wants to remove a template from a collaboration"
+    display: "removal confirmation"
+    stopping_point: true
+    stopping_reason: "Confirm removal targets before executing"
+
+  - name: "{DB}.COLLABORATION.VIEW_TEMPLATES"
+    description: "View all templates available in a collaboration"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "User wants to see what templates are in a collaboration"
+    display: "all templates with ID, body, parameters, creator, and runners"
+
+  - name: "{DB}.COLLABORATION.VIEW_UPDATE_REQUESTS"
+    description: "View all update requests in a collaboration (includes pending, approved, rejected, completed, and failed requests)"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "User wants to see update requests (in any status) before approving, rejecting, or reviewing history"
+    display: "id, type, status, details, spec, approval_log, updated_on"
+
+  - name: "{DB}.COLLABORATION.APPROVE_UPDATE_REQUEST"
+    description: "Approve an update request in a collaboration. The requestor can also use this to approve a request they previously rejected (before it reaches terminal status). For other collaborators, approval is irreversible."
+    params: [COLLABORATION_NAME, REQUEST_ID]
+    output_format: table
+    when: "User wants to approve a template add request; or the requestor wants to reverse a prior rejection before the request reaches terminal status"
+    display: "approval confirmation"
+    stopping_point: true
+    stopping_reason: "Confirm which request to approve before executing"
+
+  - name: "{DB}.COLLABORATION.REJECT_UPDATE_REQUEST"
+    description: "Reject an update request in a collaboration. The requestor can also use this to reject a request they previously approved (before it is fully approved or reaches terminal status). For other collaborators, rejection is irreversible."
+    params: [COLLABORATION_NAME, REQUEST_ID, REASON]
+    output_format: table
+    when: "User wants to reject a template add request; or the requestor wants to reverse a prior approval before the request is fully approved or reaches terminal status"
+    display: "rejection confirmation"
+    stopping_point: true
+    stopping_reason: "Confirm which request to reject before executing"
+
+  - name: "{DB}.COLLABORATION.ENABLE_TEMPLATE_AUTO_APPROVAL"
+    description: "Enable automatic approval of template add requests for a collaboration"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "User wants to turn on auto-approval so template requests are approved automatically"
+    display: "auto-approval enabled confirmation"
+    stopping_point: true
+    stopping_reason: "Confirm collaboration before enabling auto-approval"
+
+  - name: "{DB}.COLLABORATION.DISABLE_TEMPLATE_AUTO_APPROVAL"
+    description: "Disable automatic approval of template add requests for a collaboration"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "User wants to turn off auto-approval and require manual review of template requests"
+    display: "auto-approval disabled confirmation"
+    stopping_point: true
+    stopping_reason: "Confirm collaboration before disabling auto-approval"
+
+  - name: "{DB}.REGISTRY.VIEW_REGISTERED_TEMPLATES"
+    description: "List all templates registered in the account"
+    params: []
+    output_format: table
+    when: "User wants to see available templates before adding one to a collaboration"
+    display: "all registered templates"

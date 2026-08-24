@@ -1,0 +1,13 @@
+[project]
+name = "cortex-sense"
+version = "0.2.0"
+description = "Cortex Sense business-domain context skill scripts: persistence + merge invariant."
+requires-python = ">=3.10"
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0.0",
+]

@@ -1,0 +1,8 @@
+[project]
+name = "dashboard-metrics-snowflake"
+version = "1.0.0"
+description = "A metrics dashboard template using Snowflake for data storage and retrieval"
+requires-python = ">=3.11"
+dependencies = [
+    "streamlit[snowflake]>=1.56.0",
+]

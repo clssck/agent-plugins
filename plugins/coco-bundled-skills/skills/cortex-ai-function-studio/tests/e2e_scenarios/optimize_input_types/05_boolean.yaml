@@ -1,0 +1,35 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+
+name: boolean_flag
+description: Single BOOLEAN input — map an invoice's paid flag to a status word.
+seed_model: llama3.1-8b
+inputs:
+  - {name: IS_PAID, sql_type: BOOLEAN}
+output:
+  name: status
+  json_type: string
+  description: One of "settled" or "outstanding".
+function_intention: Map an invoice paid flag to a settlement status.
+system_prompt: If the invoice is paid (true) reply "settled"; otherwise reply "outstanding". Reply with only the lowercase word.
+user_prompt_template: "Invoice paid: {IS_PAID}"
+metric_name: exact_match
+optimize_models: ["llama3.1-8b"]
+reflection_model: claude-sonnet-4-5
+auto_budget: demo
+label_column: EXPECTED_LABEL
+input_columns: ["IS_PAID"]
+rows:
+  - {IS_PAID: TRUE, EXPECTED_LABEL: settled}
+  - {IS_PAID: TRUE, EXPECTED_LABEL: settled}
+  - {IS_PAID: TRUE, EXPECTED_LABEL: settled}
+  - {IS_PAID: TRUE, EXPECTED_LABEL: settled}
+  - {IS_PAID: TRUE, EXPECTED_LABEL: settled}
+  - {IS_PAID: TRUE, EXPECTED_LABEL: settled}
+  - {IS_PAID: FALSE, EXPECTED_LABEL: outstanding}
+  - {IS_PAID: FALSE, EXPECTED_LABEL: outstanding}
+  - {IS_PAID: FALSE, EXPECTED_LABEL: outstanding}
+  - {IS_PAID: FALSE, EXPECTED_LABEL: outstanding}
+  - {IS_PAID: FALSE, EXPECTED_LABEL: outstanding}
+  - {IS_PAID: FALSE, EXPECTED_LABEL: outstanding}

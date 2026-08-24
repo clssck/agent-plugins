@@ -1,0 +1,31 @@
+# Not yet implemented
+
+The skill ships several capabilities as placeholders. **Each placeholder is surfaced to the builder once**, the first time it would otherwise mislead. Use the exact user-facing copy below — concise, parenthetical, never apologetic.
+
+## Capability list
+
+| # | Capability | When to surface | Exact user-facing line |
+|---|---|---|---|
+| 1 | **True in-flight build state field** (explicit running / done / failed) in the context-builder API. **Best-effort today:** the `check build` verb *infers* status from `last_processed_at` vs the manifest `updated_at` plus a context-scoped lookup probe (see `BUILD_STATUS.md` and `test/SKILL.md`). Still missing: a real server-side state field and progress detail. | When the builder asks "is the build done?" — answer via `check build`; surface the placeholder only for progress detail the inference can't provide | `(I can tell you whether your scope has been processed and whether context is showing up, but a precise build-progress state isn't available yet — you'll see new context apply automatically when it's ready.)` |
+| 2 | **Native use-case object** — replacement for stage-backed YAML. **Partially implemented:** `SYSTEM$CORTEX_AGENT_CORTEX_CONTEXT_BUILDER` is the storage path and handles `create-context`, `put-stage-file` (scope.yaml), `get-stage-file`, `get-context`, `list-contexts`, and `delete-context`. Still missing: `list-files` on the internal stage. See `STORAGE.md`. | On the "stored at" line shown after confirm | `(placeholder location; will move to a native use-case object.)` |
+| 3 | **Correction propagation** — "DAU change might also apply to weekly_active_users" | After recording a correction that *could* propagate | `(Propagation across similar metrics is not yet implemented — recorded as a single declared fact.)` |
+| 4 | **Content search of BI objects & external tables — not all BI objects supported yet.** **Partially implemented:** we can extract content (internal queries/fields/definitions) for *some* dashboards, but coverage is incomplete — not every BI platform/object type is supported, and external-table row data isn't read. Discovery of these assets *is* supported via search (see `DISCOVERY.md`). | When the builder asks to search *inside* a BI asset or external table whose content we can't yet read | `(Content search isn't supported for every BI object yet — I can extract it for some dashboards, but for <asset> I can only discover it and use its metadata, not read its internal queries/fields.)` |
+| 5 | **Horizon Context connector enablement** (Tableau, Power BI, Databricks, SQL Server, PostgreSQL, …) — a platform only appears in search if it is connected via a Horizon Context connector | When a BI/DWH platform the builder mentions returns nothing because it isn't connected | `(<platform> isn't connected via Horizon Context, so it doesn't show up in search. To include it, enable the connector: <docs link>.)` See `DASHBOARDS.md`. |
+| 6 | **dbt PAT / external lineage** | When the builder names a dbt project that needs a PAT to read full lineage | `(dbt lineage via PAT is not yet implemented; today I'll record the project path and the build will use whatever lineage it can reach.)` |
+| 7 | **Cross-session resumption verb** beyond `@cortex-sense resume <use case>` | Don't surface; we picked a verb. Internal note only. | (n/a) |
+| 8 | **Delegation / hand-off / SME tagging** — `@finance-steward — which definition of ACV is right?` | When the builder tries to delegate (asks to share, mention a teammate, etc.) | `(Hand-off and delegation are not yet implemented. For now, share the domain name with your reviewer; they can run @cortex-sense resume <domain>.)` |
+| 9 | **`in_account_scope.yaml` storage split** — writing `in_account_instructions` to a separate `in_account_scope.yaml` in an `account/` sub-path of the context-builder stage so inference-time hints stay within the account and are never shared with the build. Today both `additional_instructions` and `in_account_instructions` land in the same `scope.yaml`. | Internal only — do not surface to the builder. | (n/a) |
+| 10 | **Answer-phase telemetry for eval** — token counts and true orchestrator-step counts per answered question. No telemetry source exists today; the eval schema reserves `tokens` / `orchestrator_steps` (and their `total_tokens` / `avg_orchestrator_steps` aggregates) as `null`. `time_ms`, `tool_calls`, and `failed` are captured. See `EVAL_FORMAT.md` "Answer metrics". | Internal only — do not surface to the builder. | (n/a) |
+| 11 | **Git-backed Streamlit source ingestion** — when a Streamlit app's `DESCRIBE STREAMLIT` `root_location` is a Git repository (or otherwise not a readable internal stage), we include the app's **metadata** but may not be able to read its **source code** for the build. Content resolution is best-effort (see `INSTRUCTIONS.md` "Streamlit content-path rule"). **Confirm at implementation time** whether the build can ingest Git-backed sources; if it can, delete this row. | When an added Streamlit app resolves to a Git-backed / unresolvable `root_location` | `(<app> looks Git-backed — I can include its metadata, but I may not be able to read its source for the build. Want me to include it anyway, or point me at a stage copy?)` |
+
+## Code hooks
+
+These map to the comments referenced in the markdown sub-skills:
+
+- `refine/SKILL.md` carries concrete provenance instructions (state, origin, recorded_at) for CoCo to set on every recorded item — the in-manifest `provenance` sub-object shipped as part of the scope manifest.
+- `scripts/persist_state.py` contains `_merge_instructions()` — a placeholder for the eventual instruction-routing/dedup/propagation pipeline (item 3). The skill calls `persist_state.py merge` before `put-stage-file` to run dedup in-process.
+- `scripts/persist_state.py` delegates the full storage contract (resolution, doctor, post-save persistence-layer registration) to `reference/STORAGE.md` (item 2). The remaining placeholder is the manifest payload itself still living in a stage rather than the eventual native object.
+
+## Drift policy
+
+If a capability above ships, **delete the row here and the matching user-facing line in the sub-skill that emits it.** Don't leave dead "not yet implemented" copy in the prompts.

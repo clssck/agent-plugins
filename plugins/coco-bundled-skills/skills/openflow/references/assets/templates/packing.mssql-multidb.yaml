@@ -1,0 +1,42 @@
+# packing.mssql-multidb.yaml
+#
+# SQL Server multidatabase: ONE connector hosts MANY source databases.
+# Use sqlserver-multidatabase when you have dozens of small per-tenant DBs on the same SQL Server
+# and want one connector PG to handle all of them. Schema separation in Snowflake is by schema_pattern.
+#
+# Prereqs (run on the source before applying):
+#   - Change Tracking enabled per database
+#   - Every replicated table has a PRIMARY KEY (CT has no UNIQUE fallback)
+#   - SQL Server Agent running
+
+runtime: TODO-runtime-name
+connector_type: sqlserver-multidatabase
+
+shared:
+  snowflake:
+    account: TODO-snowflake-account
+    auth: SNOWFLAKE_MANAGED
+    role: OPENFLOW_ROLE
+    warehouse: CONNECTOR_WAREHOUSE
+  source:
+    user: openflow_repl
+    password: <mssql-repl-password>
+    jdbc_driver_url: https://repo1.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/12.6.4.jre11/mssql-jdbc-12.6.4.jre11.jar
+  ingestion:
+    ingestion_type: full
+    concurrent_snapshot_queries: 2
+    merge_task_schedule: "* * * * * ?"
+
+connectors:
+  - name: mssql-fleet
+    overrides:
+      jdbc_url: jdbc:sqlserver://TODO-host:1433;encrypt=true;trustServerCertificate=false
+      databases:                                  # the MULTI-DB part — one connector, many DBs
+        - tenant_001
+        - tenant_002
+        - tenant_003
+        - tenant_004
+        - tenant_005
+      destination_database: MSSQL_FLEET_DEMO
+      schema_pattern: "${database}"               # each source DB → its own Snowflake schema
+    tables_regex: "^dbo\\..*"

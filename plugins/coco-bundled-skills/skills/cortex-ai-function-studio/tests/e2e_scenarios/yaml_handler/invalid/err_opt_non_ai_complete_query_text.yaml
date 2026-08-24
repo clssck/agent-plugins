@@ -1,0 +1,21 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+#
+# INVALID opt SPEC: a builtin query_text that calls AI_CLASSIFY rather than
+# AI_COMPLETE. Optimization is scoped to a single AI_COMPLETE call, so the
+# handler must reject it.
+function:
+  query_text: "AI_CLASSIFY(TEXT, ['positive', 'negative']):labels[0]"
+metrics:
+  - name: exact_match
+dataset:
+  name: __TABLE__
+  column_mapping:
+    argument_mapping:
+      TEXT: TEXT
+    ground_truth: EXPECTED_LABEL
+optimization:
+  models:
+    - llama3.1-8b
+  budget: ultra-light

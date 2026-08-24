@@ -1,0 +1,495 @@
+{
+  "claude-haiku-4-5": {
+    "max_input_images": 20,
+    "max_input_documents": 5,
+    "max_file_size_mb_images": 3.75,
+    "max_file_size_mb_documents": 22.0,
+    "max_document_pages": 100,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ],
+    "supported_document_formats": [
+      "pdf",
+      "txt",
+      "doc",
+      "docx",
+      "xls",
+      "xlsx",
+      "csv",
+      "xhtml"
+    ]
+  },
+  "claude-opus-4-5": {
+    "max_input_images": 20,
+    "max_input_documents": 5,
+    "max_file_size_mb_images": 3.75,
+    "max_file_size_mb_documents": 22.0,
+    "max_document_pages": 100,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ],
+    "supported_document_formats": [
+      "pdf",
+      "txt",
+      "doc",
+      "docx",
+      "xls",
+      "xlsx",
+      "csv",
+      "xhtml"
+    ]
+  },
+  "claude-opus-4-6": {
+    "max_input_images": 20,
+    "max_input_documents": 5,
+    "max_file_size_mb_images": 3.75,
+    "max_file_size_mb_documents": 22.0,
+    "max_document_pages": 100,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ],
+    "supported_document_formats": [
+      "pdf",
+      "txt",
+      "doc",
+      "docx",
+      "xls",
+      "xlsx",
+      "csv",
+      "xhtml"
+    ]
+  },
+  "claude-opus-4-7": {
+    "max_input_images": 20,
+    "max_input_documents": 5,
+    "max_file_size_mb_images": 3.75,
+    "max_file_size_mb_documents": 22.0,
+    "max_document_pages": 100,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ],
+    "supported_document_formats": [
+      "pdf",
+      "txt",
+      "doc",
+      "docx",
+      "xls",
+      "xlsx",
+      "csv",
+      "xhtml"
+    ]
+  },
+  "claude-opus-4-8": {
+    "max_input_images": 20,
+    "max_input_documents": 5,
+    "max_file_size_mb_images": 3.75,
+    "max_file_size_mb_documents": 22.0,
+    "max_document_pages": 100,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ],
+    "supported_document_formats": [
+      "pdf",
+      "txt",
+      "doc",
+      "docx",
+      "xls",
+      "xlsx",
+      "csv",
+      "xhtml"
+    ]
+  },
+  "claude-opus-5": {
+    "max_input_images": 20,
+    "max_input_documents": 5,
+    "max_file_size_mb_images": 3.75,
+    "max_file_size_mb_documents": 22.0,
+    "max_document_pages": 100,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ],
+    "supported_document_formats": [
+      "pdf",
+      "txt",
+      "doc",
+      "docx",
+      "xls",
+      "xlsx",
+      "csv",
+      "xhtml"
+    ]
+  },
+  "claude-sonnet-4-5": {
+    "max_input_images": 20,
+    "max_input_documents": 5,
+    "max_file_size_mb_images": 3.75,
+    "max_file_size_mb_documents": 22.0,
+    "max_document_pages": 100,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ],
+    "supported_document_formats": [
+      "pdf",
+      "txt",
+      "doc",
+      "docx",
+      "xls",
+      "xlsx",
+      "csv",
+      "xhtml"
+    ]
+  },
+  "claude-sonnet-4-6": {
+    "max_input_images": 20,
+    "max_input_documents": 5,
+    "max_file_size_mb_images": 3.75,
+    "max_file_size_mb_documents": 22.0,
+    "max_document_pages": 100,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ],
+    "supported_document_formats": [
+      "pdf",
+      "txt",
+      "doc",
+      "docx",
+      "xls",
+      "xlsx",
+      "csv",
+      "xhtml"
+    ]
+  },
+  "claude-sonnet-5": {
+    "max_input_images": 20,
+    "max_input_documents": 5,
+    "max_file_size_mb_images": 3.75,
+    "max_file_size_mb_documents": 22.0,
+    "max_document_pages": 100,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ],
+    "supported_document_formats": [
+      "pdf",
+      "txt",
+      "doc",
+      "docx",
+      "xls",
+      "xlsx",
+      "csv",
+      "xhtml"
+    ]
+  },
+  "gemini-2.5-flash": {
+    "max_input_images": 20,
+    "max_input_documents": 20,
+    "max_file_size_mb_images": 37.5,
+    "max_file_size_mb_documents": 37.5,
+    "max_document_pages": 1000,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ],
+    "supported_document_formats": [
+      "pdf",
+      "txt"
+    ]
+  },
+  "gemini-2.5-flash-lite": {
+    "max_input_images": 20,
+    "max_input_documents": 20,
+    "max_file_size_mb_images": 37.5,
+    "max_file_size_mb_documents": 37.5,
+    "max_document_pages": 1000,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ],
+    "supported_document_formats": [
+      "pdf",
+      "txt"
+    ]
+  },
+  "gemini-3.1-flash-lite": {
+    "max_input_images": 20,
+    "max_input_documents": 20,
+    "max_file_size_mb_images": 37.5,
+    "max_file_size_mb_documents": 37.5,
+    "max_document_pages": 1000,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ],
+    "supported_document_formats": [
+      "pdf",
+      "txt"
+    ]
+  },
+  "gemini-3.1-pro": {
+    "max_input_images": 20,
+    "max_input_documents": 20,
+    "max_file_size_mb_images": 37.5,
+    "max_file_size_mb_documents": 37.5,
+    "max_document_pages": 3000,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ],
+    "supported_document_formats": [
+      "pdf",
+      "txt"
+    ]
+  },
+  "gemini-3.5-flash": {
+    "max_input_images": 20,
+    "max_input_documents": 20,
+    "max_file_size_mb_images": 37.5,
+    "max_file_size_mb_documents": 37.5,
+    "max_document_pages": 1000,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ],
+    "supported_document_formats": [
+      "pdf",
+      "txt"
+    ]
+  },
+  "llama4-maverick": {
+    "max_input_images": 10,
+    "max_file_size_mb_images": 10.0,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp",
+      "bmp"
+    ]
+  },
+  "mistral-large3": {
+    "max_input_images": 20,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ]
+  },
+  "openai-gpt-4.1": {
+    "max_input_images": 5,
+    "max_file_size_mb_images": 5.0,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ]
+  },
+  "openai-gpt-5": {
+    "max_input_images": 5,
+    "max_file_size_mb_images": 5.0,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ]
+  },
+  "openai-gpt-5-mini": {
+    "max_input_images": 5,
+    "max_file_size_mb_images": 5.0,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ]
+  },
+  "openai-gpt-5-nano": {
+    "max_input_images": 5,
+    "max_file_size_mb_images": 5.0,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ]
+  },
+  "openai-gpt-5.1": {
+    "max_input_images": 5,
+    "max_file_size_mb_images": 5.0,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ]
+  },
+  "openai-gpt-5.2": {
+    "max_input_images": 5,
+    "max_file_size_mb_images": 5.0,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ]
+  },
+  "openai-gpt-5.4": {
+    "max_input_images": 5,
+    "max_file_size_mb_images": 5.0,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ]
+  },
+  "openai-gpt-5.4-mini": {
+    "max_input_images": 5,
+    "max_file_size_mb_images": 5.0,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ]
+  },
+  "openai-gpt-5.4-nano": {
+    "max_input_images": 5,
+    "max_file_size_mb_images": 5.0,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ]
+  },
+  "openai-gpt-5.5": {
+    "max_input_images": 5,
+    "max_file_size_mb_images": 5.0,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ]
+  },
+  "openai-gpt-5.6-luna": {
+    "max_input_images": 5,
+    "max_file_size_mb_images": 5.0,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ]
+  },
+  "openai-gpt-5.6-sol": {
+    "max_input_images": 5,
+    "max_file_size_mb_images": 5.0,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ]
+  },
+  "openai-gpt-5.6-terra": {
+    "max_input_images": 5,
+    "max_file_size_mb_images": 5.0,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ]
+  },
+  "pixtral-large": {
+    "max_input_images": 8,
+    "max_file_size_mb_images": 10.0,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp",
+      "bmp"
+    ]
+  },
+  "qwen3-vl-235b-a22b": {
+    "max_input_images": 20,
+    "supported_image_formats": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp"
+    ]
+  }
+}

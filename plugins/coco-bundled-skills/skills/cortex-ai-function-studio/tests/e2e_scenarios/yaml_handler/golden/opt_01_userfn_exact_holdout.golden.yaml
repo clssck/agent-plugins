@@ -1,0 +1,41 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+
+job_kind: optimization
+result:
+  best_score_present: true
+  experiment: __EXP__
+  status: SUCCEEDED
+runs:
+  SEED:
+    count: 1
+    metric_keys:
+    - estimated_cost
+    - valset_score
+    param_keys:
+    - experiment_schema_version
+    - function_impl
+    - function_name
+    - global_iteration
+    - is_full_eval
+    - iteration
+    - metric_name
+    - model
+    - per_model_stats
+    - run_type
+    - status
+    - total_candidates
+    params:
+      experiment_schema_version: '4'
+      function_name: __FUNCTION__
+      is_full_eval: 'true'
+      iteration: '0'
+      metric_name: exact_match
+      model: llama3.1-8b
+      run_type: seed
+      status: completed
+    run_types:
+    - seed
+    statuses:
+    - FINISHED

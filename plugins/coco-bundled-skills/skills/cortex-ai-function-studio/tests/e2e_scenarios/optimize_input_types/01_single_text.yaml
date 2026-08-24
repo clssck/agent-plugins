@@ -1,0 +1,35 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+
+name: single_text
+description: Single VARCHAR input — sentiment classification (positive/negative).
+seed_model: llama3.1-8b
+inputs:
+  - {name: TEXT, sql_type: VARCHAR}
+output:
+  name: label
+  json_type: string
+  description: One of "positive" or "negative".
+function_intention: Classify the sentiment of a piece of text.
+system_prompt: Classify the sentiment of the text as positive or negative. Reply with only the lowercase word.
+user_prompt_template: "{TEXT}"
+metric_name: exact_match
+optimize_models: ["llama3.1-8b"]
+reflection_model: claude-sonnet-4-5
+auto_budget: demo
+label_column: EXPECTED_LABEL
+input_columns: ["TEXT"]
+rows:
+  - {TEXT: "I absolutely love this, best purchase ever!", EXPECTED_LABEL: positive}
+  - {TEXT: "Fantastic quality and great support.", EXPECTED_LABEL: positive}
+  - {TEXT: "This made my whole week, wonderful.", EXPECTED_LABEL: positive}
+  - {TEXT: "Delightful experience from start to finish.", EXPECTED_LABEL: positive}
+  - {TEXT: "Highly recommend, exceeded expectations.", EXPECTED_LABEL: positive}
+  - {TEXT: "Pretty good overall, would buy again.", EXPECTED_LABEL: positive}
+  - {TEXT: "Terrible, the worst thing I have bought.", EXPECTED_LABEL: negative}
+  - {TEXT: "Completely broken and useless.", EXPECTED_LABEL: negative}
+  - {TEXT: "I hate it, total waste of money.", EXPECTED_LABEL: negative}
+  - {TEXT: "Awful service and rude staff.", EXPECTED_LABEL: negative}
+  - {TEXT: "Disappointing and overpriced.", EXPECTED_LABEL: negative}
+  - {TEXT: "Do not buy, regret it deeply.", EXPECTED_LABEL: negative}

@@ -1,0 +1,71 @@
+{#Copyright (c) 2026 Snowflake Inc. All rights reserved.#}
+{#Licensed under the Snowflake Skills License. #}
+{#Refer to the LICENSE file in the root of this repository for full terms.#}
+
+-- =============================================================================
+-- GEPA Optimization SPROC for AI Functions
+-- Uses the official GEPA algorithm with reflection-based prompt evolution
+-- =============================================================================
+--
+-- PREREQUISITES:
+-- Upload Python files to stage:
+--    PUT file://src/metrics_core.py @<STAGE> AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+--    PUT file://src/snow_gepa_adapter.py @<STAGE> AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+--    PUT file://src/snow_gepa_engine.py @<STAGE> AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+--    PUT file://src/snow_gepa_experiment.py @<STAGE> AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+--    PUT file://src/snow_gepa_optimize.py @<STAGE> AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+--    PUT file://src/snow_gepa_optimize_anything.py @<STAGE> AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+--    PUT file://src/snow_gepa_parallel_reflection.py @<STAGE> AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+--
+-- Rendered by snowflake_ai_optimize.core.sproc_render.render_sproc_sql()
+-- Type: optimize
+--
+-- =============================================================================
+
+{% if anonymous %}WITH OPTIMIZE_AI_FUNCTION AS PROCEDURE ({% else %}CREATE OR REPLACE PROCEDURE {{ database }}.{{ schema }}.{{ proc_name | default('OPTIMIZE_AI_FUNCTION') }}({% endif %}
+    FUNCTION_NAME VARCHAR,
+    TRAINING_TABLE VARCHAR,
+    LABEL_COLUMN VARCHAR,
+    INPUT_COLUMNS ARRAY,
+    METRIC_NAME VARCHAR,
+    MODELS ARRAY,
+    REFLECTION_MODEL VARCHAR,
+    TEST_TABLE VARCHAR DEFAULT NULL,
+    AUTO_BUDGET VARCHAR DEFAULT 'light',
+    VALIDATION_FRACTION FLOAT DEFAULT 0.5,
+    TEMPERATURE FLOAT DEFAULT 0.7,
+    MAX_TOKENS INTEGER DEFAULT 8192,
+    METRIC_OPTIONS VARIANT DEFAULT NULL,
+    CUSTOM_METRIC_UDF VARCHAR DEFAULT NULL,
+    RUN_ID VARCHAR DEFAULT NULL,
+    AGGREGATION_METRIC VARCHAR DEFAULT NULL,
+    -- Valid values are mirrored by the ``OptimizeMode`` Literal in
+    -- ``src/snow_gepa_optimize.py`` (authoritative); keep both in sync:
+    --   'body'    → GEPA body optimization with AI_COMPLETE reflection (default)
+    --   'prompt'  → GEPA prompt-only optimization
+    -- Experiment modes (body_agent, body_agent_single_session, evolve,
+    -- evolve_agent, evolve_agent_single_session, coco_one_shot) are available
+    -- only when the benchmark registers them via dev/modes/register_all.py.
+    OPTIMIZE_MODE VARCHAR DEFAULT 'body',
+    EXPERIMENT_NAME VARCHAR DEFAULT NULL,
+    ENGINE VARCHAR DEFAULT 'default'
+)
+RETURNS VARIANT
+LANGUAGE PYTHON
+RUNTIME_VERSION = '3.12'
+PACKAGES = ('snowflake-snowpark-python', 'gepa', 'jinja2', 'numpy', 'openai', 'pyyaml', 'tqdm', 'dacite', 'pydantic')
+{% if inline -%}
+HANDLER = '{{ inline_handler }}'
+EXECUTE AS CALLER
+AS $$
+{{ inline_body }}
+$${% if not anonymous %};{% endif %}
+{%- else -%}
+IMPORTS = (
+    '@{{ database }}.{{ schema }}.{{ stage_name }}/snowflake_ai_optimize.zip'{% for imp in extra_imports %},
+    '{{ imp }}'{% endfor %}{% for vd in vendor_dirs %},
+    '@{{ database }}.{{ schema }}.{{ stage_name }}/{{ vd }}/'{% endfor %}
+)
+HANDLER = '{{ handler or "handlers.optimize_handler.run_optimization" }}'
+EXECUTE AS CALLER{% if not anonymous %};{% endif %}
+{%- endif %}

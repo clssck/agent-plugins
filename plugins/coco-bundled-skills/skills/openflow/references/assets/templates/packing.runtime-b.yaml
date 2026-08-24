@@ -1,0 +1,40 @@
+# packing.runtime-b.yaml — second of two runtimes. See packing.runtime-a.yaml for context.
+
+runtime: TODO-runtime-b-name
+connector_type: postgresql
+
+shared:
+  snowflake:
+    account: TODO-snowflake-account
+    auth: SNOWFLAKE_MANAGED
+    role: OPENFLOW_ROLE
+    warehouse: CONNECTOR_WAREHOUSE
+  source:
+    user: openflow_repl
+    publication: openflow_pub
+    password: <pg-rds-repl-password>
+    jdbc_driver_url: https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.7/postgresql-42.7.7.jar
+  ingestion:
+    ingestion_type: full
+    concurrent_snapshot_queries: 2
+    merge_task_schedule: "* * * * * ?"
+
+connectors:
+  - name: b1
+    overrides:
+      jdbc_url: jdbc:postgresql://TODO-host-b:5432/tenant_004?sslmode=require
+      slot: pg_cdc_b1_slot
+      destination_database: PG_B1_DEMO
+    tables: [public.users, public.orders]
+  - name: b2
+    overrides:
+      jdbc_url: jdbc:postgresql://TODO-host-b:5432/tenant_005?sslmode=require
+      slot: pg_cdc_b2_slot
+      destination_database: PG_B2_DEMO
+    tables: [public.users, public.orders]
+  - name: b3
+    overrides:
+      jdbc_url: jdbc:postgresql://TODO-host-b:5432/tenant_006?sslmode=require
+      slot: pg_cdc_b3_slot
+      destination_database: PG_B3_DEMO
+    tables: [public.users, public.orders]

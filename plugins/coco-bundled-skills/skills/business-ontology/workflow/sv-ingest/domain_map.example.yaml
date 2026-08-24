@@ -1,0 +1,33 @@
+# Map Semantic View location → Business Ontology domain (sv-ingest)
+#
+# FALLBACK ONLY. The drift engine resolves each field's domain from column/table
+# lineage first (LINEAGE_COLUMN → LINEAGE_TABLE); this map (LOCATION_MAP) is used
+# only when a field's base columns/table are not yet governed. First rule wins;
+# match on any of database / schema / semantic_view_name_like (SQL LIKE).
+
+rules:
+  - match:
+      database: SV_INGEST_DB
+      schema: SV_INGEST_LAB
+      semantic_view_name_like: FINANCE%
+    domain: Aurora Finance
+
+  - match:
+      database: SV_INGEST_DB
+      schema: SV_INGEST_LAB
+      semantic_view_name_like: SALES%
+    domain: Aurora Sales
+
+  - match:
+      database: SV_INGEST_DB
+      schema: SV_INGEST_LAB
+      semantic_view_name_like: ENTERPRISE%
+    domain: Aurora Enterprise
+
+  - match:
+      database: SV_INGEST_DB
+      schema: SV_INGEST_LAB
+      semantic_view_name_like: LEGACY_FINANCE%
+    domain: Aurora Finance
+
+default_domain: Default

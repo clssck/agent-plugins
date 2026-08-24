@@ -1,0 +1,33 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+
+[project]
+name = "pipeline-builder-demos"
+version = "0.1.0"
+description = "Data-sourcing scripts for the pipeline-builder demos: download/synthesize a small public sample corpus and upload it to a Snowflake stage."
+requires-python = ">=3.10"
+dependencies = [
+    "httpx>=0.27",
+    "pymupdf>=1.24",              # PDF page rendering (enterprise-search, corpus-intelligence)
+    "snowflake-connector-python>=3.7",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+# Structured-extraction synthesizes claim PDFs; WeasyPrint needs system libs
+# (pango, cairo, gdk-pixbuf). On macOS: `brew install pango`. On Debian/Ubuntu:
+# `apt-get install libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0`.
+structured-extraction = [
+    "faker>=25.0",
+    "jinja2>=3.1",
+    "weasyprint>=62.0",
+]
+
+# Customer 360 synthesizes structured CSVs + plain-text customer docs -- Faker only, no PDF libs.
+customer360 = [
+    "faker>=25.0",
+]
+
+[tool.ruff.lint]
+select = ["F401", "I"]

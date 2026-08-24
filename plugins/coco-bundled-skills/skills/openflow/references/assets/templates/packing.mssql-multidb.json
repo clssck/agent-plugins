@@ -1,0 +1,40 @@
+{
+  "runtime": "TODO-runtime-name",
+  "connector_type": "sqlserver-multidatabase",
+  "shared": {
+    "snowflake": {
+      "account": "TODO-snowflake-account",
+      "auth": "SNOWFLAKE_MANAGED",
+      "role": "OPENFLOW_ROLE",
+      "warehouse": "CONNECTOR_WAREHOUSE"
+    },
+    "source": {
+      "user": "openflow_repl",
+      "password": "<mssql-repl-password>",
+      "jdbc_driver_url": "https://repo1.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/12.6.4.jre11/mssql-jdbc-12.6.4.jre11.jar"
+    },
+    "ingestion": {
+      "ingestion_type": "full",
+      "concurrent_snapshot_queries": 2,
+      "merge_task_schedule": "* * * * * ?"
+    }
+  },
+  "connectors": [
+    {
+      "name": "mssql-fleet",
+      "overrides": {
+        "jdbc_url": "jdbc:sqlserver://TODO-host:1433;encrypt=true;trustServerCertificate=false",
+        "databases": [
+          "tenant_001",
+          "tenant_002",
+          "tenant_003",
+          "tenant_004",
+          "tenant_005"
+        ],
+        "destination_database": "MSSQL_FLEET_DEMO",
+        "schema_pattern": "${database}"
+      },
+      "tables_regex": "^dbo\\..*"
+    }
+  ]
+}

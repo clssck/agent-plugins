@@ -1,0 +1,48 @@
+# packing.n-to-1.yaml
+#
+# 3 SQL Server multidatabase connectors → 1 runtime, all writing into the SAME
+# Snowflake destination database. Tenant separation is by schema_pattern (each
+# connector gets its own schema in the shared DB).
+# Useful when you want one analytics-side database for joinable cross-tenant queries.
+
+runtime: TODO-runtime-name
+connector_type: sqlserver-multidatabase
+
+shared:
+  snowflake:
+    account: TODO-snowflake-account
+    auth: SNOWFLAKE_MANAGED
+    role: OPENFLOW_ROLE
+    warehouse: CONNECTOR_WAREHOUSE
+  source:
+    user: openflow_repl
+    password: <sqlserver-repl-password>
+  ingestion:
+    ingestion_type: full
+    concurrent_snapshot_queries: 2
+    merge_task_schedule: "* * * * * ?"
+
+connectors:
+  - name: tenant-001
+    overrides:
+      jdbc_url: jdbc:sqlserver://TODO-host:1433;encrypt=true;databaseName=tenant_001
+      databases: [tenant_001]
+      destination_database: PG_SHARED_DEMO       # same DB for every connector
+      schema_pattern: TENANT_001                  # but each gets its own schema
+    tables_regex: "^public\\..*"
+
+  - name: tenant-002
+    overrides:
+      jdbc_url: jdbc:sqlserver://TODO-host:1433;encrypt=true;databaseName=tenant_002
+      databases: [tenant_002]
+      destination_database: PG_SHARED_DEMO
+      schema_pattern: TENANT_002
+    tables_regex: "^public\\..*"
+
+  - name: tenant-003
+    overrides:
+      jdbc_url: jdbc:sqlserver://TODO-host:1433;encrypt=true;databaseName=tenant_003
+      databases: [tenant_003]
+      destination_database: PG_SHARED_DEMO
+      schema_pattern: TENANT_003
+    tables_regex: "^public\\..*"

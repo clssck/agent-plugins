@@ -1,0 +1,51 @@
+metadata:
+  intent_id: unregister
+  intent_name: Unregister Data Offerings and Templates
+  intent_description: User wants to remove registered data offerings or templates from the account registry.
+  intent_category: collaboration
+  enabled_for_agents:
+    - dcr_agent
+    - dcr_agent_next
+  release_status: released
+
+triggers:
+  - "unregister data offering"
+  - "unregister offering"
+  - "remove data offering"
+  - "delete data offering"
+  - "unregister template"
+  - "remove template"
+  - "delete template"
+
+procedures:
+  - name: "{DB}.REGISTRY.UNREGISTER_DATA_OFFERING"
+    description: "Unregister a data offering from the account registry"
+    params: [OBJECT_ID]
+    output_format: json
+    when: "User wants to remove a registered data offering from the registry"
+    display: "unregistration confirmation"
+    stopping_point: true
+    stopping_reason: "Confirm OBJECT_ID and verify no active collaboration linkages before unregistering"
+
+  - name: "{DB}.REGISTRY.UNREGISTER_TEMPLATE"
+    description: "Unregister a template from the account registry"
+    params: [OBJECT_ID]
+    output_format: json
+    when: "User wants to remove a registered template from the registry"
+    display: "unregistration confirmation"
+    stopping_point: true
+    stopping_reason: "Confirm OBJECT_ID and verify no active collaboration linkages before unregistering"
+
+  - name: "{DB}.REGISTRY.VIEW_REGISTERED_DATA_OFFERINGS"
+    description: "List all registered data offerings — used to look up OBJECT_ID before unregistering"
+    params: []
+    output_format: table
+    when: "User does not know the OBJECT_ID of the data offering to unregister"
+    display: "all registered data offerings with OBJECT_IDs"
+
+  - name: "{DB}.REGISTRY.VIEW_REGISTERED_TEMPLATES"
+    description: "List all registered templates — used to look up OBJECT_ID before unregistering"
+    params: []
+    output_format: table
+    when: "User does not know the OBJECT_ID of the template to unregister"
+    display: "all registered templates with OBJECT_IDs"

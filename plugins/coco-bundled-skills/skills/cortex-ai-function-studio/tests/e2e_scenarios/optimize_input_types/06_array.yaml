@@ -1,0 +1,35 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+
+name: array_contains
+description: Single ARRAY input — match if it contains 'urgent'.
+seed_model: llama3.1-8b
+inputs:
+  - {name: TAGS, sql_type: ARRAY}
+output:
+  name: label
+  json_type: string
+  description: One of "match" or "nomatch".
+function_intention: Detect whether an array of tags contains the word urgent.
+system_prompt: If the list of tags contains the word urgent reply match, otherwise reply nomatch. Reply with only the lowercase word.
+user_prompt_template: "{TAGS}"
+metric_name: exact_match
+optimize_models: ["llama3.1-8b"]
+reflection_model: claude-sonnet-4-5
+auto_budget: demo
+label_column: EXPECTED_LABEL
+input_columns: ["TAGS"]
+rows:
+  - {TAGS: "ARRAY_CONSTRUCT('urgent','news')", EXPECTED_LABEL: match}
+  - {TAGS: "ARRAY_CONSTRUCT('sports','urgent')", EXPECTED_LABEL: match}
+  - {TAGS: "ARRAY_CONSTRUCT('urgent')", EXPECTED_LABEL: match}
+  - {TAGS: "ARRAY_CONSTRUCT('alert','urgent','today')", EXPECTED_LABEL: match}
+  - {TAGS: "ARRAY_CONSTRUCT('finance','urgent')", EXPECTED_LABEL: match}
+  - {TAGS: "ARRAY_CONSTRUCT('urgent','weather')", EXPECTED_LABEL: match}
+  - {TAGS: "ARRAY_CONSTRUCT('sports','news')", EXPECTED_LABEL: nomatch}
+  - {TAGS: "ARRAY_CONSTRUCT('finance','weather')", EXPECTED_LABEL: nomatch}
+  - {TAGS: "ARRAY_CONSTRUCT('travel')", EXPECTED_LABEL: nomatch}
+  - {TAGS: "ARRAY_CONSTRUCT('food','music','art')", EXPECTED_LABEL: nomatch}
+  - {TAGS: "ARRAY_CONSTRUCT('tech','science')", EXPECTED_LABEL: nomatch}
+  - {TAGS: "ARRAY_CONSTRUCT('health','fitness')", EXPECTED_LABEL: nomatch}

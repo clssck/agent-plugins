@@ -1,0 +1,34 @@
+# Machine-readable procedure definitions for manage-registries sub-skill
+# This file is the source of truth for:
+#   1. Generating intent YAML files (native_app)
+#   2. Validating SKILL.md documentation
+#
+# Usage:
+#   python ../../scripts/skill_intent_converter.py skill-to-intent --skill-dir . --output manage_registries.yaml
+#   python ../../scripts/skill_intent_converter.py validate --skill-dir .
+
+metadata:
+  intent_id: manage_registries
+  intent_name: Manage Custom Registries
+  intent_description: User wants to create a custom registry that stores DCR resources (templates, data offerings, or code specs) at the account level.
+  intent_category: collaboration
+  enabled_for_agents:
+    - dcr_agent_next
+  release_status: staging
+
+triggers:
+  - "create registry"
+  - "custom registry"
+  - "new registry"
+  - "create custom registry"
+  - "manage registries"
+
+procedures:
+  - name: "{DB}.REGISTRY.CREATE_REGISTRY"
+    description: "Create a custom registry that holds a single resource type (TEMPLATE, DATA OFFERING, or CODE SPEC), designated at creation"
+    params: [REGISTRY_NAME, RESOURCE_TYPE]
+    output_format: json
+    when: "User wants to create a custom registry to group templates, data offerings, or code specs"
+    display: "registry creation confirmation"
+    stopping_point: true
+    stopping_reason: "Confirm registry name and resource type before creating the registry"

@@ -8,7 +8,8 @@
   },
   "repository": "clssck/agent-plugins",
   "localPlugins": [
-    "plugins/bro"
+    "plugins/bro",
+    "plugins/coco-bundled-skills"
   ],
   "repositories": [
     "https://github.com/emilkowalski/skills",

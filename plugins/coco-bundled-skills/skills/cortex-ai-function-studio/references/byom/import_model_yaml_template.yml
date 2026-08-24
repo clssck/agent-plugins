@@ -1,0 +1,38 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+
+# Template for SQL-driven Hugging Face import into Snowflake Model Registry.
+# Read this file, replace every <PLACEHOLDER>, then pass the rendered YAML text to:
+#   SELECT SYSTEM$IMPORT_MODEL('<rendered_yaml_text_with_single_quotes_escaped>');
+# Do not stage this file for SYSTEM$IMPORT_MODEL; this function accepts YAML text.
+# The import starts a Snowflake job and can take 10-20 minutes (usually faster when a Hugging Face token secret is provided).
+
+compute_pool: "<CPU_OR_GENERAL_COMPUTE_POOL_FOR_MODEL_LOGGING>"
+models:
+- name:
+    model_name: "<DATABASE>.<SCHEMA>.<MODEL_NAME>"
+    version_name: "<VERSION_NAME>"
+  log_model_args:
+    target_platforms:
+    - "SNOWPARK_CONTAINER_SERVICES"
+    # Optional package pins only when verified for the model/account.
+    # pip_requirements:
+    # - "transformers==<VERSION>"
+    # - "accelerate==<VERSION>"
+    # conda_dependencies:
+    # - "sentencepiece"
+    # Optional warehouse/comment if required by the account flow.
+    # warehouse: "<WAREHOUSE>"
+    # comment: "Imported for CAIFS Bring your own Model research preview"
+  hf_model:
+    hf_model_name: "<HUGGING_FACE_MODEL_HANDLE>"
+    task: "<TASK_TYPE>" # See ../../byom/SKILL.md Bring your own Model input scope: AI_COMPLETE service Bring your own Model is text-input only; image-text-to-text models are text-only here.
+    trust_remote_code: <true_or_false>
+    # Optional tokenizer/revision for verified models.
+    # tokenizer: "<TOKENIZER_MODEL_HANDLE>"
+    # revision: "<REVISION>"
+    # For gated/private models, configure a Snowflake secret and reference it here.
+    # token_secret_object: "<DATABASE>.<SCHEMA>.<HF_TOKEN_SECRET>"
+    # Optional advanced Hugging Face kwargs as a JSON string.
+    # hf_model_kwargs: '{"framework":"pt"}'

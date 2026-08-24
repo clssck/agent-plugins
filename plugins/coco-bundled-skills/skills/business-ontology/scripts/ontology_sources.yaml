@@ -1,0 +1,30 @@
+# Ontology source registry — lightweight reference store for stage-file sources.
+#
+# TEMPORARY: This file will be replaced by native backend source storage once
+# it is implemented. All read/write goes through
+# scripts/ontology_source_registry.py so migration only changes that one module.
+#
+# Do NOT store file contents here — only URIs and processing metadata.
+#
+# Field reference:
+#   source_id                 stable UUID for this registration
+#   domains                   array of {name, id} — which ontology domains this source belongs to.
+#                             Empty array or [{name: "Default"}] = generic (applies to all domains).
+#                             Multiple entries = source is relevant to several domains.
+#   source_type               "stage_file" | "stage_prefix"
+#   stage_uri                 e.g. @MY_DB.MY_SCHEMA.MY_STAGE/ontology_terms.csv
+#   added_by                  Snowflake user/role who registered this source
+#   status                    "active" | "paused" | "deprecated"
+#   monitoring_mode           "none" | "sense_scheduled"
+#   last_imported_at          ISO-8601 timestamp of last successful import
+#   last_sense_processed_at   ISO-8601 timestamp of last Cortex Sense enrichment pass
+#   last_seen_fingerprint     hex hash of file contents at last import (for change detection)
+#   notes                     free-form notes
+#   registered_at             ISO-8601 timestamp when this source was registered
+#
+# NOT stored here: Semantic View bindings. A term↔SV binding is a catalog
+# association (SYSTEM$DRAFT_GLOSSARY_ASSET with refType=SEMANTIC_VIEW, role
+# RELATED_SEMANTIC_VIEW) — owned by business-ontology/workflow/phase-3-generate.
+# The registry intentionally holds no semantic_view_fqn so there is one source
+# of truth for SV bindings.
+sources: []

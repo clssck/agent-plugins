@@ -1,0 +1,1380 @@
+name: WORKLOAD_PERFORMANCE_MONITORING
+description: Unified semantic view for analyzing workload performance through query optimization (caching efficiency, spilling, QAS eligibility) and storage optimization (partition and column-level pruning rates, clustering key candidates, search optimization opportunities)
+tables:
+  - name: COLUMN_PRUNING
+    synonyms:
+      - column access patterns
+      - column filter efficiency
+      - column pruning data
+      - column usage stats
+    description: Aggregated column-level pruning statistics showing how columns are used in query filters and joins
+    base_table:
+      database: SNOWFLAKE
+      schema: ACCOUNT_USAGE
+      table: COLUMN_QUERY_PRUNING_HISTORY
+    dimensions:
+      - name: ACCESS_TYPE
+        synonyms:
+          - column access type
+          - column usage
+          - filter type
+          - usage type
+        description: Type of access to the column (e.g., WHERE, JOIN, GROUP_BY, ORDER_BY, SELECT)
+        expr: access_type
+        data_type: VARCHAR(16777216)
+      - name: COLUMN_ID
+        synonyms:
+          - column identifier
+          - column system id
+          - column unique identifier
+        description: System-generated identifier for the column
+        expr: column_id
+        data_type: NUMBER(38,0)
+      - name: COLUMN_NAME
+        synonyms:
+          - column
+          - column field name
+        description: Upper Case name of the column accessed
+        expr: column_name
+        data_type: VARCHAR(16777216)
+      - name: DATABASE_ID
+        synonyms:
+          - database identifier
+          - database unique identifier
+        description: System-generated identifier for the database
+        expr: database_id
+        data_type: NUMBER(38,0)
+      - name: DATABASE_NAME
+        synonyms:
+          - database
+          - table database
+        description: Upper Case name of the database containing the table
+        expr: database_name
+        data_type: VARCHAR(16777216)
+      - name: INTERVAL_END_TIME
+        synonyms:
+          - column aggregation end
+          - column interval finish
+          - column period end
+        description: End time of the aggregation interval for column pruning statistics
+        expr: interval_end_time
+        data_type: TIMESTAMP_LTZ(9)
+      - name: INTERVAL_START_TIME
+        synonyms:
+          - column aggregation start
+          - column interval begin
+          - column period start
+        description: Start time of the aggregation interval for column pruning statistics
+        expr: interval_start_time
+        data_type: TIMESTAMP_LTZ(9)
+      - name: QUERY_HASH
+        synonyms:
+          - canonical query hash
+          - query pattern hash
+          - query signature
+        description: Hash value based on canonicalized SQL text, useful for identifying similar query patterns
+        expr: query_hash
+        data_type: VARCHAR(16777216)
+      - name: QUERY_PARAMETERIZED_HASH
+        synonyms:
+          - parameterized hash
+          - query template hash
+          - query_hash
+          - query_signature
+        description: Hash value based on parameterized query text, useful for grouping queries with same structure but different literals
+        expr: query_parameterized_hash
+        data_type: VARCHAR(16777216)
+      - name: SCHEMA_ID
+        synonyms:
+          - schema identifier
+          - schema unique identifier
+        description: System-generated identifier for the schema
+        expr: schema_id
+        data_type: NUMBER(38,0)
+      - name: SCHEMA_NAME
+        synonyms:
+          - schema
+          - table schema
+        description: Upper Case name of the schema containing the table
+        expr: schema_name
+        data_type: VARCHAR(16777216)
+      - name: TABLE_ID
+        synonyms:
+          - table identifier
+          - table unique identifier
+        description: System-generated identifier for the table
+        expr: table_id
+        data_type: NUMBER(38,0)
+      - name: TABLE_NAME
+        synonyms:
+          - table
+          - table object name
+        description: Upper Case name of the table accessed
+        expr: table_name
+        data_type: VARCHAR(16777216)
+      - name: VARIANT_PATH
+        synonyms:
+          - column access path
+          - column variant path
+          - variant access path
+        description: Path to the semi-structured data being accessed (if applicable). NULL if the column accessed does not have a semi-structured data type.
+        expr: variant_path
+        data_type: VARCHAR(16777216)
+      - name: WAREHOUSE_ID
+        synonyms:
+          - warehouse identifier
+          - warehouse unique identifier
+        description: System-generated identifier for the warehouse that executed the query
+        expr: warehouse_id
+        data_type: NUMBER(38,0)
+    facts:
+      - name: AGGREGATE_QUERY_COMPILATION_TIME
+        synonyms:
+          - column aggregate query compilation time
+          - column total compilation time
+        description: Total compilation time (in milliseconds) for all queries that matched predicates involving this column during the interval
+        expr: aggregate_query_compilation_time
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: AGGREGATE_QUERY_ELAPSED_TIME
+        synonyms:
+          - column aggregate query elapsed time
+          - column total query time
+        description: Total elapsed time (in milliseconds) for all queries that matched predicates involving this column during the interval
+        expr: aggregate_query_elapsed_time
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: AGGREGATE_QUERY_EXECUTION_TIME
+        synonyms:
+          - column aggregate query execution time
+          - column total execution time
+        description: Total execution time (in milliseconds) for all queries that matched predicates involving this column during the interval
+        expr: aggregate_query_execution_time
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: NUM_QUERIES
+        synonyms:
+          - column query count
+          - queries using column
+        description: Number of queries that accessed this column during the interval
+        expr: num_queries
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: PARTITIONS_PRUNED
+        synonyms:
+          - column partitions skipped
+          - excluded column partitions
+          - pruned column partitions
+        description: Number of partitions successfully pruned (not scanned) that matched predicates involving this column during the interval
+        expr: partitions_pruned
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: PARTITIONS_SCANNED
+        synonyms:
+          - column partitions read
+          - scanned column partitions
+        description: Number of partitions scanned that matched predicates involving this column during the interval
+        expr: partitions_scanned
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: ROWS_MATCHED
+        synonyms:
+          - column rows returned
+          - filtered column rows
+          - matching column rows
+        description: Number of rows that matched predicates involving this column during the interval
+        expr: rows_matched
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: ROWS_PRUNED
+        synonyms:
+          - column rows skipped
+          - excluded column rows
+          - pruned column rows
+        description: Number of rows successfully pruned when this column was part of the query predicate during the interval
+        expr: rows_pruned
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: ROWS_SCANNED
+        synonyms:
+          - column rows read
+          - scanned column rows
+        description: Number of rows scanned when accessing this column during the interval
+        expr: rows_scanned
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: SEARCH_OPTIMIZATION_SUPPORTED_EXPRESSIONS
+        synonyms:
+          - search optimization candidates
+          - search optimization expressions
+          - supported search expressions
+        description: Expressions on this column that could benefit from search optimization (VARIANT array) during the interval
+        expr: search_optimization_supported_expressions
+        data_type: ARRAY
+        access_modifier: public_access
+    metrics:
+      - name: AVG_COLUMN_ROWS_SCANNED
+        synonyms:
+          - average rows scanned per column query
+          - mean column rows scanned
+        description: Average number of rows scanned per query filtering on the column
+        expr: AVG(DIV0(column_pruning.rows_scanned, NULLIF(column_pruning.num_queries, 0)))
+        access_modifier: public_access
+      - name: COLUMN_ROW_PRUNING_PERCENTAGE
+        synonyms:
+          - column filter efficiency
+          - column pruning rate
+          - column-level pruning percentage
+        description: Average percentage of rows pruned when the column was part of the query predicate, indicating predicate filter effectiveness
+        expr: AVG(CASE WHEN (column_pruning.rows_scanned + column_pruning.rows_pruned) > 0 THEN (column_pruning.rows_pruned::FLOAT / (column_pruning.rows_scanned + column_pruning.rows_pruned)) * 100 ELSE 0 END)
+        access_modifier: public_access
+      - name: COLUMN_ROW_WASTED_COUNT
+        synonyms:
+          - column row unused count
+          - column rows unused
+          - column wasted rows
+        description: Number of rows that were scanned but not used by the query when the column was part of the predicate, indicating wasted scan work that was done
+        expr: SUM(column_pruning.rows_scanned - column_pruning.rows_matched)
+        access_modifier: public_access
+      - name: COLUMNS_WITH_SEARCH_OPTIMIZATION
+        synonyms:
+          - columns needing search optimization
+          - search opt opportunities
+          - search optimization candidates
+        description: Number of distinct columns that could benefit from search optimization
+        expr: COUNT(DISTINCT CASE WHEN column_pruning.search_optimization_supported_expressions IS NOT NULL THEN column_pruning.column_id ELSE NULL END)
+        access_modifier: public_access
+      - name: TOTAL_COLUMN_USAGE
+        synonyms:
+          - cumulative column usage
+          - total column queries
+        description: Total number of queries using the column for filtering
+        expr: SUM(column_pruning.num_queries)
+        access_modifier: public_access
+    primary_key:
+      columns:
+        - TABLE_ID
+        - COLUMN_ID
+        - INTERVAL_START_TIME
+  - name: QUERY_ACCELERATION_ELIGIBLE
+    synonyms:
+      - acceleration opportunities
+      - QAS eligible queries
+      - query acceleration candidates
+    description: Queries eligible for Query Acceleration Service (QAS) with potential time savings
+    base_table:
+      database: SNOWFLAKE
+      schema: ACCOUNT_USAGE
+      table: QUERY_ACCELERATION_ELIGIBLE
+    dimensions:
+      - name: QUERY_ID
+        synonyms:
+          - query identifier
+          - query uuid
+        description: Unique identifier for the query eligible for acceleration
+        expr: query_id
+        data_type: VARCHAR(134217728)
+      - name: QUERY_TEXT
+        synonyms:
+          - query
+          - query content
+          - query sql
+          - sql text
+        description: Text of the SQL query eligible for acceleration
+        expr: query_text
+        data_type: VARCHAR(134217728)
+      - name: START_TIME
+        synonyms:
+          - execution start
+          - query start
+          - start timestamp
+        description: Timestamp when the query execution started
+        expr: start_time
+        data_type: TIMESTAMP_LTZ(6)
+      - name: WAREHOUSE_NAME
+        synonyms:
+          - warehouse
+          - warehouse name
+        description: Name of the warehouse that executed the query. ALWAYS include warehouse_size when selecting warehouse_name.
+        expr: warehouse_name
+        data_type: VARCHAR(134217728)
+      - name: WAREHOUSE_SIZE
+        synonyms:
+          - compute size
+          - warehouse size
+        description: Size of the warehouse that executed the query. MUST always be included when warehouse_name is selected.
+        expr: warehouse_size
+        data_type: VARCHAR(134217728)
+    facts:
+      - name: ELIGIBLE_QUERY_ACCELERATION_TIME
+        synonyms:
+          - acceleration potential
+          - eligible acceleration time
+          - QAS time savings
+        description: Estimated time (in seconds) that could be saved by enabling Query Acceleration Service
+        expr: eligible_query_acceleration_time
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: UPPER_LIMIT_SCALE_FACTOR
+        synonyms:
+          - acceleration potential
+          - eligible acceleration time
+          - QAS scale factor
+        description: The largest scale factor that could be used to accelerate the query
+        expr: upper_limit_scale_factor
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+    metrics:
+      - name: AVG_QAS_POTENTIAL_SAVINGS
+        synonyms:
+          - average QAS savings potential
+          - mean acceleration time savings
+        description: Average potential time savings (in seconds) per eligible query
+        expr: AVG(query_acceleration_eligible.eligible_query_acceleration_time)
+        access_modifier: public_access
+      - name: QAS_ELIGIBLE_COUNT
+        synonyms:
+          - acceleration eligible queries
+          - number of QAS candidates
+          - QAS opportunity count
+        description: Number of queries eligible for Query Acceleration Service
+        expr: COUNT(query_acceleration_eligible.query_id)
+        access_modifier: public_access
+      - name: TOTAL_QAS_POTENTIAL_SAVINGS
+        synonyms:
+          - cumulative acceleration time savings
+          - total QAS savings potential
+        description: Total potential time savings (in seconds) from enabling Query Acceleration Service
+        expr: SUM(query_acceleration_eligible.eligible_query_acceleration_time)
+        access_modifier: public_access
+    primary_key:
+      columns:
+        - QUERY_ID
+  - name: QUERY_HISTORY
+    synonyms:
+      - query execution data
+      - query metrics
+      - query performance
+      - query stats
+    description: Historical query execution metrics including execution time, spilling, caching, and resource usage
+    base_table:
+      database: SNOWFLAKE
+      schema: ACCOUNT_USAGE
+      table: QUERY_HISTORY
+    dimensions:
+      - name: END_TIME
+        synonyms:
+          - completion timestamp
+          - execution end
+          - query end
+        description: Timestamp when the query execution completed
+        expr: end_time
+        data_type: TIMESTAMP_LTZ(6)
+      - name: EXECUTION_STATUS
+        synonyms:
+          - execution result
+          - query outcome
+          - query status
+        description: Execution status of the query (e.g., SUCCESS, FAILED, CANCELLED)
+        expr: execution_status
+        data_type: VARCHAR(134217728)
+      - name: QUERY_ID
+        synonyms:
+          - query identifier
+          - query uuid
+        description: Unique identifier for the query
+        expr: query_id
+        data_type: VARCHAR(134217728)
+      - name: QUERY_PARAMETERIZED_HASH
+        synonyms:
+          - parameterized hash
+          - query template hash
+          - query_hash
+          - query_signature
+        description: Hash value based on parameterized query text for grouping queries with same structure
+        expr: query_parameterized_hash
+        data_type: VARCHAR(134217728)
+      - name: QUERY_TEXT
+        synonyms:
+          - query sql
+          - sql statement
+          - sql text
+        description: Full SQL text of the executed query
+        expr: query_text
+        data_type: VARCHAR(134217728)
+      - name: QUERY_TYPE
+        synonyms:
+          - operation type
+          - sql type
+          - statement type
+        description: Type of SQL statement executed (e.g., SELECT, INSERT, UPDATE)
+        expr: query_type
+        data_type: VARCHAR(134217728)
+      - name: START_TIME
+        synonyms:
+          - execution start
+          - query start
+          - start timestamp
+        description: Timestamp when the query execution started
+        expr: start_time
+        data_type: TIMESTAMP_LTZ(6)
+      - name: USER_NAME
+        synonyms:
+          - executed by
+          - query user
+          - user
+        description: Name of the user who executed the query
+        expr: user_name
+        data_type: VARCHAR(134217728)
+      - name: WAREHOUSE_ID
+        synonyms:
+          - warehouse ID
+          - warehouse identifier
+        description: System-generated identifier for the warehouse that executed the query
+        expr: warehouse_id
+        data_type: NUMBER(38,0)
+      - name: WAREHOUSE_NAME
+        synonyms:
+          - warehouse
+          - warehouse name
+        description: Name of the warehouse that executed the query. ALWAYS include warehouse_size when selecting warehouse_name.
+        expr: warehouse_name
+        data_type: VARCHAR(134217728)
+      - name: WAREHOUSE_SIZE
+        synonyms:
+          - cluster size
+          - warehouse size
+          - warehouse tier
+        description: Size of the warehouse (e.g., X-Small, Small, Medium, Large, X-Large). MUST always be included when warehouse_name is selected.
+        expr: warehouse_size
+        data_type: VARCHAR(134217728)
+    facts:
+      - name: BYTES_SCANNED
+        synonyms:
+          - bytes read
+          - data scanned
+          - scan volume
+        description: Number of bytes scanned by the query
+        expr: bytes_scanned
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: BYTES_SPILLED_TO_LOCAL_STORAGE
+        synonyms:
+          - local disk spill
+          - local spilling
+          - local spillage
+          - memory overflow to local
+        description: Number of bytes spilled to local disk when query exceeded available memory
+        expr: bytes_spilled_to_local_storage
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: BYTES_SPILLED_TO_REMOTE_STORAGE
+        synonyms:
+          - memory overflow to remote
+          - remote disk spill
+          - remote spilling
+          - remote spillage
+        description: Number of bytes spilled to remote storage when query exceeded local storage
+        expr: bytes_spilled_to_remote_storage
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: COMPILATION_TIME
+        synonyms:
+          - optimization time
+          - parse time
+          - query compilation time
+        description: Time (in milliseconds) spent compiling the query
+        expr: compilation_time
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: CREDITS_USED_CLOUD_SERVICES
+        synonyms:
+          - cloud services credits
+          - service layer credits
+        description: Credits used for cloud services during query execution
+        expr: credits_used_cloud_services
+        data_type: FLOAT
+        access_modifier: public_access
+      - name: EXECUTION_TIME
+        synonyms:
+          - processing time
+          - query duration
+          - query execution time
+          - run time
+        description: Time (in milliseconds) spent executing the query
+        expr: execution_time
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: PARTITIONS_SCANNED
+        synonyms:
+          - micro-partitions read
+          - scanned partitions
+        description: Number of micro-partitions scanned during query execution
+        expr: partitions_scanned
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: PARTITIONS_TOTAL
+        synonyms:
+          - available partitions
+          - total partitions
+        description: Total number of micro-partitions available in queried tables
+        expr: partitions_total
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: PERCENTAGE_SCANNED_FROM_CACHE
+        synonyms:
+          - cache hit rate
+          - cache percentage
+          - cached data percentage
+        description: Percentage of data scanned from cache (higher is better for performance)
+        expr: percentage_scanned_from_cache
+        data_type: FLOAT
+        access_modifier: public_access
+      - name: QUEUED_OVERLOAD_TIME
+        synonyms:
+          - concurrency wait time
+          - overload wait time
+          - queue time due to load
+        description: Time (in milliseconds) spent queued due to warehouse overload
+        expr: queued_overload_time
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: QUEUED_PROVISIONING_TIME
+        synonyms:
+          - cold start time
+          - provisioning wait time
+          - warehouse startup time
+        description: Time (in milliseconds) spent queued while the warehouse was provisioning
+        expr: queued_provisioning_time
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: QUERY_ACCELERATION_BYTES_SCANNED
+        synonyms:
+          - QAS bytes scanned
+          - query acceleration bytes
+          - QAS scanned bytes
+        description: Number of bytes scanned by the query acceleration service. When QAS is enabled, this contributes to bytes_spilled_to_remote_storage. Subtract from remote spilling to estimate true memory-pressure remote spilling.
+        expr: query_acceleration_bytes_scanned
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: TOTAL_ELAPSED_TIME
+        synonyms:
+          - end-to-end time
+          - total query time
+          - wall clock time
+        description: Total elapsed time (in milliseconds) from query submission to completion
+        expr: total_elapsed_time
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: TRANSACTION_BLOCKED_TIME
+        synonyms:
+          - blocking time
+          - lock wait time
+          - transaction wait time
+        description: Time (in milliseconds) spent blocked by a transaction lock
+        expr: transaction_blocked_time
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+    metrics:
+      - name: AVG_BLOCKED_TIME
+        synonyms:
+          - average blocking time
+          - mean transaction wait
+        description: Average time queries spent blocked by transaction locks
+        expr: AVG(query_history.transaction_blocked_time)
+        access_modifier: public_access
+      - name: AVG_BYTES_SCANNED
+        synonyms:
+          - average data scanned
+          - mean scan volume
+        description: Average bytes scanned per query
+        expr: AVG(query_history.bytes_scanned)
+        access_modifier: public_access
+      - name: AVG_CACHE_HIT_RATE
+        synonyms:
+          - average local disk cache efficiency
+          - average warehouse cache efficiency
+          - average cache efficiency
+          - mean cache hit percentage
+          - typical cache utilization
+        description: Average percentage of partitions scanned from local disk cache (warehouse cache). Higher is better. Does NOT measure query result cache or metadata cache.
+        expr: AVG(query_history.percentage_scanned_from_cache)
+        access_modifier: public_access
+      - name: AVG_EXECUTION_TIME
+        synonyms:
+          - average execution time
+          - mean query time
+          - typical execution duration
+        description: Average query execution time in milliseconds
+        expr: AVG(query_history.execution_time)
+        access_modifier: public_access
+      - name: AVG_LOCAL_SPILLING
+        synonyms:
+          - average local spill
+          - mean local spilling
+          - mean local spillage
+        description: Average bytes spilled to local disk per query
+        expr: AVG(query_history.bytes_spilled_to_local_storage)
+        access_modifier: public_access
+      - name: AVG_PARTITIONS_SCANNED
+        synonyms:
+          - average partitions scanned
+          - mean partitions scanned per query
+        description: Average number of partitions scanned per query
+        expr: AVG(query_history.partitions_scanned)
+        access_modifier: public_access
+      - name: AVG_QUEUED_OVERLOAD_TIME
+        synonyms:
+          - average overload wait
+          - mean queue time
+        description: Average time queries spent queued due to warehouse overload
+        expr: AVG(query_history.queued_overload_time)
+        access_modifier: public_access
+      - name: AVG_REMOTE_SPILLING
+        synonyms:
+          - average remote spill
+          - mean remote spilling
+          - mean remote spillage
+        description: Average bytes spilled to remote storage per query
+        expr: AVG(query_history.bytes_spilled_to_remote_storage)
+        access_modifier: public_access
+      - name: QUERIES_WITH_SPILLING
+        synonyms:
+          - number of queries with spilling
+          - spilling query count
+          - number of queries with spillage
+          - spillage query count
+        description: Number of queries that experienced memory spilling
+        expr: COUNT(CASE WHEN (query_history.bytes_spilled_to_local_storage > 0 OR query_history.bytes_spilled_to_remote_storage > 0) THEN 1 ELSE NULL END)
+        access_modifier: public_access
+      - name: QUERY_COUNT
+        synonyms:
+          - number of queries
+          - query volume
+          - total queries
+        description: Total number of queries executed
+        expr: COUNT(query_history.query_id)
+        access_modifier: public_access
+      - name: TOTAL_BLOCKED_TIME
+        synonyms:
+          - cumulative transaction wait
+          - total blocking time
+        description: Total time queries spent blocked by transaction locks
+        expr: SUM(query_history.transaction_blocked_time)
+        access_modifier: public_access
+      - name: TOTAL_BYTES_SCANNED
+        synonyms:
+          - cumulative scan volume
+          - total data scanned
+        description: Total bytes scanned across all queries
+        expr: SUM(query_history.bytes_scanned)
+        access_modifier: public_access
+      - name: TOTAL_EXECUTION_TIME
+        synonyms:
+          - cumulative execution time
+          - total query time
+        description: Total query execution time in milliseconds
+        expr: SUM(query_history.execution_time)
+        access_modifier: public_access
+      - name: TOTAL_QUEUED_OVERLOAD_TIME
+        synonyms:
+          - cumulative queue time
+          - total overload wait
+        description: Total time queries spent queued due to warehouse overload
+        expr: SUM(query_history.queued_overload_time)
+        access_modifier: public_access
+      - name: TOTAL_SPILLING
+        synonyms:
+          - aggregate spilling
+          - cumulative disk spill
+          - total memory spilling
+          - aggregate spillage
+          - total memory spillage
+        description: Total bytes spilled to disk due to insufficient memory
+        expr: SUM(query_history.bytes_spilled_to_local_storage + query_history.bytes_spilled_to_remote_storage)
+        access_modifier: public_access
+    primary_key:
+      columns:
+        - QUERY_ID
+  - name: TABLE_PRUNING
+    synonyms:
+      - partition pruning stats
+      - table pruning access patterns
+      - table pruning data
+      - table pruning rate
+    description: Aggregated table-level pruning statistics showing how efficiently queries access paritions in a table
+    base_table:
+      database: SNOWFLAKE
+      schema: ACCOUNT_USAGE
+      table: TABLE_QUERY_PRUNING_HISTORY
+    dimensions:
+      - name: DATABASE_ID
+        synonyms:
+          - database identifier
+          - database unique identifier
+        description: System-generated identifier for the database
+        expr: database_id
+        data_type: NUMBER(38,0)
+      - name: DATABASE_NAME
+        synonyms:
+          - database
+          - table database
+        description: Upper Case name of the database containing the table
+        expr: database_name
+        data_type: VARCHAR(16777216)
+      - name: INTERVAL_END_TIME
+        synonyms:
+          - table aggregation end
+          - table interval finish
+          - table period end
+        description: End time of the aggregation interval for table pruning statistics
+        expr: interval_end_time
+        data_type: TIMESTAMP_LTZ(9)
+      - name: INTERVAL_START_TIME
+        synonyms:
+          - table aggregation start
+          - table interval begin
+          - table period start
+        description: Start time of the aggregation interval for table pruning statistics
+        expr: interval_start_time
+        data_type: TIMESTAMP_LTZ(9)
+      - name: QUERY_HASH
+        synonyms:
+          - canonical query hash
+          - query pattern hash
+          - query signature
+        description: Hash value based on canonicalized SQL text, useful for identifying similar query patterns
+        expr: query_hash
+        data_type: VARCHAR(16777216)
+      - name: QUERY_PARAMETERIZED_HASH
+        synonyms:
+          - parameterized hash
+          - query template hash
+          - query_hash
+          - query_signature
+        description: Hash value based on parameterized query text, useful for grouping queries with same structure but different literals
+        expr: query_parameterized_hash
+        data_type: VARCHAR(16777216)
+      - name: SCHEMA_ID
+        synonyms:
+          - schema identifier
+          - schema unique identifier
+        description: System-generated identifier for the schema
+        expr: schema_id
+        data_type: NUMBER(38,0)
+      - name: SCHEMA_NAME
+        synonyms:
+          - schema
+          - table schema
+        description: Upper Case name of the schema containing the table
+        expr: schema_name
+        data_type: VARCHAR(16777216)
+      - name: TABLE_ID
+        synonyms:
+          - table identifier
+          - table unique identifier
+        description: System-generated identifier for the table
+        expr: table_id
+        data_type: NUMBER(38,0)
+      - name: TABLE_NAME
+        synonyms:
+          - table
+          - table object name
+        description: Upper Case name of the table accessed
+        expr: table_name
+        data_type: VARCHAR(16777216)
+      - name: WAREHOUSE_ID
+        synonyms:
+          - warehouse identifier
+          - warehouse unique identifier
+        description: System-generated identifier for the warehouse that executed the query
+        expr: warehouse_id
+        data_type: NUMBER(38,0)
+    facts:
+      - name: AGGREGATE_QUERY_COMPILATION_TIME
+        synonyms:
+          - aggregate query compilation time
+          - query compilation time
+          - total query compilation time
+        description: Total compilation time (in milliseconds) for all queries accessing this table during the interval
+        expr: aggregate_query_compilation_time
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: AGGREGATE_QUERY_ELAPSED_TIME
+        synonyms:
+          - aggregate query elapsed time
+          - query execution time
+          - total query time
+        description: Total elapsed time (in milliseconds) for all queries accessing this table during the interval
+        expr: aggregate_query_elapsed_time
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: AGGREGATE_QUERY_EXECUTION_TIME
+        synonyms:
+          - aggregate query execution time
+          - query execution time
+          - total query execution time
+        description: Total execution time (in milliseconds) for all queries accessing this table during the interval
+        expr: aggregate_query_execution_time
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: NUM_QUERIES
+        synonyms:
+          - queries accessing table
+          - table query count
+        description: Number of queries that accessed this table during the interval
+        expr: num_queries
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: PARTITIONS_PRUNED
+        synonyms:
+          - excluded partitions
+          - pruned table partitions
+          - table partitions skipped
+        description: Number of partitions successfully pruned (not scanned) for this table during the interval
+        expr: partitions_pruned
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: PARTITIONS_SCANNED
+        synonyms:
+          - scanned table partitions
+          - table partitions read
+        description: Number of partitions scanned for this table during the interval
+        expr: partitions_scanned
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: ROWS_MATCHED
+        synonyms:
+          - filtered table rows
+          - matching table rows
+          - table rows returned
+        description: Number of rows from this table that matched query predicates during the interval
+        expr: rows_matched
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: ROWS_PRUNED
+        synonyms:
+          - excluded rows
+          - pruned table rows
+          - table rows skipped
+        description: Number of rows successfully pruned (not scanned) from this table during the interval
+        expr: rows_pruned
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: ROWS_SCANNED
+        synonyms:
+          - scanned table rows
+          - table rows read
+        description: Number of rows scanned from this table during the interval
+        expr: rows_scanned
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+    metrics:
+      - name: AVG_ROWS_SCANNED_PER_QUERY
+        synonyms:
+          - average rows scanned per query
+          - mean rows scanned per query
+        description: Average number of rows scanned per query accessing the table
+        expr: AVG(table_pruning.rows_scanned / NULLIF(table_pruning.num_queries, 0))
+        access_modifier: public_access
+      - name: PARTITION_PRUNING_PERCENTAGE
+        synonyms:
+          - table partition skip rate
+          - table pruning percentage
+          - table pruning rate
+        description: Average percentage of partitions pruned at table level, indicating work avoided by pruning
+        expr: AVG(CASE WHEN (table_pruning.partitions_scanned + table_pruning.partitions_pruned) > 0 THEN (table_pruning.partitions_pruned::FLOAT / (table_pruning.partitions_scanned + table_pruning.partitions_pruned)) * 100 ELSE 0 END)
+        access_modifier: public_access
+      - name: ROW_PRUNING_PERCENTAGE
+        synonyms:
+          - table filter efficiency
+          - table row pruning rate
+          - table-level pruning percentage
+        description: Average percentage of rows pruned per query accessing the table
+        expr: AVG(CASE WHEN (table_pruning.rows_scanned + table_pruning.rows_pruned) > 0 THEN (table_pruning.rows_pruned::FLOAT / (table_pruning.rows_scanned + table_pruning.rows_pruned)) * 100 ELSE 0 END)
+        access_modifier: public_access
+      - name: ROW_UNUSED_PERCENTAGE
+        synonyms:
+          - row unused percentage
+          - row unused rate
+          - wasted rows
+        description: Average percentage of rows unused in a scan on this table, indicating the optimal storage effectiveness of a workload
+        expr: (CASE WHEN (sum(table_pruning.rows_scanned) + sum(table_pruning.rows_pruned)) > 0 THEN 100 - (sum(table_pruning.rows_matched)::FLOAT / (sum(table_pruning.rows_scanned) + sum(table_pruning.rows_pruned))) * 100 ELSE 0 END)
+        access_modifier: public_access
+      - name: ROW_WASTED_COUNT
+        synonyms:
+          - row unused count
+          - rows unused
+          - wasted rows
+        description: Number of rows that were scanned but not used by the query, indicating wasted scan work that was done
+        expr: SUM(table_pruning.rows_scanned - table_pruning.rows_matched)
+        access_modifier: public_access
+      - name: TOTAL_TABLE_PARTITIONS_PRUNED
+        synonyms:
+          - cumulative table partitions pruned
+          - total table partitions skipped
+        description: Total partitions pruned across all table accesses
+        expr: SUM(table_pruning.partitions_pruned)
+        access_modifier: public_access
+      - name: TOTAL_TABLE_PARTITIONS_SCANNED
+        synonyms:
+          - cumulative table partitions scanned
+          - total table partitions read
+        description: Total partitions scanned across all table accesses
+        expr: SUM(table_pruning.partitions_scanned)
+        access_modifier: public_access
+      - name: TOTAL_TABLE_QUERIES
+        synonyms:
+          - cumulative table queries
+          - total table accesses
+        description: Total number of queries accessing tables
+        expr: SUM(table_pruning.num_queries)
+        access_modifier: public_access
+    primary_key:
+      columns:
+        - TABLE_ID
+        - INTERVAL_START_TIME
+  - name: QUERY_INSIGHTS
+    synonyms:
+      - query insights
+      - query performance insights
+      - insight types
+      - query optimization insights
+    description: Query-level performance insights generated by Snowflake, identifying SQL-level and resource-level optimization opportunities
+    base_table:
+      database: SNOWFLAKE
+      schema: ACCOUNT_USAGE
+      table: QUERY_INSIGHTS
+    dimensions:
+      - name: QUERY_ID
+        synonyms:
+          - query identifier
+          - query uuid
+        description: Unique identifier for the query that generated the insight
+        expr: query_id
+        data_type: VARCHAR(16777216)
+      - name: QUERY_HASH
+        synonyms:
+          - query fingerprint
+          - query signature
+        description: Hash of the query text
+        expr: query_hash
+        data_type: VARCHAR(16777216)
+      - name: QUERY_PARAMETERIZED_HASH
+        synonyms:
+          - parameterized hash
+          - query pattern hash
+        description: Hash of the parameterized query text for grouping similar queries
+        expr: query_parameterized_hash
+        data_type: VARCHAR(16777216)
+      - name: WAREHOUSE_NAME
+        synonyms:
+          - warehouse
+          - warehouse name
+        description: Name of the warehouse that executed the query
+        expr: warehouse_name
+        data_type: VARCHAR(16777216)
+      - name: INSIGHT_INSTANCE_ID
+        synonyms:
+          - insight id
+          - insight identifier
+        description: Unique identifier for this specific insight instance
+        expr: insight_instance_id
+        data_type: VARCHAR(16777216)
+      - name: INSIGHT_TYPE_ID
+        synonyms:
+          - insight type
+          - insight kind
+          - optimization type
+        description: "Type of insight (e.g., QUERY_INSIGHT_EXPLODING_JOIN, QUERY_INSIGHT_NO_FILTER_ON_TOP_OF_TABLE_SCAN, QUERY_INSIGHT_WORKER_DATA_SKEW)"
+        expr: insight_type_id
+        data_type: VARCHAR(16777216)
+      - name: INSIGHT_TOPIC
+        synonyms:
+          - insight category
+          - insight area
+        description: "High-level topic of the insight (e.g., JOIN, TABLE_SCAN, AGGREGATION, WAREHOUSE)"
+        expr: insight_topic
+        data_type: VARCHAR(16777216)
+      - name: START_TIME
+        synonyms:
+          - execution start
+          - query start
+          - start timestamp
+        description: Timestamp when the query execution started
+        expr: start_time
+        data_type: TIMESTAMP_LTZ(9)
+      - name: IS_OPPORTUNITY
+        synonyms:
+          - is optimization opportunity
+          - actionable insight
+        description: Whether this insight represents an actionable optimization opportunity
+        expr: is_opportunity
+        data_type: BOOLEAN
+    facts:
+      - name: TOTAL_ELAPSED_TIME
+        synonyms:
+          - elapsed time
+          - query duration
+          - total time
+        description: Total elapsed time of the query in milliseconds
+        expr: total_elapsed_time
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+    metrics:
+      - name: TOTAL_INSIGHT_COUNT
+        synonyms:
+          - insight count
+          - number of insights
+          - total insights
+        description: Total number of query insights
+        expr: COUNT(query_insights.insight_instance_id)
+        access_modifier: public_access
+      - name: DISTINCT_INSIGHT_TYPE_COUNT
+        synonyms:
+          - distinct insight types
+          - unique insight types
+        description: Number of distinct insight types
+        expr: COUNT(DISTINCT query_insights.insight_type_id)
+        access_modifier: public_access
+    primary_key:
+      columns:
+        - INSIGHT_INSTANCE_ID
+relationships:
+  - name: COLUMN_PRUNING_TO_TABLE
+    left_table: COLUMN_PRUNING
+    right_table: TABLE_PRUNING
+    relationship_columns:
+      - left_column: TABLE_ID
+        right_column: TABLE_ID
+      - left_column: INTERVAL_START_TIME
+        right_column: INTERVAL_START_TIME
+  - name: ACCELERATION_TO_QUERY
+    left_table: QUERY_ACCELERATION_ELIGIBLE
+    right_table: QUERY_HISTORY
+    relationship_columns:
+      - left_column: QUERY_ID
+        right_column: QUERY_ID
+  - name: INSIGHTS_TO_QUERY
+    left_table: QUERY_INSIGHTS
+    right_table: QUERY_HISTORY
+    relationship_columns:
+      - left_column: QUERY_ID
+        right_column: QUERY_ID
+verified_queries:
+  - name: Warehouses with bad cache hit rates and significant scan and query volume
+    question: Which warehouses have the worst cache hit rates?
+    sql: SELECT warehouse_name, warehouse_size, COUNT(*) AS query_count, ROUND(AVG(percentage_scanned_from_cache), 1) AS avg_cache_hit_pct, ROUND(AVG(execution_time) / 1000.0, 2) AS avg_execution_seconds, ROUND(AVG(bytes_scanned) / 1024 / 1024 / 1024.0, 2) AS avg_gb_scanned FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY WHERE start_time >= DATEADD('day', -7, CURRENT_DATE()) AND warehouse_name IS NOT NULL AND bytes_scanned > 0 GROUP BY warehouse_name, warehouse_size ORDER BY avg_cache_hit_pct ASC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+
+  - name: Which warehouses have the most QAS eligible time?
+    question: Which warehouses have the most QAS eligible time?
+    sql: SELECT warehouse_name, warehouse_size, COUNT(*) AS eligible_query_count, ROUND(SUM(eligible_query_acceleration_time), 2) AS total_eligible_seconds, ROUND(AVG(eligible_query_acceleration_time), 2) AS avg_eligible_seconds_per_query, ROUND(AVG(upper_limit_scale_factor), 1) AS avg_scale_factor, MAX(upper_limit_scale_factor) as max_scale_factor FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_ACCELERATION_ELIGIBLE WHERE start_time >= DATEADD('day', -7, CURRENT_DATE()) AND warehouse_name IS NOT NULL GROUP BY warehouse_name, warehouse_size ORDER BY total_eligible_seconds DESC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+  - name: Which queries are eligible for query acceleration service?
+    question: Which queries are eligible for query acceleration service?
+    sql: SELECT query_id, LEFT(query_text, 100) AS query_preview, warehouse_name, warehouse_size, ROUND(eligible_query_acceleration_time, 2) AS eligible_acceleration_seconds, upper_limit_scale_factor, start_time FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_ACCELERATION_ELIGIBLE WHERE start_time >= DATEADD('day', -7, CURRENT_DATE()) AND warehouse_name IS NOT NULL ORDER BY eligible_query_acceleration_time DESC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+
+  - name: What QAS scale factor should be used for a warehouse?
+    question: What QAS scale factor should be used for a warehouse?
+    sql: SELECT warehouse_name, warehouse_size, CASE WHEN upper_limit_scale_factor BETWEEN 1 AND 4 THEN '1-4' WHEN upper_limit_scale_factor BETWEEN 5 AND 8 THEN '5-8' WHEN upper_limit_scale_factor BETWEEN 9 AND 16 THEN '9-16' ELSE '17+' END AS scale_factor_bucket, COUNT(*) AS query_count, ROUND(SUM(eligible_query_acceleration_time), 2) AS total_eligible_seconds, ROUND(AVG(eligible_query_acceleration_time), 2) AS avg_eligible_seconds_per_query FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_ACCELERATION_ELIGIBLE WHERE start_time >= DATEADD('day', -7, CURRENT_DATE()) AND warehouse_name IS NOT NULL GROUP BY warehouse_name, warehouse_size, scale_factor_bucket ORDER BY warehouse_name, warehouse_size, scale_factor_bucket
+    verified_at: 1727654400
+    verified_by: System
+  - name: Which queries are causing the most spilling?
+    question: Which queries are causing the most spilling?
+    sql: SELECT qh.query_id, qh.query_type, qh.user_name, qh.warehouse_name, qh.warehouse_size, LEFT(qh.query_text, 100) AS query_preview, ROUND(qh.bytes_spilled_to_local_storage / 1024 / 1024 / 1024.0, 2) AS local_spill_gb, ROUND(qh.bytes_spilled_to_remote_storage / 1024 / 1024 / 1024.0, 2) AS remote_spill_gb, ROUND(qh.execution_time / 1000.0, 2) AS execution_seconds, qh.start_time FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY AS qh WHERE qh.start_time >= DATEADD('day', -7, CURRENT_DATE()) AND (qh.bytes_spilled_to_local_storage > 0 OR qh.bytes_spilled_to_remote_storage > 0) ORDER BY qh.bytes_spilled_to_local_storage + qh.bytes_spilled_to_remote_storage DESC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+  - name: Pruning opportunity, sorted by the potential to avoid partitions
+    question: Which tables have the most opportunity to improve pruning rate?
+    sql: SELECT tp.database_name, tp.schema_name, tp.table_name, tp.database_name || '.' || tp.schema_name || '.' || tp.table_name AS fully_qualified_table, tp.table_id, SUM(tp.num_queries) AS query_count, SUM(tp.partitions_scanned) AS total_partitions_scanned, SUM(tp.partitions_pruned) AS total_partitions_pruned, sum(tp.rows_matched) as total_rows_matched, sum(tp.rows_pruned) as total_rows_pruned, sum(tp.rows_scanned) as total_rows_scanned, ROUND(CASE WHEN (SUM(tp.partitions_scanned) + SUM(tp.partitions_pruned)) > 0 THEN (CAST(SUM(tp.partitions_pruned) AS FLOAT) / NULLIF((SUM(tp.partitions_scanned) + SUM(tp.partitions_pruned)), 0)) * 100 ELSE 0 END, 2) AS partition_unused_percentage, ROUND((CASE WHEN (sum(rows_pruned) + sum(rows_scanned)) > 0 THEN 100 - (sum(rows_matched)::FLOAT / (sum(rows_pruned) + sum(rows_scanned))) * 100 ELSE 0 END), 2) AS row_unused_percentage, sum(rows_scanned) - sum(rows_matched) as excess_rows_scanned, avg(tp.rows_scanned - tp.rows_matched) as avg_excess_rows_scanned, ROUND(CASE WHEN (SUM(tp.partitions_scanned) + SUM(tp.partitions_pruned)) > 0 and (SUM(tp.rows_pruned) + SUM(tp.rows_scanned)) > 0 then(avg(tp.rows_scanned - tp.rows_matched) / ((sum(tp.rows_scanned) + sum(tp.rows_pruned)) / (sum(tp.partitions_scanned) + sum(tp.partitions_pruned)))) ELSE 0 END, 2) as avg_potential_avoidable_partitions FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_QUERY_PRUNING_HISTORY AS tp WHERE tp.interval_start_time >= DATEADD('day', -7, CURRENT_DATE()) GROUP BY tp.database_name, tp.schema_name, tp.table_name, tp.table_id ORDER BY avg_potential_avoidable_partitions desc limit 20
+    verified_at: 1
+    verified_by: Nick
+  - name: Identification of columns that have opportunities to improve pruning rate
+    question: Which columns are most frequently used in predicates where there is opportunity to improve pruning rate?
+    sql: SELECT cp.database_name, cp.schema_name, cp.table_name, cp.table_id, cp.column_name, cp.COLUMN_ID, SUM(cp.num_queries) AS column_usage_count, ROUND(CASE WHEN (sum(cp.PARTITIONS_PRUNED) + sum(cp.PARTITIONS_SCANNED)) > 0 THEN (CAST(sum(cp.PARTITIONS_PRUNED) AS FLOAT) / (sum(cp.PARTITIONS_PRUNED) + sum(cp.PARTITIONS_SCANNED))) * 100 ELSE 0 END, 2) AS partition_pruning_percentage, ROUND(CASE WHEN (sum(cp.rows_scanned) + sum(cp.rows_pruned)) > 0 THEN 100 - (CAST(sum(cp.rows_matched) AS FLOAT) / (sum(cp.rows_scanned) + sum(cp.rows_pruned))) * 100 ELSE 0 END, 2) AS unused_rows_percentage, sum(cp.rows_scanned) - sum(cp.rows_matched) as excess_rows_scanned, avg(cp.rows_scanned - cp.rows_matched) as avg_excess_rows_scanned, ROUND(CASE WHEN (SUM(cp.partitions_scanned) + SUM(cp.partitions_pruned)) > 0 and (SUM(cp.rows_pruned) + SUM(cp.rows_scanned)) > 0 then(avg(cp.rows_scanned - cp.rows_matched) / ((sum(cp.rows_scanned) + sum(cp.rows_pruned)) / (sum(cp.partitions_scanned) + sum(cp.partitions_pruned)))) ELSE 0 END, 2) as avg_potential_avoidable_partitions FROM SNOWFLAKE.ACCOUNT_USAGE.COLUMN_QUERY_PRUNING_HISTORY AS cp WHERE cp.interval_start_time >= DATEADD('day', -7, CURRENT_DATE()) GROUP BY cp.database_name, cp.schema_name, cp.table_name, cp.table_id, cp.column_name, cp.column_id HAVING column_usage_count > 0 ORDER BY avg_potential_avoidable_partitions desc limit 20
+    verified_at: 1
+    verified_by: Nick
+  - name: Identification of columns that could benefit from search to reduce scan volume
+    question: Which columns are candidates for search optimization?
+    sql: SELECT cp.database_name, cp.schema_name, cp.table_name, cp.table_id, cp.column_name, cp.column_id, SUM(cp.num_queries) AS query_count, SUM(cp.rows_scanned) AS total_rows_scanned, avg(cp.rows_matched) as average_rows_matched, /* this is the upper bound of parititons scanned that match if we use SOS */ avg(cp.partitions_scanned) as average_partitions_scanned, ROUND(CASE WHEN (SUM(cp.partitions_scanned) + SUM(cp.partitions_pruned)) > 0 AND (SUM(cp.rows_pruned) + SUM(cp.rows_scanned)) > 0 THEN (AVG(cp.rows_scanned - cp.rows_matched) / ((SUM(cp.rows_scanned) + SUM(cp.rows_pruned)) / (SUM(cp.partitions_scanned) + SUM(cp.partitions_pruned)))) ELSE 0 END, 2) as avg_potential_avoidable_partitions, cp.search_optimization_supported_expressions FROM SNOWFLAKE.ACCOUNT_USAGE.COLUMN_QUERY_PRUNING_HISTORY AS cp WHERE cp.interval_start_time >= DATEADD(DAY, -7, CURRENT_DATE) AND NOT cp.search_optimization_supported_expressions IS NULL GROUP BY cp.database_name, cp.schema_name, cp.table_name, cp.column_name, cp.table_id, cp.column_id, cp.search_optimization_supported_expressions ORDER BY avg_potential_avoidable_partitions DESC LIMIT 30;
+    verified_at: 1
+    verified_by: Nick
+  - name: Identification of columns that are used together
+    question: What is the pruning opportunity in columns grouped by the columns that are frequently used together?
+    sql: with column_agg as (select any_value(database_name) || '.' || any_value(schema_name) || '.' || any_value(table_name) fq_name, query_hash, query_parameterized_hash, access_type, interval_start_time, array_agg(column_name ||case when variant_path is not null then ':' || variant_path else '' end) within group (order by column_name ||case when variant_path is not null then ':' || variant_path else '' end) column_list, array_agg(search_optimization_supported_expressions) within group (order by column_name ||case when variant_path is not null then ':' || variant_path else '' end) sos_supported, any_value(num_queries) num_queries, any_value(aggregate_query_elapsed_time) aggregate_query_elapsed_time, any_value(aggregate_query_compilation_time) aggregate_query_compilation_time, any_value(aggregate_query_execution_time) aggregate_query_execution_time, any_value(partitions_scanned) partitions_scanned, any_value(partitions_pruned) partitions_pruned, any_value(rows_scanned) rows_scanned, any_value(rows_pruned) rows_pruned, any_value(rows_matched) rows_matched from SNOWFLAKE.ACCOUNT_USAGE.COLUMN_QUERY_PRUNING_HISTORY AS cp where interval_start_time >= DATEADD('day', -7, CURRENT_DATE()) group by table_id, schema_id, database_id, warehouse_id, query_hash, query_parameterized_hash, access_type, interval_start_time) select fq_name, column_list, sum(num_queries) as query_count, to_number(sum(aggregate_query_execution_time) / sum(num_queries), 38, 1) as average_query_exec_time, div0(sum(partitions_scanned), sum(num_queries)) as partitions_scanned_per_query, div0(sum(partitions_pruned), sum(partitions_pruned + partitions_scanned)) as pruning_ratio, 1 - (div0(sum(rows_matched), sum(rows_scanned + rows_pruned))) as excess_rows_ratio, sum(rows_scanned) - sum(rows_matched) as excess_rows_scanned, avg(rows_scanned - rows_matched) as avg_excess_rows_scanned, ROUND(CASE WHEN (SUM(partitions_scanned) + SUM(partitions_pruned)) > 0 and (SUM(rows_pruned) + SUM(rows_scanned)) > 0 then(avg(rows_scanned - rows_matched) / ((sum(rows_scanned) + sum(rows_pruned)) / (sum(partitions_scanned) + sum(partitions_pruned)))) ELSE 0 END, 2) as avg_potential_avoidable_partitions from column_agg group by all order by avg_potential_avoidable_partitions desc;
+    verified_at: 1
+    verified_by: Nick
+  - name: What are the top tables by scan volume?
+    question: What are the top tables by scan volume?
+    sql: SELECT tp.database_name, tp.schema_name, tp.table_name, SUM(tp.num_queries) AS query_count, SUM(tp.rows_scanned) AS total_rows_scanned, SUM(tp.partitions_scanned) AS total_partitions_scanned, ROUND(AVG(CASE WHEN (tp.partitions_scanned + tp.partitions_pruned) > 0 THEN (tp.partitions_pruned::FLOAT / (tp.partitions_scanned + tp.partitions_pruned)) * 100 ELSE 0 END), 2) AS avg_pruning_pct FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_QUERY_PRUNING_HISTORY AS tp WHERE tp.interval_start_time >= DATEADD('day', -7, CURRENT_DATE()) GROUP BY tp.database_name, tp.schema_name, tp.table_name ORDER BY total_rows_scanned DESC
+    verified_at: 1727654400
+    verified_by: System
+  - name: Which queries scan the most partitions?
+    question: Which queries scan the most partitions?
+    sql: SELECT qh.query_id, qh.query_type, qh.user_name, qh.warehouse_name, qh.warehouse_size, qh.partitions_scanned, qh.partitions_total, ROUND((qh.partitions_scanned::FLOAT / NULLIF(qh.partitions_total, 0)) * 100, 2) AS pct_scanned, ROUND(qh.execution_time / 1000.0, 2) AS execution_seconds, ROUND(qh.bytes_scanned / 1024 / 1024 / 1024.0, 2) AS gb_scanned, qh.start_time, LEFT(qh.query_text, 100) AS query_preview FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY AS qh WHERE qh.start_time >= DATEADD('day', -7, CURRENT_DATE()) AND qh.partitions_scanned > 0 ORDER BY qh.partitions_scanned DESC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+  - name: Which queries have the worst pruning efficiency?
+    question: Which queries have the worst pruning efficiency?
+    sql: SELECT qh.query_id, qh.query_type, qh.user_name, qh.warehouse_name, qh.warehouse_size, qh.partitions_scanned, qh.partitions_total, ROUND((qh.partitions_scanned::FLOAT / NULLIF(qh.partitions_total, 0)) * 100, 2) AS pct_partitions_scanned, ROUND(100 - (qh.partitions_scanned::FLOAT / NULLIF(qh.partitions_total, 0)) * 100, 2) AS pruning_efficiency_pct, ROUND(qh.bytes_scanned / 1024 / 1024 / 1024.0, 2) AS gb_scanned, ROUND(qh.execution_time / 1000.0, 2) AS execution_seconds, qh.start_time, LEFT(qh.query_text, 100) AS query_preview FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY AS qh WHERE qh.start_time >= DATEADD('day', -7, CURRENT_DATE()) AND qh.partitions_total > 0 AND qh.warehouse_name IS NOT NULL ORDER BY pct_partitions_scanned DESC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+  - name: Which queries are the slowest?
+    question: Which queries are the slowest?
+    sql: SELECT qh.query_id, qh.query_type, qh.user_name, qh.warehouse_name, qh.warehouse_size, LEFT(qh.query_text, 100) AS query_preview, ROUND(qh.execution_time / 1000.0, 2) AS execution_seconds, ROUND(qh.total_elapsed_time / 1000.0, 2) AS total_elapsed_seconds, ROUND(qh.bytes_scanned / 1024 / 1024 / 1024.0, 2) AS gb_scanned, qh.partitions_scanned, qh.start_time FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY AS qh WHERE qh.start_time >= DATEADD('day', -7, CURRENT_DATE()) ORDER BY qh.execution_time DESC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+  - name: Which warehouses have the most spilling?
+    question: Which warehouses have the most spilling?
+    sql: SELECT warehouse_name, warehouse_size, COUNT(*) AS query_count, SUM(COALESCE(bytes_spilled_to_local_storage, 0)) AS total_local_spillage_bytes, SUM(COALESCE(bytes_spilled_to_remote_storage, 0)) AS total_remote_spillage_bytes, ROUND(SUM(COALESCE(bytes_spilled_to_local_storage, 0)) / 1024.0 / 1024 / 1024, 2) AS total_local_spillage_gb, ROUND(SUM(COALESCE(bytes_spilled_to_remote_storage, 0)) / 1024.0 / 1024 / 1024, 2) AS total_remote_spillage_gb, COUNT_IF(bytes_spilled_to_local_storage > 0 OR bytes_spilled_to_remote_storage > 0) AS queries_with_spillage FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY WHERE start_time >= DATEADD('day', -7, CURRENT_DATE()) AND warehouse_name IS NOT NULL GROUP BY warehouse_name, warehouse_size ORDER BY total_local_spillage_bytes + total_remote_spillage_bytes DESC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+  - name: Query volume by warehouse
+    question: What is the query volume by warehouse?
+    sql: SELECT warehouse_name, warehouse_size, COUNT(*) AS total_queries, COUNT(DISTINCT user_name) AS distinct_users, COUNT(DISTINCT query_type) AS distinct_query_types, ROUND(AVG(total_elapsed_time) / 1000.0, 2) AS avg_elapsed_seconds, ROUND(AVG(execution_time) / 1000.0, 2) AS avg_execution_seconds FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY WHERE start_time >= DATEADD('day', -7, CURRENT_DATE()) AND warehouse_name IS NOT NULL GROUP BY warehouse_name, warehouse_size ORDER BY total_queries DESC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+  - name: Queue time by warehouse
+    question: Which warehouses have the most queue time?
+    sql: SELECT warehouse_name, warehouse_size, COUNT(*) AS total_queries, ROUND(SUM(queued_overload_time) / 1000.0, 2) AS total_queued_overload_seconds, ROUND(SUM(queued_provisioning_time) / 1000.0, 2) AS total_queued_provisioning_seconds, ROUND(SUM(queued_repair_time) / 1000.0, 2) AS total_queued_repair_seconds, COUNT_IF(queued_overload_time + queued_provisioning_time + queued_repair_time > 0) AS queries_with_queue_time FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY WHERE start_time >= DATEADD('day', -7, CURRENT_DATE()) AND warehouse_name IS NOT NULL GROUP BY warehouse_name, warehouse_size ORDER BY total_queued_overload_seconds + total_queued_provisioning_seconds + total_queued_repair_seconds DESC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+  - name: Queued queries for a warehouse
+    question: Which queries had the most queue time on a warehouse?
+    sql: SELECT query_id, warehouse_name, warehouse_size, user_name, execution_status, start_time, ROUND(total_elapsed_time / 1000.0, 2) AS total_elapsed_seconds, ROUND(queued_overload_time / 1000.0, 2) AS queued_overload_seconds, ROUND(queued_provisioning_time / 1000.0, 2) AS queued_provisioning_seconds, ROUND(queued_repair_time / 1000.0, 2) AS queued_repair_seconds, ROUND((queued_overload_time + queued_provisioning_time + queued_repair_time) / 1000.0, 2) AS total_queue_seconds, LEFT(query_text, 100) AS query_preview FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY WHERE warehouse_name ILIKE '<WAREHOUSE_NAME>' AND start_time >= DATEADD('day', -7, CURRENT_DATE()) AND (queued_overload_time > 0 OR queued_provisioning_time > 0 OR queued_repair_time > 0) ORDER BY queued_overload_time + queued_provisioning_time + queued_repair_time DESC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+  - name: Which queries have the most insights?
+    question: Which queries have the most query insights?
+    sql: SELECT qi.query_id, qi.warehouse_name, COUNT(*) AS total_insights, COUNT(DISTINCT qi.insight_type_id) AS distinct_insight_types, ARRAY_AGG(DISTINCT qi.insight_type_id) AS insight_types, ARRAY_AGG(DISTINCT qi.insight_topic) AS insight_topics, MIN(qi.start_time) AS query_start_time, MAX(qi.total_elapsed_time) AS total_elapsed_time_ms FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_INSIGHTS qi WHERE qi.start_time >= DATEADD('day', -7, CURRENT_DATE()) GROUP BY qi.query_id, qi.warehouse_name ORDER BY total_insights DESC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+  - name: What are the most common query insight types?
+    question: What are the most common query insight types?
+    sql: SELECT insight_type_id, insight_topic, COUNT(*) AS total_occurrences, COUNT(DISTINCT query_id) AS distinct_queries FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_INSIGHTS WHERE start_time >= DATEADD('day', -7, CURRENT_DATE()) GROUP BY insight_type_id, insight_topic ORDER BY total_occurrences DESC
+    verified_at: 1727654400
+    verified_by: System
+
+  # ------------------------------------------------------------------
+  # STORED PROCEDURE analysis. Used by stored-procedure/{summary,detection,recommendation}.
+  # Placeholders (caller must substitute ALL):
+  #   <QUERY_ID>           parent CALL query_id (UUID)
+  #   <DAYS>               look-back window for the parent search (default 7)
+  #   <PARENT_QUERY_ID>    same as <QUERY_ID>
+  #   <PARENT_SESSION_ID>  parent.session_id captured from Step 1
+  #   <PARENT_START_TIME>  parent.start_time TIMESTAMP_LTZ literal
+  #   <PARENT_END_TIME>    parent.end_time TIMESTAMP_LTZ literal
+  # NOTE: The call tree query uses a flat session-window scan + containment self-join
+  # (NOT a recursive CTE) and is hard-capped with LIMIT 500. If the procedure has more
+  # than 500 descendants, results are truncated to the earliest 500 by start_time —
+  # callers MUST surface this truncation to the user.
+  # ------------------------------------------------------------------
+  - name: Find stored procedure parent CALL
+    question: Locate the parent CALL row for a stored procedure execution and capture session/time/warehouse context.
+    sql: SELECT query_id, query_text, query_type, query_parameterized_hash, session_id, start_time, end_time, total_elapsed_time, compilation_time, execution_time, queued_overload_time, queued_provisioning_time, queued_repair_time, transaction_blocked_time, list_external_files_time, GREATEST(total_elapsed_time - COALESCE(compilation_time, 0) - COALESCE(execution_time, 0) - COALESCE(queued_overload_time, 0) - COALESCE(queued_provisioning_time, 0) - COALESCE(queued_repair_time, 0) - COALESCE(transaction_blocked_time, 0) - COALESCE(list_external_files_time, 0), 0) AS other_time_ms, warehouse_name, warehouse_size, user_name, role_name, execution_status, error_code, error_message, LEFT(query_text, 200) AS query_preview FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY WHERE query_id = '<QUERY_ID>' AND start_time >= DATEADD('day', -<DAYS>, CURRENT_DATE()) ORDER BY start_time DESC LIMIT 1
+    verified_at: 1727654400
+    verified_by: System
+
+  - name: Find stored procedure call tree
+    question: Build the parent + descendant call tree for a stored procedure using a flat session-window scan plus a min-width-strictly-containing parent link (NOT a recursive CTE). Depth derived from a fixed 5-hop walk on the parent chain; depths beyond 5 are reported as 5. Tree result hard-capped at LIMIT 500 by start_time.
+    sql: WITH _call_tree_candidates AS (SELECT query_id, query_type, (query_type = 'CALL') AS is_call, session_id, start_time, end_time, total_elapsed_time, compilation_time, execution_time, queued_overload_time, queued_provisioning_time, queued_repair_time, transaction_blocked_time, list_external_files_time, GREATEST(total_elapsed_time - COALESCE(compilation_time, 0) - COALESCE(execution_time, 0) - COALESCE(queued_overload_time, 0) - COALESCE(queued_provisioning_time, 0) - COALESCE(queued_repair_time, 0) - COALESCE(transaction_blocked_time, 0) - COALESCE(list_external_files_time, 0), 0) AS other_time_ms, execution_status, error_code, error_message, bytes_scanned, rows_produced, partitions_scanned, partitions_total, warehouse_name, warehouse_size, LEFT(query_text, 200) AS query_preview FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY WHERE session_id = <PARENT_SESSION_ID> AND start_time BETWEEN '<PARENT_START_TIME>'::TIMESTAMP_LTZ AND '<PARENT_END_TIME>'::TIMESTAMP_LTZ), parent_link AS (SELECT child.query_id, MIN_BY(parent.query_id, DATEDIFF('millisecond', parent.start_time, parent.end_time)) AS direct_parent_id FROM _call_tree_candidates child JOIN _call_tree_candidates parent ON parent.is_call = TRUE AND parent.start_time <= child.start_time AND parent.end_time >= child.end_time AND parent.query_id <> child.query_id AND (parent.start_time < child.start_time OR parent.end_time > child.end_time) WHERE child.query_id <> '<PARENT_QUERY_ID>' GROUP BY child.query_id), depth_walk AS (SELECT pl1.query_id, pl1.direct_parent_id, CASE WHEN pl5.query_id IS NOT NULL THEN 5 WHEN pl4.query_id IS NOT NULL THEN 4 WHEN pl3.query_id IS NOT NULL THEN 3 WHEN pl2.query_id IS NOT NULL THEN 2 ELSE 1 END AS depth FROM parent_link pl1 LEFT JOIN parent_link pl2 ON pl2.query_id = pl1.direct_parent_id LEFT JOIN parent_link pl3 ON pl3.query_id = pl2.direct_parent_id LEFT JOIN parent_link pl4 ON pl4.query_id = pl3.direct_parent_id LEFT JOIN parent_link pl5 ON pl5.query_id = pl4.direct_parent_id) SELECT CASE WHEN c.query_id = '<PARENT_QUERY_ID>' THEN 0 ELSE dw.depth END AS depth, dw.direct_parent_id AS parent_query_id, c.query_id, c.query_type, c.is_call, c.session_id, c.start_time, c.end_time, c.total_elapsed_time, c.compilation_time, c.execution_time, c.queued_overload_time, c.queued_provisioning_time, c.queued_repair_time, c.transaction_blocked_time, c.list_external_files_time, c.other_time_ms, c.execution_status, c.error_code, c.error_message, c.bytes_scanned, c.rows_produced, c.partitions_scanned, c.partitions_total, c.warehouse_name, c.warehouse_size, c.query_preview, FALSE AS at_depth_cap FROM _call_tree_candidates c LEFT JOIN depth_walk dw ON dw.query_id = c.query_id WHERE c.query_id = '<PARENT_QUERY_ID>' OR dw.query_id IS NOT NULL ORDER BY c.start_time LIMIT 500
+    verified_at: 1727654400
+    verified_by: System
+
+  - name: Aggregate stored procedure children by query type
+    question: Aggregate the descendants of a stored procedure by query_type. Uses the same containment-derived descendant set as the call tree (filters on the descendant set, not the raw session window).
+    sql: WITH _call_tree_candidates AS (SELECT query_id, query_type, (query_type = 'CALL') AS is_call, start_time, end_time, total_elapsed_time, compilation_time, execution_time, queued_overload_time, queued_provisioning_time, queued_repair_time, transaction_blocked_time FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY WHERE session_id = <PARENT_SESSION_ID> AND start_time BETWEEN '<PARENT_START_TIME>'::TIMESTAMP_LTZ AND '<PARENT_END_TIME>'::TIMESTAMP_LTZ), _descendants AS (SELECT c.* FROM _call_tree_candidates c WHERE c.query_id <> '<PARENT_QUERY_ID>' AND EXISTS (SELECT 1 FROM _call_tree_candidates parent WHERE parent.is_call = TRUE AND parent.start_time <= c.start_time AND parent.end_time >= c.end_time AND parent.query_id <> c.query_id)) SELECT query_type, COUNT(*) AS query_count, SUM(total_elapsed_time) AS total_elapsed_ms, SUM(compilation_time) AS total_compile_ms, SUM(execution_time) AS total_execute_ms, SUM(COALESCE(queued_overload_time, 0) + COALESCE(queued_provisioning_time, 0) + COALESCE(queued_repair_time, 0)) AS total_queue_ms, SUM(transaction_blocked_time) AS total_blocked_ms, ROUND(100.0 * SUM(total_elapsed_time) / NULLIF(SUM(SUM(total_elapsed_time)) OVER (), 0), 2) AS pct_of_total FROM _descendants GROUP BY query_type ORDER BY total_elapsed_ms DESC
+    verified_at: 1727654400
+    verified_by: System
+
+  - name: Aggregate stored procedure descendants (uncapped totals)
+    question: Compute uncapped duration/failure totals across all descendants of a stored procedure, scoped via the same containment-derived descendant set as the call tree. Drives Phase 1 duration breakdown and Phase 2 profile classification (NOT the 500-row tree result).
+    sql: WITH _call_tree_candidates AS (SELECT query_id, query_type, (query_type = 'CALL') AS is_call, start_time, end_time, total_elapsed_time, compilation_time, execution_time, queued_overload_time, queued_provisioning_time, queued_repair_time, transaction_blocked_time, list_external_files_time, execution_status FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY WHERE session_id = <PARENT_SESSION_ID> AND start_time BETWEEN '<PARENT_START_TIME>'::TIMESTAMP_LTZ AND '<PARENT_END_TIME>'::TIMESTAMP_LTZ), _descendants AS (SELECT c.* FROM _call_tree_candidates c WHERE c.query_id <> '<PARENT_QUERY_ID>' AND EXISTS (SELECT 1 FROM _call_tree_candidates parent WHERE parent.is_call = TRUE AND parent.start_time <= c.start_time AND parent.end_time >= c.end_time AND parent.query_id <> c.query_id)) SELECT COUNT(*) AS descendant_count, COUNT_IF(execution_status = 'FAIL') AS failure_count, SUM(total_elapsed_time) AS total_elapsed_ms, SUM(compilation_time) AS total_compile_ms, SUM(execution_time) AS total_execute_ms, SUM(COALESCE(queued_overload_time, 0) + COALESCE(queued_provisioning_time, 0) + COALESCE(queued_repair_time, 0)) AS total_queue_ms, SUM(transaction_blocked_time) AS total_blocked_ms, SUM(list_external_files_time) AS total_external_ms, SUM(GREATEST(total_elapsed_time - COALESCE(compilation_time, 0) - COALESCE(execution_time, 0) - COALESCE(queued_overload_time, 0) - COALESCE(queued_provisioning_time, 0) - COALESCE(queued_repair_time, 0) - COALESCE(transaction_blocked_time, 0) - COALESCE(list_external_files_time, 0), 0)) AS total_other_ms FROM _descendants
+    verified_at: 1727654400
+    verified_by: System
+
+  # ------------------------------------------------------------------
+  # QUERY SET resolution and scoped dimensional variants. Used by
+  # query-set/{summary,detection,recommendation} sub-skills and by the
+  # scope-aware mode of spilling/pruning/cache/qas detection sub-skills.
+  # Placeholders (caller must substitute ALL):
+  #   <ID_LIST>        comma-separated quoted query_id values
+  #   <HASH_LIST>      comma-separated quoted query_parameterized_hash values
+  #   <USER_FILTER>    SQL WHERE fragment over QUERY_HISTORY (no leading AND, no semicolons, no DDL/DML)
+  #   <SCOPE_START>    TIMESTAMP_LTZ literal (lower bound)
+  #   <SCOPE_END>      TIMESTAMP_LTZ literal (upper bound)
+  #   <TABLE_ID_LIST>  comma-separated table_id values (optional; pruning queries)
+  # Hard cap: 1000 query_ids in the resolved set.
+  # ------------------------------------------------------------------
+  - name: Resolve query set from filter
+    question: Resolve a user-supplied SQL WHERE fragment over QUERY_HISTORY into a query_id list (capped at 1000 by start_time DESC). Caller is responsible for ensuring <USER_FILTER> contains a time bound — see query-set/summary/SKILL.md Step 1(b).
+    sql: SELECT query_id, query_parameterized_hash, warehouse_name, warehouse_size, user_name, query_type, execution_status, start_time, end_time, total_elapsed_time, compilation_time, execution_time, queued_overload_time, queued_provisioning_time, queued_repair_time, transaction_blocked_time, list_external_files_time, bytes_scanned, percentage_scanned_from_cache, partitions_scanned, partitions_total, bytes_spilled_to_local_storage, bytes_spilled_to_remote_storage, error_code, LEFT(query_text, 200) AS query_preview FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY WHERE (<USER_FILTER>) ORDER BY start_time DESC LIMIT 1000
+    verified_at: 1727654400
+    verified_by: System
+
+  - name: Resolve query set from pattern hashes
+    question: Resolve a list of query_parameterized_hash values into a query_id list within a time window (capped at 1000 by start_time DESC).
+    sql: SELECT query_id, query_parameterized_hash, warehouse_name, warehouse_size, user_name, query_type, execution_status, start_time, end_time, total_elapsed_time, compilation_time, execution_time, queued_overload_time, queued_provisioning_time, queued_repair_time, transaction_blocked_time, list_external_files_time, bytes_scanned, percentage_scanned_from_cache, partitions_scanned, partitions_total, bytes_spilled_to_local_storage, bytes_spilled_to_remote_storage, error_code, LEFT(query_text, 200) AS query_preview FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY WHERE query_parameterized_hash IN (<HASH_LIST>) AND start_time BETWEEN '<SCOPE_START>'::TIMESTAMP_LTZ AND '<SCOPE_END>'::TIMESTAMP_LTZ ORDER BY start_time DESC LIMIT 1000
+    verified_at: 1727654400
+    verified_by: System
+
+  - name: Derive scope from query set
+    question: Aggregate a resolved query set to produce its analysis scope (counts, time window, distinct warehouse name+size pairs, users, query_types breakdown, distinct hashes, full duration roll-up, failure count).
+    sql: WITH _set AS (SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY WHERE query_id IN (<ID_LIST>) AND start_time BETWEEN '<SCOPE_START>'::TIMESTAMP_LTZ AND '<SCOPE_END>'::TIMESTAMP_LTZ), _wh_pairs AS (SELECT DISTINCT warehouse_name, warehouse_size FROM _set WHERE warehouse_name IS NOT NULL), _types AS (SELECT query_type, COUNT(*) AS n FROM _set GROUP BY query_type) SELECT (SELECT COUNT(*) FROM _set) AS query_count, (SELECT COUNT(DISTINCT query_parameterized_hash) FROM _set) AS pattern_count, (SELECT COUNT_IF(execution_status = 'FAIL') FROM _set) AS failure_count, (SELECT MIN(start_time) FROM _set) AS scope_start, (SELECT MAX(COALESCE(end_time, start_time)) FROM _set) AS scope_end, (SELECT ARRAY_AGG(OBJECT_CONSTRUCT('name', warehouse_name, 'size', warehouse_size)) WITHIN GROUP (ORDER BY warehouse_name, warehouse_size) FROM _wh_pairs) AS warehouses, (SELECT ARRAY_AGG(DISTINCT user_name) WITHIN GROUP (ORDER BY user_name) FROM _set) AS users, (SELECT OBJECT_AGG(query_type, n) FROM _types) AS query_types_breakdown, (SELECT ARRAY_AGG(DISTINCT query_parameterized_hash) WITHIN GROUP (ORDER BY query_parameterized_hash) FROM _set) AS hashes, (SELECT SUM(total_elapsed_time) FROM _set) AS total_elapsed_ms, (SELECT SUM(compilation_time) FROM _set) AS total_compile_ms, (SELECT SUM(execution_time) FROM _set) AS total_execute_ms, (SELECT SUM(COALESCE(queued_overload_time,0) + COALESCE(queued_provisioning_time,0) + COALESCE(queued_repair_time,0)) FROM _set) AS total_queue_ms, (SELECT SUM(transaction_blocked_time) FROM _set) AS total_blocked_ms, (SELECT SUM(list_external_files_time) FROM _set) AS total_external_ms, (SELECT SUM(GREATEST(total_elapsed_time - COALESCE(compilation_time,0) - COALESCE(execution_time,0) - COALESCE(queued_overload_time,0) - COALESCE(queued_provisioning_time,0) - COALESCE(queued_repair_time,0) - COALESCE(transaction_blocked_time,0) - COALESCE(list_external_files_time,0), 0)) FROM _set) AS total_other_ms
+    verified_at: 1727654400
+    verified_by: System
+
+  - name: Derive scope tables from query set
+    question: List distinct tables touched by a query set by joining the set's pattern hashes against TABLE_QUERY_PRUNING_HISTORY within the scope time window.
+    sql: SELECT DISTINCT tp.database_name, tp.schema_name, tp.table_name, tp.table_id, tp.database_name || '.' || tp.schema_name || '.' || tp.table_name AS fully_qualified_table FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_QUERY_PRUNING_HISTORY AS tp WHERE tp.query_parameterized_hash IN (<HASH_LIST>) AND tp.interval_start_time BETWEEN '<SCOPE_START>'::TIMESTAMP_LTZ AND DATEADD('hour', 4, '<SCOPE_END>'::TIMESTAMP_LTZ)
+    verified_at: 1727654400
+    verified_by: System
+
+  - name: Which warehouses have the most spilling? — scoped to query set
+    question: Which warehouses have the most spilling, restricted to the user-supplied query set?
+    sql: SELECT warehouse_name, warehouse_size, COUNT(*) AS query_count, SUM(COALESCE(bytes_spilled_to_local_storage, 0)) AS total_local_spillage_bytes, SUM(COALESCE(bytes_spilled_to_remote_storage, 0)) AS total_remote_spillage_bytes, ROUND(SUM(COALESCE(bytes_spilled_to_local_storage, 0)) / 1024.0 / 1024 / 1024, 2) AS total_local_spillage_gb, ROUND(SUM(COALESCE(bytes_spilled_to_remote_storage, 0)) / 1024.0 / 1024 / 1024, 2) AS total_remote_spillage_gb, COUNT_IF(bytes_spilled_to_local_storage > 0 OR bytes_spilled_to_remote_storage > 0) AS queries_with_spillage FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY WHERE start_time BETWEEN '<SCOPE_START>'::TIMESTAMP_LTZ AND '<SCOPE_END>'::TIMESTAMP_LTZ AND warehouse_name IS NOT NULL AND query_id IN (<ID_LIST>) GROUP BY warehouse_name, warehouse_size ORDER BY total_local_spillage_bytes + total_remote_spillage_bytes DESC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+
+  - name: Which queries are causing the most spilling? — scoped to query set
+    question: Which queries are causing the most spilling, restricted to the user-supplied query set?
+    sql: SELECT qh.query_id, qh.query_type, qh.user_name, qh.warehouse_name, qh.warehouse_size, LEFT(qh.query_text, 100) AS query_preview, ROUND(qh.bytes_spilled_to_local_storage / 1024 / 1024 / 1024.0, 2) AS local_spill_gb, ROUND(qh.bytes_spilled_to_remote_storage / 1024 / 1024 / 1024.0, 2) AS remote_spill_gb, ROUND(qh.execution_time / 1000.0, 2) AS execution_seconds, qh.start_time FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY AS qh WHERE qh.start_time BETWEEN '<SCOPE_START>'::TIMESTAMP_LTZ AND '<SCOPE_END>'::TIMESTAMP_LTZ AND (qh.bytes_spilled_to_local_storage > 0 OR qh.bytes_spilled_to_remote_storage > 0) AND qh.query_id IN (<ID_LIST>) ORDER BY qh.bytes_spilled_to_local_storage + qh.bytes_spilled_to_remote_storage DESC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+
+  - name: Pruning opportunity, sorted by the potential to avoid partitions — scoped to query set
+    question: Which tables in the user-supplied query set have the most opportunity to improve pruning rate?
+    sql: SELECT tp.database_name, tp.schema_name, tp.table_name, tp.database_name || '.' || tp.schema_name || '.' || tp.table_name AS fully_qualified_table, tp.table_id, SUM(tp.num_queries) AS query_count, SUM(tp.partitions_scanned) AS total_partitions_scanned, SUM(tp.partitions_pruned) AS total_partitions_pruned, sum(tp.rows_matched) as total_rows_matched, sum(tp.rows_pruned) as total_rows_pruned, sum(tp.rows_scanned) as total_rows_scanned, ROUND(CASE WHEN (SUM(tp.partitions_scanned) + SUM(tp.partitions_pruned)) > 0 THEN (CAST(SUM(tp.partitions_pruned) AS FLOAT) / NULLIF((SUM(tp.partitions_scanned) + SUM(tp.partitions_pruned)), 0)) * 100 ELSE 0 END, 2) AS partition_unused_percentage, ROUND((CASE WHEN (sum(rows_pruned) + sum(rows_scanned)) > 0 THEN 100 - (sum(rows_matched)::FLOAT / (sum(rows_pruned) + sum(rows_scanned))) * 100 ELSE 0 END), 2) AS row_unused_percentage, sum(rows_scanned) - sum(rows_matched) as excess_rows_scanned, avg(tp.rows_scanned - tp.rows_matched) as avg_excess_rows_scanned, ROUND(CASE WHEN (SUM(tp.partitions_scanned) + SUM(tp.partitions_pruned)) > 0 and (SUM(tp.rows_pruned) + SUM(tp.rows_scanned)) > 0 then(avg(tp.rows_scanned - tp.rows_matched) / ((sum(tp.rows_scanned) + sum(tp.rows_pruned)) / (sum(tp.partitions_scanned) + sum(tp.partitions_pruned)))) ELSE 0 END, 2) as avg_potential_avoidable_partitions FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_QUERY_PRUNING_HISTORY AS tp WHERE tp.interval_start_time BETWEEN '<SCOPE_START>'::TIMESTAMP_LTZ AND DATEADD('hour', 4, '<SCOPE_END>'::TIMESTAMP_LTZ) AND tp.query_parameterized_hash IN (<HASH_LIST>) GROUP BY tp.database_name, tp.schema_name, tp.table_name, tp.table_id ORDER BY avg_potential_avoidable_partitions desc limit 20
+    verified_at: 1727654400
+    verified_by: System
+
+  - name: Identification of columns that have opportunities to improve pruning rate — scoped to query set
+    question: Which columns in the user-supplied query set are most frequently used in predicates with opportunity to improve pruning?
+    sql: SELECT cp.database_name, cp.schema_name, cp.table_name, cp.table_id, cp.column_name, cp.COLUMN_ID, SUM(cp.num_queries) AS column_usage_count, ROUND(CASE WHEN (sum(cp.PARTITIONS_PRUNED) + sum(cp.PARTITIONS_SCANNED)) > 0 THEN (CAST(sum(cp.PARTITIONS_PRUNED) AS FLOAT) / (sum(cp.PARTITIONS_PRUNED) + sum(cp.PARTITIONS_SCANNED))) * 100 ELSE 0 END, 2) AS partition_pruning_percentage, ROUND(CASE WHEN (sum(cp.rows_scanned) + sum(cp.rows_pruned)) > 0 THEN 100 - (CAST(sum(cp.rows_matched) AS FLOAT) / (sum(cp.rows_scanned) + sum(cp.rows_pruned))) * 100 ELSE 0 END, 2) AS unused_rows_percentage, sum(cp.rows_scanned) - sum(cp.rows_matched) as excess_rows_scanned, avg(cp.rows_scanned - cp.rows_matched) as avg_excess_rows_scanned, ROUND(CASE WHEN (SUM(cp.partitions_scanned) + SUM(cp.partitions_pruned)) > 0 and (SUM(cp.rows_pruned) + SUM(cp.rows_scanned)) > 0 then(avg(cp.rows_scanned - cp.rows_matched) / ((sum(cp.rows_scanned) + sum(cp.rows_pruned)) / (sum(cp.partitions_scanned) + sum(cp.partitions_pruned)))) ELSE 0 END, 2) as avg_potential_avoidable_partitions FROM SNOWFLAKE.ACCOUNT_USAGE.COLUMN_QUERY_PRUNING_HISTORY AS cp WHERE cp.interval_start_time BETWEEN '<SCOPE_START>'::TIMESTAMP_LTZ AND DATEADD('hour', 4, '<SCOPE_END>'::TIMESTAMP_LTZ) AND cp.query_parameterized_hash IN (<HASH_LIST>) GROUP BY cp.database_name, cp.schema_name, cp.table_name, cp.table_id, cp.column_name, cp.column_id HAVING column_usage_count > 0 ORDER BY avg_potential_avoidable_partitions desc limit 20
+    verified_at: 1727654400
+    verified_by: System
+
+  - name: Warehouses with bad cache hit rates and significant scan and query volume — scoped to query set
+    question: Which warehouses have the worst cache hit rates for the user-supplied query set?
+    sql: SELECT warehouse_name, warehouse_size, COUNT(*) AS query_count, ROUND(AVG(percentage_scanned_from_cache), 1) AS avg_cache_hit_pct, ROUND(AVG(execution_time) / 1000.0, 2) AS avg_execution_seconds, ROUND(AVG(bytes_scanned) / 1024 / 1024 / 1024.0, 2) AS avg_gb_scanned FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY WHERE start_time BETWEEN '<SCOPE_START>'::TIMESTAMP_LTZ AND '<SCOPE_END>'::TIMESTAMP_LTZ AND warehouse_name IS NOT NULL AND bytes_scanned > 0 AND query_id IN (<ID_LIST>) GROUP BY warehouse_name, warehouse_size HAVING COUNT(*) >= 5 ORDER BY avg_cache_hit_pct ASC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+
+  - name: Which warehouses have the most QAS eligible time? — scoped to query set
+    question: Which warehouses have the most QAS eligible time for the user-supplied query set?
+    sql: SELECT warehouse_name, warehouse_size, COUNT(*) AS eligible_query_count, ROUND(SUM(eligible_query_acceleration_time), 2) AS total_eligible_seconds, ROUND(AVG(eligible_query_acceleration_time), 2) AS avg_eligible_seconds_per_query, ROUND(AVG(upper_limit_scale_factor), 1) AS avg_scale_factor, MAX(upper_limit_scale_factor) as max_scale_factor FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_ACCELERATION_ELIGIBLE WHERE start_time BETWEEN '<SCOPE_START>'::TIMESTAMP_LTZ AND '<SCOPE_END>'::TIMESTAMP_LTZ AND warehouse_name IS NOT NULL AND query_id IN (<ID_LIST>) GROUP BY warehouse_name, warehouse_size ORDER BY total_eligible_seconds DESC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+
+  - name: Which queries are eligible for query acceleration service? — scoped to query set
+    question: Which queries are QAS-eligible within the user-supplied query set?
+    sql: SELECT query_id, LEFT(query_text, 100) AS query_preview, warehouse_name, warehouse_size, ROUND(eligible_query_acceleration_time, 2) AS eligible_acceleration_seconds, upper_limit_scale_factor, start_time FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_ACCELERATION_ELIGIBLE WHERE start_time BETWEEN '<SCOPE_START>'::TIMESTAMP_LTZ AND '<SCOPE_END>'::TIMESTAMP_LTZ AND warehouse_name IS NOT NULL AND query_id IN (<ID_LIST>) ORDER BY eligible_query_acceleration_time DESC LIMIT 20
+    verified_at: 1727654400
+    verified_by: System
+
+custom_instructions: |
+  CRITICAL RULES FOR CONSISTENT RESULTS:
+  
+  [MANDATORY] WAREHOUSE_NAME AND WAREHOUSE_SIZE MUST ALWAYS APPEAR TOGETHER:
+  - Whenever warehouse_name is in SELECT, warehouse_size MUST also be in SELECT
+  - Whenever warehouse_name is in GROUP BY, warehouse_size MUST also be in GROUP BY
+  - This rule has NO exceptions. Never include warehouse_name without warehouse_size.
+  
+  1. NO ARBITRARY THRESHOLDS: Never add HAVING clauses with thresholds (like spilling > 1GB, cache_hit_pct < 50%) unless the user explicitly requests a filter. Return all relevant data and let the user interpret.
+  
+  2. QUERY-LEVEL RESULTS - REQUIRED FIELDS: For ANY analysis that returns individual queries (slowest queries, spilling queries, pruning queries, QAS eligible queries, etc.), ALWAYS include these columns:
+     - query_id
+     - warehouse_name
+     - warehouse_size
+     - start_time
+     - ROUND(execution_time / 1000.0, 2) AS execution_seconds
+     - user_name
+     - LEFT(query_text, 100) AS query_preview
+  
+  3. WAREHOUSE RESULTS - REQUIRED FIELDS: For ANY analysis involving warehouses (individual warehouse details, warehouse comparisons, grouped by warehouse), ALWAYS include:
+     - warehouse_name
+     - warehouse_size
+     This applies to: cache hit rates, spilling analysis, QAS eligibility, query counts by warehouse, or any question mentioning a specific warehouse.
+  
+  4. TABLE/COLUMN-LEVEL RESULTS - REQUIRED FIELDS: For column or table analysis, ALWAYS include:
+     - database_name || '.' || schema_name || '.' || table_name AS fully_qualified_table
+  
+  5. USE ILIKE FOR NAME FILTERING: When filtering by warehouse_name, table_name, user_name, etc., use ILIKE instead of = for case-insensitive matching.
+  
+  6. USE COALESCE FOR AGGREGATIONS: Always use COALESCE or ZEROIFNULL for spilling and other nullable columns: SUM(COALESCE(bytes_spilled_to_local_storage, 0)).
+  
+  7. DEFAULT TIME RANGE: Use 7 days as the default unless user specifies otherwise.
+  
+  8. HUMAN-READABLE UNITS: Convert bytes to GB (bytes / 1024 / 1024 / 1024), milliseconds to seconds (ms / 1000).
+  
+  DATA SOURCES:
+  - QUERY_HISTORY: Query execution metrics including spilling, local disk cache hit rate (percentage_scanned_from_cache), execution time, partitions_scanned/partitions_total for query-level pruning analysis
+  - QUERY_ACCELERATION_ELIGIBLE: Queries that could benefit from QAS (has query_id, query_text, warehouse_name, warehouse_size)
+  - TABLE_QUERY_PRUNING_HISTORY: Table-level pruning statistics (aggregated over intervals, NO query_id or warehouse info)
+  - COLUMN_QUERY_PRUNING_HISTORY: Column-level pruning and search optimization candidates (aggregated over intervals, NO query_id or warehouse info)
+  
+  CACHE HIT RATE CALCULATION (LOCAL DISK CACHE):
+  - percentage_scanned_from_cache measures the LOCAL DISK CACHE (also called warehouse cache) — the SSD/memory cache on compute nodes. It does NOT measure the query result cache or metadata cache.
+  - USE the column percentage_scanned_from_cache from QUERY_HISTORY - this is the correct local disk cache hit rate
+  - DO NOT calculate cache hit rate manually from bytes_scanned - use the existing column
+  - Formula: AVG(percentage_scanned_from_cache) for warehouse-level local disk cache hit rates
+  - Terminology: Mirror the user's term. If the user says "local disk cache", use that. If "warehouse cache", use that. Both refer to the same cache.
+  
+  PRUNING ANALYSIS DATA SOURCE:
+  - For "queries with worst pruning" or any query-level pruning analysis: Use QUERY_HISTORY (has query_id, warehouse_name, warehouse_size, partitions_scanned, partitions_total)
+  - For "tables with worst pruning" or table-level analysis: Use TABLE_QUERY_PRUNING_HISTORY (aggregated, no individual query details)
+  
+  SPILLING ANALYSIS: 
+  - Causes: Warehouse too small, high concurrency, complex joins/aggregations
+  - bytes_spilled_to_local_storage = warehouse may be undersized
+  - bytes_spilled_to_remote_storage = severe memory pressure
+  - Suggestions: Increase warehouse size, reduce concurrent queries, schedule heavy queries off-peak
+  
+  POOR PRUNING:
+  - Causes: Missing/ineffective clustering keys, queries not filtering on clustered columns
+  - Suggestions: Add clustering on frequently filtered columns, consider search optimization for point lookups
+  
+  LOW CACHE HIT:
+  - Causes: Irregular query patterns, frequently changing data, insufficient query repetition
+  - Suggestions: Consolidate similar queries, increase query frequency on stable data
+  
+  QAS ELIGIBLE:
+  - Causes: Queries with selective filters on large tables benefit from parallel processing
+  - Suggestions: Enable QAS with ALTER WAREHOUSE <name> SET ENABLE_QUERY_ACCELERATION = TRUE
+  
+  SEARCH OPTIMIZATION: Columns with search_optimization_supported_expressions are candidates. Best for point lookups and equality predicates on high-cardinality columns.
+  
+  CLUSTERING KEY CANDIDATES: Identify by analyzing columns with high avg_potential_avoidable_partitions and frequent use (num_queries).
+  
+  AGGREGATION NOTE: TABLE_QUERY_PRUNING_HISTORY and COLUMN_QUERY_PRUNING_HISTORY contain aggregated data over intervals, not individual query records. Use interval_start_time for time filtering. num_queries shows how many queries contributed to each record.
+  
+  STORED PROCEDURE ANALYSIS:
+  - A stored procedure execution is identified by query_type = 'CALL'.
+  - Linking children: ACCOUNT_USAGE.QUERY_HISTORY has no parent_job_id. Children are linked to a CALL by session_id = parent.session_id AND start_time BETWEEN parent.start_time AND parent.end_time AND query_id <> parent.query_id. May include unrelated session activity (rare, since procedures typically run in their own session).
+  - Tree construction uses a non-recursive approach: one flat scan over the parent's session window into a _call_tree_candidates CTE, then a parent_link CTE that assigns each non-root candidate its direct parent via MIN_BY(parent.query_id, DATEDIFF('millisecond', parent.start_time, parent.end_time)) — i.e. the CALL ancestor with the minimum-width strictly-containing interval. A strict-containment guard (parent.start_time < child.start_time OR parent.end_time > child.end_time) breaks mutual containment on equal-window siblings. Depth is derived from a fixed 5-hop LEFT JOIN walk on the parent chain (depths beyond 5 are reported as 5). The tree result is hard-capped at 500 rows ordered by start_time. This avoids the recursive-CTE blowup on long-running procedures.
+  - **HARD LIMIT: 500 rows.** The "Find stored procedure call tree" verified query is hard-capped at LIMIT 500. If the procedure has more than 500 descendants in its session window, the result is truncated to the earliest 500 by start_time. Callers (stored-procedure/summary/SKILL.md) MUST surface this truncation explicitly to the user — for example: "Result truncated to 500 rows; X total descendants exist. Want me to show only top-level CALLs, or filter by query_type?"
+  - "Other" time (overhead not exposed in ACCOUNT_USAGE) is total_elapsed_time minus the 7 exposed duration columns. A high other_time ratio (> 30%) usually points to GS/scheduling overhead or many small metadata operations.
+  - 45-min ACCOUNT_USAGE latency / 365-day retention. If the parent CALL is not found in the default 7-day window, ask the user to expand to 14/30/90 days before giving up.
+  - For deeper bottleneck analysis (spilling, pruning, cache, QAS) on the procedure body, delegate to the relevant scoped sub-skills with the leaf children's query_id list (exclude is_call=true rows). Do not re-implement scoped dimension queries inside stored-procedure/.
+  - WAREHOUSE_NAME + WAREHOUSE_SIZE pairing rule applies: every SELECT and GROUP BY that includes warehouse_name must also include warehouse_size.
+  
+  QUERY SET SCOPING (for the QUERY_SET entity):
+  - Accept exactly one of three input forms: (a) explicit list of 2–1000 query_ids, (b) SQL WHERE fragment over QUERY_HISTORY with a time bound, (c) list of query_parameterized_hash values with a time bound. Reject input forms outside this set.
+  - HARD CAP: 1000 query_ids. Filter-form and hash-form resolution queries use ORDER BY start_time DESC LIMIT 1000. If more than 1000 ids resolve, the set is truncated to the most recent 1000 — callers MUST surface this in the scope card.
+  - Filter form requires a time bound. If the user does not supply one, default to start_time >= DATEADD('day', -7, CURRENT_DATE()) and disclose that choice in the scope card.
+  - Hash form requires a time bound — never query QUERY_HISTORY by hash alone (would scan all of retention).
+  - Filter validation: reject WHERE fragments that contain semicolons, DDL/DML keywords (CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, MERGE, TRUNCATE, COPY), subqueries against tables other than QUERY_HISTORY, or UNION/JOIN clauses. Ask the user to resubmit a simpler predicate.
+  - Always present the scope card and STOP for confirmation before running any scoped dimensional query. The scope card MUST list query_count, pattern_count, time window, distinct warehouses (with sizes), users, query_types breakdown, failure_count, and total elapsed roll-up.
+  - When delegating to scoped dimension queries (spilling/pruning/cache/qas), use the verified queries named "<base name> — scoped to query set". Each scoped variant accepts <ID_LIST>, <HASH_LIST>, <SCOPE_START>, <SCOPE_END> placeholders.
+  - QUERY_HISTORY-based scoped queries: filter on `query_id IN (<ID_LIST>) AND start_time BETWEEN <SCOPE_START> AND <SCOPE_END>`. The 1000-id cap from resolution applies to all input forms (filter, hash, explicit list); scoped variants do NOT widen beyond the resolved id list. The earlier OR-with-<HASH_LIST> design was removed because it contaminated id-form sets with unrelated executions of the same pattern.
+  - **Filter-form security:** `<USER_FILTER>` validation is best-effort string matching by the LLM, not robust SQL parsing. Bypass via `1=1`, scalar UDFs, `query_text ILIKE '%…%'` exfiltration, or non-deterministic predicates is possible. Run QUERY_SET filter form under a least-privileged role. Future hardening will use `EXPLAIN`-based validation.
+  - The `Resolve query set from filter` verified query is **unclamped**; the skill (`query-set/summary/SKILL.md` Step 1(b)) is responsible for prepending a default `start_time >= DATEADD('day', -7, CURRENT_DATE())` when `<USER_FILTER>` lacks a time predicate, and disclosing that default in the scope card.
+  - PRUNING-based scoped queries (TABLE_QUERY_PRUNING_HISTORY / COLUMN_QUERY_PRUNING_HISTORY) lack query_id. Filter on query_parameterized_hash IN (<HASH_LIST>) AND interval_start_time BETWEEN scope window.
+  - QAS-based scoped queries (QUERY_ACCELERATION_ELIGIBLE) match on query_id IN (<ID_LIST>) only — QAS_ELIGIBLE has query_id but no parameterized_hash semantic.
+  - WAREHOUSE_NAME + WAREHOUSE_SIZE pairing rule applies to every scoped query.
+  - Internal warehouses (COMPUTE_SERVICE_WH_*) appearing in a scoped result are still flagged as internal — they remain not user-configurable.

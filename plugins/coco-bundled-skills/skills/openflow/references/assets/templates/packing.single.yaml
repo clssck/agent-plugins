@@ -1,0 +1,56 @@
+# packing.single.yaml
+#
+# 3 PostgreSQL connectors → 1 runtime, 1:1 source-to-destination.
+# This is the simplest packing scenario. Edit the four placeholders marked TODO,
+# put your replication password in cortex (`cortex secret store pg-rds-repl-password --from-stdin`),
+# then ask the agent (in a CoCo session) to pack the connectors in this file.
+# The skill is agent-driven — there is no CLI binary.
+#
+# Parameter keys below use the registry-default names that NiFi expects.
+# Legacy short aliases also work: the skill canonicalizes them to NiFi names
+# before writing parameter contexts. If you add a new field that the connector
+# flow exposes, use the same name NiFi shows in the UI and it will pass through.
+
+runtime: TODO-runtime-name              # name of the pre-existing Openflow runtime; create it in Snowsight first
+connector_type: postgresql              # postgresql | mysql | sqlserver-multidatabase |
+                                        # oracle-embedded | oracle-independent
+
+shared:
+  snowflake:                            # → goes into the Destination context (shared by all connectors)
+    Snowflake Account Identifier: TODO-snowflake-account
+    Snowflake Authentication Strategy: SNOWFLAKE_MANAGED   # SNOWFLAKE_MANAGED preferred for CDC
+    Snowflake Role: OPENFLOW_ROLE
+    Snowflake Warehouse: CONNECTOR_WAREHOUSE
+  source:                               # → goes into the Source context (shared by all connectors)
+    PostgreSQL Username: openflow_repl
+    PostgreSQL Password: <pg-rds-repl-password>            # cortex secret reference; never plaintext
+    Publication Name: openflow_pub
+    jdbc_driver_url: https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.7/postgresql-42.7.7.jar
+                                                            # special: drives the JDBC asset upload (not a NiFi param)
+  ingestion:                            # → applied to every Ingestion context (per-connector, same value)
+    Object Identifier Resolution: CASE_INSENSITIVE   # default; agent sets it explicitly (not in the flow definition)
+    Ingestion Type: full
+    Concurrent Snapshot Queries: 2
+    Merge Task Schedule: "* * * * * ?"
+
+connectors:
+  - name: c1                            # ≤32 chars, unique. Doubles as the Ingestion context name.
+    overrides:                          # values that override the shared Source/Destination defaults
+      PostgreSQL Connection URL: jdbc:postgresql://TODO-host:5432/db1?sslmode=require
+      Replication Slot Name: pg_cdc_c1_slot
+      Destination Database: PG_C1_DEMO
+    tables: [public.users, public.orders, public.line_items]
+
+  - name: c2
+    overrides:
+      PostgreSQL Connection URL: jdbc:postgresql://TODO-host:5432/db2?sslmode=require
+      Replication Slot Name: pg_cdc_c2_slot
+      Destination Database: PG_C2_DEMO
+    tables: [app.events, app.sessions, app.devices]
+
+  - name: c3
+    overrides:
+      PostgreSQL Connection URL: jdbc:postgresql://TODO-host:5432/db3?sslmode=require
+      Replication Slot Name: pg_cdc_c3_slot
+      Destination Database: PG_C3_DEMO
+    tables_regex: "^reporting\\..*"

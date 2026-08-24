@@ -1,0 +1,35 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+
+name: variant_field
+description: Single VARIANT input — classify valid/invalid by the ok field.
+seed_model: llama3.1-8b
+inputs:
+  - {name: PAYLOAD, sql_type: VARIANT}
+output:
+  name: label
+  json_type: string
+  description: One of "valid" or "invalid".
+function_intention: Classify a JSON payload as valid or invalid by its ok field.
+system_prompt: Read the ok field of the JSON payload. If ok is true reply valid, otherwise reply invalid. Reply with only the lowercase word.
+user_prompt_template: "{PAYLOAD}"
+metric_name: exact_match
+optimize_models: ["llama3.1-8b"]
+reflection_model: claude-sonnet-4-5
+auto_budget: demo
+label_column: EXPECTED_LABEL
+input_columns: ["PAYLOAD"]
+rows:
+  - {PAYLOAD: "PARSE_JSON('{\"amount\": 100, \"ok\": true}')", EXPECTED_LABEL: valid}
+  - {PAYLOAD: "PARSE_JSON('{\"amount\": 50, \"ok\": true}')", EXPECTED_LABEL: valid}
+  - {PAYLOAD: "PARSE_JSON('{\"amount\": 200, \"ok\": true}')", EXPECTED_LABEL: valid}
+  - {PAYLOAD: "PARSE_JSON('{\"amount\": 5, \"ok\": true}')", EXPECTED_LABEL: valid}
+  - {PAYLOAD: "PARSE_JSON('{\"amount\": 75, \"ok\": true}')", EXPECTED_LABEL: valid}
+  - {PAYLOAD: "PARSE_JSON('{\"amount\": 300, \"ok\": true}')", EXPECTED_LABEL: valid}
+  - {PAYLOAD: "PARSE_JSON('{\"amount\": 100, \"ok\": false}')", EXPECTED_LABEL: invalid}
+  - {PAYLOAD: "PARSE_JSON('{\"amount\": 50, \"ok\": false}')", EXPECTED_LABEL: invalid}
+  - {PAYLOAD: "PARSE_JSON('{\"amount\": 200, \"ok\": false}')", EXPECTED_LABEL: invalid}
+  - {PAYLOAD: "PARSE_JSON('{\"amount\": 5, \"ok\": false}')", EXPECTED_LABEL: invalid}
+  - {PAYLOAD: "PARSE_JSON('{\"amount\": 75, \"ok\": false}')", EXPECTED_LABEL: invalid}
+  - {PAYLOAD: "PARSE_JSON('{\"amount\": 300, \"ok\": false}')", EXPECTED_LABEL: invalid}

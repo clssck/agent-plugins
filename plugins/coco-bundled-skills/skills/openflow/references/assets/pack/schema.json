@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://snowflake.com/openflow/connector-packing/schema.json",
+  "title": "Openflow CDC Connector Packing Config",
+  "description": "Config schema: parameter keys under shared.source / shared.snowflake / connectors[].overrides are NiFi parameter names verbatim (legacy short aliases are also accepted and canonicalized). Per-type required-field enforcement happens at apply time (the NiFi connector reports INVALID with a clear bulletin if a required parameter is missing) — see cdc-connector-packing.md §Step 5.",
+  "type": "object",
+  "required": ["runtime", "connector_type", "shared", "connectors"],
+  "additionalProperties": false,
+  "properties": {
+    "runtime": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Name of the pre-existing Openflow runtime. The skill never creates runtimes."
+    },
+    "connector_type": {
+      "type": "string",
+      "enum": [
+        "postgresql",
+        "mysql",
+        "sqlserver-multidatabase",
+        "oracle-embedded",
+        "oracle-independent"
+      ]
+    },
+    "shared": { "$ref": "#/$defs/shared" },
+    "connectors": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/connector" }
+    }
+  },
+  "$defs": {
+    "secretRef": {
+      "type": "string",
+      "pattern": "^(<[^>]+>|snowflake:[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*)(\\$\\{[^}]+\\}.*)?$",
+      "description": "Reference to a secret. Supported schemes: <key> (cortex), snowflake:DB.SCHEMA.SECRET. Templated tokens like ${connector.name|upper} are allowed inside any reference."
+    },
+    "shared": {
+      "type": "object",
+      "required": ["snowflake", "source"],
+      "additionalProperties": false,
+      "properties": {
+        "snowflake": {
+          "type": "object",
+          "description": "Goes into the Destination context. Keys are NiFi parameter names verbatim (e.g. 'Snowflake Account Identifier', 'Snowflake Authentication Strategy').",
+          "minProperties": 1
+        },
+        "source": {
+          "type": "object",
+          "description": "Goes into the Source context. Keys are NiFi parameter names verbatim (e.g. 'PostgreSQL Username', 'PostgreSQL Password', 'Publication Name'). The single special key is 'jdbc_driver_url' which drives the JDBC asset upload (not a NiFi parameter).",
+          "minProperties": 1
+        },
+        "ingestion": {
+          "type": "object",
+          "description": "Applied to every Ingestion context (per-connector, same value). Keys are NiFi parameter names verbatim."
+        },
+        "sizing": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "active_fraction": { "type": "number", "minimum": 0.01, "maximum": 1.0, "default": 0.30 },
+            "eps_per_connector": { "type": "integer", "minimum": 1, "default": 100 }
+          }
+        }
+      }
+    },
+    "connector": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "description": "≤32 chars, unique. Doubles as the per-connector Ingestion context name."
+        },
+        "overrides": {
+          "type": "object",
+          "description": "Per-connector overrides applied to the Ingestion context. Keys are NiFi parameter names verbatim."
+        },
+        "tables": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "tables_regex": { "type": "string", "minLength": 1 },
+        "sizing": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "active_fraction": { "type": "number", "minimum": 0.01, "maximum": 1.0 },
+            "eps_per_connector": { "type": "integer", "minimum": 1 }
+          }
+        }
+      },
+      "oneOf": [
+        { "required": ["tables"], "not": { "required": ["tables_regex"] } },
+        { "required": ["tables_regex"], "not": { "required": ["tables"] } }
+      ]
+    }
+  }
+}

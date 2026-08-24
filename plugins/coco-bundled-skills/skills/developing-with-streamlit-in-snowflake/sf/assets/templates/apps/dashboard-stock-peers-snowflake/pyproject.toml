@@ -1,0 +1,8 @@
+[project]
+name = "dashboard-stock-peers-snowflake"
+version = "1.0.0"
+description = "Stock peer analysis dashboard with Snowflake connection"
+requires-python = ">=3.11"
+dependencies = [
+    "streamlit[snowflake]>=1.56.0",
+]

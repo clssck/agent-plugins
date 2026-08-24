@@ -1,0 +1,135 @@
+# Declarative Sharing Manifest Template
+# 
+# Replace placeholders (<...>) with actual values.
+# Include only the object types you're sharing.
+#
+# Documentation: https://docs.snowflake.com/en/developer-guide/declarative-sharing/manifest-reference
+# IMPORTANT: manifest filename should always be named manifest.yml not manifest-example.yml
+# NOTE: Do NOT include manifest_version — it is auto-added on release.
+
+# Roles control consumer access to shared content
+roles:
+  - app_user:
+      comment: "Read-only access to views and notebooks"
+  - app_admin:
+      comment: "Full access to all shared objects"
+
+shared_content:
+  # required_databases — Almost always OMIT this.
+  # Only needed when a shared view's expansion references tables in a DIFFERENT
+  # database not already in shared_content/databases. This tells Snowflake to
+  # replicate that external database in cross-region scenarios.
+  # This is NOT where you list the databases you're sharing — that's what
+  # shared_content/databases is for.
+  # required_databases:
+  #   - external_db_referenced_by_views
+  databases:
+    - <DATABASE>:
+        schemas:
+          # SHARED-BY-COPY: agents, functions, procedures
+          - <SHARED_BY_COPY_SCHEMA>:
+              roles: [app_user, app_admin]
+              
+              cortex_agents:
+                - <AGENT_NAME>:
+                    roles: [app_admin]
+              
+              functions:
+                - <FUNCTION_NAME>(<PARAM_TYPES>):
+                    roles: [app_admin]
+              
+              procedures:
+                - <PROCEDURE_NAME>(<PARAM_TYPES>):
+                    roles: [app_admin]
+
+          # SHARED-BY-REFERENCE: tables, views, semantic views, search services
+          - <SHARED_BY_REFERENCE_SCHEMA>:
+              roles: [app_user, app_admin]
+              
+              tables:
+                - <TABLE_NAME>:
+                    roles: [app_admin]          # Restricted to app_admin
+                - <ICEBERG_TABLE_NAME>:
+                    roles: [app_admin]
+                - <DYNAMIC_TABLE_NAME>:
+                    roles: [app_admin]
+              
+              views:
+                - <VIEW_NAME>:
+                    roles: [app_user, app_admin] # Accessible to all roles
+              
+              semantic_views:
+                - <SEMANTIC_VIEW_NAME>:
+                    roles: [app_user, app_admin]
+              
+              cortex_search_services:
+                - <SEARCH_SERVICE_NAME>:
+                    roles: [app_user, app_admin]
+
+# ##############################################################################
+# SHARING NOTEBOOKS? USE WORKSPACES (below). Do NOT use application_content.notebooks.
+# Next-gen notebooks live inside a workspace. `notebooks:` is DEPRECATED — see the
+# bottom of this file for when (rarely) it still applies.
+# ##############################################################################
+#
+# Workspaces go in application_content (separate from shared_content)
+# Workspaces share directories of files (notebooks, Python, images, markdown, etc.)
+# that consumers can access as read-only workspaces.
+# .ipynb notebooks within shared workspaces are EXECUTABLE (but not editable) by consumers.
+# .pdf files are explicitly blocked.
+application_content:
+  workspaces:
+    - <WORKSPACE_NAME>:
+        roles: [app_user, app_admin]
+        source: content/workspace_dir/
+        comment: "Description of workspace purpose"
+
+# Workspace source path rules:
+#   - MUST end with / (trailing slash required — will error without it)
+#   - MUST NOT start with / (no leading slash — will error with it)
+#   - Directory MUST contain at least one file (validated at BUILD/RELEASE)
+#   - roles must reference roles defined in the manifest's top-level roles: section
+
+# ##############################################################################
+# DEPRECATED — LEGACY NOTEBOOKS. DO NOT COPY THIS BLOCK BY DEFAULT.
+# ##############################################################################
+# Use `workspaces:` above for ALL notebook sharing. Legacy `notebooks:` still works
+# today but support will be withdrawn, and once withdrawn consumers may lose the
+# ability to use these notebooks.
+#
+# ONLY use the format below if the package ALREADY contains legacy notebooks AND
+# the provider explicitly refuses to migrate after being told about the deprecation.
+# If the package has no legacy notebooks, use `workspaces:` — no exceptions.
+#
+# application_content:
+#   notebooks:
+#     - <NOTEBOOK_NAME>:
+#         main_file: <NOTEBOOK_NAME>.ipynb
+#         comment: "Description of notebook purpose"
+#         runtime_environment_version: stable
+#         roles: [app_user, app_admin]
+#
+# Legacy notebook properties:
+#   - main_file (REQUIRED): path to the .ipynb file relative to the package stage root
+#   - comment (optional): description
+#   - runtime_environment_version (optional): "stable" or "preview"
+#   - roles (optional): list of app roles that can access this notebook
+#
+# Full legacy notebook rules (cell metadata, %%sql prohibition, JSON format):
+#   see references/create-objects.sql — LEGACY NOTEBOOKS section
+
+# Key Points:
+# 1. Separate shared-by-copy and shared-by-reference objects into different schemas
+# 2. Include parameter types for functions/procedures: my_func(VARCHAR, NUMBER)
+# 3. Include ALL dependencies referenced by agents or other objects
+# 4. Dynamic tables, iceberg tables, and all other table-like objects fall under the tables section
+# 5. Workspaces use application_content (not shared_content) - they're bundled with the app
+# 6. Workspace `source` is a relative path to the directory of files to share
+# 7. Consumers get read-only access to workspace files
+# 8. Legacy notebooks also use application_content (not shared_content), but are DEPRECATED —
+#    use workspaces instead. Legacy notebooks can only access data within the same app package
+# 9. CRITICAL: When creating Cortex Agents with Analyst tools, you MUST specify
+#    execution_environment with warehouse: "" (empty string) in tool_resources - agents will fail without this!
+#    Do NOT use an actual warehouse name.
+# 10. Per-object roles must be a subset of the parent schema's roles
+# 11. Omitting roles (or roles: []) on an object restricts it to app owners only

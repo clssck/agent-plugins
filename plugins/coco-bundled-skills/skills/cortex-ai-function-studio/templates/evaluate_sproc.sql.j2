@@ -1,0 +1,45 @@
+{#Copyright (c) 2026 Snowflake Inc. All rights reserved.#}
+{#Licensed under the Snowflake Skills License. #}
+{#Refer to the LICENSE file in the root of this repository for full terms.#}
+
+-- =============================================================================
+-- Evaluation SPROC for AI Functions
+-- Generic procedure that works with any AI function
+-- =============================================================================
+--
+-- Rendered by snowflake_ai_optimize.core.sproc_render.render_sproc_sql()
+-- Type: evaluate
+--
+-- =============================================================================
+
+{% if anonymous %}WITH EVALUATE_AI_FUNCTION AS PROCEDURE ({% else %}CREATE OR REPLACE PROCEDURE {{ database }}.{{ schema }}.EVALUATE_AI_FUNCTION({% endif %}
+    FUNCTION_NAME VARCHAR,
+    TEST_TABLE VARCHAR,
+    INPUT_COLUMNS ARRAY,
+    LABEL_COLUMN VARCHAR,
+    METRIC_NAME VARCHAR,
+    MODEL_NAME VARCHAR,
+    SAMPLE_SIZE INTEGER DEFAULT NULL,
+    EXPERIMENT_NAME VARCHAR DEFAULT NULL,
+    METRIC_OPTIONS VARIANT DEFAULT NULL,
+    MAX_LENGTH INTEGER DEFAULT 500,
+    CUSTOM_METRIC_UDF VARCHAR DEFAULT NULL,
+    RUN_ID VARCHAR DEFAULT NULL
+)
+RETURNS VARIANT
+LANGUAGE PYTHON
+RUNTIME_VERSION = '3.12'
+PACKAGES = ('snowflake-snowpark-python', 'pandas', 'pydantic')
+{% if inline -%}
+HANDLER = '{{ inline_handler }}'
+EXECUTE AS CALLER
+AS $$
+{{ inline_body }}
+$${% if not anonymous %};{% endif %}
+{%- else -%}
+IMPORTS = (
+    '@{{ database }}.{{ schema }}.{{ stage_name }}/snowflake_ai_optimize.zip'
+)
+HANDLER = 'handlers.evaluate_handler.evaluate_handler'
+EXECUTE AS CALLER{% if not anonymous %};{% endif %}
+{%- endif %}

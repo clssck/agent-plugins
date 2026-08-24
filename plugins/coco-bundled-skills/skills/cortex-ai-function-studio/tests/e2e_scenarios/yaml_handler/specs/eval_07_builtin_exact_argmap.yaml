@@ -1,0 +1,19 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+#
+# Eval SPEC: builtin AI function via inline query_text (AI_COMPLETE), exact_match,
+# WITH an argument_mapping (optional for builtins — names the surfaced column),
+# single run. Records function_name=AI_COMPLETE, function_impl=the query_text.
+function:
+  query_text: "AI_COMPLETE('llama3.1-8b', 'Classify the sentiment as positive or negative. Reply with one word: ' || TEXT)"
+metrics:
+  - name: exact_match
+dataset:
+  name: __TABLE__
+  column_mapping:
+    argument_mapping:
+      TEXT: TEXT
+    ground_truth: EXPECTED_LABEL
+evaluation:
+  num_eval_runs: 1

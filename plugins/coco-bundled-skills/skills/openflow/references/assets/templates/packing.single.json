@@ -1,0 +1,53 @@
+{
+  "runtime": "TODO-runtime-name",
+  "connector_type": "postgresql",
+  "shared": {
+    "snowflake": {
+      "account": "TODO-snowflake-account",
+      "auth": "SNOWFLAKE_MANAGED",
+      "role": "OPENFLOW_ROLE",
+      "warehouse": "CONNECTOR_WAREHOUSE"
+    },
+    "source": {
+      "user": "openflow_repl",
+      "publication": "openflow_pub",
+      "password": "<pg-rds-repl-password>",
+      "jdbc_driver_url": "https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.7/postgresql-42.7.7.jar"
+    },
+    "ingestion": {
+      "object_identifier_resolution": "CASE_INSENSITIVE",
+      "ingestion_type": "full",
+      "concurrent_snapshot_queries": 2,
+      "merge_task_schedule": "* * * * * ?"
+    }
+  },
+  "connectors": [
+    {
+      "name": "c1",
+      "overrides": {
+        "jdbc_url": "jdbc:postgresql://TODO-host:5432/db1?sslmode=require",
+        "slot": "pg_cdc_c1_slot",
+        "destination_database": "PG_C1_DEMO"
+      },
+      "tables": ["public.users", "public.orders", "public.line_items"]
+    },
+    {
+      "name": "c2",
+      "overrides": {
+        "jdbc_url": "jdbc:postgresql://TODO-host:5432/db2?sslmode=require",
+        "slot": "pg_cdc_c2_slot",
+        "destination_database": "PG_C2_DEMO"
+      },
+      "tables": ["app.events", "app.sessions", "app.devices"]
+    },
+    {
+      "name": "c3",
+      "overrides": {
+        "jdbc_url": "jdbc:postgresql://TODO-host:5432/db3?sslmode=require",
+        "slot": "pg_cdc_c3_slot",
+        "destination_database": "PG_C3_DEMO"
+      },
+      "tables_regex": "^reporting\\..*"
+    }
+  ]
+}

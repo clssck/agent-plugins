@@ -1,0 +1,82 @@
+skill_name: "error-tables-ops"
+skill_type: "customer-facing"
+category: "operate"
+tags:
+  - "error-tables"
+  - "dml-error-logging"
+  - "data-quality"
+  - "data-engineering"
+
+ownership:
+  author: "Rudi Leibbrandt"
+  maintainer: "Rudi Leibbrandt"
+
+validation:
+  testers:
+    count: 5
+    names:
+      - "Rudi Leibbrandt"
+      - "Mengran Wang"
+      - "Paul Baldary"
+      - "Vino Duraisamy"
+      - "Navam Awasthi"
+
+customer_impact:
+  customers:
+    count: 0
+    names: []
+
+testing:
+  scenarios:
+    - prompt: "Which of my tables should I enable error logging on?"
+      expected: "Routes to Assess, scans QUERY_HISTORY for failed DML with error codes"
+      tested_by: "Rudi Leibbrandt"
+    - prompt: "Which tables in my account already have error logging enabled?"
+      expected: "Routes to Discover, uses GET_DDL or stored proc; clarifies schema-scoped vs account-wide"
+      tested_by: "Rudi Leibbrandt, Vino Duraisamy"
+    - prompt: "Analyze what's in the error table for my table"
+      expected: "Routes to Analyze, queries ERROR_TABLE() with breakdowns by type and column"
+      tested_by: "Rudi Leibbrandt"
+    - prompt: "Set up monitoring alerts on my error tables"
+      expected: "Routes to Monitor, generates Alert DDL without executing it"
+      tested_by: "Rudi Leibbrandt"
+    - prompt: "Clean up old error data and set up retention"
+      expected: "Routes to Manage, generates archive and truncate DDL"
+      tested_by: "Rudi Leibbrandt"
+    - prompt: "Give me an overall health report on my error tables"
+      expected: "Routes to Report, combines Discover and Analyze across all enabled tables"
+      tested_by: "Rudi Leibbrandt"
+    - prompt: "Walk me through creating a test table with error logging"
+      expected: "Getting Started walkthrough with CREATE TABLE, INSERT, ERROR_TABLE query"
+      tested_by: "Mengran Wang"
+    - prompt: "Fix rejected rows from my error table and re-insert them"
+      expected: "Extracts ERROR_DATA JSON, applies corrections with TRY_* in CASE ELSE, re-inserts"
+      tested_by: "Rudi Leibbrandt, Vino Duraisamy"
+    - prompt: "Fix rejected rows — I have truncation and NOT NULL errors"
+      expected: "Routes to Fix, shows error breakdown, asks user per-error-type how to handle (interactive mode), then generates CASE SQL with chosen fixes"
+      tested_by: "Navam Awasthi"
+    - prompt: "How much storage are my error tables consuming?"
+      expected: "ERROR_TABLE()-based payload estimate; does not claim TABLE_STORAGE_METRICS or billing attribution"
+      tested_by: "Rudi Leibbrandt, Vino Duraisamy"
+    - prompt: "Temporarily disable error logging for debugging"
+      expected: "Shows OPT_OUT_ERROR_LOGGING session parameter"
+      tested_by: "Mengran Wang"
+  edge_cases:
+    - scenario: "No DML failures found in account"
+      expected_behavior: "Graceful message, no hallucinated error counts"
+      tested: true
+    - scenario: "User asks to execute CREATE ALERT directly"
+      expected_behavior: "Presents DDL but does NOT execute it"
+      tested: true
+    - scenario: "User asks to truncate all error tables immediately"
+      expected_behavior: "Warns about data loss, asks for confirmation, does NOT execute"
+      tested: true
+  eval_tasks: 21
+  eval_framework: "cortex-code-eval"
+  eval_config: "evals/data-engineering/error-tables-ops/config.yaml"
+
+promotion:
+  status: "pending"
+  target: "external"
+  repository_url: "https://github.com/snowflake-eng/cortex-code-skills"
+  notes: "Prod channel in prod_manifest; ref bump pending merge. Additional tester feedback collected (e.g. Vino Duraisamy, Apr 2026)."

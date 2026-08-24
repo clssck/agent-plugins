@@ -1,0 +1,35 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+
+name: object_payload
+description: Single OBJECT input — classify an order payload as large/small.
+seed_model: llama3.1-8b
+inputs:
+  - {name: PAYLOAD, sql_type: OBJECT}
+output:
+  name: label
+  json_type: string
+  description: One of "large" or "small".
+function_intention: Classify an order by its total amount.
+system_prompt: The input is a JSON object with a "total" field. If total >= 100 reply "large"; otherwise reply "small". Reply with only the lowercase word.
+user_prompt_template: "Order: {PAYLOAD}"
+metric_name: exact_match
+optimize_models: ["llama3.1-8b"]
+reflection_model: claude-sonnet-4-5
+auto_budget: demo
+label_column: EXPECTED_LABEL
+input_columns: ["PAYLOAD"]
+rows:
+  - {PAYLOAD: "OBJECT_CONSTRUCT('total', 250, 'items', 3)", EXPECTED_LABEL: large}
+  - {PAYLOAD: "OBJECT_CONSTRUCT('total', 999, 'items', 1)", EXPECTED_LABEL: large}
+  - {PAYLOAD: "OBJECT_CONSTRUCT('total', 120, 'items', 8)", EXPECTED_LABEL: large}
+  - {PAYLOAD: "OBJECT_CONSTRUCT('total', 500, 'items', 2)", EXPECTED_LABEL: large}
+  - {PAYLOAD: "OBJECT_CONSTRUCT('total', 100, 'items', 5)", EXPECTED_LABEL: large}
+  - {PAYLOAD: "OBJECT_CONSTRUCT('total', 340, 'items', 4)", EXPECTED_LABEL: large}
+  - {PAYLOAD: "OBJECT_CONSTRUCT('total', 25, 'items', 1)", EXPECTED_LABEL: small}
+  - {PAYLOAD: "OBJECT_CONSTRUCT('total', 5, 'items', 2)", EXPECTED_LABEL: small}
+  - {PAYLOAD: "OBJECT_CONSTRUCT('total', 80, 'items', 3)", EXPECTED_LABEL: small}
+  - {PAYLOAD: "OBJECT_CONSTRUCT('total', 42, 'items', 1)", EXPECTED_LABEL: small}
+  - {PAYLOAD: "OBJECT_CONSTRUCT('total', 15, 'items', 6)", EXPECTED_LABEL: small}
+  - {PAYLOAD: "OBJECT_CONSTRUCT('total', 99, 'items', 2)", EXPECTED_LABEL: small}

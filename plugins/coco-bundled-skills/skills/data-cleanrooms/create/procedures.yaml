@@ -1,0 +1,69 @@
+# Machine-readable procedure definitions for create sub-skill
+# This file is the source of truth for:
+#   1. Generating intent YAML files (native_app)
+#   2. Validating SKILL.md documentation
+#
+# Usage:
+#   python ../scripts/skill_intent_converter.py skill-to-intent --skill-dir . --output create_collaboration.yaml
+#   python ../scripts/skill_intent_converter.py validate --skill-dir .
+
+metadata:
+  intent_id: create_collaboration
+  intent_name: Initialize New Collaboration
+  intent_description: User wants to create a new DCR collaboration or clean room by building a collaboration specification and initializing it.
+  intent_category: collaboration
+  enabled_for_agents:
+    - dcr_agent
+    - dcr_agent_next
+  release_status: released
+
+triggers:
+  - "create collaboration"
+  - "create cleanroom"
+  - "new collaboration"
+  - "set up clean room"
+  - "initiate collaboration"
+  - "create dcr"
+
+procedures:
+  # For cortex-code skill: use standard SQL
+  # SELECT CURRENT_ORGANIZATION_NAME(), CURRENT_ACCOUNT_NAME()
+  #
+  # For native app agent intent: use the procedure (agents can't call standard functions)
+  - name: "{DB}.AGENTS.DCR$GET_CURRENT_ACCOUNT_IDENTIFIER"
+    description: "Get current account identifier to determine the owner"
+    params: []
+    output_format: string
+    when: "First step to identify the current account as the collaboration owner"
+    display: "account identifier in ORGNAME.ACCOUNT_NAME format"
+    skill_alternative: "SELECT CURRENT_ORGANIZATION_NAME(), CURRENT_ACCOUNT_NAME()"
+
+  - name: "{DB}.REGISTRY.VIEW_REGISTERED_TEMPLATES"
+    description: "List all templates registered by the current account"
+    params: []
+    output_format: table
+    when: "To select owner's templates for the collaboration spec"
+    display: "all templates registered in the account"
+
+  - name: "{DB}.REGISTRY.VIEW_REGISTERED_DATA_OFFERINGS"
+    description: "List all data offerings registered by the current account"
+    params: []
+    output_format: table
+    when: "To select owner's data offerings for the collaboration spec"
+    display: "all data offerings registered in the account"
+
+  - name: "{DB}.COLLABORATION.INITIALIZE"
+    description: "Create a new collaboration from a YAML specification"
+    params: [COLLABORATION_SPEC]
+    output_format: table
+    when: "User confirms the collaboration spec and wants to create"
+    display: "confirmation that creation was triggered"
+    stopping_point: true
+    stopping_reason: "Show complete collaboration spec and get explicit user confirmation before initializing"
+
+  - name: "{DB}.COLLABORATION.GET_STATUS"
+    description: "Check the status of a collaboration after creation"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "After INITIALIZE to check creation progress (CREATING, CREATED, CREATE_FAILED)"
+    display: "status and details of the collaboration"

@@ -1,0 +1,145 @@
+<style data-snowflake-runtime-styles="1">
+  table {
+    border-collapse: collapse;
+    margin: 16px 0;
+    width: 100%;
+  }
+  th, td {
+    border: 1px solid #d1d5db;
+    padding: 6px 10px;
+    vertical-align: top;
+    text-align: left;
+  }
+  th {
+    background: #f3f4f6;
+    font-weight: 600;
+  }
+
+  aside.callout {
+    margin: 16px 0;
+    padding: 12px 16px;
+    border-inline-start: 4px solid #d1d5db;
+    border-radius: 0 6px 6px 0;
+    background: #f9fafb;
+  }
+  aside.callout > p:first-child { margin-top: 0; }
+  aside.callout > p:last-child { margin-bottom: 0; }
+  aside.callout-info {
+    border-inline-start-color: #2563eb;
+    background: #eff6ff;
+  }
+  aside.callout-warning {
+    border-inline-start-color: #d97706;
+    background: #fffbeb;
+  }
+  aside.callout-tip {
+    border-inline-start-color: #16a34a;
+    background: #f0fdf4;
+  }
+
+  ul[data-type="taskList"] {
+    list-style: none;
+    padding-left: 4px;
+  }
+  ul[data-type="taskList"] li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 4px 0;
+  }
+  ul[data-type="taskList"] li > label {
+    display: inline-flex;
+    flex: 0 0 auto;
+    margin-top: 0.35em;
+  }
+  ul[data-type="taskList"] li > div {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  ul[data-type="taskList"] li > div > p,
+  ul[data-type="taskList"] li > p {
+    margin: 0;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  ul[data-type="taskList"] li > ul[data-type="taskList"] {
+    flex: 1 0 100%;
+    margin-inline-start: 28px;
+    margin-block: 4px 0;
+  }
+  ul[data-type="taskList"] li:not(:has(> label))::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    margin-top: 0.35em;
+    border: 1.5px solid #6b7280;
+    border-radius: 3px;
+    background: #ffffff;
+  }
+  ul[data-type="taskList"] li[data-checked="true"]:not(:has(> label))::before {
+    background: #2563eb;
+    border-color: #2563eb;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'><path fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 7.5l3 3 5-6'/></svg>");
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+  ul[data-type="taskList"] li[data-checked="true"] > div > p,
+  ul[data-type="taskList"] li[data-checked="true"] > p {
+    color: #6b7280;
+    text-decoration: line-through;
+  }
+
+  details {
+    margin: 12px 0;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #ffffff;
+  }
+  details > summary {
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 0;
+  }
+
+  figure {
+    margin: 16px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  figure > figcaption {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #6b7280;
+    text-align: center;
+    font-style: italic;
+  }
+
+  blockquote {
+    border-inline-start: 3px solid #d1d5db;
+    margin: 12px 0;
+    padding: 4px 16px;
+    color: #6b7280;
+  }
+
+  pre {
+    background: #f3f4f6;
+    padding: 12px 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+  }
+  code {
+    background: #f3f4f6;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.9em;
+  }
+  pre > code {
+    background: transparent;
+    padding: 0;
+  }
+</style>

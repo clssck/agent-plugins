@@ -1,0 +1,19 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+#
+# INVALID eval SPEC: sets BOTH function_name and query_text (exactly one is
+# allowed). The handler must reject it, not SUCCEED.
+function:
+  function_name: __FUNCTION__
+  query_text: "AI_COMPLETE('llama3.1-8b', 'x: ' || TEXT)"
+metrics:
+  - name: exact_match
+dataset:
+  name: __TABLE__
+  column_mapping:
+    argument_mapping:
+      TEXT: TEXT
+    ground_truth: EXPECTED_LABEL
+evaluation:
+  num_eval_runs: 1

@@ -1,0 +1,65 @@
+# Machine-readable procedure definitions for teardown-leave sub-skill
+# This file is the source of truth for:
+#   1. Generating intent YAML files (native_app)
+#   2. Validating SKILL.md documentation
+#
+# Usage:
+#   python ../../scripts/skill_intent_converter.py skill-to-intent --skill-dir . --output teardown_leave.yaml
+#   python ../../scripts/skill_intent_converter.py validate --skill-dir .
+
+metadata:
+  intent_id: teardown_leave
+  intent_name: Teardown or Leave Collaboration
+  intent_description: Safely terminate participation in a DCR collaboration — owners teardown, invited collaborators leave — with full local resource cleanup.
+  intent_category: collaboration
+  enabled_for_agents:
+    - dcr_agent
+    - dcr_agent_next
+  release_status: released
+
+triggers:
+  - "tear down"
+  - "teardown"
+  - "leave collaboration"
+  - "leave clean room"
+  - "drop collaboration"
+  - "delete collaboration"
+  - "exit collaboration"
+  - "leave cleanroom"
+
+procedures:
+  - name: "{DB}.COLLABORATION.VIEW_COLLABORATIONS"
+    description: "List all collaborations to identify the target and determine owner vs invited collaborator"
+    params: []
+    output_format: table
+    when: "First step to find the collaboration and determine user role (owner vs invited collaborator)"
+    display: "collaboration name, owner account, and status"
+
+  - name: "{DB}.AGENTS.DCR$GET_CURRENT_ACCOUNT_IDENTIFIER"
+    description: "Get current account identifier to determine if user is owner or invited collaborator"
+    params: []
+    output_format: string
+    when: "To compare current account against OWNER_ACCOUNT from VIEW_COLLABORATIONS"
+    display: "account identifier in ORGNAME.ACCOUNT_NAME format"
+    skill_alternative: "SELECT CURRENT_ORGANIZATION_NAME(), CURRENT_ACCOUNT_NAME()"
+
+  - name: "{DB}.COLLABORATION.GET_STATUS"
+    description: "Check detailed status of a collaboration before and after teardown/leave"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "Before teardown/leave to validate state (must be JOINED for owner TEARDOWN). After each step to monitor progress (DROPPING, LEAVING, LOCAL_DROP_PENDING, DROPPED, LEFT)."
+    display: "collaboration status and details"
+
+  - name: "{DB}.COLLABORATION.TEARDOWN"
+    description: "Tear down a collaboration — owner only. Must be called twice: first call initiates teardown, second call completes local cleanup when status is LOCAL_DROP_PENDING."
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "Current account == OWNER_ACCOUNT and collaboration status is JOINED. Call again when status reaches LOCAL_DROP_PENDING."
+    display: "teardown initiation confirmation"
+
+  - name: "{DB}.COLLABORATION.LEAVE"
+    description: "Leave a collaboration — invited collaborator only. Must be called twice: first call initiates leave, second call completes local cleanup when status is LOCAL_DROP_PENDING."
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "Current account != OWNER_ACCOUNT and status is JOINED (or PREVIEWING/IN_REVIEW per product docs). Call again when status reaches LOCAL_DROP_PENDING."
+    display: "leave initiation confirmation"

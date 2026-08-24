@@ -1,0 +1,82 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+
+# Inline SPROC configuration
+#
+# Each SPROC type lists its Python source dependencies as dotted module paths
+# in load order (dependencies first, handlers last).
+#
+# The inline bundler resolves each path to its .py file via _resolve_module_path(),
+# concatenates all sources, and strips inter-package imports.
+#
+# handler: bare function name used as the SPROC handler in inline mode.
+
+evaluate:
+  sources:
+    - snowflake_ai_optimize.core.constants
+    - snowflake_ai_optimize.core.types
+    - snowflake_ai_optimize.core.sql_utils
+    - snowflake_ai_optimize.core.stage
+    - snowflake_ai_optimize.core.session
+    - snowflake_ai_optimize.core.timing
+    - snowflake_ai_optimize.core.metrics.utils
+    - snowflake_ai_optimize.core.metrics.custom_udf
+    - snowflake_ai_optimize.core.metrics.llm_judge
+    - snowflake_ai_optimize.core.metrics.builtin
+    - snowflake_ai_optimize.core.metrics.dispatch
+    - snowflake_ai_optimize.core.metrics.aggregation
+    - snowflake_ai_optimize.core.sproc_decorators
+    - snowflake_ai_optimize.core.ddl_rewrite
+    - snowflake_ai_optimize.core.temp_ai_function
+    - snowflake_ai_optimize.core.run_params
+    - snowflake_ai_optimize.core.experiment
+    - snowflake_ai_optimize.gepa.experiment
+    - snowflake_ai_optimize.core.evaluation
+    - handlers.evaluate_handler
+  handler: evaluate_handler
+
+optimize:
+  sources:
+    - snowflake_ai_optimize.core.constants
+    - snowflake_ai_optimize.core.types
+    - snowflake_ai_optimize.core.sql_utils
+    - snowflake_ai_optimize.core.stage
+    - snowflake_ai_optimize.core.session
+    - snowflake_ai_optimize.core.timing
+    - snowflake_ai_optimize.core.scorer
+    - snowflake_ai_optimize.core.metrics.utils
+    - snowflake_ai_optimize.core.metrics.custom_udf
+    - snowflake_ai_optimize.core.metrics.llm_judge
+    - snowflake_ai_optimize.core.metrics.builtin
+    - snowflake_ai_optimize.core.metrics.dispatch
+    - snowflake_ai_optimize.core.metrics.aggregation
+    - snowflake_ai_optimize.core.sproc_decorators
+    - snowflake_ai_optimize.core.ddl_rewrite
+    - snowflake_ai_optimize.core.temp_ai_function
+    - snowflake_ai_optimize.core.run_params
+    - snowflake_ai_optimize.core.experiment
+    - snowflake_ai_optimize.gepa.experiment
+    - snowflake_ai_optimize.core.evaluation
+    - snowflake_ai_optimize.gepa.adapter
+    - snowflake_ai_optimize.gepa.engine_registry
+    - snowflake_ai_optimize.core.optimize_registry
+    - snowflake_ai_optimize.gepa.optimize_body
+    - snowflake_ai_optimize.gepa.optimize
+    - snowflake_ai_optimize.gepa._registry
+    - handlers.optimize_handler
+    - handlers.execute_eval_opts_handler
+  handler: run_optimization
+
+synthetic:
+  sources:
+    - snowflake_ai_optimize.core.constants
+    - snowflake_ai_optimize.core.types
+    - snowflake_ai_optimize.core.sql_utils
+    - snowflake_ai_optimize.core.stage
+    - snowflake_ai_optimize.core.session
+    - snowflake_ai_optimize.core.sproc_decorators
+    - snowflake_ai_optimize.core.ddl_rewrite
+    - snowflake_ai_optimize.core.temp_ai_function
+    - snowflake_ai_optimize.synthetic.synthetic_data
+  handler: generate_synthetic_data

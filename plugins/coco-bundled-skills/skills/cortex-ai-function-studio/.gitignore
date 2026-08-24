@@ -1,0 +1,8 @@
+uv.lock
+upload_files.txt
+__pycache__/
+.pytest_cache/
+.venv/
+demos/pdf-field-extraction/data/
+multirun/
+outputs/

@@ -1,0 +1,162 @@
+{
+  "claude-haiku-4-5": {
+    "input_cost": 0.6,
+    "output_cost": 3
+  },
+  "claude-opus-4-5": {
+    "input_cost": 3,
+    "output_cost": 15
+  },
+  "claude-opus-4-6": {
+    "input_cost": 3,
+    "output_cost": 15
+  },
+  "claude-opus-4-7": {
+    "input_cost": 3,
+    "output_cost": 15
+  },
+  "claude-opus-4-8": {
+    "input_cost": 3,
+    "output_cost": 15
+  },
+  "claude-opus-5": {
+    "input_cost": 3,
+    "output_cost": 15
+  },
+  "claude-sonnet-4-5": {
+    "input_cost": 1.8,
+    "output_cost": 9
+  },
+  "claude-sonnet-4-6": {
+    "input_cost": 1.8,
+    "output_cost": 9
+  },
+  "claude-sonnet-5": {
+    "input_cost": 1.2,
+    "output_cost": 6
+  },
+  "gemini-2.5-flash": {
+    "input_cost": 0.18,
+    "output_cost": 1.5
+  },
+  "gemini-2.5-flash-lite": {
+    "input_cost": 0.06,
+    "output_cost": 0.24
+  },
+  "gemini-3.1-flash-lite": {
+    "input_cost": 0.15,
+    "output_cost": 0.9
+  },
+  "gemini-3.1-pro": {
+    "input_cost": 1.2,
+    "output_cost": 7.2
+  },
+  "gemini-3.5-flash": {
+    "input_cost": 0.9,
+    "output_cost": 5.4
+  },
+  "grok-4.20": {
+    "input_cost": 0.75,
+    "output_cost": 1.5
+  },
+  "grok-4.3": {
+    "input_cost": 0.75,
+    "output_cost": 1.5
+  },
+  "llama3.1-70b": {
+    "input_cost": 0.432,
+    "output_cost": 0.432
+  },
+  "llama3.1-8b": {
+    "input_cost": 0.132,
+    "output_cost": 0.132
+  },
+  "llama3.3-70b": {
+    "input_cost": 0.432,
+    "output_cost": 0.432
+  },
+  "llama4-maverick": {
+    "input_cost": 0.144,
+    "output_cost": 0.582
+  },
+  "mistral-7b": {
+    "input_cost": 0.09,
+    "output_cost": 0.12
+  },
+  "mistral-large2": {
+    "input_cost": 1.2,
+    "output_cost": 3.6
+  },
+  "mistral-large3": {
+    "input_cost": 0.3,
+    "output_cost": 0.9
+  },
+  "mixtral-8x7b": {
+    "input_cost": 0.27,
+    "output_cost": 0.42
+  },
+  "openai-gpt-4.1": {
+    "input_cost": 1.2,
+    "output_cost": 4.8
+  },
+  "openai-gpt-5": {
+    "input_cost": 0.75,
+    "output_cost": 6
+  },
+  "openai-gpt-5-mini": {
+    "input_cost": 0.15,
+    "output_cost": 1.2
+  },
+  "openai-gpt-5-nano": {
+    "input_cost": 0.033,
+    "output_cost": 0.24
+  },
+  "openai-gpt-5.1": {
+    "input_cost": 0.75,
+    "output_cost": 6
+  },
+  "openai-gpt-5.2": {
+    "input_cost": 1.05,
+    "output_cost": 8.4
+  },
+  "openai-gpt-5.4": {
+    "input_cost": 1.5,
+    "output_cost": 9
+  },
+  "openai-gpt-5.4-mini": {
+    "input_cost": 0.45,
+    "output_cost": 2.7
+  },
+  "openai-gpt-5.4-nano": {
+    "input_cost": 0.12,
+    "output_cost": 0.75
+  },
+  "openai-gpt-5.5": {
+    "input_cost": 3,
+    "output_cost": 18
+  },
+  "openai-gpt-5.6-luna": {
+    "input_cost": 0.6,
+    "output_cost": 3.6
+  },
+  "openai-gpt-5.6-sol": {
+    "input_cost": 3,
+    "output_cost": 18
+  },
+  "openai-gpt-5.6-terra": {
+    "input_cost": 1.5,
+    "output_cost": 9
+  },
+  "pixtral-large": {
+    "input_cost": 1.2,
+    "output_cost": 3.6
+  },
+  "qwen3-32b": {
+    "input_cost": 0.09,
+    "output_cost": 0.36
+  },
+  "qwen3-vl-235b-a22b": {
+    "input_cost": 0.32,
+    "output_cost": 1.6
+  }
+}

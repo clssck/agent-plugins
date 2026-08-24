@@ -1,0 +1,375 @@
+<!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
+     Licensed under the Snowflake Skills License. See LICENSE file. -->
+
+# Evaluation Results & Job Status
+
+This reference covers two related needs: checking whether an async job is still running, and querying the results of a completed evaluation or optimization.
+
+## When to Load
+
+Load when the user:
+- Wants to check whether an async job is still running
+- Has a `run_id` and wants to query evaluation or optimization results
+- Asks "what were my results?", "show me the SQL to read my eval", or similar
+
+## Evaluation Results — Quick Reference
+
+If the user has a completed `ai_func_eval_*` run and wants to query results, use these APIs exactly. Do NOT substitute table names, views, or function calls — these three patterns are the only supported access methods:
+
+```sql
+-- 1. Aggregate score / metric / model
+SHOW RUN METRICS    IN EXPERIMENT {database}.{schema}.{run_id} RUN EVAL;
+SHOW RUN PARAMETERS IN EXPERIMENT {database}.{schema}.{run_id} RUN EVAL;
+
+-- 2. Per-row results (named FILE FORMAT required — inline FILE_FORMAT not supported)
+CREATE OR REPLACE TEMPORARY FILE FORMAT eval_detail_json_fmt
+  TYPE = JSON STRIP_OUTER_ARRAY = TRUE;
+
+SELECT $1:row_id::INT AS ROW_ID, $1:input_text::STRING AS INPUT,
+       $1:expected::STRING AS EXPECTED, $1:predicted::STRING AS PREDICTED,
+       $1:metric_score::FLOAT AS SCORE
+FROM 'snow://experiment/{run_id}/versions/EVAL/eval_detail.json'
+(FILE_FORMAT => eval_detail_json_fmt);
+
+-- 3. Failures only
+SELECT $1:row_id::INT AS ROW_ID, $1:expected::STRING AS EXPECTED,
+       $1:predicted::STRING AS PREDICTED, $1:metric_score::FLOAT AS SCORE
+FROM 'snow://experiment/{run_id}/versions/EVAL/eval_detail.json'
+(FILE_FORMAT => eval_detail_json_fmt)
+WHERE $1:metric_score::FLOAT < 1;
+```
+
+See [Evaluation Results](#evaluation-results) for full details and the Resume Workflow for handling a completed run from a new session.
+
+## Quick Routing
+
+Before reading further, identify which case applies:
+
+| Situation | Go to |
+|-----------|-------|
+| User is unsure if the job finished | [Checking Task Status](#checking-task-status) |
+| Job is done — user wants **evaluation results** | [Evaluation Results](#evaluation-results) ← most common |
+| Job is done — user wants **optimization results** | Read [If state is SUCCEEDED — Optimization](#if-state-is-succeeded--optimization-run_id-starts-with-ai_func_opt_) — follow the score-domain and environment-aware routing rules there before presenting results |
+| User wants to resume an async workflow in a new session | [Resume Workflow](#resume-workflow) |
+
+**Important:** Evaluation and optimization results live in Snowflake Experiments, not standard SQL tables. There are no `experiment_runs`, `results`, or similar tables to query — the only supported APIs are `SHOW RUNS IN EXPERIMENT`, `SHOW RUN METRICS`, `SHOW RUN PARAMETERS`, and SnowURL paths as documented below.
+
+## Checking Task Status
+
+**⚠️ ONE query per user message. Present result. End turn with `ask_user_question`. Never loop.** Do NOT call `TASK_HISTORY` more than once per turn. Do NOT poll automatically or re-query if the state is non-terminal — the user will come back and ask again.
+
+Async jobs run as Snowflake Tasks. Use `INFORMATION_SCHEMA.TASK_HISTORY()` to check status.
+
+**⚠️ IMPORTANT:** Always ask the user for the database and schema before running any queries. Use `{database}.INFORMATION_SCHEMA.TASK_HISTORY()` with the user-provided database to ensure the query targets the correct location.
+
+```sql
+-- Check status of a specific run (replace {database} with user-provided value)
+SELECT 
+    NAME AS RUN_ID,
+    STATE,
+    SCHEDULED_TIME,
+    COMPLETED_TIME,
+    ERROR_MESSAGE
+FROM TABLE({database}.INFORMATION_SCHEMA.TASK_HISTORY(
+    TASK_NAME => '{run_id}',
+    RESULT_LIMIT => 1
+));
+```
+
+### Task States
+
+| State | Meaning |
+|-------|---------|
+| `SCHEDULED` | Task is queued to run |
+| `EXECUTING` | Task is currently running |
+| `SUCCEEDED` | Task completed successfully |
+| `FAILED` | Task failed (check ERROR_MESSAGE) |
+| `CANCELLED` | Task was cancelled |
+
+## Checking Results
+
+### Evaluation Results
+
+**There are no SQL tables for evaluation results.** Do not use `SELECT ... FROM experiment_runs` or any invented table. Use `SHOW RUN METRICS` for aggregate stats and the SnowURL path for per-row detail — these are the only supported APIs.
+
+Once state is `SUCCEEDED`, query the per-evaluation experiment. By default the experiment name equals the `run_id`, and the single run inside is named `EVAL`.
+
+**`SHOW RUN METRICS` is a DDL statement, not a table function.** Do NOT use `SNOWFLAKE.CORTEX.SHOW_RUN_METRICS()` or `SELECT * FROM(SHOW_RUN_METRICS(...))` — these do not exist. Use the exact DDL syntax below:
+
+```sql
+-- Aggregate score, num examples, function name, model from experiment metadata
+SHOW RUN METRICS    IN EXPERIMENT {database}.{schema}.{experiment_name} RUN EVAL;
+SHOW RUN PARAMETERS IN EXPERIMENT {database}.{schema}.{experiment_name} RUN EVAL;
+```
+
+**Individual row results are only accessible via the quoted SnowURL string** — there is no `SELECT * FROM results_table` equivalent and no `@stage` path. Do NOT use `@{experiment_name}/versions/...`. The correct form is a single-quoted `'snow://experiment/...'` string literal with a named TEMPORARY FILE FORMAT (requires `ENABLE_EXPERIMENT_SNOWURL_READ_PATH_RESOLUTION`). Inline `(FILE_FORMAT => (TYPE => JSON))` is NOT supported on SnowURL paths — a named format is required.
+
+```sql
+-- Step 1: create the named FILE FORMAT once per session
+CREATE OR REPLACE TEMPORARY FILE FORMAT eval_detail_json_fmt
+  TYPE = JSON
+  STRIP_OUTER_ARRAY = TRUE;
+
+SELECT
+    $1:row_id::INT       AS ROW_ID,
+    $1:input_text::STRING AS INPUT_TEXT,
+    $1:expected::STRING  AS EXPECTED,
+    $1:predicted::STRING AS PREDICTED,
+    $1:metric_score::FLOAT AS SCORE,
+    $1:metric_feedback::STRING AS FEEDBACK,
+    $1:error_message::STRING AS ERROR_MESSAGE
+FROM 'snow://experiment/{experiment_name}/versions/EVAL/eval_detail.json'
+(FILE_FORMAT => eval_detail_json_fmt)
+ORDER BY ROW_ID;
+
+-- Analyze failures only
+SELECT $1:row_id::INT AS ROW_ID, $1:expected::STRING AS EXPECTED,
+       $1:predicted::STRING AS PREDICTED, $1:metric_score::FLOAT AS SCORE
+FROM 'snow://experiment/{experiment_name}/versions/EVAL/eval_detail.json'
+(FILE_FORMAT => eval_detail_json_fmt)
+WHERE $1:metric_score::FLOAT < 1
+ORDER BY SCORE;
+```
+
+### Optimization Results
+
+Once state is `SUCCEEDED`, query the experiment for results:
+
+```sql
+-- List all runs and their status
+SHOW RUNS IN EXPERIMENT {experiment_name};
+
+-- Get seed and best scores
+-- Run names form one global sequence: SEED, ITER_1, ..., ITER_N (the producing
+-- model is a run PARAMETER, not part of the run name). A model that failed to
+-- produce a valid candidate gets a {MODEL}_FAILED run (still model-scoped),
+-- where {MODEL} is the uppercased model name with non-alphanumeric chars
+-- replaced by _ (e.g. llama3.1-8b -> LLAMA3_1_8B, claude-haiku-4-5 -> CLAUDE_HAIKU_4_5).
+-- The winning run is the run with the highest test_score (if all frontier candidates have it), else valset_score.
+SHOW RUN METRICS IN EXPERIMENT {experiment_name} RUN SEED;
+
+-- Find all runs and their scores to identify the winner:
+SHOW RUNS IN EXPERIMENT {experiment_name};
+-- Then query each ITER/SEED run's metrics to find the winner (test_score when available, else valset_score):
+SHOW RUN METRICS IN EXPERIMENT {experiment_name} RUN ITER_1;
+-- The run with the highest test_score (or valset_score if test_score is absent) is the winner (may be SEED if no iteration improved).
+-- Get its optimized prompt/body:
+SHOW RUN PARAMETERS IN EXPERIMENT {experiment_name} RUN ITER_N;  -- replace N with winning iteration
+```
+
+For detailed candidate history (diagnostic, optional):
+
+```sql
+-- List all iteration runs
+SHOW RUNS IN EXPERIMENT {experiment_name};
+-- Then query individual iteration run metrics:
+SHOW RUN METRICS IN EXPERIMENT {experiment_name} RUN ITER_1;
+```
+
+## Listing Recent Runs
+
+To see all recent async jobs:
+
+```sql
+-- List recent evaluation/optimization tasks (use {database} prefix)
+SELECT 
+    NAME AS RUN_ID,
+    STATE,
+    SCHEDULED_TIME,
+    COMPLETED_TIME,
+    TIMESTAMPDIFF('SECOND', SCHEDULED_TIME, COALESCE(COMPLETED_TIME, CURRENT_TIMESTAMP())) AS DURATION_SECONDS,
+    ERROR_MESSAGE
+FROM TABLE({database}.INFORMATION_SCHEMA.TASK_HISTORY(
+    RESULT_LIMIT => 20
+))
+WHERE NAME LIKE 'ai_func_eval_%' OR NAME LIKE 'ai_func_opt_%'
+ORDER BY SCHEDULED_TIME DESC;
+```
+
+## Longer History
+
+`INFORMATION_SCHEMA.TASK_HISTORY()` only retains ~7 days of history. For older runs, use Account Usage (requires ACCOUNTADMIN or appropriate privileges):
+
+```sql
+-- Query task history up to 365 days
+SELECT 
+    NAME AS RUN_ID,
+    STATE,
+    SCHEDULED_TIME,
+    COMPLETED_TIME,
+    ERROR_MESSAGE
+FROM SNOWFLAKE.ACCOUNT_USAGE.TASK_HISTORY
+WHERE NAME = '{run_id}'
+ORDER BY SCHEDULED_TIME DESC
+LIMIT 1;
+```
+
+## Troubleshooting
+
+### Task Not Found
+
+If `TASK_HISTORY()` returns no results:
+1. Verify the run_id is correct
+2. Check if the task was created in a different database/schema
+3. The task may have been cleaned up (tasks are suspended after execution)
+
+### Task Failed
+
+If state is `FAILED`:
+1. Check `ERROR_MESSAGE` for details
+2. Common issues:
+   - **Warehouse privilege error** ("USAGE privilege on the task's warehouse must be granted to owner role"): The async SPROC now detects this before creating the task and returns an actionable error. If you see this in task history from an older SPROC version, it means the current role does not have a direct USAGE grant on the warehouse. Snowflake Tasks run under the owner role and require an explicit grant — session-level warehouse access via role hierarchy is not sufficient. Fix: either grant access (`GRANT USAGE ON WAREHOUSE {wh} TO ROLE {role}`) or re-run with a warehouse the role has access to via the `WAREHOUSE_NAME` parameter. To find usable warehouses: `SHOW GRANTS TO ROLE {role}` and look for USAGE on WAREHOUSE.
+   - **Task timed out**: The async task exceeded its timeout limit (`USER_TASK_TIMEOUT_MS`). The default is 4 hours (240 minutes). Re-run with a larger `TIMEOUT_MINUTES` value, or reduce dataset size / optimization budget
+   - Warehouse not available
+   - Table/function not found
+   - Out of memory (try smaller sample_size)
+
+### Re-running a Failed Job
+
+To re-run a failed job, simply call the async SPROC again. It will create a new task with a new run_id.
+
+## Cancelling a Running Job
+
+To cancel an async job that is currently `EXECUTING`:
+
+```sql
+-- Suspend the task to stop execution
+ALTER TASK {database}.{schema}.{run_id} SUSPEND;
+
+-- Then drop the task to clean up
+DROP TASK IF EXISTS {database}.{schema}.{run_id};
+```
+
+Any partial results already written to the experiment or results table will remain available.
+
+## Cleanup
+
+Async tasks are automatically dropped after successful completion. No manual cleanup is needed for successful runs.
+
+For failed runs where automatic cleanup did not execute, you can clean up manually:
+
+```sql
+-- Drop a specific task
+DROP TASK IF EXISTS {database}.{schema}.{run_id};
+
+-- List any remaining eval/opt tasks
+SHOW TASKS LIKE 'ai_func_eval_%' IN SCHEMA {database}.{schema};
+SHOW TASKS LIKE 'ai_func_opt_%' IN SCHEMA {database}.{schema};
+```
+
+## Resume Workflow
+
+When a user returns in a new session to check on an async job, follow this workflow after determining the task state.
+
+### If run_id not provided
+
+Ask the user for it, or list recent runs using the "Listing Recent Runs" SQL above and let them pick.
+
+### ⚠️ MANDATORY: Ask for database and schema
+
+**Before running any status or results queries**, ask the user which database and schema the job was created in. Do NOT attempt broad account-level searches like `SHOW TASKS ... IN ACCOUNT` — these are slow and may fail due to permissions.
+
+Ask:
+```
+Which database and schema was this job created in?
+For example: MY_DATABASE.MY_SCHEMA
+```
+
+Use the provided database and schema for all subsequent `TASK_HISTORY()`, results table, and experiment queries. For example:
+```sql
+SELECT *
+FROM TABLE({database}.INFORMATION_SCHEMA.TASK_HISTORY(
+    TASK_NAME => '{run_id}',
+    RESULT_LIMIT => 1
+));
+```
+
+### Inferring experiment names from run_id
+
+The run_id encodes the function name and timestamp:
+- `ai_func_eval_FUNC_NAME_1709234567890` → function is `FUNC_NAME`, experiment name = the run_id itself (`ai_func_eval_FUNC_NAME_1709234567890`), single run inside is named `EVAL`
+- `ai_func_opt_FUNC_NAME_1709234567890` → function is `FUNC_NAME`, experiment name is `FUNC_NAME_OPT_EXP`
+
+To recover the function name: strip the `ai_func_eval_` or `ai_func_opt_` prefix and the trailing `_<13-digit-timestamp>` suffix. Use the database and schema provided by the user (from the mandatory step above) to fully qualify all references.
+
+### If state is SCHEDULED or EXECUTING
+
+Inform the user the job is still running. Show elapsed time from `SCHEDULED_TIME`. **Your turn MUST end here** — do NOT re-query, loop, or proceed to any next step.
+
+```
+Your job is still running ({elapsed} so far).
+
+You can come back anytime and ask me to "check status of {run_id}".
+```
+
+Use `ask_user_question` with a single option: **"I'll come back later"**. Do NOT offer a "Check again" button. Do NOT re-query `TASK_HISTORY`. End your turn immediately after presenting this message.
+
+### If state is FAILED or CANCELLED
+
+Show the `ERROR_MESSAGE` from task history (if available). Offer to re-run:
+
+```
+Your job failed with error: {error_message}
+
+Would you like to re-run it? Simply start a new evaluation or optimization workflow.
+```
+
+### If state is SUCCEEDED — Evaluation (run_id starts with `ai_func_eval_`)
+
+**Use Snowflake Experiment APIs only** — there are no queryable SQL tables. `SHOW RUN METRICS` and the SnowURL path are the correct access patterns.
+
+1. The experiment name equals the run_id. Pull the aggregate score and metadata from experiment metadata:
+   ```sql
+   SHOW RUN METRICS    IN EXPERIMENT {database}.{schema}.{run_id} RUN EVAL;
+   SHOW RUN PARAMETERS IN EXPERIMENT {database}.{schema}.{run_id} RUN EVAL;
+   ```
+
+   **Individual row results are only accessible via SnowURL** — there is no equivalent SQL table. Query the `eval_detail.json` artifact using a named TEMPORARY FILE FORMAT (requires `ENABLE_EXPERIMENT_SNOWURL_READ_PATH_RESOLUTION`):
+   ```sql
+   CREATE OR REPLACE TEMPORARY FILE FORMAT eval_detail_json_fmt
+     TYPE = JSON
+     STRIP_OUTER_ARRAY = TRUE;
+
+   SELECT AVG($1:metric_score::FLOAT) AS AVG_SCORE,
+          COUNT(*) AS ROWS_EVALUATED,
+          SUM(CASE WHEN $1:error_message::STRING <> '' THEN 1 ELSE 0 END) AS ERRORS
+   FROM 'snow://experiment/{run_id}/versions/EVAL/eval_detail.json'
+   (FILE_FORMAT => eval_detail_json_fmt);
+   ```
+
+2. Present results using the same format as `evaluate/SKILL.md` Step 5:
+   ```
+   Evaluation Results
+   ==================
+
+   Function: {function_name}
+   Metric: {metric_name}  (from SHOW RUN PARAMETERS)
+   Test Size: {n} examples
+   Eval ID: {run_id}
+   Experiment: {run_id}
+
+   Average Score: {score:.1%}
+   ```
+
+3. Show the helpful queries (failures, score distribution, etc.) from `evaluate/SKILL.md` Step 5.
+
+4. Present the `evaluate/SKILL.md` Step 6 next-steps menu:
+   ```
+   What would you like to do?
+   1. Optimize (recommended) - Improve the function through function body optimization and model selection
+   2. Done - Exit for now
+   ```
+
+   If optimize → Load `optimize/SKILL.md` with context from the results (function name, test table).
+
+### If state is SUCCEEDED — Optimization (run_id starts with `ai_func_opt_`)
+
+**Score domain:** When presenting results, use `test_score` when ALL frontier candidates have it (`test_score != NULL`); otherwise use `valset_score`. Never present `valset_score` when `test_score` is available — the held-out test score takes precedence. Derive this from the metric values returned by `SHOW RUN METRICS`, not from memory of whether a test table was provided.
+
+**⚠️ Environment-aware routing:** The optimize workflow has separate result flows for Snowsight and CLI. You MUST load the correct file before presenting results.
+
+**If `environment == snowsight`:** Load `references/snowsight/optimize.md` and resume from its **Step 6** (Present Results). That file contains the complete Snowsight flow — result collection via `SHOW RUN METRICS`/`SHOW RUN PARAMETERS`, Pareto filtering in notebook cells, chart generation, user selection, and deployment. Follow it end-to-end through Step 8.
+
+**If `environment == cli`:** Load `optimize/SKILL.md` and resume from its **Step 6** (Present Results). Follow the CLI result collection, Pareto frontier presentation, and deployment flow through Step 8.
+
+In both cases, the experiment name is `{FUNCTION_NAME}_OPT_EXP` (inferred from the run_id — see "Inferring experiment names from run_id" above).

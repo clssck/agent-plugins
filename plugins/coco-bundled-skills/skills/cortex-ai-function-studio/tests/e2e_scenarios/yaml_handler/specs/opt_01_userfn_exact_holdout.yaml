@@ -1,0 +1,23 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+#
+# Opt SPEC: user function, body-mode GEPA, exact_match, WITH holdout_data (so a
+# final test_score is stamped on the frontier runs), ultra-light budget.
+function:
+  function_name: __FUNCTION__
+metrics:
+  - name: exact_match
+dataset:
+  name: __TABLE__
+  column_mapping:
+    argument_mapping:
+      TEXT: TEXT
+    ground_truth: EXPECTED_LABEL
+  holdout_data: __TABLE__
+optimization:
+  models:
+    - llama3.1-8b
+  reflection_model: claude-sonnet-4-5
+  budget: ultra-light
+  optimize_mode: body

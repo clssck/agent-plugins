@@ -1,0 +1,9 @@
+Snowflake Cortex Code (CoCo) Bundled Skills Permission
+
+Copyright Snowflake Inc. All rights reserved.
+
+These bundled skills are redistributed in this repository with written permission from David Finch, CoCo Lead Developer:
+
+"You are free to use any of them not just the dbt one. The only thing is make sure you add a mention of coco+any used skill in your repository."
+
+This repository identifies CoCo as the source and lists every included skill in ATTRIBUTION and the generated skill catalog. No rights beyond the written permission above are asserted.

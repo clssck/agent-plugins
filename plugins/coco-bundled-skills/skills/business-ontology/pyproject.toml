@@ -1,0 +1,13 @@
+[project]
+name = "business-ontology"
+version = "0.1.0"
+description = "Business Ontology skill scripts: source registry and Semantic View estate scan/drift reporting."
+requires-python = ">=3.10"
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0.0",
+]

@@ -1,0 +1,100 @@
+# Machine-readable procedure definitions for manage-data-offerings sub-skill
+# This file is the source of truth for:
+#   1. Generating intent YAML files (native_app)
+#   2. Validating SKILL.md documentation
+#
+# Usage:
+#   python ../../scripts/skill_intent_converter.py skill-to-intent --skill-dir . --output manage_data_offerings.yaml
+#   python ../../scripts/skill_intent_converter.py validate --skill-dir .
+
+metadata:
+  intent_id: link_unlink_data_offering
+  intent_name: Link and Unlink Data Offerings
+  intent_description: User wants to link or unlink registered data offerings in a collaboration to control which analysis runners can access the data.
+  intent_category: collaboration
+  enabled_for_agents:
+    - dcr_agent_next
+  release_status: staging
+
+triggers:
+  - "link data offering"
+  - "link offering"
+  - "unlink data offering"
+  - "unlink offering"
+  - "share data with runner"
+  - "revoke data access"
+  - "make offering available"
+  - "remove offering access"
+  - "link local data offering"
+  - "unlink local data offering"
+  - "add my data locally"
+  - "use my own data"
+
+procedures:
+  - name: "{DB}.COLLABORATION.VIEW_COLLABORATIONS"
+    description: "List all collaborations in the account"
+    params: []
+    output_format: table
+    when: "User needs to select a collaboration for linking/unlinking"
+    display: "collaboration name, ID, owner, and status"
+
+  - name: "{DB}.COLLABORATION.VIEW_DATA_OFFERINGS"
+    description: "List data offerings for a collaboration including current share status"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "User needs to see which offerings are linked and to whom"
+    display: "offering names, IDs, SHARED_BY (who linked it), SHARE_WITH status"
+
+  - name: "{DB}.REGISTRY.VIEW_REGISTERED_DATA_OFFERINGS"
+    description: "List all data offerings registered in the account"
+    params: []
+    output_format: table
+    when: "User needs to find the data offering ID to link"
+    display: "all registered data offerings with IDs"
+
+  - name: "{DB}.COLLABORATION.LINK_DATA_OFFERING"
+    description: "Make a registered data offering available to specified analysis runners"
+    params: [COLLABORATION_NAME, DATA_OFFERING_ID, SHARE_WITH]
+    output_format: json
+    when: "User confirms they want to link a data offering to analysis runners"
+    display: "link confirmation"
+    stopping_point: true
+    stopping_reason: "Confirm collaboration, data offering, and target runners before linking"
+    notes: "SHARE_WITH is an array of collaborator aliases. Additive (appends). Atomic (all-or-nothing). Asynchronous."
+
+  - name: "{DB}.COLLABORATION.UNLINK_DATA_OFFERING"
+    description: "Revoke access to a data offering from specified analysis runners"
+    params: [COLLABORATION_NAME, DATA_OFFERING_ID, SHARE_WITH]
+    output_format: json
+    when: "User confirms they want to unlink a data offering from analysis runners"
+    display: "unlink confirmation"
+    stopping_point: true
+    stopping_reason: "Confirm collaboration, data offering, and target runners before unlinking"
+    notes: "SHARE_WITH is an array of collaborator aliases to remove. All must currently have access. Asynchronous."
+
+  - name: "{DB}.COLLABORATION.VIEW_UPDATE_REQUESTS"
+    description: "Check status of async link/unlink operations in a collaboration"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "After LINK or UNLINK to track async operation status (PENDING, COMPLETED, FAILED, etc.)"
+    display: "request ID, type, status, approval log, details, spec, updated timestamp"
+
+  - name: "{DB}.COLLABORATION.LINK_LOCAL_DATA_OFFERING"
+    description: "Link a registered data offering locally without sharing it with other collaborators"
+    params: [COLLABORATION_NAME, DATA_OFFERING_ID]
+    output_format: json
+    when: "User is on Standard edition or explicitly wants to link data locally without sharing"
+    display: "link confirmation"
+    stopping_point: true
+    stopping_reason: "Confirm collaboration and data offering before linking locally"
+    notes: "Only 2 params (no share_with array). Not visible to other collaborators. Template policies NOT enforced. Propagates my_table array."
+
+  - name: "{DB}.COLLABORATION.UNLINK_LOCAL_DATA_OFFERING"
+    description: "Unlink a locally linked data offering from a collaboration"
+    params: [COLLABORATION_NAME, DATA_OFFERING_ID]
+    output_format: json
+    when: "User wants to remove a locally linked data offering from a collaboration"
+    display: "unlink confirmation"
+    stopping_point: true
+    stopping_reason: "Confirm collaboration and data offering before unlinking locally"
+    notes: "Only 2 params (no remove_for array). Removes the local offering so it can no longer be used in analyses."

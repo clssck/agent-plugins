@@ -321,6 +321,7 @@ async function recordPluginSkills(
   manifest = null,
   explicitSkills,
   recordMetadata = {},
+  recursive = true,
 ) {
   const declared = explicitSkills === undefined
     ? declaredSkillPaths(manifest)
@@ -340,8 +341,11 @@ async function recordPluginSkills(
   if (roots.size === 0) roots.add(posix.join(subdirectory, "skills"));
 
   const seen = new Set();
+  const rootPaths = [...roots];
   for (const entry of context.files.filter(file => /(^|\/)SKILL\.md$/.test(file.path))) {
-    if (![...roots].some(directory => pathIsInside(entry.path, directory)) || seen.has(entry.path)) continue;
+    if (!rootPaths.some(directory => recursive
+      ? pathIsInside(entry.path, directory)
+      : posix.dirname(posix.dirname(entry.path)) === directory) || seen.has(entry.path)) continue;
     seen.add(entry.path);
     const fallback = posix.basename(posix.dirname(entry.path));
     const frontmatter = parseSkillFrontmatter((await readBlob(context, entry.sha)).toString("utf8"), fallback);
@@ -386,7 +390,7 @@ async function localRepositoryPlugin(context, value) {
     source: `./${directory}`,
     ...pluginMetadata({ manifest, context }),
   };
-  await recordPluginSkills(plugin, context, directory, manifest, undefined, { linkToLastCommit: true });
+  await recordPluginSkills(plugin, context, directory, manifest, undefined, { linkToLastCommit: true }, false);
   return plugin;
 }
 
@@ -545,7 +549,7 @@ function renderReadme(sources, rows) {
     "",
     "`omp plugin marketplace remove` drops the registry entry and catalog cache; it does not uninstall plugins, so repoint them first or they keep resolving from the stale cache.",
     "",
-    "Two deliberate differences from the old repository: locally authored plugins target the Agent Plugins format rather than `.claude-plugin/plugin.json`, and the 68 vendored Snowflake Cortex Code directories were not carried over. Those were proprietary, absent from `localPlugins`, and contributed no catalog entries.",
+    "Two deliberate differences from the old repository: locally authored plugins target the Agent Plugins format rather than `.claude-plugin/plugin.json`, and the Snowflake Cortex Code (CoCo) bundled skills are now packaged as `coco-bundled-skills` under written redistribution permission; CoCo and every included skill are named in the repository catalog and plugin attribution.",
     "",
   );
   return lines.join("\n");

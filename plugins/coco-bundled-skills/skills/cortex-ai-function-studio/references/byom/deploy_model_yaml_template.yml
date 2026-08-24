@@ -1,0 +1,39 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+
+# Template for SQL-driven deployment of an already-imported Model Registry model.
+# Read this file, replace every <PLACEHOLDER>, upload it uncompressed to a stage, then call:
+#   CALL SYSTEM$DEPLOY_MODEL('@<STAGE>/<PATH>/deploy_model.yml');
+# SYSTEM$DEPLOY_MODEL takes exactly one argument: the staged YAML manifest path.
+
+models:
+- name: "<MODEL_NAME>"
+  version: "<VERSION_NAME>"
+image_build:
+  compute_pool: "<IMAGE_BUILD_COMPUTE_POOL>"
+  image_repo: "<DATABASE>.<SCHEMA>.<IMAGE_REPOSITORY>"
+  force_rebuild: false
+  # Optional only when verified/needed for image build egress.
+  # external_access_integrations:
+  # - "<EXTERNAL_ACCESS_INTEGRATION>"
+service:
+  name: "<SERVICE_NAME>"
+  compute_pool: "<GPU_COMPUTE_POOL>"
+  ingress_enabled: true
+  min_instances: <MIN_INSTANCES>
+  max_instances: <MAX_INSTANCES>
+  gpu: "<GPU_COUNT>"
+  num_workers: <NUM_WORKERS>
+  max_batch_rows: <MAX_BATCH_ROWS>
+  # Optional resource requests when verified for the model and pool.
+  # cpu: "<CPU_REQUEST>"
+  # memory: "<MEMORY_REQUEST>"
+  inference_engine_spec:
+    inference_engine_name: "vllm"
+    inference_engine_args:
+    - "--model=/models/<MODEL_NAME>"
+    - "--max-model-len=<MAX_MODEL_LEN>"
+    # Optional advanced vLLM args when verified for the model/pool.
+    # - "--tensor-parallel-size=<TENSOR_PARALLEL_SIZE>"
+    # - "--gpu-memory-utilization=<GPU_MEMORY_UTILIZATION>"

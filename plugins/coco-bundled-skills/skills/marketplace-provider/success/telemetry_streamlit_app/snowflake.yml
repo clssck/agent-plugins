@@ -1,0 +1,24 @@
+# snow CLI deploy manifest for `snow streamlit deploy` (Snowflake CLI >= 3.14.0).
+# Container-runtime shape (the default path). Fill in the <...> placeholders with
+# values from the provider's account:
+#   compute_pool: SHOW COMPUTE POOLS (or the DEFAULT_STREAMLIT_COMPUTE_POOL param)
+#   external_access_integrations: a PyPI EAI (SHOW EXTERNAL ACCESS INTEGRATIONS)
+# The EAI + pyproject.toml let container runtime install matplotlib from PyPI.
+# query_warehouse still runs the app's SQL even on container runtime.
+definition_version: 2
+entities:
+  provider_telemetry_dashboard:
+    type: streamlit
+    identifier:
+      name: PROVIDER_TELEMETRY_DASHBOARD
+      database: <YOUR_DATABASE>
+      schema: <YOUR_SCHEMA>
+    query_warehouse: <YOUR_WAREHOUSE>
+    runtime_name: SYSTEM$ST_CONTAINER_RUNTIME_PY3_11
+    compute_pool: <YOUR_COMPUTE_POOL>
+    external_access_integrations:
+      - <YOUR_PYPI_EAI>
+    main_file: streamlit_app.py
+    artifacts:
+      - streamlit_app.py
+      - pyproject.toml

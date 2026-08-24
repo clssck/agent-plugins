@@ -1,0 +1,45 @@
+# packing.runtime-a.yaml — first of two runtimes (bin-pack-then-shard pattern).
+# Pair with packing.runtime-b.yaml. The skill is agent-driven (no CLI): in a
+# CoCo session, point the agent at one config at a time, e.g.
+#   "pack the connectors in packing.runtime-a.yaml", then
+#   "pack the connectors in packing.runtime-b.yaml".
+# The agent processes one runtime per invocation.
+
+runtime: TODO-runtime-a-name
+connector_type: postgresql
+
+shared:
+  snowflake:
+    account: TODO-snowflake-account
+    auth: SNOWFLAKE_MANAGED
+    role: OPENFLOW_ROLE
+    warehouse: CONNECTOR_WAREHOUSE
+  source:
+    user: openflow_repl
+    publication: openflow_pub
+    password: <pg-rds-repl-password>
+    jdbc_driver_url: https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.7/postgresql-42.7.7.jar
+  ingestion:
+    ingestion_type: full
+    concurrent_snapshot_queries: 2
+    merge_task_schedule: "* * * * * ?"
+
+connectors:
+  - name: a1
+    overrides:
+      jdbc_url: jdbc:postgresql://TODO-host-a:5432/tenant_001?sslmode=require
+      slot: pg_cdc_a1_slot
+      destination_database: PG_A1_DEMO
+    tables: [public.users, public.orders]
+  - name: a2
+    overrides:
+      jdbc_url: jdbc:postgresql://TODO-host-a:5432/tenant_002?sslmode=require
+      slot: pg_cdc_a2_slot
+      destination_database: PG_A2_DEMO
+    tables: [public.users, public.orders]
+  - name: a3
+    overrides:
+      jdbc_url: jdbc:postgresql://TODO-host-a:5432/tenant_003?sslmode=require
+      slot: pg_cdc_a3_slot
+      destination_database: PG_A3_DEMO
+    tables: [public.users, public.orders]

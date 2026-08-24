@@ -1,0 +1,35 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+
+name: integer_sign
+description: Single NUMBER input — classify sign (positive/negative).
+seed_model: llama3.1-8b
+inputs:
+  - {name: N, sql_type: NUMBER}
+output:
+  name: label
+  json_type: string
+  description: One of "positive" or "negative".
+function_intention: Classify whether an integer is positive or negative.
+system_prompt: Classify the number as positive if it is greater than zero, otherwise negative. Reply with only the lowercase word.
+user_prompt_template: "{N}"
+metric_name: exact_match
+optimize_models: ["llama3.1-8b"]
+reflection_model: claude-sonnet-4-5
+auto_budget: demo
+label_column: EXPECTED_LABEL
+input_columns: ["N"]
+rows:
+  - {N: 42, EXPECTED_LABEL: positive}
+  - {N: 7, EXPECTED_LABEL: positive}
+  - {N: 128, EXPECTED_LABEL: positive}
+  - {N: 3, EXPECTED_LABEL: positive}
+  - {N: 999, EXPECTED_LABEL: positive}
+  - {N: 15, EXPECTED_LABEL: positive}
+  - {N: -42, EXPECTED_LABEL: negative}
+  - {N: -7, EXPECTED_LABEL: negative}
+  - {N: -128, EXPECTED_LABEL: negative}
+  - {N: -3, EXPECTED_LABEL: negative}
+  - {N: -999, EXPECTED_LABEL: negative}
+  - {N: -15, EXPECTED_LABEL: negative}

@@ -1,0 +1,114 @@
+# Schema Trust Patterns Configuration
+# =====================================
+# This file defines patterns used to classify schemas into trust tiers.
+# The lineage skill reads this file and dynamically builds
+# SQL CASE statements for trust scoring.
+#
+# HOW TO EXTEND:
+# 1. Add new patterns to the appropriate trust tier section
+# 2. Patterns use SQL LIKE syntax (% = wildcard)
+# 3. Matching is case-insensitive (automatically uppercased)
+# 4. First matching pattern wins (order matters within tiers)
+#
+# PATTERN EXAMPLES:
+#   "%ANALYTICS%"  - Matches: ANALYTICS, PROD_ANALYTICS, ANALYTICS_V2
+#   "GOLD_%"       - Matches: GOLD_SALES, GOLD_CUSTOMERS (prefix only)
+#   "%_PROD"       - Matches: DATA_PROD, SALES_PROD (suffix only)
+#   "MART"         - Matches: MART only (exact match)
+
+trust_tiers:
+  # ═══════════════════════════════════════════════════════════════════════
+  # PRODUCTION - Highest trust, certified for business use
+  # Score: 100
+  # ═══════════════════════════════════════════════════════════════════════
+  PRODUCTION:
+    score: 100
+    description: "Production-certified data, safe for reporting and analytics"
+    patterns:
+      - "%ANALYTICS%"
+      - "%CURATED%"
+      - "%MART%"
+      - "%REPORT%"
+      - "%GOLD%"
+      - "%PROD%"
+      - "%CERTIFIED%"
+      - "%PUBLISH%"
+      - "%FINAL%"
+      # ─── Add new production patterns above this line ───
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # STAGING - Medium trust, transformation layer
+  # Score: 60
+  # ═══════════════════════════════════════════════════════════════════════
+  STAGING:
+    score: 60
+    description: "Intermediate transformation layer, use with caution"
+    patterns:
+      - "%STAG%"
+      - "%TRANSFORM%"
+      - "%SILVER%"
+      - "%INTERMEDIATE%"
+      - "%CLEAN%"
+      - "%PROCESS%"
+      # ─── Add new staging patterns above this line ───
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # RAW - Lower trust, source data layer
+  # Score: 40
+  # ═══════════════════════════════════════════════════════════════════════
+  RAW:
+    score: 40
+    description: "Raw source data, requires transformation before use"
+    patterns:
+      - "%RAW%"
+      - "%INGEST%"
+      - "%BRONZE%"
+      - "%LAND%"
+      - "%SOURCE%"
+      - "%IMPORT%"
+      - "%EXTRACT%"
+      - "%EXT_%"
+      - "%_EXT"
+      # ─── Add new raw patterns above this line ───
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # UNTRUSTED - Lowest trust, development/test data
+  # Score: 20
+  # ═══════════════════════════════════════════════════════════════════════
+  UNTRUSTED:
+    score: 20
+    description: "Development/test data, not for production use"
+    patterns:
+      - "%SANDBOX%"
+      - "%DEV%"
+      - "%TEST%"
+      - "%TEMP%"
+      - "%TMP%"
+      - "%SCRATCH%"
+      - "%EXPERIMENT%"
+      - "%DRAFT%"
+      - "%WIP%"
+      - "%PROTOTYPE%"
+      # ─── Add new untrusted patterns above this line ───
+
+# ═══════════════════════════════════════════════════════════════════════════
+# DEFAULT SETTINGS
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Score assigned when no patterns match
+default:
+  score: 50
+  tier: "UNKNOWN"
+  description: "Schema does not match known patterns"
+
+# Risk scoring patterns (for impact analysis)
+# These schemas are flagged as CRITICAL risk when modified
+risk_critical_patterns:
+  - "%FINANCE%"
+  - "%REVENUE%"
+  - "%REPORT%"
+  - "%ANALYTICS%"
+  - "%BILLING%"
+  - "%COMPLIANCE%"
+  - "%AUDIT%"
+  # ─── Add new critical risk patterns above this line ───

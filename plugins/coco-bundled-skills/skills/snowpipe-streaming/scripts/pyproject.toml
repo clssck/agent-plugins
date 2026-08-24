@@ -1,0 +1,16 @@
+[project]
+name = "snowpipe-streaming-skill"
+version = "0.1.0"
+description = "Scripts for Snowpipe Streaming skill - health checks and demos"
+requires-python = ">=3.9"
+dependencies = [
+    "snowflake-connector-python>=3.6.0",
+    "snowpipe-streaming>=1.1.0",
+]
+
+[project.scripts]
+ss-health-check = "health_check:main"
+ss-demo = "stream_demo:main"
+
+[tool.uv]
+package = true

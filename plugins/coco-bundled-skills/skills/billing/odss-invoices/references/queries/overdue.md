@@ -1,0 +1,62 @@
+# ODSS_INVOICE_DOCUMENTS — Overdue & Outstanding Queries
+
+Source: `SNOWFLAKE.BILLING.ODSS_INVOICE_DOCUMENTS`
+
+**ACCOUNTADMIN role required.**
+
+Use these queries when the user asks about unpaid, overdue, or outstanding invoices.
+
+---
+
+## Queries
+
+### All unpaid invoices
+
+```sql
+USE ROLE ACCOUNTADMIN;
+
+SELECT
+    INVOICE_NUMBER,
+    INVOICE_DATE,
+    DUE_DATE,
+    INVOICE_TYPE,
+    TOTAL_AMOUNT,
+    PAYMENT_AMOUNT,
+    BALANCE,
+    PAYMENT_STATUS
+FROM SNOWFLAKE.BILLING.ODSS_INVOICE_DOCUMENTS
+WHERE BALANCE > 0
+ORDER BY DUE_DATE ASC;
+```
+
+### Overdue invoices (past due date and still unpaid)
+
+```sql
+USE ROLE ACCOUNTADMIN;
+
+SELECT
+    INVOICE_NUMBER,
+    INVOICE_DATE,
+    DUE_DATE,
+    DATEDIFF('day', DUE_DATE, CURRENT_DATE) AS DAYS_OVERDUE,
+    TOTAL_AMOUNT,
+    PAYMENT_AMOUNT,
+    BALANCE,
+    PAYMENT_STATUS
+FROM SNOWFLAKE.BILLING.ODSS_INVOICE_DOCUMENTS
+WHERE BALANCE > 0
+  AND DUE_DATE < CURRENT_DATE
+ORDER BY DUE_DATE ASC;
+```
+
+### Total outstanding balance
+
+```sql
+USE ROLE ACCOUNTADMIN;
+
+SELECT
+    SUM(BALANCE)        AS TOTAL_OUTSTANDING_USD,
+    COUNT(*)            AS UNPAID_INVOICE_COUNT
+FROM SNOWFLAKE.BILLING.ODSS_INVOICE_DOCUMENTS
+WHERE BALANCE > 0;
+```

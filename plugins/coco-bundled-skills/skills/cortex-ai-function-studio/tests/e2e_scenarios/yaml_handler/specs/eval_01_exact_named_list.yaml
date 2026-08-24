@@ -1,0 +1,18 @@
+# Copyright (c) 2026 Snowflake Inc. All rights reserved.
+# Licensed under the Snowflake Skills License.
+# Refer to the LICENSE file in the root of this repository for full terms.
+#
+# Eval SPEC: user function, exact_match, named argument_mapping, metrics as a
+# list, single run (num_eval_runs: 1 -> one run named EVAL).
+function:
+  function_name: __FUNCTION__
+metrics:
+  - name: exact_match
+dataset:
+  name: __TABLE__
+  column_mapping:
+    argument_mapping:
+      TEXT: TEXT
+    ground_truth: EXPECTED_LABEL
+evaluation:
+  num_eval_runs: 1

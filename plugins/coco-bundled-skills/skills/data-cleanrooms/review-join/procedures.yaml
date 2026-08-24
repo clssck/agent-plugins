@@ -1,0 +1,67 @@
+# Machine-readable procedure definitions for intent conversion
+# This file is the source of truth for:
+#   1. Generating intent YAML files (native_app)
+#   2. Validating SKILL.md documentation
+#
+# Usage:
+#   python ../scripts/skill_intent_converter.py skill-to-intent --skill-dir . --output review_join_collaboration.yaml
+#   python ../scripts/skill_intent_converter.py validate --skill-dir .
+
+metadata:
+  intent_id: review_join_collaboration
+  intent_name: Review and Join Collaboration
+  intent_description: User wants to review an invitation to a collaboration, join a collaboration, or check the status of their collaboration invitation/join process.
+  intent_category: collaboration
+  enabled_for_agents:
+    - dcr_agent
+    - dcr_agent_next
+  release_status: released
+
+triggers:
+  - "join collaboration"
+  - "join clean room"
+  - "accept invitation"
+  - "review collaboration"
+  - "review invitation"
+  - "review and join"
+
+procedures:
+  - name: "{DB}.COLLABORATION.VIEW_COLLABORATIONS"
+    description: "List all collaborations to find pending invitations"
+    params: []
+    output_format: table
+    when: "First step to see available collaborations and their status"
+    display: "collaboration name, source name, owner account, status"
+
+  # For cortex-code skill: use standard SQL
+  # SELECT CURRENT_ORGANIZATION_NAME(), CURRENT_ACCOUNT_NAME()
+  #
+  # For native app agent intent: use the procedure (agents can't call standard functions)
+  - name: "{DB}.AGENTS.DCR$GET_CURRENT_ACCOUNT_IDENTIFIER"
+    description: "Get current account identifier to determine ownership"
+    params: []
+    output_format: string
+    when: "To determine if current account is owner or non-owner"
+    display: "account identifier in ORGNAME.ACCOUNT_NAME format"
+    skill_alternative: "SELECT CURRENT_ORGANIZATION_NAME(), CURRENT_ACCOUNT_NAME()"
+
+  - name: "{DB}.COLLABORATION.GET_STATUS"
+    description: "Check detailed status of a collaboration"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "To check current join status (INVITED, JOINING, JOINED, etc.)"
+    display: "detailed status information"
+
+  - name: "{DB}.COLLABORATION.REVIEW"
+    description: "Review collaboration invitation before joining (non-owners only)"
+    params: [SOURCE_NAME, OWNER_ACCOUNT, COLLABORATION_NAME]
+    output_format: table
+    when: "Non-owner wants to review collaboration spec before joining"
+    display: "full collaboration YAML specification"
+
+  - name: "{DB}.COLLABORATION.JOIN"
+    description: "Join a collaboration"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "User confirms they want to join the collaboration"
+    display: "join confirmation and status"

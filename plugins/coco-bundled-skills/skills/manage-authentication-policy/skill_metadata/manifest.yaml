@@ -1,0 +1,31 @@
+# Seeded by tools/seed_skill_metadata.py — owner can edit any field.
+# Regenerate via `python -m scripts.interview --skill-path <path>`
+# from auditor/evaluator/. Schema: skill_metadata/manifest.yaml.template
+schema_version: 2
+owner: alan.hu@snowflake.com
+backup_owners: []
+feedback_contact: alan.hu@snowflake.com
+prod_status: 'production'
+severity_tier: 'high'
+users_per_week: 0
+cost_guards:
+  cost_ceiling_usd: null
+  max_tokens_per_call: null
+  max_calls_per_invocation: null
+  p95_latency_ms_target: null
+data_classifications: []
+design_doc: skill_metadata/design.md
+readme: null
+tests_dir: null
+claims_l1: false
+claims_l2: false
+claims_adjudication: false
+claims_subagents: false
+l2_fixture: ''
+l2_fixture_synthetic:
+  prompts: []
+  allowed_tools: []
+  timeout_seconds: 180
+  expected_tool_calls: []
+interview_completed_at: ''
+interview_evaluator_version: ''

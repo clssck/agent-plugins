@@ -1,0 +1,86 @@
+# Machine-readable procedure definitions for intent conversion
+# This file is the source of truth for:
+#   1. Generating intent YAML files (native_app)
+#   2. Validating SKILL.md documentation
+#
+# Usage:
+#   python ../scripts/skill_intent_converter.py skill-to-intent --skill-dir . --output run_analysis.yaml
+#   python ../scripts/skill_intent_converter.py validate --skill-dir .
+
+metadata:
+  intent_id: run_analysis
+  intent_name: Run Analysis Templates
+  intent_description: Execute analysis templates on DCR collaboration data - audience overlap, activations, or custom templates.
+  intent_category: analysis
+  enabled_for_agents:
+    - dcr_agent
+    - dcr_agent_next
+  release_status: released
+
+triggers:
+  - "run analysis"
+  - "run template"
+  - "execute template"
+  - "audience overlap"
+  - "measure overlap"
+  - "compare audiences"
+  - "run activation"
+  - "activate"
+  - "activation"
+  - "run audience overlap"
+
+procedures:
+  # Phase 1: Collaboration Setup
+  - name: "SELECT CURRENT_ORGANIZATION_NAME(), CURRENT_ACCOUNT_NAME()"
+    description: "Get current account identifier for determining LOCAL vs EXTERNAL data mapping"
+    params: []
+    output_format: table
+    when: "First step - identify current account to determine my_tables vs source_tables"
+    display: "current organization and account name (combine as ORG.ACCOUNT)"
+    note: "Standard SQL - no special DCR privileges required"
+
+  # Browse procedures (reused from browse skill)
+  - name: "{DB}.COLLABORATION.VIEW_COLLABORATIONS"
+    description: "List all collaborations in the account"
+    params: []
+    output_format: table
+    when: "User needs to select a collaboration"
+    display: "collaboration name, ID, owner, and status"
+
+  - name: "{DB}.COLLABORATION.GET_STATUS"
+    description: "Check the status of a specific collaboration"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "Validate collaboration is JOINED with 2+ parties before running analysis"
+    display: "detailed status information"
+
+  - name: "{DB}.COLLABORATION.VIEW_DATA_OFFERINGS"
+    description: "List data offerings for a specific collaboration"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "User needs to select tables for analysis"
+    display: "table names, TEMPLATE_VIEW_NAME, SHARED_WITH status"
+
+  - name: "{DB}.COLLABORATION.VIEW_TEMPLATES"
+    description: "List templates available for a specific collaboration"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "User needs to select a template to run"
+    display: "template names, IDs, and descriptions"
+
+  # Registry (for custom template discovery)
+  - name: "{DB}.REGISTRY.VIEW_REGISTERED_TEMPLATES"
+    description: "List all templates registered in the account with their specifications"
+    params: []
+    output_format: table
+    when: "Need to discover parameters for custom templates"
+    display: "template specs including parameters"
+
+  # Core execution procedure
+  - name: "{DB}.COLLABORATION.RUN"
+    description: "Execute an analysis template on collaboration data"
+    params: [COLLABORATION_NAME, ANALYSIS_SPEC]
+    output_format: table
+    when: "User confirms and runs the analysis"
+    display: "analysis results (varies by template type)"
+    note: "ANALYSIS_SPEC is a YAML string with api_version, spec_type, template, and template_configuration"

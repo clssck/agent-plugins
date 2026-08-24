@@ -1,0 +1,22 @@
+# Warehouse-runtime dependency file (FALLBACK path only).
+# Used only when deploying on warehouse runtime (Option C in SKILL.md). Container
+# runtime ignores this file and uses pyproject.toml instead.
+#
+# Packages resolve from the Snowflake Anaconda channel (NOT PyPI). Every package
+# the app imports is declared so nothing is assumed pre-installed. matplotlib is
+# REQUIRED: the Consumption heatmap uses pandas Styler.background_gradient(),
+# which imports matplotlib at runtime.
+#
+# Names-only (no version pins) on purpose: the Anaconda channel serves different
+# package versions per Python runtime, so a hardcoded "name=version" pin can fail
+# with "package not found" on some runtimes. Names-only lets Snowflake resolve a
+# compatible version for whatever Python the warehouse app uses. If you need
+# reproducible pins, query INFORMATION_SCHEMA.PACKAGES for versions confirmed
+# present on the app's runtime_version, then pin those (conda uses "name=version").
+name: sf_env
+channels:
+  - snowflake
+dependencies:
+  - streamlit
+  - pandas
+  - matplotlib

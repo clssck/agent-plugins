@@ -1,0 +1,106 @@
+# Machine-readable procedure definitions for intent conversion
+# This file is the source of truth for:
+#   1. Generating intent YAML files (native_app)
+#   2. Validating SKILL.md documentation
+#
+# Usage:
+#   python ../scripts/skill_intent_converter.py skill-to-intent --skill-dir . --output browse_environment.yaml
+#   python ../scripts/skill_intent_converter.py validate --skill-dir .
+
+metadata:
+  intent_id: browse_environment
+  intent_name: Browse Clean Room Environment
+  intent_description: User wants to explore available collaborations, data offerings, or templates.
+  intent_category: collaboration
+  enabled_for_agents:
+    - dcr_agent
+    - dcr_agent_next
+  release_status: released
+
+triggers:
+  - "view collaborations"
+  - "show collaborations"
+  - "list collaborations"
+  - "see my clean rooms"
+  - "what collaborations"
+  - "show clean rooms"
+  - "check status"
+  - "collaboration status"
+  - "get status"
+  - "view data offerings"
+  - "show data offerings"
+  - "view templates"
+  - "view registered templates"
+  - "show registered data offerings"
+  - "list registered templates"
+
+procedures:
+  - name: "{DB}.COLLABORATION.VIEW_COLLABORATIONS"
+    description: "List all collaborations in the account"
+    params: []
+    output_format: table
+    when: "User asks to see available collaborations"
+    display: "collaboration name, ID, owner, and status"
+
+  - name: "{DB}.COLLABORATION.GET_STATUS"
+    description: "Check the status of a specific collaboration"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "User asks to check the status of a specific collaboration"
+    display: "detailed status information for the collaboration"
+
+  - name: "{DB}.COLLABORATION.VIEW_DATA_OFFERINGS"
+    description: "List data offerings for a specific collaboration"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "User asks to see data offerings for a specific collaboration"
+    display: "table names, column information, SHARED_WITH status"
+
+  - name: "{DB}.COLLABORATION.VIEW_TEMPLATES"
+    description: "List templates for a specific collaboration"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "User asks to see templates for a specific collaboration"
+    display: "template names, IDs, and descriptions"
+
+  - name: "{DB}.REGISTRY.VIEW_REGISTERED_TEMPLATES"
+    description: "List all templates registered in the account"
+    params: []
+    output_format: table
+    when: "User asks to see all registered templates in the account"
+    display: "all templates registered in the account"
+
+  - name: "{DB}.REGISTRY.VIEW_REGISTERED_DATA_OFFERINGS"
+    description: "List all data offerings registered in the account"
+    params: []
+    output_format: table
+    when: "User asks to see all registered data offerings in the account"
+    display: "all data offerings registered in the account"
+
+  - name: "{DB}.REGISTRY.VIEW_REGISTERED_CODE_SPECS"
+    description: "List all code specs registered in the account"
+    params: []
+    output_format: table
+    when: "User asks to see all registered code specs in the account"
+    display: "all code specs registered in the account"
+
+  - name: "{DB}.REGISTRY.VIEW_REGISTRIES"
+    description: "List all custom registries in the account"
+    params: []
+    output_format: table
+    when: "User asks to see all custom registries in the account"
+    display: "all custom registries"
+
+  - name: "{DB}.COLLABORATION.VIEW_CODE_SPECS"
+    description: "List code specs attached to a specific collaboration"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "User asks to see code specs for a specific collaboration"
+    display: "code specs for the collaboration"
+
+  - name: "{DB}.COLLABORATION.VIEW_ACTIVITY_HISTORY"
+    description: "View activity and audit history for a specific collaboration"
+    params: [COLLABORATION_NAME]
+    output_format: table
+    when: "User asks to see activity or audit history for a specific collaboration"
+    display: "activity history for the collaboration"
