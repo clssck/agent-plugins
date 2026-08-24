@@ -9,7 +9,9 @@
   "repository": "clssck/agent-plugins",
   "localPlugins": [
     "plugins/bro",
-    "plugins/coco-bundled-skills"
+    "plugins/coco-airflow",
+    "plugins/coco-bundled-skills",
+    "plugins/coco-databricks"
   ],
   "repositories": [
     "https://github.com/emilkowalski/skills",

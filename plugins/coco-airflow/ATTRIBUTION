@@ -1,0 +1,28 @@
+Snowflake Cortex Code (CoCo) Bundled Airflow Plugin
+
+Source release: CoCo 1.1.66+001753.801adc2b71d7 (darwin-arm64)
+Source directory: bundled_plugins/airflow/
+Original plugin: data 0.1.0
+Original author: Astronomer
+Original repository: https://github.com/astronomer/agents
+Permission: See LICENSE in this plugin.
+
+Included skills:
+- airflow
+- airflow-hitl
+- analyzing-data
+- annotating-task-lineage
+- authoring-dags
+- checking-freshness
+- cosmos-dbt-core
+- cosmos-dbt-fusion
+- creating-openlineage-extractors
+- debugging-dags
+- managing-astro-local-env
+- migrating-airflow-2-to-3
+- profiling-tables
+- setting-up-astro-project
+- testing-dags
+- tracing-downstream-lineage
+- tracing-upstream-lineage
+- warehouse-init

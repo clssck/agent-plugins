@@ -1,0 +1,18 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "coco-databricks",
+  "version": "0.1.0",
+  "description": "Databricks development skills bundled with Snowflake Cortex Code (CoCo).",
+  "author": {
+    "name": "Databricks"
+  },
+  "homepage": "https://docs.databricks.com/",
+  "repository": "https://github.com/clssck/agent-plugins",
+  "license": "LicenseRef-CoCo-Bundled-Plugin-Permission",
+  "keywords": [
+    "coco",
+    "databricks",
+    "dbt",
+    "spark"
+  ]
+}

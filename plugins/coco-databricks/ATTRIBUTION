@@ -1,0 +1,20 @@
+Snowflake Cortex Code (CoCo) Bundled Databricks Plugin
+
+Source release: CoCo 1.1.66+001753.801adc2b71d7 (darwin-arm64)
+Source directory: bundled_external_plugins/databricks/
+Original plugin: databricks 0.1.0
+Permission: See LICENSE in this plugin.
+
+Included skills:
+- databricks-automation-bundles
+- databricks-cli
+- databricks-cli-install
+- databricks-cost-optimization
+- databricks-dbsql
+- databricks-dbt-pipeline
+- databricks-etl-pyspark-notebooks
+- databricks-local-testing
+- databricks-notebook-refactor
+- databricks-setup
+- databricks-spark-performance
+- databricks-unity-catalog
