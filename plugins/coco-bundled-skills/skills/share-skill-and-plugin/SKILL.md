@@ -40,8 +40,7 @@ manifest parsing, CREATE `TYPE`, upload layout, CLI command, and type guards.
 4. Re-share / unshare via FQN or `snow://skill_catalog/...` → `DESCRIBE`
    `type` column is authoritative (`skill` or `plugin`).
 5. Both markers present, or neither → ⚠️ **one disambiguation picker**
-   ([share_interactive_prompts.md](../references/share_interactive_prompts.md)
-   § **Artifact type**).
+   with exactly two choices: **Skill** and **Plugin**.
 
 Carry `<artifact_noun>` = "skill" or "plugin" for user-facing copy.
 
@@ -94,7 +93,7 @@ DESCRIBE WORKSPACE USER$<CURRENT_USER()>.PUBLIC."DEFAULT$";
 
 Skill workspace hints: `…/versions/live/.snowflake/cortex/skills/<folder>/` or
 `…/.snowflake/si/skills/<folder>/`. See
-[workspaces/personal-skills-sync/SKILL.md](../../workspaces/personal-skills-sync/SKILL.md).
+[snowflake-workspace/SKILL.md](../snowflake-workspace/SKILL.md).
 
 **Upload fallback:** [step_2_fallback_stage_copy.md](step_2_fallback_stage_copy.md).
 
@@ -102,8 +101,7 @@ Skill workspace hints: `…/versions/live/.snowflake/cortex/skills/<folder>/` or
 
 ## Interactive prompts
 
-Every fixed-choice stop uses `ask_user_question` with locked labels in
-[share_interactive_prompts.md](../references/share_interactive_prompts.md).
+Every fixed-choice stop uses `ask_user_question` with the labels defined by its workflow step.
 
 Audience state (both artifact types): `<share_choice>` (1/2/3),
 `<share_roles>`, `<discoverable_value>`.

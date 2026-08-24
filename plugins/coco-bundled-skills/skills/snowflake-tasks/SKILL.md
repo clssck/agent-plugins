@@ -7,7 +7,7 @@ description: "**[REQUIRED]** Use for **ALL** Snowflake Task operations: creating
 
 ## Mandatory Rules
 
-**Before writing AI function SQL, read `../../sql/references/sql-authoring-rules.md`.**
+**Before writing AI function SQL, read `../sql-author/SKILL.md`.**
 
 Expert guidance for Snowflake Tasks: creating scheduled and triggered tasks, building task graphs (DAGs), managing task lifecycle, monitoring execution history, and troubleshooting failures.
 
@@ -40,7 +40,7 @@ When the user says "every N minutes" or "every N hours", always use an interval 
 
 **Stream-triggered tasks:** For tasks that process stream data, use a `WHEN` condition with `SYSTEM$STREAM_HAS_DATA` and no schedule unless the user explicitly requests one. Do not add a `SCHEDULE` clause to a stream-triggered task unless the user specifically asks for one — a task with only a `WHEN` condition is a valid, purely event-driven task. If the user does request one, follow the same scheduling guidance above for CRON vs. Interval schedules.
 
-If the task body SQL uses any AI or Cortex function, read `../../sql/references/sql-authoring-rules.md` first.
+If the task body SQL uses any AI or Cortex function, read `../sql-author/SKILL.md` first.
 
 ## Modifying Tasks
 
@@ -298,12 +298,12 @@ Rules:
 2. **Route only after explicit customer consent.**
    - A suggestion alone must not trigger delegation.
    - Ask for explicit confirmation (for example: "Would you like me to set up Alert-based monitoring for this task?").
-   - Only when the customer clearly agrees, load and delegate to [`../../observability-external/alert/SKILL.md`](../../observability-external/alert/SKILL.md).
+   - Only when the customer clearly agrees, load and delegate to [`alert`](../alert/SKILL.md).
    - If the customer declines or does not answer, continue task-focused troubleshooting/operations without delegating to the Alert skill.
 
 3. **Handle direct customer requests as explicit consent.**
    - If the customer directly asks to set up Alert-based monitoring (without a prior agent suggestion), treat that request as explicit consent.
-   - In that case, load and delegate to [`../../observability-external/alert/SKILL.md`](../../observability-external/alert/SKILL.md) without asking a second consent question.
+   - In that case, load and delegate to [`alert`](../alert/SKILL.md) without asking a second consent question.
    - Immediately after taking this direct-request path, set `has_suggested_alert = true`.
 
 ## Starting / Resuming a Task Graph

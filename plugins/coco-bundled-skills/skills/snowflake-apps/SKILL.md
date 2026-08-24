@@ -9,7 +9,7 @@ This is the **routing skill** for building web applications on Snowflake. Detect
 
 > A **SAR app** (Snowflake App Runtime app, also called a "Snowflake App") is a web application that runs on Snowflake and is represented by an **`APPLICATION SERVICE`** object — distinct from Streamlit-in-Snowflake apps and Native Apps. The rest of this skill just says "app". If the user says "Snowflake App", "SAR app", "create an app", "build an app", "deploy my app", or "data app", use this skill.
 
-> **For Streamlit-in-Snowflake apps** (Python projects deployed via `snow streamlit deploy`, visible in Snowsight under Streamlit Apps), use [`streamlit-in-snowflake/developing-with-streamlit-in-snowflake/`](../../streamlit-in-snowflake/developing-with-streamlit-in-snowflake/SKILL.md) instead. That skill covers the full create / develop / deploy / operate lifecycle for SiS — manifest shape, `snow streamlit deploy`, post-deploy `SHOW STREAMLITS` verification, local-preview troubleshooting, and `ALTER STREAMLIT` lifecycle SQL.
+> **For Streamlit-in-Snowflake apps** (Python projects deployed via `snow streamlit deploy`, visible in Snowsight under Streamlit Apps), use [`developing-with-streamlit-in-snowflake`](../developing-with-streamlit-in-snowflake/SKILL.md) instead. That skill covers the full create / develop / deploy / operate lifecycle for SiS — manifest shape, `snow streamlit deploy`, post-deploy `SHOW STREAMLITS` verification, local-preview troubleshooting, and `ALTER STREAMLIT` lifecycle SQL.
 
 ## Load the environment skill first
 
