@@ -44,8 +44,26 @@
       ]
     },
     {
+      "name": "coco-blueprints",
+      "version": "0.1.0",
+      "source": "./plugins/coco-blueprints",
+      "description": "Snowflake Blueprint Manager bundled with Snowflake Cortex Code (CoCo).",
+      "author": {
+        "name": "Snowflake Inc."
+      },
+      "homepage": "https://github.com/Snowflake-Labs/blueprint-manager",
+      "repository": "https://github.com/clssck/agent-plugins",
+      "license": "LicenseRef-CoCo-Bundled-Plugin-Permission",
+      "tags": [
+        "coco",
+        "snowflake",
+        "blueprints",
+        "platform"
+      ]
+    },
+    {
       "name": "coco-bundled-skills",
-      "version": "1.1.66",
+      "version": "1.1.69",
       "source": "./plugins/coco-bundled-skills",
       "description": "Snowflake Cortex Code (CoCo) bundled skills, redistributed with written permission from Snowflake.",
       "author": {
@@ -77,6 +95,24 @@
         "databricks",
         "dbt",
         "spark"
+      ]
+    },
+    {
+      "name": "coco-sf-solutions",
+      "version": "0.1.0",
+      "source": "./plugins/coco-sf-solutions",
+      "description": "Snowflake industry solution accelerator skills bundled with Snowflake Cortex Code (CoCo).",
+      "author": {
+        "name": "Snowflake Inc."
+      },
+      "homepage": "https://github.com/Snowflake-Labs",
+      "repository": "https://github.com/clssck/agent-plugins",
+      "license": "LicenseRef-CoCo-Bundled-Plugin-Permission",
+      "tags": [
+        "coco",
+        "snowflake",
+        "solutions",
+        "accelerators"
       ]
     },
     {
