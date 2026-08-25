@@ -52,7 +52,7 @@ Read `manifest.yml` and the setup script (path from `artifacts.setup_script`, de
 
 Check manifest for existing `restricted_callers_rights` block. Note if it's absent — it is **recommended** for any agent that requires caller grants (see Step 4a).
 
-For tool type reference (tool YAML schema, `cortex_analyst_text_to_sql`, `cortex_search`, `generic` procedure tools), load [`agent-studio/agent/edit/SKILL.md`](../../agent-studio/agent/edit/SKILL.md).
+For tool type reference (tool YAML schema, `cortex_analyst_text_to_sql`, `cortex_search`, `generic` procedure tools), load [`../../../cortex-agent/create-cortex-agent/TOOL_CREATION.md`](../../agent-studio/agent/edit/SKILL.md).
 
 ### Step 3: Analyze Caller Grants
 
@@ -268,7 +268,10 @@ Use `orchestration: auto` instead of a specific model name. A specific model may
 After writing the files, the app must be deployed to take effect:
 - Run `deploy-test/SKILL.md` to upload and install the updated version
 
-Once deployed, run a quick SQL smoke test — one targeted question **per tool** from the consumer account. Use a plain string literal (`PARSE_JSON` is not a constant and causes a compilation error):
+Once deployed, test the agent interactively using the Cortex Agent adhoc testing skill:
+→ Load `../../../cortex-agent/adhoc-testing-for-cortex-agent/SKILL.md`
+
+Or run a quick SQL smoke test — one targeted question **per tool** from the consumer account. Use a plain string literal (`PARSE_JSON` is not a constant and causes a compilation error):
 
 ```sql
 -- One call per tool — use a question that targets that specific tool:

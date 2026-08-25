@@ -1,6 +1,6 @@
 # Object Contacts — Reference
 
-Supporting reference material for [`workflows/object-contacts.md`](../../../data-governance/workflows/object-contacts.md).
+Supporting reference material for [`workflows/object-contacts.md`](../../workflows/object-contacts.md).
 
 ---
 

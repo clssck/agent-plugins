@@ -176,7 +176,7 @@ Complete reference of all DVP skills, organized by category.
 - **Inputs:** SMA migrated source code
 - **Outputs:** Modified Python files (.py) with stage syntax
 - **Depends on:** None (operates on source code directly)
-- **Details:** Planned; no bundled detail document yet.
+- **Details:** docs/data-validator/stage-conversion.md
 
 ---
 

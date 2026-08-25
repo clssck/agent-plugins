@@ -43,7 +43,7 @@ Skills focused on generating and running validation tests for migrated pipelines
 | [dvp-test-validation-generator](docs/data-validator/dvp-test-validation-generator.md) | Generates test validation code (Assert/Then) | Planned |
 | [dvp-testing-status-manager](docs/data-validator/dvp-testing-status-manager.md) | HTML dashboard for pipeline test status | Planned |
 | [dvp-synthetic-data-generator](dvp-synthetic-data-generator/SKILL.md) | Generates synthetic test data from data_io_schema.json schemas | Planned |
-| `stage-conversion` | Converts S3/Azure paths to Snowflake stage syntax | Planned |
+| stage-conversion | Converts S3/Azure paths to Snowflake stage syntax | Planned |
 
 ### Tracking Manager (`tracking-manager`)
 

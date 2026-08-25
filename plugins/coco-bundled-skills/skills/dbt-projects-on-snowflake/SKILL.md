@@ -7,7 +7,7 @@ description: "ONLY for dbt projects deployed INTO Snowflake as native objects vi
 
 ## Mandatory Rules
 
-**Before writing AI function SQL, read `../sql-author/SKILL.md`.**
+**Before writing AI function SQL, read `../../sql/references/sql-authoring-rules.md`.**
 
 Deploy and run dbt Core projects directly **inside Snowflake** using the `snow` CLI and `EXECUTE DBT PROJECT` SQL. Also covers authoring dbt models with Snowflake-specific materializations like `semantic_view`.
 
@@ -30,7 +30,7 @@ If the user's request matches the above, do NOT load any sub-skills — just ans
 
 ---
 
-If the request involves writing dbt model SQL with AI or Cortex functions, read `../sql-author/SKILL.md` before generating any SQL.
+If the request involves writing dbt model SQL with AI or Cortex functions, read `../../sql/references/sql-authoring-rules.md` before generating any SQL.
 
 ## Intent Detection
 

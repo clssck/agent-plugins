@@ -43,8 +43,8 @@ dvp-orchestrator
 | [dvp-entrypoint-identifier](dvp-entrypoint-identifier.md) | Discovery | `04-results/entrypoints.json` | **Implemented** |
 | [dvp-asg-generation](../../dvp-asg-generation/SKILL.md) | Discovery | `04-results/XX_asg.json` + anomalies | Planned |
 | [dvp-code-adapter](../../dvp-code-adapter/SKILL.md) | Adaptation | In-place edits in `01-source/` / `02-migrated/` / `02-migrated_scos/` | Planned |
-| `dvp-io-schema-identifier` | Discovery | `04-results/data_io_schema.json` | Planned |
-| `dvp-synthetic-data-generator` | Generation | `04-results/synthetic_data/*.csv` | Planned |
-| `stage-conversion` | Conversion | In-place code edits | Planned |
+| dvp-io-schema-identifier | Discovery | `04-results/data_io_schema.json` | Planned |
+| dvp-synthetic-data-generator | Generation | `04-results/synthetic_data/*.csv` | Planned |
+| stage-conversion | Conversion | In-place code edits | Planned |
 | [dvp-test-setup-generator](dvp-test-setup-generator.md) | Test Gen | `03-tests/` (pytest scaffolding + tests) | **Implemented** |
 | [dvp-testing-status-manager](dvp-testing-status-manager.md) | Reporting | `04-results/testing_status.html` | Planned |

@@ -84,3 +84,101 @@ Included top-level skills:
 - snowflake-workspace (source: workspaces)
 
 Nested skills, references, scripts, assets, and fixtures remain attributed to their enclosing top-level CoCo skill. The generated repository catalog lists every included SKILL.md by name.
+
+Portability deviations from the CoCo source payload:
+
+The Agent Plugins package flattens CoCo skill groups into `skills/<public-name>/`. To keep every bundled relative Markdown link usable, the import changes link syntax only: existing targets are remapped to their packaged relative path; targets omitted from the CoCo payload are de-linked while preserving their visible label and surrounding instruction text. No instruction text is otherwise rewritten.
+
+Link accounting: 132 transformed occurrences (98 remapped, 34 de-linked).
+
+Remapped link targets:
+- `../../../../data-engineering/dynamic-tables/dt-alerting/SKILL.md` → `../../../dynamic-tables/dt-alerting/SKILL.md` in `alert/alert-troubleshoot/references/event-table-sweep.md`
+- `../../../../data-engineering/dynamic-tables/references/dt-state.md` → `../../../dynamic-tables/references/dt-state.md` in `alert/alert-troubleshoot/references/diagnostic-dashboard.md`
+- `../../../../data-engineering/dynamic-tables/troubleshoot/SKILL.md` → `../../../dynamic-tables/troubleshoot/SKILL.md` in `alert/alert-troubleshoot/references/diagnostic-dashboard.md`, `alert/alert-troubleshoot/references/product-detection.md`, `alert/alert-troubleshoot/references/product-troubleshoot-routing.md`
+- `../../../../data-engineering/error-tables-ops/SKILL.md` → `../../../error-tables-ops/SKILL.md` in `alert/alert-troubleshoot/references/product-detection.md`, `alert/alert-troubleshoot/references/product-troubleshoot-routing.md`
+- `../../../../data-engineering/iceberg/auto-refresh/SKILL.md` → `../../../iceberg/auto-refresh/SKILL.md` in `alert/alert-troubleshoot/references/product-detection.md`, `alert/alert-troubleshoot/references/product-troubleshoot-routing.md`
+- `../../../../data-engineering/iceberg/catalog-integration` → `../../../iceberg/catalog-integration` in `alert/alert-troubleshoot/references/product-detection.md`, `alert/alert-troubleshoot/references/product-troubleshoot-routing.md`
+- `../../../../data-engineering/iceberg/catalog-linked-database/SKILL.md` → `../../../iceberg/catalog-linked-database/SKILL.md` in `alert/alert-troubleshoot/references/product-detection.md`, `alert/alert-troubleshoot/references/product-troubleshoot-routing.md`
+- `../../../../data-engineering/iceberg/external-volume/SKILL.md` → `../../../iceberg/external-volume/SKILL.md` in `alert/alert-troubleshoot/references/product-detection.md`, `alert/alert-troubleshoot/references/product-troubleshoot-routing.md`
+- `../../../../data-engineering/openflow-observability/SKILL.md` → `../../../openflow-observability/SKILL.md` in `alert/alert-troubleshoot/references/product-detection.md`, `alert/alert-troubleshoot/references/product-troubleshoot-routing.md` (2 occurrences)
+- `../../../../data-engineering/openflow-observability/references/connectors/connector-shared-generic.md` → `../../../openflow-observability/references/connectors/connector-shared-generic.md` in `alert/alert-troubleshoot/references/product-detection.md`
+- `../../../../data-engineering/openflow-observability/references/core-queries-resource.md` → `../../../openflow-observability/references/core-queries-resource.md` in `alert/alert-troubleshoot/references/diagnostic-dashboard.md`
+- `../../../../data-engineering/openflow-observability/references/core-queries.md` → `../../../openflow-observability/references/core-queries.md` in `alert/alert-troubleshoot/references/diagnostic-dashboard.md`
+- `../../../../data-engineering/snowflake-tasks/SKILL.md` → `../../../snowflake-tasks/SKILL.md` in `alert/alert-troubleshoot/references/diagnostic-dashboard.md`, `alert/alert-troubleshoot/references/product-detection.md`, `alert/alert-troubleshoot/references/product-troubleshoot-routing.md`
+- `../../../../data-governance/data-quality/SKILL.md` → `../../../data-quality/SKILL.md` in `alert/alert-troubleshoot/references/diagnostic-dashboard.md`, `alert/alert-troubleshoot/references/product-detection.md`, `alert/alert-troubleshoot/references/product-troubleshoot-routing.md`
+- `../../../../snowflake-notebooks/SKILL.md#referencing-variables-between-cells` → `../../../snowflake-notebooks/SKILL.md#referencing-variables-between-cells` in `spark-migration/snowflake-notebook-migration/references/transformation-rules.md`
+- `../../../cortex-agent/create-cortex-agent/TOOL_CREATION.md` → `../../agent-studio/agent/edit/SKILL.md` in `native-app-provider/add-agent-mcp/SKILL.md`
+- `../../../data-engineering/dynamic-tables/troubleshoot/SKILL.md` → `../../dynamic-tables/troubleshoot/SKILL.md` in `alert/alert-troubleshoot/SKILL.md`
+- `../../../data-engineering/iceberg/SKILL.md` → `../../iceberg/SKILL.md` in `data-sharing/workflows/external-data.md`
+- `../../../data-engineering/openflow/SKILL.md` → `../../openflow/SKILL.md` in `data-sharing/workflows/external-data.md` (2 occurrences)
+- `../../../integrations/create-notification-integration/SKILL.md` → `../../integrations/create-notification-integration/SKILL.md` in `trust-center/api-management/SKILL.md`
+- `../../../observability-external/event-table/event-table-get-setup/SKILL.md` → `../../event-table/event-table-get-setup/SKILL.md` in `dynamic-tables/pipeline-diagnostics/SKILL.md`
+- `../../data-engineering/dynamic-tables/troubleshoot/SKILL.md` → `../dynamic-tables/troubleshoot/SKILL.md` in `alert/TROUBLESHOOTING_LANDSCAPE.md` (2 occurrences)
+- `../../data-engineering/error-tables-ops/SKILL.md` → `../error-tables-ops/SKILL.md` in `alert/TROUBLESHOOTING_LANDSCAPE.md` (2 occurrences)
+- `../../data-engineering/iceberg/SKILL.md` → `../iceberg/SKILL.md` in `alert/TROUBLESHOOTING_LANDSCAPE.md`
+- `../../data-engineering/iceberg/auto-refresh/monitoring.md` → `../iceberg/auto-refresh/monitoring.md` in `alert/TROUBLESHOOTING_LANDSCAPE.md`
+- `../../data-engineering/iceberg/catalog-integration` → `../iceberg/catalog-integration` in `alert/TROUBLESHOOTING_LANDSCAPE.md`
+- `../../data-engineering/iceberg/catalog-linked-database/SKILL.md` → `../iceberg/catalog-linked-database/SKILL.md` in `alert/TROUBLESHOOTING_LANDSCAPE.md`
+- `../../data-engineering/iceberg/external-volume/SKILL.md` → `../iceberg/external-volume/SKILL.md` in `alert/TROUBLESHOOTING_LANDSCAPE.md`
+- `../../data-engineering/openflow-observability/SKILL.md` → `../openflow-observability/SKILL.md` in `alert/TROUBLESHOOTING_LANDSCAPE.md` (2 occurrences)
+- `../../data-engineering/openflow-observability/references/connectors/connector-shared-generic.md` → `../openflow-observability/references/connectors/connector-shared-generic.md` in `alert/TROUBLESHOOTING_LANDSCAPE.md`
+- `../../data-engineering/snowflake-tasks/SKILL.md` → `../snowflake-tasks/SKILL.md` in `alert/TROUBLESHOOTING_LANDSCAPE.md` (2 occurrences)
+- `../../data-governance/data-quality/SKILL.md` → `../data-quality/SKILL.md` in `alert/TROUBLESHOOTING_LANDSCAPE.md` (2 occurrences)
+- `../../data-governance/data-quality/workflows/dq-incident-investigation.md` → `../data-quality/workflows/dq-incident-investigation.md` in `alert/TROUBLESHOOTING_LANDSCAPE.md`
+- `../../data-governance/data-quality/workflows/root-cause-analysis.md` → `../data-quality/workflows/root-cause-analysis.md` in `alert/TROUBLESHOOTING_LANDSCAPE.md`
+- `../../dynamic-tables/references/incremental-operators.md` → `../../../dynamic-tables/references/incremental-operators.md` in `dynamic-tables-apply-recommendations/references/codes/AUTO_RESOLVED_TO_FULL_REFRESH.md`
+- `../../dynamic-tables/references/supported-queries.md` → `../../../dynamic-tables/references/supported-queries.md` in `dynamic-tables-apply-recommendations/references/codes/AUTO_RESOLVED_TO_FULL_REFRESH.md`
+- `../../observability-external/alert/SKILL.md` → `../alert/SKILL.md` in `snowflake-tasks/SKILL.md` (2 occurrences)
+- `../../snowflake-notebook-migration/Diagram.md` → `../../../snowflake-notebook-migration/Diagram.md` in `spark-migration/snowpark-api/dvp/docs/skills-catalog.md`
+- `../../snowflake-notebook-migration/SKILL.md` → `../../../snowflake-notebook-migration/SKILL.md` in `spark-migration/snowpark-api/dvp/docs/skills-catalog.md` (2 occurrences)
+- `../../sql/references/sql-authoring-rules.md` → `../sql-author/SKILL.md` in `dynamic-tables/SKILL.md`
+- `../../streamlit-in-snowflake/developing-with-streamlit-in-snowflake/SKILL.md` → `../developing-with-streamlit-in-snowflake/SKILL.md` in `snowflake-apps/SKILL.md`
+- `../../workspaces/personal-skills-sync/SKILL.md` → `../snowflake-workspace/SKILL.md` in `share-skill-and-plugin/SKILL.desktop.md`, `share-skill-and-plugin/SKILL.md`
+- `../apps/declarative/SKILL.md` → `../declarative-sharing/SKILL.md` in `sharing/README.md`
+- `../apps/native/SKILL.md` → `../native-app-provider/SKILL.md` in `sharing/README.md`
+- `../collaboration/data-sharing/SKILL.md` → `../data-sharing/SKILL.md` in `sharing/README.md`
+- `../data-cleanrooms/data-cleanrooms/SKILL.md` → `../data-cleanrooms/SKILL.md` in `sharing/README.md`
+- `../workflows/object-contacts.md` → `../../workflows/object-contacts.md` in `data-governance/reference/object-contacts/object-contacts-reference.md`
+- `references/scala/behavioral-differences.md#bd-1-division-by-zero` → `behavioral-differences.md#bd-1-division-by-zero` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-10-greatestleast-null-handling` → `behavioral-differences.md#bd-10-greatestleast-null-handling` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-11-concat-null-handling` → `behavioral-differences.md#bd-11-concat-null-handling` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-12-regexp_extract-no-match-behavior` → `behavioral-differences.md#bd-12-regexp_extract-no-match-behavior` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-13-firstlast-non-determinism` → `behavioral-differences.md#bd-13-firstlast-non-determinism` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-14-round-bankers-rounding` → `behavioral-differences.md#bd-14-round-bankers-rounding` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-15-explode-with-nullempty-arrays` → `behavioral-differences.md#bd-15-explode-with-nullempty-arrays` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-16-string-comparison-and-collation` → `behavioral-differences.md#bd-16-string-comparison-and-collation` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-17-months_between-return-type` → `behavioral-differences.md#bd-17-months_between-return-type` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-18-null-safe-equality` → `behavioral-differences.md#bd-18-null-safe-equality` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-19-aggregation-result-column-naming` → `behavioral-differences.md#bd-19-aggregation-result-column-naming` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-2-type-cast-failure-behavior` → `behavioral-differences.md#bd-2-type-cast-failure-behavior` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-20-split-regex-vs-literal-delimiter` → `behavioral-differences.md#bd-20-split-regex-vs-literal-delimiter` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-21-integer-division-result-type` → `behavioral-differences.md#bd-21-integer-division-result-type` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-22-boolean-casting-from-strings` → `behavioral-differences.md#bd-22-boolean-casting-from-strings` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-23-substring0-indexing` → `behavioral-differences.md#bd-23-substring0-indexing` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-24-groupby-result-ordering` → `behavioral-differences.md#bd-24-groupby-result-ordering` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-25-timestamp-precision` → `behavioral-differences.md#bd-25-timestamp-precision` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-26-approx_count_distinct-precision` → `behavioral-differences.md#bd-26-approx_count_distinct-precision` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-27-date_format-token-differences` → `behavioral-differences.md#bd-27-date_format-token-differences` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-28-collect_listcollect_set-ordering-and-nulls` → `behavioral-differences.md#bd-28-collect_listcollect_set-ordering-and-nulls` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-29-broadcastrepartitioncoalesce-needs-investigation` → `behavioral-differences.md#bd-29-broadcastrepartitioncoalesce-needs-investigation` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-3-datediff-parameter-order-reversed` → `behavioral-differences.md#bd-3-datediff-parameter-order-reversed` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-4-union-is-position-based` → `behavioral-differences.md#bd-4-union-is-position-based` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-5-element_at-indexing` → `behavioral-differences.md#bd-5-element_at-indexing` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-6-null-handling-in-concat_ws` → `behavioral-differences.md#bd-6-null-handling-in-concat_ws` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-7-order-by-null-ordering` → `behavioral-differences.md#bd-7-order-by-null-ordering` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-8-nan-handling` → `behavioral-differences.md#bd-8-nan-handling` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+- `references/scala/behavioral-differences.md#bd-9-regexp_replace-regex-dialect` → `behavioral-differences.md#bd-9-regexp_replace-regex-dialect` in `spark-migration/snowpark-connect/references/scala/ewi-codes.md`
+
+De-linked omitted targets (visible labels retained):
+- `../../../cortex-agent/adhoc-testing-for-cortex-agent/SKILL.md`; labels ``../../../cortex-agent/adhoc-testing-for-cortex-agent/SKILL.md``; in `native-app-provider/add-agent-mcp/SKILL.md`
+- `../../../skill_development/references/cross-platform.md`; labels ``skill_development/references/cross-platform.md``; in `spark-migration/snowpark-connect/SKILL.md`
+- `../references/share_interactive_prompts.md`; labels `share_interactive_prompts.md`; in `share-skill-and-plugin/SKILL.desktop.md` (2 occurrences), `share-skill-and-plugin/SKILL.md` (2 occurrences), `share-skill-and-plugin/step_1_collect_inputs.md` (5 occurrences), `share-skill-and-plugin/step_2_publish.desktop.md` (3 occurrences), `share-skill-and-plugin/step_2_publish.md` (6 occurrences), `share-skill-and-plugin/step_3_apply_share_options.md` (2 occurrences), `share-skill-and-plugin/step_4_unshare.md`
+- `./references/DATABASE_SCHEMA.md`; labels `references/DATABASE_SCHEMA.md`; in `spark-migration/snowpark-api/dvp/dvp-ewi-fixer/SKILL.md`
+- `data-validator/stage-conversion.md`; labels `docs/data-validator/stage-conversion.md`; in `spark-migration/snowpark-api/dvp/docs/skills-catalog.md`
+- `docs/data-validator/stage-conversion.md`; labels `stage-conversion`; in `spark-migration/snowpark-api/dvp/README.md`
+- `dvp-io-schema-identifier.md`; labels `dvp-io-schema-identifier`; in `spark-migration/snowpark-api/dvp/docs/data-validator/README.md`
+- `dvp-synthetic-data-generator.md`; labels `dvp-synthetic-data-generator`; in `spark-migration/snowpark-api/dvp/docs/data-validator/README.md`
+- `kafka-quickstart.md`; labels `references/kafka-quickstart.md`; in `snowflake-interactive/references/sql-syntax.md`
+- `ops-troubleshoot.md`; labels `ops-troubleshoot.md`; in `snowpark-python/references/snowpark-deployment.md`
+- `relative/path/to/product/SKILL.md`; labels ``<relative path to product SKILL.md>``, ``<relative path>``, ``<relative/path/to/product/SKILL.md>``; in `alert/alert-troubleshoot/SKILL.md` (2 occurrences), `alert/alert-troubleshoot/references/product-troubleshoot-routing.md`
+- `stage-conversion.md`; labels `stage-conversion`; in `spark-migration/snowpark-api/dvp/docs/data-validator/README.md`

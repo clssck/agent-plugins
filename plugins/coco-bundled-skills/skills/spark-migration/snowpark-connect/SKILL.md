@@ -200,7 +200,9 @@ to Snowflake Workspace `.ipynb` format. The offer is skipped entirely when:
 ## Cross-Platform Compatibility
 
 Every command this skill surfaces to the user runs on **macOS, Linux, and
-Windows**. Follow these cross-platform authoring rules:
+Windows**. Follow the authoring rules in
+`skill_development/references/cross-platform.md`
+— specifically:
 
 - **Primary entry point for every script: `uv run --project <SKILL_DIRECTORY> python <SKILL_DIRECTORY>/scripts/<name>.py`.**
   No `chmod`, no `source`, no activation — `uv` handles the venv on every OS.
