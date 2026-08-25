@@ -13,7 +13,7 @@ Minimal Next.js app deployed as a Snowflake App. Queries Snowflake using the [No
 | `lib/snowflake.ts` | `querySnowflake` / `querySnowflakeLongRunning` (+ optional `{ callersRights: true }`) — SPCS OAuth, caller's-rights pooling, local-dev auth. Use long-running for heavy or slow SQL (see below). Also exports `getSecret(name, type)` for reading Snowflake `SECRET` values — see **Secrets** below. |
 | `lib/constants.ts` | `APP_TITLE` and `LOGO_SRC` — shared between `app/layout.tsx` (metadata) and `components/app-header.tsx` (nav bar). Edit this file to rebrand. |
 | `next.config.mjs` | Standalone output, unoptimized images, **and the Next.js workspace-root pin** (`turbopack.root` + `outputFileTracingRoot` set to `__dirname`). The pin is critical: Next.js 16 + Turbopack walks upward looking for a lockfile and silently re-roots the project if it finds one in a parent directory, which breaks `/` (404) and chunk URLs and corrupts `outputFileTracingRoot` at deploy time. **Do not remove the pin** when adding new config; merge with the existing object instead. |
-| `public/icon.svg` | Default app icon used by browser metadata and `app.yml` profile metadata. **Replace this with a custom SVG that clearly represents the specific app being built.** |
+| `public/icon.svg` | Default app icon used by browser metadata and the app's `icon` manifest field. **Replace this with a custom SVG that clearly represents the specific app being built.** |
 
 Pre-installed capabilities you can rely on without setup:
 
@@ -58,7 +58,7 @@ Before finishing, update `public/icon.svg`. Do not leave the template/default ic
 - Generate a simple, original SVG icon that matches the app's domain, data, or primary workflow.
 - Keep it self-contained in `public/icon.svg`; do not reference external fonts, images, or remote assets.
 - Prefer readable shapes, restrained color, and a professional Snowflake Apps style over generic logos or decorative gradients.
-- Verify `app/layout.tsx` still references `/icon.svg` and `app.yml` uses `profile.icon: public/icon.svg`.
+- Verify `app/layout.tsx` still references `/icon.svg`, and that `app.yml` points at `public/icon.svg` — as `profile.icon` alongside a `snowflake.yml`, or as the top-level `icon` key in a `version: 2` manifest.
 
 ---
 
@@ -351,9 +351,9 @@ The env-var name is always upper-cased, so `getSecret("api_key", ...)` and `getS
 
 For a secret to be mounted in SPCS, it MUST be listed under `secrets:` in `app.yml`. Each entry maps a logical name (used in `getSecret`) to a fully-qualified Snowflake `SECRET` object.
 
-> **CRITICAL — `secrets:` is a TOP-LEVEL key.** It is a sibling of `install:`, `run:`, and `profile:` — at column 0. **Do NOT nest it under `run:`** (next to `command:`). A `secrets:` block placed under `run:` is ignored by the runtime and the secret will not be mounted in SPCS. The same applies to the top-level `environment_variables:` block.
+> **CRITICAL — `secrets:` is a TOP-LEVEL key.** It is a sibling of `install:` and `run:` — at column 0. **Do NOT nest it under `run:`** (next to `command:`). A `secrets:` block placed under `run:` is ignored and the secret will not be mounted in SPCS. The same applies to the top-level `environment_variables:` block. This placement is identical in both manifest layouts.
 
-Here is a complete `app.yml` showing the correct placement (note `secrets:` and `environment_variables:` are at the same indentation level as `install:`/`run:`/`profile:`):
+Here is a complete `app.yml` showing the correct placement (note `secrets:` and `environment_variables:` are at the same indentation level as `install:`/`run:`):
 
 ```yaml
 install:
@@ -363,9 +363,9 @@ install:
 run:
   command: ["node", ".next/standalone/server.js"]
 
-profile:
-  label: "My App"
-  description: "..."
+profile:                              # ← build-only manifest (paired with snowflake.yml);
+  label: "My App"                     #   in a `version: 2` manifest these are top-level
+  description: "..."                  #   `label:` / `description:` / `icon:` keys instead
 
 secrets:                              # ← top-level, NOT under run:
   - name: SOME_API_KEY
@@ -381,12 +381,12 @@ environment_variables:               # ← also top-level (non-secret config)
 ```
 
 - `name`: the logical name passed to `getSecret` (e.g. `getSecret("SOME_API_KEY", ...)`) and the directory name under `/secrets/`.
-- `secret`: the fully-qualified name of an existing Snowflake `SECRET` object.
+- `secret`: the fully-qualified name of an existing Snowflake `SECRET` object. In a `version: 2` manifest a bare name is also accepted and is qualified with the app's database and schema.
 - Non-secret configuration goes under `environment_variables:` (plain `name`/`value` pairs), not `secrets:`.
 
-If a secret is used in code but missing from `app.yml`, the app will work locally (if the fallback env var is set) but fail in SPCS. Always keep `app.yml` `secrets:` in sync with the `getSecret` calls in the code.
+If a secret is used in code but missing from `app.yml`, the app will work locally (if the fallback env var is set) but fail in SPCS. Always keep `app.yml` `secrets:` in sync with the `getSecret` calls in the code. In a `version: 2` manifest this cuts both ways: the deploy is declarative, so removing a secret from the manifest also unmounts it from the running service on the next deploy.
 
-For the full list of accepted `app.yml` keys, see `references/debugging.md`.
+For the full list of accepted `app.yml` keys, see `references/debugging.md` (build-only manifest) and `references/manifests.md` (`version: 2` manifest).
 
 ### Local development setup
 
@@ -428,4 +428,4 @@ SNOWFLAKE_SECRET_MY_OAUTH_OAUTH_SCOPE=api.read        # optional
 
 ## Deploy
 
-Deployment is driven by the `snowflake-apps` skill, not this template. It generates `snowflake.yml` via `snow app setup`, configures `app.yml` profile metadata, and runs `snow app deploy`. Once deployed, the app is reachable at its `.snowflakecomputing.app` endpoint URL.
+Deployment is driven by the `snowflake-apps` skill, not this template. It generates the deployment manifest via `snow app setup` — either a `snowflake.yml` paired with this build-only `app.yml`, or a single `app.yml` with `version: 2` that absorbs both — configures the app's display metadata, and runs `snow app deploy`. Once deployed, the app is reachable at its `.snowflakecomputing.app` endpoint URL.

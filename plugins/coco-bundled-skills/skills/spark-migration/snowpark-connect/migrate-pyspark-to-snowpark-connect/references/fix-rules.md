@@ -5,7 +5,7 @@ Rules for fixing SCOS compatibility issues found during analysis. The fixer agen
 **Related references:**
 - `../../references/python/rdd-conversion.md` — RDD-to-DataFrame conversion rules and examples (required for Rule 2)
 - `../../references/python/udf-dependencies.md` — UDF serialization tiered fix approach (required for Rules 10 and 11)
-- `../../references/python/spark-config.md` — which `spark.conf.set` / `.config` keys SCOS honors vs silently ignores, default deviations, and SCOS-specific knobs (required for Rule 5)
+- `../../references/python/spark-config.md` — which `spark.conf.set` / `.config` keys SCOS honors vs silently ignores, default deviations, and SCOS-specific knobs (required for Rules 5 and 31)
 - `../../references/python/ewi-codes.md` — Official SCOS EWI code scheme (required for `# SCOS:` comment tagging)
 - `../../references/python/troubleshooting.md` — runtime / SQL / connection error playbook (e.g. "Insert value list does not match column list", mixed-case "Object does not exist", `RESOURCE_EXHAUSTED` → `ChannelBuilder.MAX_MESSAGE_LENGTH`, `safe_count`/`safe_checkpoint`, QUALIFY pass-through, connection env vars) — consult when a fix needs to resolve a specific runtime error
 - `../../references/python/glue-recipes.md` — AWS Glue → SCOS recipe catalog **index**: G1/G2/G5 in full (the entry point and the two silent-corruption traps) plus the routing table for G3–G12 (**required for Rule 30** — any file importing `awsglue`). Its **three** sub-files are required as well once the file reaches their surface: `../../references/python/glue-recipes-transforms.md` (G3, G4, G6, G7, G10), `../../references/python/glue-recipes-types.md` (G9 — the `gluetypes` type system) and `../../references/python/glue-recipes-io.md` (G8, G11, G12)
@@ -32,6 +32,7 @@ recipe edit and (b) optionally apply a deeper, context-aware fix on top.
 | Driver materialization in loops (`.collect()` / `.toPandas()` / `.first()` / `.take()` / `.head()` inside `for`/`while`) | `driver_materialization_hotpath_warn_annotate` | annotate — fixer should lift out of loop |
 | Temp-view multi-use cache (Rule 21) | `tempview_multiuse_cache_rewrite` | **rewrite — done** |
 | `@udtf` compatibility flag (Rule 19) | `udtf_enable_compatibility_mode_rewrite` | **rewrite — done** |
+| Two-digit year (`yy`) in a datetime parse format (Rule 31) | `two_digit_year_century_window_config_rewrite` | **rewrite — done** for literal formats (one session config, not per call site); a dynamic format is left to the fixer — see Rule 31 |
 | `SparkSession.builder...master()/config().getOrCreate()` | `spark_builder_drop_master_init_session_rewrite` | **rewrite — done** (preserves configs) |
 | `SparkContext.getOrCreate()` / `SparkContext(...)` / `SparkSession(sc)` (legacy two-line bootstrap) | `sparkcontext_getorcreate_init_session_rewrite` | **rewrite — done** (both names rebind to `init_spark_session()`; warns on dropped `SparkConf`) |
 | No-op cluster/runtime configs (Rule 5) — `spark.executor.*`, `spark.driver.memory|cores`, `spark.dynamicAllocation.*`, `spark.shuffle.*`, ... | `spark_config_noop_annotate` | annotate — flags `# SCOS-WARN: [SPRKCNTPY1000]`; fixer leaves the line (safe to delete) |
@@ -623,6 +624,27 @@ Rules for `resolution`:
     - **Thread pools (G12)**: a single SCOS session is shared across threads. Default to serial (`max_workers=1`); if parallelizing, each table must write to its **own** temp table.
 
     **Completeness bar**: no `awsglue` import may survive anywhere in the output, and no `DynamicFrame` / `GlueContext` / `.apply(frame=` call may remain live.
+
+31. **A two-digit year (`yy`) in a datetime *parse* format lands a century early**: Snowflake resolves the `YY` token that SCOS maps `yy` to against the `TWO_DIGIT_CENTURY_START` session parameter (default **1970**: `00-69` → `2000-2069`, but `70-99` → `1970-1999`), while Spark always maps `00-99` → `2000-2099`. Years `70-99` therefore parse one century early — **no error, no EWI, wrong values**. **Fix: set the Spark-compatible window once per session**, not per call site:
+
+    ```python
+    spark = snowpark_connect.init_spark_session()
+    # SCOS: [SPRKCNTPY5400-Fixed] restore Spark's 2000-2099 window for 'yy' parsing.
+    spark.conf.set("snowpark.connect.use2000AsTwoDigitCenturyStart", "true")
+    ```
+
+    SCOS translates that key into `ALTER SESSION SET TWO_DIGIT_CENTURY_START = 2000` — see `spark-config.md` for the full affected-function list and the parse-side/session scope. **Why one line is the whole fix:** the century window is a property of the session, not of the call site, so every two-digit-year parse in that session is repaired together. Do **not** add the config per call site, and do not try to compensate in-expression (a `when(year < 70, ...)` correction re-implements the parameter and breaks on the next format).
+
+    **Scope — say it in the migration header, don't use it as a reason to skip the fix.** The key is session-scoped (on the session config whitelist, so it may be set after the session exists — it is not a static config). If the workload deliberately wants Snowflake's 1970-based window somewhere, that is a real conflict to surface — but the default is that a migrated Spark workload expects Spark's window, so **apply the config and note it**; leaving `70-99` silently mis-parsed is not the conservative choice.
+
+    **Already handled for literal formats.** `two_digit_year_century_window_config_rewrite` (Phase 0.5) injects the line after the session bootstrap when a format literal in one of those calls — or in a `.sql("...")` string — contains a standalone `yy`. Don't duplicate it; if it emitted a `# SCOS-TODO` instead (no session anchor in that module), wire the `conf.set` to wherever that module's session is created.
+
+    **When this rule does NOT apply:**
+    - `yyyy` / `yyy` / `y` map to `YYYY` and never consult the parameter; `yy` inside a Java-quoted segment (`"'yy'-MM-dd"`) is literal text.
+    - **Formatting** APIs (`date_format`, `from_unixtime`): rendering a two-digit year does not read the century start.
+    - **Reader options are a different code path.** A `dateFormat` / `timestampFormat` on `spark.read...` becomes a Snowflake *file-format* option, and a JSON read has in addition a client-side date-parsing path that goes through Python `strptime` — whose own two-digit window is `00-68` → `2000-2068` but `69-99` → `1969-1999`, and which the session parameter cannot reach. Do not assume this rule covers reader options: read a sample back and check the century before relying on it. The safe fix there is a four-digit source format, or parsing the column explicitly after the read.
+
+    **What you must do when the format is dynamic** (held in a variable, read from config, or supplied as a reader `timestampFormat` / `dateFormat` option): the recipe cannot see it. Decide from the surrounding code whether any reachable format parses a two-digit year; if it can, apply the same one-line config and say so in the header.
 
 ## Issue Processing Checklist
 

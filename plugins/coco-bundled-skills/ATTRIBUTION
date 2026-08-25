@@ -1,6 +1,6 @@
 Snowflake Cortex Code (CoCo) Bundled Skills
 
-Source release: CoCo 1.1.66+001753.801adc2b71d7 (darwin-arm64)
+Source release: CoCo 1.1.69+013424.801adc2b71d7 (darwin-arm64)
 Source directory: bundled_skills/
 Copyright: Snowflake Inc.
 Permission: See LICENSE in this plugin.
@@ -35,6 +35,7 @@ Included top-level skills:
 - developing-with-streamlit-in-snowflake
 - document-intelligence
 - dynamic-tables
+- dynamic-tables-apply-recommendations
 - error-tables-ops
 - event-table
 - find-skill-and-plugin

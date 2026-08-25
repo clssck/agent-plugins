@@ -340,12 +340,21 @@ When a query running on `dashboard_iwh` exceeds 5 seconds, instead of returning 
 
 ## Cost Management
 
-### Interactive Warehouses Are Always Running
-**Key Point**: Unlike standard warehouses, interactive warehouses don't auto-suspend.
+### Interactive Warehouse Cost Management
+**Key Point**: Interactive warehouses support auto-suspend. Configure it to avoid paying for idle time.
 
 ### Cost Control Strategies
 
-#### 1. Manual Suspension
+#### 1. Auto-Suspend (Recommended)
+```sql
+-- Configure auto-suspend (minimum 86400 seconds = 24 hours)
+ALTER WAREHOUSE iwh_name SET AUTO_SUSPEND = 86400;
+
+-- Configure auto-resume so it starts automatically on query
+ALTER WAREHOUSE iwh_name SET AUTO_RESUME = TRUE;
+```
+
+#### 2. Manual Suspension
 ```sql
 -- Suspend when not in use (e.g., overnight, weekends)
 ALTER WAREHOUSE iwh_name SUSPEND;

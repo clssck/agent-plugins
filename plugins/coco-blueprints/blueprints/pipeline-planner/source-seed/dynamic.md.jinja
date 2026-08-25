@@ -1,0 +1,25 @@
+## Source Data Reference
+
+{%- if source_data_location == 'Already in Snowflake' %}
+Your data is already in Snowflake. Provide a table, schema, or database reference.
+
+**Examples:**
+- Single table: `RAW.INGEST.ORDERS`
+- Multiple tables: `RAW.INGEST.ORDERS, RAW.INGEST.CUSTOMERS`
+- Entire schema: `RAW.INGEST`
+- Entire database: `RAW`
+{%- elif source_data_location == 'Cloud Storage' %}
+Your data is in cloud storage. Provide the stage path.
+
+**Example:** `@RAW.INGEST.FILES/orders/`
+{%- elif source_data_location == 'Streaming Platform' %}
+Your data comes from a streaming platform. Provide the topic or stream name.
+
+**Example:** `Kafka topic orders-v2`
+{%- else %}
+Provide a reference to your source data — table, schema, database, stage, or external source description.
+{%- endif %}
+
+---
+
+Your reference: **{{ source_seed_reference }}**

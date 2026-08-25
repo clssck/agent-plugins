@@ -10,7 +10,7 @@ parent_skill: agent-studio-agent
 
 ## Why template-first
 
-Users who say "create an agent" rarely know up front what tools, instructions, or warehouses they want. This skill runs a short discovery Q&A first — asking at most 4 questions in a single message — then writes a meaningful starting spec the user can see and iterate on immediately.
+Users who say "create an agent" rarely know up front what tools, instructions, or warehouses they want. This skill runs a short discovery Q&A first — asking at most 3 questions in a single message — then writes a meaningful starting spec the user can see and iterate on immediately.
 
 Two useful properties follow from this:
 
@@ -39,7 +39,7 @@ Concretely: this skill runs the template discovery in `TEMPLATED_CREATION.md`, w
 
 Load `TEMPLATED_CREATION.md` and follow the discovery workflow there. It will:
 
-1. Scan the user's original message to infer any Q1–Q4 answers already present.
+1. Scan the user's original message to infer any Q1–Q3 answers already present.
 2. Ask only the unanswered questions (all in one message — never separate turns).
 3. Route to the right template (T01–T07) and call `cortex agent-studio agent-write` with the pre-populated YAML spec.
 
@@ -57,7 +57,7 @@ Load `edit/SKILL.md` and continue there. All subsequent modifications — fillin
 ## Example: `Help me create an agent` (no details given)
 
 1. Use placeholder `MY_DB.PUBLIC.NEW_AGENT` (ask the user for the real database/schema once they are ready to deploy).
-2. Load `TEMPLATED_CREATION.md`. It asks all 4 discovery questions in one message, then calls `agent-write` with the selected template YAML and `--source-object MY_DB.PUBLIC.NEW_AGENT`. No deploy to Snowflake.
+2. Load `TEMPLATED_CREATION.md`. It asks all 3 discovery questions in one message, then calls `agent-write` with the selected template YAML and `--source-object MY_DB.PUBLIC.NEW_AGENT`. No deploy to Snowflake.
 3. After `TEMPLATED_CREATION.md` confirms the write, continue as Step 3: invite the user to supply real values for the placeholders via `edit/SKILL.md`.
 
 ## Example: User already provided full details
@@ -65,7 +65,7 @@ Load `edit/SKILL.md` and continue there. All subsequent modifications — fillin
 User: *"Create `SALES_AGENT` in `MY_DB.AGENTS` with the sales semantic view tool."*
 
 1. Use `MY_DB.AGENTS.SALES_AGENT`, checking for a conflict first.
-2. Load `TEMPLATED_CREATION.md`. It infers Q1 (1 SV, analytics domain) from "sales semantic view", then asks only the unanswered questions (Q2/Q3/Q4). After answers, it calls `agent-write` with the appropriate template YAML — not an empty `{}`.
+2. Load `TEMPLATED_CREATION.md`. It infers Q1 (1 domain) from "sales semantic view", then asks only the unanswered questions (Q2/Q3). After answers, it calls `agent-write` with the appropriate template YAML — not an empty `{}`.
 3. After the write, continue to Step 3 and load `edit/SKILL.md` to fill in the real semantic view FQN and deploy to Snowflake.
 
 The reason this skill always routes through `TEMPLATED_CREATION.md` even when the user gave details: it keeps the downstream flow identical regardless of how the user phrased their request, and it means the user always starts with a meaningful template rather than a blank spec.

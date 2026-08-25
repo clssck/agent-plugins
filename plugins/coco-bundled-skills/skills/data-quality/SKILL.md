@@ -1,6 +1,6 @@
 ---
 name: data-quality
-description: "Monitor, analyze, and enforce data quality using Snowflake DMFs. Schema-level and per-table DMF attachment, health scoring, incident investigation, circuit breakers, table comparison, dataset popularity, ad-hoc assessment, prompt quality scoring, and per-group monitoring via WITHIN GROUP clause."
+description: "Monitor, analyze, and enforce data quality using Snowflake DMFs. Schema-level and per-table DMF attachment, health scoring, incident investigation, circuit breakers, data quality notifications (expectation/anomaly email and webhook), table comparison, dataset popularity, ad-hoc assessment, prompt quality scoring, and per-group monitoring via WITHIN GROUP clause."
 ---
 
 # Data Quality
@@ -16,7 +16,7 @@ Activate this skill when the user mentions any of:
 - **Issue investigation**: "why is this table failing", "what's wrong with my data", "root cause", "quality issues"
 - **Change detection**: "quality regression", "what changed", "what broke", "did quality get worse"
 - **Trend keywords**: "quality trends", "is quality improving", "quality over time"
-- **Alerting keywords**: "quality alerts", "SLA monitoring", "alert me on quality drops", "enforce DQ SLAs"
+- **Alerting / notification keywords**: "data quality notifications", "notify me on expectation violations", "email me when DMF fails", "turn on DQ notifications", "Slack when quality fails", "quality alerts", "notify on drops", "SLA monitoring", "alert me on quality drops", "enforce DQ SLAs"
 - **Table comparison keywords**: "compare tables", "data diff", "table diff", "validate migration", "dev vs prod data", "find differences", "data reconciliation"
 - **Popularity/usage keywords**: "popular tables", "most used tables", "least used", "unused tables", "stale data", "dataset usage", "table popularity", "who uses this table", "is this table used"
 - **Ad-hoc / no-DMF keywords**: "check data quality without DMFs", "one-time quality check", "quick quality scan", "assess columns", "check for nulls", "check freshness", "check completeness"
@@ -67,6 +67,15 @@ Step 0: Check intent BEFORE preflight
   ├── "circuit breaker" / "pause pipeline on violation" / "halt bad data" /
   |   "stop downstream when quality fails"
   |         └──> Load workflows/circuit-breaker.md
+  |
+  ├── "data quality notifications" / "notify me on expectation violations" /
+  |   "email me when DMF fails" / "turn on DQ notifications" /
+  |   "Slack when quality fails" / "notify me next time" /
+  |   "quality alerts" / "notify on drops" / "expectation email"
+  |         └──> Load workflows/dq-notifications.md
+  |              (Native DATA_QUALITY_MONITORING_SETTINGS — prefer over
+  |               sla-alerting CREATE ALERT for notify-me flows.
+  |               Use sla-alerting only for custom health-% threshold ALERTs.)
   |
   ├── "accepted values" / "ACCEPTED_VALUES" / "value in set" / "allowed values" /
   |   "categorical validation" / "validate column values"
@@ -145,7 +154,13 @@ Step 0: Check intent BEFORE preflight
               |
               ├── Trends/over time ------------> Load workflows/trend-analysis.md
               |
-              ├── Alerts/SLA/notify -----------> Load workflows/sla-alerting.md
+              ├── Notify / DQ notifications /
+              |   expectation email / Slack on violation
+              |     └──> Load workflows/dq-notifications.md
+              |          (prefer over sla-alerting)
+              |
+              ├── Custom health-% SLA ALERT ---> Load workflows/sla-alerting.md
+              |     (advanced: CREATE ALERT polling health threshold)
               |
               ├── Compare tables/diff/migrate -> Load workflows/compare-tables.md
               |                                    (has its own sub-workflows)
@@ -221,7 +236,8 @@ Before executing any query, be aware of the correct data sources:
 | DQ incident investigation, correlate violation, why did freshness/volume drop | **Load** `workflows/dq-incident-investigation.md` |
 | What changed, regression, what broke | **Load** `workflows/regression-detection.md` |
 | Quality trends, improving, over time | **Load** `workflows/trend-analysis.md` |
-| Set up alerts, SLA, notify on drops | **Load** `workflows/sla-alerting.md` |
+| Notify me / DQ notifications / expectation email / Slack on violation / quality alerts / notify on drops | **Load** `workflows/dq-notifications.md` (prefer first) |
+| Custom health-% SLA ALERT (CREATE ALERT threshold poll) | **Load** `workflows/sla-alerting.md` (advanced / custom path) |
 | Compare tables, data diff, validate migration, dev vs prod | **Load** `workflows/compare-tables.md` |
 | Popular tables, most/least used, unused data, who uses this | **Load** `workflows/popularity.md` |
 | Ad-hoc check, no DMFs, one-time, listing quality | **Load** `workflows/adhoc-assessment.md` |
@@ -294,7 +310,8 @@ Follow the output format specified in the loaded workflow file. Suggest logical 
 | `reproduce-dmf-violation.sql` | Trust stored VALUE / EXPECTATION_STATUS; custom GET_DDL; optional labeled examples | Read |
 | `schema-regression-detection.sql` | Compare runs over time | Read |
 | `schema-quality-trends.sql` | Time-series analysis | Read |
-| `schema-sla-alert.sql` | Create automated alert | **Write** |
+| `dq-notifications-enable.sql` | Enable native DQ notifications (DATA_QUALITY_MONITORING_SETTINGS YAML, grants, optional integration / opt-out, status check) | **Write** (+ READ status) |
+| `schema-sla-alert.sql` | Create automated health-% ALERT (advanced; prefer dq-notifications for notify-me) | **Write** |
 | `adhoc-column-quality.sql` | SNOWFLAKE.CORE.* inline DMF patterns for ad-hoc assessment | Read |
 | `monitor-recommendations.sql` | Profile columns + rank DMF recommendations by criticality | Read |
 | `pipeline-context.sql` | Upstream + downstream lineage (GET_LINEAGE) per table; drives pipeline-aware DMF prioritization | Read |
@@ -312,7 +329,8 @@ For compare-tables tools (`data_diff` CLI, SQL templates), see `workflows/compar
 
 ## Stopping Points
 
-- ✋ **Before SLA alert creation**: The `sla-alerting` workflow creates Snowflake ALERT objects and a log table — present the full configuration and get explicit user approval before executing any CREATE statements
+- ✋ **Before DQ notifications writes**: The `dq-notifications` workflow may CREATE notification integrations, GRANT privileges, and ALTER DATABASE `DATA_QUALITY_MONITORING_SETTINGS` — present the full YAML/plan and get explicit approval before executing
+- ✋ **Before SLA alert creation**: The `sla-alerting` workflow creates Snowflake ALERT objects and a log table — present the full configuration and get explicit user approval before executing any CREATE statements. Prefer `dq-notifications` for generic notify-me intents.
 - ✋ **Before materializing diff results**: The compare-tables workflow can write diff results to a new table — confirm table name and location with user first
 - ✋ **After health check with failures**: Present results and ask if user wants root cause analysis (do not auto-chain workflows)
 - ✋ **When DMFs are absent (Step 0)**: Present the three-option menu (DMF recommendations / ad-hoc assessment / skip) — do not auto-select on behalf of the user
@@ -346,7 +364,8 @@ Each workflow produces structured output:
 - **DQ Incident Investigation**: Multi-dimensional root-cause report with timeline, primary cause, contributing factors, remediation steps
 - **Regression Detection**: Health delta (previous vs current), new failures, resolved issues
 - **Trend Analysis**: Time-series health scores, persistent vs transient issues, trend direction
-- **SLA Alerting**: Alert configuration summary, activation status, monitoring instructions
+- **DQ Notifications**: Database notification settings summary, recipients/integrations, verification via `data_quality_notification_status`
+- **SLA Alerting**: Custom health-% ALERT configuration summary, activation status, monitoring instructions (advanced path)
 - **Compare Tables**: Row counts, added/removed/modified rows, schema differences, validation report (see `workflows/compare-tables.md` for details)
 - **Dataset Popularity**: Popularity-ranked tables, unused/stale object list, storage cost estimates, usage trends, top consumers
 - **Monitor Recommendations**: Pipeline context (upstream/downstream position + blast radius from lineage), ranked DMF recommendations by criticality, column-type mappings, deployment DDL

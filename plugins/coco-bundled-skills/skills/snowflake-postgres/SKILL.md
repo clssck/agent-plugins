@@ -1,17 +1,6 @@
 ---
 name: snowflake-postgres
-description: >-
-  **[REQUIRED]** Use for **ALL** Snowflake Postgres requests and for general help with any
-  PostgreSQL database through standard PG tooling (psql, ~/.pg_service.conf, ~/.pgpass, pg_doctor
-  diagnostics). Covers: creating, showing, suspending, resuming instances, resetting or rotating
-  credentials, network policies, health checks; diagnostics such as slow queries, cache hit,
-  bloat, vacuum, dead rows, locks and blocking queries, active queries, connection counts;
-  external Postgres (RDS, Aurora, Azure, Cloud SQL, Neon, Supabase) and migration to Snowflake
-  (assessment, logical replication, pg_dump, cutover and rollback plans); managed mirrors
-  (CREATE_MIRROR, LIST_MIRRORS, $live, $changes); and pg_lake (Postgres-resident Iceberg tables,
-  `CATALOG_SOURCE = SNOWFLAKE_POSTGRES` catalog integrations, catalog-linked databases). Do NOT
-  use for generic Iceberg, catalog/storage integration, or data lake requests — those are owned by
-  the `iceberg` skill; handle Iceberg here only when scoped to pg_lake.
+description: "**[REQUIRED]** Use for **ALL** requests involving Snowflake Postgres, and for general help working with any PostgreSQL database through standard PG tooling (psql, ~/.pg_service.conf, ~/.pgpass, pg_doctor diagnostics). Triggers: 'postgres', 'postgresql', 'pg', 'psql', 'create postgres instance', 'show postgres instances', 'suspend postgres', 'resume postgres', 'reset postgres credentials', 'rotate postgres password', 'import postgres connection', 'postgres network policy', 'postgres health check', 'pg_doctor', 'pg_lake', 'postgres iceberg', 'pg iceberg', 'read pg_lake in snowflake', 'pg to snowflake iceberg', 'catalog integration for pg_lake', 'expose pg_lake to snowflake', 'SNOWFLAKE_POSTGRES catalog', 'catalog linked database for pg_lake', 'query postgres iceberg from snowflake', 'postgres slow queries', 'cache hit', 'bloat', 'vacuum', 'dead rows', 'postgres locks', 'blocking queries', 'postgres disk usage', 'active postgres queries', 'postgres connection count', 'neon', 'supabase', 'rds postgres', 'aurora postgres', 'azure postgres', 'crunchy bridge', 'external postgres', 'my postgres', 'migrate postgres', 'pg migration', 'postgres to snowflake', 'logical replication setup', 'pg_dump migration', 'migration assessment', 'cutover plan', 'rollback plan', 'migrate from RDS', 'migrate from Aurora', 'migrate from Azure postgres', 'migrate from Cloud SQL', 'move my postgres', 'transfer postgres', 'CREATE_MIRROR', 'LIST_MIRRORS', 'managed mirror', '$live', '$changes'. Do NOT use for generic Iceberg / catalog integration / storage integration / data lake requests — those are owned by the `iceberg` skill, EXCEPT for catalog integrations scoped to pg_lake (`CATALOG_SOURCE = SNOWFLAKE_POSTGRES`), which are handled here. Only handle Iceberg when it is scoped to pg_lake (Postgres-resident Iceberg tables or the pg_lake-specific catalog integration path)."
 ---
 
 # Snowflake Postgres

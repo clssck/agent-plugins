@@ -10,8 +10,10 @@
   "localPlugins": [
     "plugins/bro",
     "plugins/coco-airflow",
+    "plugins/coco-blueprints",
     "plugins/coco-bundled-skills",
-    "plugins/coco-databricks"
+    "plugins/coco-databricks",
+    "plugins/coco-sf-solutions"
   ],
   "repositories": [
     "https://github.com/emilkowalski/skills",

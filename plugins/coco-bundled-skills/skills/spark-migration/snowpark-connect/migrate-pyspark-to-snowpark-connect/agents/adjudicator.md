@@ -1,4 +1,4 @@
-# Adjudicator Agent — Phase 1.1 Specialist
+# Adjudicator Agent — Phase 1.1b Specialist
 
 Decide, for each **unadjudicated** issue the analyzer deferred, whether it is a
 genuine SCOS incompatibility or a false positive — and record that verdict. You

@@ -1,6 +1,6 @@
 ---
 name: cortex-sense
-"description": "Set up, test, query, and refine Cortex Sense contexts, and turn a built context into a CoWork agent. CoCo scans the account when the use case is named, proposes a scoped domain context, accepts plain-English edits, and persists a manifest the offline build consumes. Use when starting a Cortex Sense use case, validating a built context with real questions, querying across multiple contexts, listing available Cortex Sense domains, correcting a wrong / missing / stale answer, or creating an agent grounded in a context. Triggers: set up cortex sense, build cortex sense for <use case>, test the <use case> context, search contexts for <X>, what does cortex sense know about <X>, refine cortex sense, the agent picked the wrong table, DAU is wrong, exclude staging, @cortex-sense resume <use case>, @cortex-sense query <use case> about <X>, list cortex sense, create an agent for <domain>, create a cowork agent, deploy <domain> as an agent, add cortex sense to <agent>, enable cortex_sense on <agent>."
+description: "Set up, test, query, and refine Cortex Sense contexts, and turn a built context into a CoWork agent. CoCo runs a background scan of the account the moment the use case is named, proposes a scoped domain context, accepts edits in plain English, and persists a manifest the offline build consumes. Use when: starting a new use case for Cortex Sense, validating a built context with real questions, querying across multiple contexts, listing all available Cortex Sense domains, correcting a wrong / missing / stale answer, recording a correction to a wrong answer (work in progress), or creating an agent grounded in a context. Triggers: set up cortex sense, build cortex sense for <use case>, test the <use case> context, query about <X>, search contexts for <X>, search across contexts for <X>, what does cortex sense know about <X>, which of my contexts know about <X>, refine cortex sense, the agent picked the wrong table, DAU is wrong, exclude staging, add another schema, @cortex-sense resume <use case>, @cortex-sense query <use case> about <X>, list cortex sense, show all domains, what cortex sense do I have, list all contexts, what domains exist, record feedback, log a correction, give feedback on <domain>, create an agent for <domain>, create a cowork agent, deploy <domain> as an agent, add cortex sense to <agent>, enable cortex_sense on <agent>."
 ---
 
 # Cortex Sense
@@ -9,7 +9,7 @@ Cortex Sense is how Cortex Code and Snowflake Intelligence understand your data 
 
 **Builder principle.** CoCo proposes; the builder steers; the build does the heavy lifting. Don't ask the builder to do work CoCo can do, and don't ask CoCo to do work the build is meant to do.
 
-## Seven intents
+## Eight intents
 
 | Intent | Triggers | Sub-skill |
 |---|---|---|
@@ -19,25 +19,30 @@ Cortex Sense is how Cortex Code and Snowflake Intelligence understand your data 
 | **query** | "query about <X>", "search contexts for <X>", "search across contexts for <X>", "what does cortex sense know about <X>" (no use case named), "which of my contexts know about <X>", "@cortex-sense query <use-case> about <X>" | `query/SKILL.md` |
 | **refine** | "refine sales", "the agent picked the wrong table", "DAU is wrong", "exclude staging", "add another schema", "@cortex-sense resume <use case>" + a correction | `refine/SKILL.md` |
 | **eval** | "generate eval", "run eval", "diff eval", "score the context", "check answer correctness", "create eval set", "evaluate the context", reply to the setup confirm block with 5–10 test questions, "@cortex-sense resume <use case>" + any eval verb | `eval/SKILL.md` |
+| **feedback** *(work in progress)* | "@cortex-sense feedback <domain>", "record feedback", "log a correction", "give feedback on <domain>", "@cortex-sense resume <domain>" + "feedback" | `feedback/SKILL.md` |
 | **agent** | "create an agent for <domain>", "create a cowork agent for <domain>", "deploy <domain> as an agent", "make an agent from this context", "add cortex sense to <agent>", "wire <agent> to cortex sense", "enable cortex_sense on <agent>", "@cortex-sense resume <use case>" + an agent verb | `agent/SKILL.md` |
 
 **list-only path:** When the intent is purely to list existing domains (no query or domain name given), route to `query/SKILL.md`. That file's "List-only path" section handles it: it calls `list-contexts` and renders the domain list, then stops. Do **not** route to setup, refine, or any stage path — `SYSTEM$CORTEX_AGENT_CORTEX_CONTEXT_BUILDER list-contexts` is the single authoritative source for registered domains.
 
-Re-entry verb is `@cortex-sense resume <domain>`. CoCo loads the domain's manifest and routes to **test**, **refine**, **eval**, or **agent** based on what the builder says next. If the domain doesn't exist yet, route to **setup**.
+Re-entry verb is `@cortex-sense resume <domain>`. CoCo loads the domain's manifest and routes to **test**, **refine**, **eval**, **feedback**, or **agent** based on what the builder says next. If the domain doesn't exist yet, route to **setup**.
 
 The **query** intent is for cross-context search — use it when the builder wants to search across all contexts or query without the full test workflow.
 
 The **agent** intent is the hand-off to consumers: it turns a built context into a CoWork / Snowflake Intelligence agent, or adds Cortex Sense to an agent that already exists. It is the only sub-skill that creates objects outside the context's own storage, so it always confirms the spec before any DDL.
 
+**The feedback path is a work in progress.** Recording is durable, but nothing consumes a stored correction yet and it cannot list or edit them. It says so to the builder on the way in; do not oversell it here either.
+
+The **feedback** intent needs the verb. A correction reaches it only when the builder explicitly asks to record feedback; the same words without the verb go to **refine**. The difference is what is being corrected: **refine** changes what is in scope and writes the manifest, **feedback** corrects an answer and writes a separate file. Scope changes are never feedback — the storage layer rejects them outright. When a report is ambiguous between the two, `feedback/SKILL.md` asks once and routes on the answer.
+
 If the user's intent is ambiguous, default to **setup** when no manifest is found, **refine** when one exists and the message reads like a correction, **eval** when one exists and the message reads like validation or scoring, and **agent** when the message names an agent or asks to deploy.
 
 ## Skill structure
 
-Top-down map. The router (this file) plus six sub-skills route conversation; reference files are loaded on demand by the sub-skills; `scripts/` is the only load-bearing code.
+Top-down map. The router (this file) plus seven sub-skills route conversation; reference files are loaded on demand by the sub-skills; `scripts/` is the only load-bearing code.
 
 ```
 cortex-sense/
-├── SKILL.md                        # router (this file) — seven intents
+├── SKILL.md                        # router (this file) — eight intents
 ├── pyproject.toml                  # uv-managed deps for scripts/
 │
 ├── setup/SKILL.md                  # name → scan → draft → confirm → save
@@ -45,6 +50,7 @@ cortex-sense/
 ├── query/SKILL.md                  # cross-context search (query all or specific contexts)
 ├── refine/SKILL.md                 # corrections, expansions, updates (folds in the old "debug" flow)
 ├── eval/SKILL.md                   # generate / run / diff — answer-correctness eval sets (+ efficiency metrics)
+├── feedback/SKILL.md               # one correction: draft → confirm card → record (work in progress)
 ├── agent/SKILL.md                  # built context → CoWork agent; or add cortex_sense to an existing agent
 │
 ├── reference/                      # loaded on demand by the sub-skills
@@ -62,15 +68,17 @@ cortex-sense/
 │   ├── BUILD_STATUS.md             # best-effort `check build` status inference (no true state field yet)
 │   ├── LOCAL_FILES.md              # local files & Workspace-backed Streamlit apps → stage
 │   ├── EVAL_FORMAT.md              # eval.yaml schema, answer-grading contract, metrics, generation rules
+│   ├── FEEDBACK_RECORD.md          # feedback record form, the six types, indexed_text rules, error map
 │   └── NOT_YET_IMPLEMENTED.md      # placeholder copy + when each is surfaced
 │
 └── scripts/                        # invoked by the markdown sub-skills
     ├── persist_state.py            # YAML validation, dedup (merge subcommand), doctor pre-flight
+    ├── feedback_record.py          # feedback record: validate, and summarise for the confirm card
     ├── discover_usage.py           # deep-pass: hot tables + Streamlits + SVs from ACCOUNT_USAGE (SQL-only, 3 parallel queries)
     └── discover_ontology_domains.py  # fast-pass: fetch registered ontology sources for a matched domain
 ```
 
-A new conversation walks: `SKILL.md` → one of `setup` / `test` / `query` / `refine` / `eval` / `agent` → relevant `reference/*.md` for the contract → SQL (`SYSTEM$CORTEX_AGENT_CORTEX_CONTEXT_BUILDER put-stage-file`) to persist. `persist_state.py merge` runs dedup in-process before the SQL call for scope manifests. Nothing else is in the save path.
+A new conversation walks: `SKILL.md` → one of `setup` / `test` / `query` / `refine` / `eval` / `feedback` / `agent` → relevant `reference/*.md` for the contract → SQL (`SYSTEM$CORTEX_AGENT_CORTEX_CONTEXT_BUILDER put-stage-file`) to persist. `persist_state.py merge` runs dedup in-process before the SQL call for scope manifests. Nothing else is in the scope save path; `feedback` writes a separate file through `record-feedback` and does not touch the manifest.
 
 `agent` is the one sub-skill whose output is not a stage file — it writes a Snowflake `AGENT` object via DDL. It reads the manifest but never writes one; scope changes still flow through `refine`.
 
@@ -89,6 +97,8 @@ A new conversation walks: `SKILL.md` → one of `setup` / `test` / `query` / `re
 ## Persistence
 
 The manifest is persisted as YAML in a Snowflake stage (storage details are intentionally not surfaced to the builder). See `reference/STORAGE.md` for the full contract: location resolution, the doctor pre-flight, stage layout, and the post-save persistence-layer registration call.
+
+Recorded feedback is a **separate file in the same stage** (`feedback.json`, a sibling of the manifest) written through the `record-feedback` action. It never touches `scope.yaml`. See `reference/FEEDBACK_RECORD.md`.
 
 ## Ontology as a discovery source
 

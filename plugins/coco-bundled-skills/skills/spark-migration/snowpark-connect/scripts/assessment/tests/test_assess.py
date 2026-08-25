@@ -427,6 +427,87 @@ def test_transform_analysis_filters_partial_migration_meta_warnings() -> None:
     )
 
 
+def test_transform_analysis_filters_adjudicator_dismissed_findings() -> None:
+    """``resolution == "safe"`` means Phase 1.1 already confirmed this is a
+    false positive (e.g. ``numpy.array()`` colliding with a KB anchor for
+    ``pyspark.sql.functions.array``). Dismiss doesn't change ``kind``, so
+    before this filter it rendered identically to a confirmed issue.
+    """
+    findings = [
+        # Real, confirmed finding — should be counted.
+        {
+            "file": "/r/a.py", "lines": "1-1", "final_risk": 0.5,
+            "root_cause": "real", "explanation": "e", "fix": None,
+            "confidence": "MEDIUM", "language": "python",
+        },
+        # Adjudicator-dismissed false positive — should be dropped even
+        # though it has a real final_risk and HIGH confidence.
+        {
+            "file": "/r/a.py", "lines": "2-2", "final_risk": 0.4,
+            "root_cause": "numpy.array collides with F.array KB anchor",
+            "explanation": "e", "fix": None, "confidence": "HIGH",
+            "language": "python", "kind": "needs_adjudication",
+            "resolution": "safe",
+            "resolution_reason": "file imports numpy as np; unrelated to pyspark.sql.functions.array",
+        },
+        # Dismissed on a file with no other findings — must not appear at all.
+        {
+            "file": "/r/b.py", "lines": "1-1", "final_risk": 0.9,
+            "root_cause": "math.ceil collides with F.ceil KB anchor",
+            "explanation": "e", "fix": None, "confidence": "HIGH",
+            "language": "python", "kind": "needs_adjudication",
+            "resolution": "safe",
+            "resolution_reason": "single-arg math.ceil, not the two-arg F.ceil overload",
+        },
+    ]
+    ir = transform_analysis(findings, project="t", workload_root="/r")
+    a_row = next(f for f in ir.files if f.name == "a.py")
+    assert a_row.issues == 1, (
+        f"dismissed finding on a.py must NOT count toward issues, got {a_row.issues}"
+    )
+    assert all(f.name != "b.py" for f in ir.files), (
+        "b.py had only a dismissed finding — it should not appear as a finding file"
+    )
+    assert ir.workload.changes_needed == 1, (
+        f"changes_needed must exclude adjudicator-dismissed findings, got {ir.workload.changes_needed}"
+    )
+    assert ir.compatibility.not_supported_usages == 1, (
+        f"not_supported_usages must exclude adjudicator-dismissed findings, "
+        f"got {ir.compatibility.not_supported_usages}"
+    )
+
+
+def test_transform_analysis_keeps_confirmed_adjudicated_findings() -> None:
+    """Only ``resolution == "safe"`` is excluded — a confirmed finding
+    (``kind`` flipped to ``standard``, no ``resolution`` set) still counts."""
+    findings = [
+        {
+            "file": "/r/a.py", "lines": "1-1", "final_risk": 0.7,
+            "root_cause": "confirmed real divergence", "explanation": "e",
+            "fix": "rewrite x", "confidence": "HIGH", "language": "python",
+            "kind": "standard", "adjudicated": True,
+        },
+    ]
+    ir = transform_analysis(findings, project="t", workload_root="/r")
+    assert ir.files[0].issues == 1, (
+        f"confirmed adjudicated finding must still be counted, got {ir.files[0].issues}"
+    )
+
+
+def test_transform_analysis_resolution_check_is_case_insensitive() -> None:
+    """resolution="SAFE"/"Safe" must be excluded the same as "safe"."""
+    findings = [
+        {
+            "file": "/r/a.py", "lines": "1-1", "final_risk": 0.5,
+            "root_cause": "r", "explanation": "e", "fix": None,
+            "confidence": "HIGH", "language": "python",
+            "kind": "needs_adjudication", "resolution": "SAFE",
+        },
+    ]
+    ir = transform_analysis(findings, project="t", workload_root="/r")
+    assert ir.files == [], "resolution='SAFE' (any casing) must be excluded"
+
+
 
 
 def test_transform_analysis_keeps_distinct_subdir_files() -> None:

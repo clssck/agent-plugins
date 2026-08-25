@@ -11,7 +11,7 @@ Use this skill when a user wants to:
 
 - Create a new DCM project from scratch
 - Modify an existing DCM project (with or without local source code)
-- Define or modify Snowflake infrastructure (databases, schemas, tables, views, dynamic tables, tasks, warehouses, roles, grants, sequences, procedures, alerts)
+- Define or modify Snowflake infrastructure (databases, schemas, tables, views, dynamic tables, tasks, warehouses, stages (internal and external), file formats, streams, pipes, roles, grants, sequences, procedures, alerts)
 - Set up data quality expectations and data metric functions
 - Understand dependencies or lineage between objects in a DCM project
 - Deploy changes to Snowflake infrastructure
@@ -234,24 +234,26 @@ User wants to import existing Snowflake objects into DCM
    SELECT GET_DDL('STAGE', 'DB.SCHEMA.STAGE');
     ↓
 2.5. ⚠️ MANDATORY: Categorize Objects by DCM Support
-   - **Stages**: Check for URL parameter
-     ✅ No URL (internal) → Use DEFINE STAGE
-     ⚠️ Has URL (external) → Place in post_deploy.sql
+   - **Stages**: Both internal and external → Use DEFINE STAGE
+     ⚠️ External stage credentials must NOT be inlined — use STORAGE_INTEGRATION
+     ⚠️ The storage integration itself → pre_deploy.sql (ACCOUNTADMIN)
    - **Grants**: Load roles-and-grants/SKILL.md
      ✅ Supported → include in definitions
      ⚠️ Workaround needed → warehouse grants need account role
      ❌ Unsupported → document in post_deployment_grants.sql
    - **Other Objects**: Tables, Views, Warehouses, Sequences, Procedures, Alerts → DEFINE
-   - **Unsupported Objects**: Streams → post_deploy.sql; Integrations → pre_deploy.sql
+   - **Unsupported Objects**: Integrations → pre_deploy.sql (incl. storage integrations for
+     private external stages and notification integrations for AUTO_INGEST pipes)
    - Present categorized analysis to user
    - ⚠️ CHECKPOINT: Get explicit approval before proceeding
     ↓
 3. Convert supported objects (CREATE to DEFINE):
    - Replace CREATE keyword with DEFINE for supported objects
-   - Internal stages: CREATE STAGE → DEFINE STAGE
-   - Preserve all properties exactly
+   - Stages (internal and external): CREATE STAGE → DEFINE STAGE
+   - Preserve all properties exactly — except inline credentials, which must be
+     replaced with a STORAGE_INTEGRATION reference
    - Keep grants separate (handle per step 2.5 analysis)
-   - External stages/streams go to companion scripts (not DEFINE)
+   - Streams and pipes convert too: CREATE STREAM → DEFINE STREAM, CREATE PIPE → DEFINE PIPE
     ↓
 4. Add definitions to project files:
    - DEFINE statements → appropriate .sql files
@@ -475,10 +477,12 @@ When a user wants to "import" or "adopt" existing Snowflake objects:
 
 1. **Get current DDL**: `SELECT GET_DDL('TABLE', 'fully.qualified.name')`
 2. **Categorize the object**:
-   - ✅ **Internal stages** (no URL) → Convert to `DEFINE STAGE`
-   - ⚠️ **External stages** (with URL parameter) → Place in `post_deploy.sql`
+   - ✅ **Stages, internal and external** → Convert to `DEFINE STAGE`
+     - ⚠️ If the DDL has inline `CREDENTIALS = (...)`, do NOT copy them into the
+       definition. Replace with `STORAGE_INTEGRATION` and put the integration in
+       `pre_deploy.sql`.
    - ✅ **Tables, Views, Warehouses, Sequences, Procedures, Alerts** → Convert to `DEFINE`
-   - ⚠️ **Streams** → Place in `post_deploy.sql`
+   - ✅ **Streams, Pipes** → Convert to `DEFINE STREAM` / `DEFINE PIPE`
    - ⚠️ **Integrations** → Place in `pre_deploy.sql`
 3. **Convert CREATE to DEFINE** (for supported objects): Replace the keyword only
 4. **Add to DCM project definitions**: Place in appropriate .sql file

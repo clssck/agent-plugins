@@ -56,7 +56,7 @@ All objects MUST use fully qualified names: `database.schema.object_name`.
 | Warehouse | `DEFINE WAREHOUSE` | Uses WITH clause | `primitives/warehouses.md` |
 | Account Role | `DEFINE ROLE` | Account-wide scope | `primitives/roles_and_grants.md` |
 | Database Role | `DEFINE DATABASE ROLE` | Database-scoped | `primitives/roles_and_grants.md` |
-| Internal Stage | `DEFINE STAGE` | Encryption immutable after creation | `primitives/stages.md` |
+| Stage (internal + external) | `DEFINE STAGE` | `URL` makes it external; encryption immutable after creation; never inline credentials | `primitives/stages.md` |
 | File Format | `DEFINE FILE FORMAT` | TYPE required; TYPE immutable after creation | `primitives/file_formats.md` |
 | Task | `DEFINE TASK` | Auto suspend/resume during deploy | `primitives/tasks.md` |
 | Sequence | `DEFINE SEQUENCE` | START immutable after creation | `primitives/sequences.md` |
@@ -64,13 +64,17 @@ All objects MUST use fully qualified names: `database.schema.object_name`.
 | Alert | `DEFINE ALERT` | Requires WAREHOUSE; auto suspend/resume during deploy | `primitives/alerts.md` |
 | SQL Function | `DEFINE FUNCTION` | No auto dependency sorting | `primitives/sql_functions.md` |
 | Data Metric Function | `DEFINE DATA METRIC FUNCTION` | Custom DMFs | `primitives/data_quality.md` |
+| Stream | `DEFINE STREAM` | All source types; only COMMENT mutable after creation | `primitives/streams.md` |
+| Pipe | `DEFINE PIPE` | Only COMMENT mutable; AUTO_INGEST needs cloud-side setup | `primitives/pipes.md` |
 | Tag | `DEFINE TAG` | Can define but cannot attach to objects | -- |
 | Authentication Policy | `DEFINE AUTHENTICATION POLICY` | PAT policies | -- |
 | Grants | `GRANT ... TO ...` | Imperative syntax | `primitives/roles_and_grants.md` |
 | DMF Attachments | `ATTACH DATA METRIC FUNCTION` | With EXPECTATION clause | `primitives/data_quality.md` |
 | Jinja Templating | `{{ }}`, `{% %}` | Variables, loops, macros | `primitives/jinja_templating.md` |
 
-> **Object types not listed above** (streams, external stages, integrations, network rules/policies, shares, semantic views) are not supported by DEFINE. Load `primitives/unsupported_objects.md` for guidance on managing these with companion SQL scripts.
+> **Object types not listed above** (integrations, network rules/policies, shares, semantic views) are not supported by DEFINE. Load `primitives/unsupported_objects.md` for guidance on managing these with companion SQL scripts.
+>
+> **External stages ARE supported** via `DEFINE STAGE` with a `URL`. Only the *storage integration* they reference needs a companion script. The same split applies to **pipes**: `DEFINE PIPE` is supported, but an `AUTO_INGEST` pipe's cloud event notification is configured outside DCM.
 
 ---
 
@@ -87,7 +91,7 @@ Load ONLY the references needed for the current task.
 | Consumption views | `reference/primitives/views.md` |
 | Pipeline transformations | `reference/primitives/dynamic_tables.md` |
 | Scheduled operations, ETL DAGs | `reference/primitives/tasks.md` |
-| File staging (internal) | `reference/primitives/stages.md` |
+| File staging (internal or external stages) | `reference/primitives/stages.md` |
 | File formats | `reference/primitives/file_formats.md` |
 | Compute resources | `reference/primitives/warehouses.md` |
 | Access control, permissions | `reference/primitives/roles_and_grants.md` |
@@ -95,13 +99,15 @@ Load ONLY the references needed for the current task.
 | Sequences / auto-increment IDs | `reference/primitives/sequences.md` |
 | Stored procedures | `reference/primitives/procedures.md` |
 | Alerts / scheduled monitoring | `reference/primitives/alerts.md` |
+| Change tracking, CDC, incremental pipelines | `reference/primitives/streams.md` |
+| Continuous file ingestion, Snowpipe | `reference/primitives/pipes.md` |
 
 **Mechanism references** -- load when derived conditions apply:
 
 | Reference | Trigger conditions |
 |-----------|--------------------|
 | `reference/primitives/jinja_templating.md` | Multi-environment support; templated naming; team/user loops; conditional objects; macros; parameterized configs |
-| `reference/primitives/unsupported_objects.md` | User mentions streams, external stages, integrations, network rules/policies, shares, semantic views; OR existing files contain `ATTACH PRE_HOOK` / `POST_HOOK`; OR user asks about object types not in the Supported Entities table |
+| `reference/primitives/unsupported_objects.md` | User mentions storage/notification or other integrations, network rules/policies, shares, semantic views; OR existing files contain `ATTACH PRE_HOOK` / `POST_HOOK`; OR user asks about object types not in the Supported Entities table |
 | `reference/primitives/data_quality.md` | Data quality expectations; DMF attachments; DATA_METRIC_SCHEDULE; null/uniqueness/freshness checks; custom metric functions |
 
 ---

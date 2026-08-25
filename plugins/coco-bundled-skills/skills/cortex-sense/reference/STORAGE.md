@@ -32,6 +32,9 @@ If storage is unavailable, surface a plain-English error and stop.
 | `list-files` | not yet available | List files in the internal stage |
 | `delete-context` | available | Delete a context and its associated files; returns `{"deleted": true, "id": "...", "name": "...", "schema_name": "...", "database_name": "..."}` |
 | `force-reprocess` | available | Reset a context's `last_processed_at` to the epoch, triggering a reprocess on the next refreshd poll tick (on-demand build trigger) |
+| `record-feedback` | available | Append one correction to `feedback.json`. Durable and readable back; **nothing consumes it yet**. Separate from the manifest — see `FEEDBACK_RECORD.md` |
+| `list-feedback` | available | Per-record summary of a context's feedback. Not used by this skill — `get-stage-file` on `feedback.json` is the read this family already uses everywhere else (`FEEDBACK_RECORD.md` "Reading it back") |
+| `update-feedback` | available | Edit a recorded feedback record. Not used by this skill; rejects any change to `absorbable` or its gating fields (`FEEDBACK_RECORD.md`) |
 
 > **`deployment` field.** Do **not** include `deployment` (or `account_url`) in any `SYSTEM$CORTEX_AGENT_CORTEX_CONTEXT_BUILDER` call — they are server-resolved and will be deprecated. Omit them from all payloads: `create-context`, `put-stage-file`, `get-stage-file`, `list-contexts`, etc. The same applies to `SYSTEM$CORTEX_AGENT_CORTEX_CONTEXT` (context lookup) — it also resolves account/deployment server-side, so omit both there too (see `CONTEXT_LOOKUP.md`).
 
@@ -260,6 +263,59 @@ uv run --project <SKILL_DIR>/.. snow sql --format json -q "
 > **Non-blocking by design.** `force-reprocess` is a best-effort acceleration — the save is already durable. A `force-reprocess` failure must never prevent the confirm block from rendering.
 
 > **Do not translate internal cadence to the builder.** "refreshd poll tick" and "refresh cycle" are internal mechanics — never tell the builder the build runs "every hour" or on any fixed schedule, and never quote a specific ETA. Builder-facing timing stays vague ("a few hours" / "minutes or hours depending on scope").
+
+---
+
+### Setting the COMMENT (description)
+
+The full contract — generation rules, confirm block, SQL pattern, drift tracking via `description_synced_version`, and no-read-back implications — lives in `reference/DESCRIPTION.md`. Consult it for all description-related work; notes here cover what is specific to this file's surface.
+
+**Timing:** the description is confirmed *before* the save (see `DESCRIPTION.md` "When this runs"), so `description_synced_version` rides in the single `put-stage-file` call. `ALTER CORTEX SENSE` runs after `force-reprocess`, non-blocking.
+
+**DDL, not `_BUILDER`.** `ALTER CORTEX SENSE` is plain Snowflake DDL — it is not routed through `SYSTEM$CORTEX_AGENT_CORTEX_CONTEXT_BUILDER`, so the constant-literal restriction on `_BUILDER` calls does not apply. However, DDL resolves unquoted identifiers to uppercase, so the domain name **must** be double-quoted; build the SQL in Python and write it to a temp file (`snow sql -f`). See `DESCRIPTION.md` "Identifier quoting" and "Applying it" for the exact pattern.
+
+**Privilege required.** `ALTER CORTEX SENSE … SET COMMENT` requires `MODIFY` or `OWNERSHIP` on the context object — a different grant from everything else in this file, which goes through `_BUILDER`. For the exact error-matching criteria and advisory copy, see `DESCRIPTION.md` "Response handling".
+
+---
+
+### Recording feedback
+
+Appends one correction to `feedback.json` in the context's stage. The record contract — every field, how to derive it, and the caps this call does not enforce — is `FEEDBACK_RECORD.md`. Validate with `feedback_record.py draft` before building the payload.
+
+**Quoting:** use **dollar quoting** (`$$...$$`) for the same reason as `put-stage-file` — see that section. The argument must also be a constant literal, so a bind parameter is not an option.
+
+`draft` rejects `$$` in any free-text field before you get here. Dollar quoting has no escape sequence, so there is nothing to escape to.
+
+```python
+# Runs in CoCo bash sandbox (Linux) — safe on any host OS
+import json, tempfile, os
+
+# `record` is the `record` object from `feedback_record.py draft`
+payload = json.dumps({"action": "record-feedback", "parameters": record}, sort_keys=True)
+
+sql = f"SELECT SYSTEM$CORTEX_AGENT_CORTEX_CONTEXT_BUILDER($${payload}$$) AS result"
+
+fd, sql_path = tempfile.mkstemp(suffix=".sql")
+with os.fdopen(fd, "w") as f:
+    f.write(sql)
+```
+
+```bash
+# Runs in CoCo bash sandbox (Linux) — safe on any host OS
+uv run --project <SKILL_DIR>/.. snow sql --format json -f "$SQL_PATH" [-c <connection>]
+```
+
+`sort_keys=True` keeps the emitted bytes stable for a given record, so re-drafting the same record produces the same statement and a test can assert on it. It is **not** there to make a retry safe — a retry is never safe here, because each attempt mints a new `feedback_id` and creates a second correction rather than repairing the first (see `Unknown`, below).
+
+No `TRY_PARSE_JSON` here. The response is five flat keys, two of them a bool and an int — exactly what `TRY_PARSE_JSON` returns in scientific-notation float form — and it yields `NULL` on input it cannot parse, which would turn a server error into an empty result. Read the keys out of the returned string instead.
+
+**Response:** `feedback_id`, `lifecycle_state`, `envelope_version`, `indexed_text`, `indexed` — five keys, all internal; none reaches the builder. What each one means is in `FEEDBACK_RECORD.md` "### Response".
+
+**Errors:** arrives as a failed SQL statement, not an error field in the envelope, per `FEEDBACK_RECORD.md` "## Errors" — read the failure text, not `response_structured`. Covers `InvalidArgument`, `NotFound`, `Unauthenticated`, `ResourceExhausted`, `DataLoss`, `FailedPrecondition`, `Unknown`, `Internal`, and a `snow sql` failure with no status code (treat as `Unknown`); what each means and what to say is there too.
+
+> **Blocking.** Unlike `force-reprocess`, this call is the whole point of the flow. If it fails, say so — never report a correction as recorded on an ambiguous outcome.
+
+Read `feedback.json` back with `get-stage-file` (see **Loading — one call**, substituting the path). A `NOT_FOUND` there means either no correction has been recorded yet or the context does not exist; disambiguate with `get-context` before telling the builder anything.
 
 ---
 

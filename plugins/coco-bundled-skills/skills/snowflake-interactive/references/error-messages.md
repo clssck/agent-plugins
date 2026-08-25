@@ -247,31 +247,6 @@ SELECT * FROM my_table;
 
 ---
 
-### Cannot Create Multi-Cluster with Auto-Scale
-**Error Message**:
-```
-Interactive warehouses do not support auto-scaling
-```
-
-**Cause**: Tried to set MIN_CLUSTER_COUNT != MAX_CLUSTER_COUNT
-
-**Solution**: Set both to same value
-```sql
--- Wrong:
-CREATE INTERACTIVE WAREHOUSE iwh_name
-MIN_CLUSTER_COUNT = 1
-MAX_CLUSTER_COUNT = 3  -- Auto-scale not supported
-WAREHOUSE_SIZE = 'XSMALL';
-
--- Correct:
-CREATE INTERACTIVE WAREHOUSE iwh_name
-MIN_CLUSTER_COUNT = 2
-MAX_CLUSTER_COUNT = 2  -- Same value
-WAREHOUSE_SIZE = 'XSMALL';
-```
-
----
-
 ## Streaming/Pipe Errors
 
 ### Pipe Already Exists

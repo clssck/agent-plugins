@@ -1,17 +1,6 @@
 ---
 name: marketplace-provider
-description: >-
-  **[REQUIRED]** Provider onboarding for the Snowflake Marketplace. Use for ALL requests about
-  listing, sharing, or distributing data products on the Marketplace — datasets, native apps,
-  DSNA, connected apps, CKE (Cortex Knowledge Extensions), Cortex Agents, semantic views — plus
-  provider profiles, listing review process, pricing plans and monetization (paid, free-to-paid,
-  trial, personalized, access types), Cortex AI Ready status, moving listings between accounts,
-  private sharing via Marketplace, secure shares behind listings, compliance badges, image tile
-  requirements, discoverability, invoice and payout status, and updating or removing published
-  listings. This skill OVERRIDES native-app-provider, declarative-sharing, data-sharing, and
-  sharing whenever the context is Marketplace distribution; for AI object execution it DELEGATES
-  to ai-data-share and attach-ai-products-to-share. Triggers include: become a provider, publish
-  listing, which AI product type, native vs connected app, CKE inside native app.
+description: "**[REQUIRED]** Provider onboarding for Snowflake Marketplace. Use for ALL requests about listing, sharing, or distributing data products on the Snowflake Marketplace — including datasets, native apps, DSNA, connected apps, CKE (Cortex Knowledge Extensions), Cortex Agents, and semantic views. Also use for: provider profiles, listing reviews, pricing plans, monetization, Cortex AI Ready status, moving listings between accounts, private sharing via Marketplace, secure shares behind listings, listing access types. This skill OVERRIDES native-app-provider, declarative-sharing, data-sharing, and sharing when the context is Marketplace distribution. For AI object execution this skill DELEGATES to ai-data-share and attach-ai-products-to-share. Triggers: provider onboarding, become a provider, create profile, provider profile, list on marketplace, publish listing, marketplace listing, create listing, share dataset on marketplace, build native app for marketplace, DSNA marketplace, connected app marketplace, CKE marketplace, publish CKE, cortex agent marketplace, publish cortex agent, semantic view marketplace, attach semantic view to listing, AI ready listing, Cortex AI Ready, which AI product type, private share no listing, secure share behind listing, create secure share, move listing between accounts, who reviews my listing, listing review process, email dataset, pricing plans marketplace, paid listing, free to paid listing, listing access types, trial listing, personalized listing, compliance badges, image tile requirements, improve discoverability, provider playbook, invoice status, payout status, update published listing, remove published listing, CKE inside native app, native vs connected app."
 ---
 
 # Snowflake Marketplace Provider Onboarding

@@ -1,0 +1,11 @@
+## Technology Preference
+
+{%- if technology_preference == 'No Preference' %}
+
+No preference stated — the recommendation will be based entirely on your requirements (freshness, logic, trigger, source, and constraints).
+
+{%- else %}
+
+You indicated existing technology needs or constraints. This will be factored into the scoring — matching Snowflake technologies receive a +25 boost, and ecosystem signals receive a +10 boost. If your needs conflict with a hard constraint, the system will explain why and suggest alternatives.
+
+{%- endif %}

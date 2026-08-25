@@ -1,0 +1,23 @@
+## Source Data
+
+Your source data lives in: **{{ source_data_location }}**
+
+{%- if source_data_location == 'Streaming Platform' %}
+
+Streaming sources (Kafka, Kinesis) work best with **Streams & Tasks**, which can process incoming data in near real-time as it arrives.
+{%- elif source_data_location == 'Cloud Storage' %}
+
+File-based sources (S3, GCS, Azure) often benefit from **Snowpark** for flexible file processing, or can be loaded via Snowpipe into tables for transformation by other technologies.
+{%- elif source_data_location == 'External API' %}
+
+API sources may require Python for extraction, which points toward **Snowpark** for the full pipeline or a hybrid approach.
+{%- elif source_data_location == 'Already in Snowflake' %}
+
+Data already in Snowflake is ideal for **Dynamic Tables** — they can declaratively transform existing tables with automatic refresh.
+{%- elif source_data_location == 'SaaS Application' %}
+
+SaaS data typically lands in Snowflake via connectors (Fivetran, Airbyte), after which it's treated as Snowflake-internal data.
+{%- elif source_data_location == 'Multiple Sources' %}
+
+Multiple sources may require a combination approach. The scoring engine will weigh all factors to find the best primary technology.
+{%- endif %}

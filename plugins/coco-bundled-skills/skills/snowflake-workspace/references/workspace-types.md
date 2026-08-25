@@ -39,3 +39,12 @@ SHOW GRANTS ON WORKSPACE <fqn>;                  -- audit
 `OWNERSHIP` includes implicit READ + WRITE; transfer with `GRANT OWNERSHIP`.
 
 For shared-workspace file-op visibility (live/head, when COMMIT matters), see the "File operations" section in `SKILL.md`.
+
+## Git-backed (git-synced) — a *private* workspace connected to a Git repo
+
+A git-backed workspace is **a kind of Personal workspace** (it lives under `USER$<u>.PUBLIC`), connected to an external Git repository. It is **mutually exclusive with Shared**: a shared workspace cannot be git-backed, and a git-backed workspace cannot be shared via RBAC.
+
+- **Creation is UI-only.** Created only in Snowsight via **Projects » Workspaces » From Git repository** (repo URL + API integration + OAuth2 / PAT / public-repo auth). There is **no `CREATE WORKSPACE` DDL** and no `cortex` path for a git-backed workspace — you cannot SQL-create a workspace and attach git afterward. Redirect to the UI.
+- **Collaboration is via git, not RBAC.** Each collaborator works in their **own git-backed workspace** and uses conventional `git` push/pull against the shared remote — this is how you collaborate with people inside and outside Snowflake. Do not use `GRANT READ`/`WRITE ON WORKSPACE` to "share" a git-backed workspace.
+- **Git operations are UI-only.** `git push`/`pull`/commit/branch-switch run through internal `SYSTEM$WORKSPACE_REPO_*` functions the Snowsight backend invokes; there is no public SQL/CLI equivalent. See the "UI-only operations" section in `SKILL.md`.
+- **You cannot detect git-backed status.** `DESCRIBE WORKSPACE` has **no** `repository_url`/`git_url`/`branch` column (don't invent one); its only git-adjacent fields are undocumented `*_git_commit_hash`/`*_source_location_uri`. The authoritative repo origin/branch/status lives in internal `SYSTEM$WORKSPACE_STATUS.repo.origin` / `SYSTEM$WORKSPACE_REPO_*` / `gitRepositoryDetails` calls that are **not exposed to public SQL/CLI**, and `SHOW WORKSPACES` doesn't report it. There is no reliable public way to determine git-backed status — say so and point the user to check in the Snowsight UI.

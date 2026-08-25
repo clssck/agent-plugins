@@ -1,17 +1,6 @@
 ---
 name: lineage
-description: >-
-  Snowflake table and column lineage: impact analysis, root cause, data discovery, trust.
-  Triggers: 'what depends on', 'what will break', 'blast radius', 'who uses', 'deprecate', 'before
-  I change', 'downstream', 'root cause', 'trace upstream', 'where does this come from', 'feeds
-  this table', column lineage ('where does [column] come from', 'what uses [column]'), 'is this
-  trustworthy', 'which table should I use', 'recommend dataset', 'certify', 'verify source'. Also
-  handles asks naming external systems (Power BI, Tableau, Sigma, Looker, dbt): on accounts with
-  Horizon Catalog connectors (Private Preview) or a GET_LINEAGE version supporting OpenLineage
-  entities, lineage results include external entities. For value-level data quality (wrong values,
-  failing DMFs) use the data-quality skill first, then this skill to trace upstream. Always read
-  `reference/snowflake-apis.md` before writing GET_LINEAGE SQL; for external entities see
-  `reference/external-row-output.md`.
+description: "Snowflake table/column lineage: impact analysis, root cause, data discovery, provenance, trust. Triggers: 'what depends on', 'what will break', 'blast radius', 'who uses', 'deprecate', 'before I change', 'affected users', 'downstream', 'cascade', 'root cause', 'trace upstream', 'where does this come from', 'feeds this table', 'sources of', 'column lineage', 'where does [column] come from', 'what uses [column]', 'trace [column]', 'is this trustworthy', 'which table should I use', 'recommend dataset', 'provenance', 'certify', 'verify source'. Also handles questions where users mention external systems (Power BI, Tableau, Sigma, Looker, dbt) — on accounts meeting either of two conditions (Horizon Catalog connectors (Private Preview) enabled, or `GET_LINEAGE` on a version supporting OpenLineage-sourced entities), lineage results from native-anchored queries automatically include external entities. For value-level data quality (wrong values, failing DMFs) use the data-quality skill first, then this skill to trace upstream. Always read `reference/snowflake-apis.md` before writing GET_LINEAGE SQL — it has the correct namespace, argument order, and output column names. When external entities appear in results, see `reference/external-row-output.md`."
 ---
 
 # Lineage & Impact Analysis

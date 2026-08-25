@@ -4,6 +4,8 @@ Reference for diagnosing and resolving issues across the Snowflake Apps lifecycl
 
 > **Note:** `SYSTEM$GET_APPLICATION_SERVICE_EVENT_TABLE_DATA` and similar observability system functions may evolve as the platform develops. If a function fails with "unknown function", check the latest Snowflake documentation.
 
+> **First question in any app investigation: which manifest drives this project?** This guide describes the `snowflake.yml` flow unless a section says otherwise. If the project root has an `app.yml` with a top-level `version: 2`, that file owns the deployment configuration instead — read [`manifests.md`](manifests.md) for its fields and errors, and [Diagnosing an app.yml v2 project](#diagnosing-an-appyml-v2-project) for what changes.
+
 ---
 
 ## Happy Path Overview
@@ -14,7 +16,7 @@ Reference for diagnosing and resolving issues across the Snowflake Apps lifecycl
 2. **Template is copied** — The `create` sub-skill scaffolds the project from the chosen template subdirectory under `apps/snowflake-apps/create/` into a new directory.
 3. **CoCo generates a working app** — Source files are modified to implement the user's requirements (pages, API routes, Snowflake queries, styling).
 4. **`snow app setup --dry-run`** — Validates that all required Snowflake objects exist and resolves configuration values without writing anything. Each resolved value shows its source (`user input`, `account parameter`, `default`, `current session`, or `missing`).
-5. **`snow app setup`** — Generates the actual `snowflake.yml` deployment manifest. Resolution order:
+5. **`snow app setup`** — Generates the actual deployment manifest: `snowflake.yml` by default, or an `app.yml` with `version: 2` when the `ENABLE_SAR_APP_YML_V2` CLI feature flag is on (see [`manifests.md`](manifests.md)). Either way it never overwrites an existing manifest. Resolution order:
    - CLI flags (`--compute-pool`, `--build-eai`) — highest priority
    - Account parameters (`DEFAULT_SNOWFLAKE_APPS_*`) — user-level defaults
    - Built-in defaults — personal database (`USER$<username>`), artifact repo (`<APP>_REPO`)
@@ -51,6 +53,7 @@ Reference for diagnosing and resolving issues across the Snowflake Apps lifecycl
    - If the service already exists (errno 2002), falls back to `ALTER APPLICATION SERVICE UPGRADE`
    - CLI polls `DESCRIBE APPLICATION SERVICE` waiting for the endpoint URL to become available
    - Returns the app URL (e.g. `https://<app>.snowflakecomputing.app`)
+   - In an `app.yml` v2 project this phase is a single declarative `CREATE OR ALTER APPLICATION SERVICE` instead — see [Diagnosing an app.yml v2 project](#diagnosing-an-appyml-v2-project)
 
 ### Phase 3: App Upgrade
 
@@ -59,6 +62,7 @@ Reference for diagnosing and resolving issues across the Snowflake Apps lifecycl
    - Build: rebuilds the container image with updated source (new version in artifact repo)
    - Promote: `ALTER APPLICATION SERVICE UPGRADE TO VERSION LATEST`
    - CLI polls `is_upgrading` until the service URL is ready again
+   - In an `app.yml` v2 project there is no separate upgrade path: every deploy re-applies the same `CREATE OR ALTER`, so `--promote-only` means "re-converge to the manifest" rather than "upgrade the existing service"
 
    **Manual upgrade (without re-uploading/rebuilding):**
    ```sql
@@ -143,6 +147,7 @@ snow app setup --app-name="<app_name>" --compute-pool <pool> --build-eai <eai> -
 | Error | Cause | Resolution |
 |-------|-------|------------|
 | `snowflake.yml already exists` | Setup was already run | Skip setup; edit `snowflake.yml` directly or delete it and re-run |
+| `app.yml already exists. Skipping initialization.` and no manifest written | With the v2 flag on, setup skips when any `app.yml` is present — including the build-only one a template ships | Move the existing `app.yml` aside, re-run setup, then merge the build phases back into the generated file |
 | `Could not derive app name` | Directory name contains only special characters | Pass `--app-name` explicitly |
 | `Invalid app name` | Name contains characters other than letters, digits, underscores | Use only `[a-zA-Z0-9_]` |
 | Missing `build_compute_pool` | No account parameter set and no `--compute-pool` flag | Run `SHOW COMPUTE POOLS` to find one, then pass `--compute-pool` |
@@ -206,9 +211,9 @@ entities:
 
 > **Unknown keys are rejected.** The `snowflake-app` entity model forbids extra fields, so a typo or an invented field fails validation before deploy rather than being ignored. This is the opposite of `app.yml`, where unknown keys are silently dropped. To see the authoritative field list for your installed CLI, run `snow helpers generate-project-schema`.
 
-### app.yml Field Reference
+### Build-only app.yml Field Reference
 
-`app.yml` is a separate file from `snowflake.yml`. It controls the build and runtime; `snowflake.yml` controls where the app is deployed. Nine top-level keys are accepted:
+This is the `app.yml` that accompanies a `snowflake.yml` — it has **no `version:` key** and controls the build and runtime, while `snowflake.yml` controls where the app is deployed. (For the `version: 2` manifest, which absorbs the deployment configuration too, see [`manifests.md`](manifests.md).) Nine top-level keys are accepted:
 
 | Key | Purpose |
 |-----|---------|
@@ -237,7 +242,7 @@ entities:
 | `code_stage` | `<APP_NAME>_CODE` | Explicit or default | Used when NOT in personal DB flow |
 | `code_workspace` | `<DB>.<SCHEMA>.SNOWFLAKE_APPS` | Generated by setup | Used in personal DB flow; shared across apps |
 
-### Validating snowflake.yml
+### Validating the manifest
 
 ```bash
 # Validate structure without deploying
@@ -247,6 +252,27 @@ snow app validate [--entity-id "<id>"]
 snow app bundle [--entity-id "<id>"]
 # Inspect output at: ./output/bundle/
 ```
+
+In an `app.yml` v2 project, `validate` takes `--target "<name>"` instead of `--entity-id`, and `bundle` takes neither (all targets share one source tree). If a file is missing from the bundle there, check `ignore` — v2 has no `artifacts` `src`/`dest` rules, so `ignore` is the only thing that can exclude it.
+
+---
+
+## Diagnosing an app.yml v2 project
+
+The upload and build phases are identical in both layouts, so everything in this guide about them applies verbatim. What differs is where configuration comes from and what the deploy phase does — [`manifests.md`](manifests.md) is the reference for both, including the field defaults and every v2-specific error message with its fix. Two things belong here instead, because they are diagnostic procedures rather than facts:
+
+### "I changed app.yml and nothing happened"
+
+Work through these in order; the first two cover most reports:
+
+1. **Is a top-level `version: 2` present?** Without it the CLI treats the file as the legacy build-only manifest, ignores every deployment key in it, and reads `snowflake.yml` instead. It has to be 2 exactly — a higher value is rejected rather than accepted.
+2. **Which target was deployed?** A field edited on the baseline is still overridden by whatever the selected target sets, and list fields (`secrets`, `environment_variables`, `external_access_integrations`) replace the baseline list rather than merging into it.
+3. **Is the key one the CLI reads?** Unknown keys are silently dropped, as in the build-only manifest — a leftover `profile:` block or a misspelling produces no error at all.
+4. **Does the installed CLI support v2?** `snow app deploy --help` lists `--target` only on a CLI that does.
+
+### "A service property reverted on its own"
+
+The v2 deploy phase is a single declarative `CREATE OR ALTER APPLICATION SERVICE`, so it converges the service to exactly what the manifest says and resets anything the manifest omits. When a property was right yesterday and is default today, look for a deploy that ran without it — most often a property set out of band with `ALTER APPLICATION SERVICE ... SET`, which does not survive a redeploy the way it does under `snowflake.yml`. `DESCRIBE APPLICATION SERVICE <fqn>` shows what the service is actually running; compare it against the manifest.
 
 ---
 
@@ -488,10 +514,12 @@ The CLI supports two mutually exclusive code storage backends:
 
 | Backend | Configuration | URI Format |
 |---------|--------------|------------|
-| Stage | `code_stage` in `snowflake.yml` | `@<database>.<schema>.<stage_name>` |
-| Workspace | `code_workspace` in `snowflake.yml` | `snow://workspace/<database>.<schema>.<workspace>/versions/live/<app_name>/` |
+| Stage | `code_stage` (a `name:` block in `snowflake.yml`, a plain string in `app.yml` v2) | `@<database>.<schema>.<stage_name>` |
+| Workspace | `code_workspace` (same shapes) | `snow://workspace/<database>.<schema>.<workspace>/versions/live/<app_name>/` |
 
 The workspace flow is used when deploying to a personal database. Each app gets its own subdirectory under a shared `SNOWFLAKE_APPS` workspace.
+
+In an `app.yml` v2 project both fields are normally omitted and the CLI picks the backend per deploy (see [`manifests.md`](manifests.md)), so read the upload-phase log line to see which one it chose rather than inferring it from the manifest.
 
 > **Limitation — personal databases may not support stages.** Personal databases (those whose name starts with `USER$`) currently do not support stages (this may change in the future). If `snowflake.yml` has `database: USER$...` and you specify `code_stage`, deploy will very likely fail during the upload phase. Resolve it one of two ways:
 > 1. **Use `code_workspace` instead of `code_stage`** (easy change) — this is the supported backend for personal DBs and is what `snow app setup` configures by default for the PDB flow.

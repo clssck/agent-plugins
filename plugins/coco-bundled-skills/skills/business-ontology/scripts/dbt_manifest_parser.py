@@ -42,7 +42,7 @@ from typing import Any
 # Stage download
 # ---------------------------------------------------------------------------
 
-def _download_from_stage(stage_uri: str, connection: str | None) -> tuple[str, str]:
+def _download_from_stage(stage_uri: str, connection: str | None, warehouse: str | None = None) -> tuple[str, str]:
     """Download a stage file into a temp directory.
 
     Returns (local_file_path, tmp_dir) — the caller owns tmp_dir and must
@@ -54,9 +54,10 @@ def _download_from_stage(stage_uri: str, connection: str | None) -> tuple[str, s
     """
     tmp_dir = tempfile.mkdtemp(suffix="_dbt_manifest")
     # Snowflake GET requires a trailing slash on the directory target
+    get_sql = f"GET {stage_uri} file://{tmp_dir}/"
+    full_sql = f"USE WAREHOUSE {warehouse}; {get_sql}" if warehouse else get_sql
     cmd = [
-        "snow", "sql", "--format", "json", "-q",
-        f"GET {stage_uri} file://{tmp_dir}/",
+        "snow", "sql", "--format", "json", "-q", full_sql,
     ]
     if connection:
         cmd += ["--connection", connection]
@@ -321,14 +322,24 @@ def main() -> None:
         default=False,
         help="Skip source nodes",
     )
+    parser.add_argument(
+        "--warehouse",
+        default=None,
+        help="Warehouse to USE before running queries (for stage downloads)",
+    )
     args = parser.parse_args()
+
+    # Validate warehouse identifier if provided
+    if args.warehouse and not re.match(r"^[A-Za-z_][A-Za-z0-9_$]*$", args.warehouse):
+        print(json.dumps({"error": f"--warehouse contains unsafe characters: {args.warehouse!r}"}), file=sys.stderr)
+        sys.exit(1)
 
     manifest_path = args.manifest
     tmp_dir = None
 
     if manifest_path.startswith("@"):
         try:
-            manifest_path, tmp_dir = _download_from_stage(manifest_path, args.connection)
+            manifest_path, tmp_dir = _download_from_stage(manifest_path, args.connection, args.warehouse)
         except RuntimeError as exc:
             print(json.dumps({"error": str(exc)}), file=sys.stderr)
             sys.exit(1)

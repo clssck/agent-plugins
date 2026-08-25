@@ -36,11 +36,32 @@ Sources produce four parallel lists. Scripts and structured sources produce node
     "sample_output": "...",
     "verified_as_of": "YYYY-MM-DD",
     "source_ref": "file#section"
+  },
+  "confidence": "high | medium | low",
+  "confidence_reason": "...",
+  "_metric_only": {
+    "grain": "day | user | transaction | session | order | ...",
+    "aggregationFn": "SUM | COUNT | COUNT_DISTINCT | AVG | MAX | MIN | RATIO | ...",
+    "filterConditions": ["status = 'active'", "..."],
+    "sliceDimensions": ["region", "channel", "product_line", "..."]
   }
 }
 ```
 
-`formulas` and `evidence` are omitted when absent. `itemKind_ambiguous: true` means structural signals were ambiguous — the steward should review `itemKind` at import time, though it can be corrected post-creation via `SYSTEM$UPDATE_GLOSSARY_TERM`.
+`_metric_only` fields are only set when `itemKind == METRIC` (or `itemKind_ambiguous: true`). All four are optional but should be populated whenever extractable from the formula or source context. They are NOT separate API fields — they feed the `formula` and `exclusions` API fields and appear in the candidate card for steward verification:
+- `grain` + `aggregationFn` → surfaced in the review card to help detect distinct metrics with the same name (e.g. "daily Active Users" vs "monthly Active Users")
+- `filterConditions` → mapped to the `exclusions` array in `SYSTEM$DRAFT_GLOSSARY_TERM`
+- `sliceDimensions` → noted in the description if not already captured
+
+**Confidence scoring rules (set during Step 2A extraction):**
+
+| Level | Criteria |
+|---|---|
+| `high` | Name + description + formula (METRIC) or lineage/FQN (ENTITY) all present from source; or candidate has `evidence.verified_query` |
+| `medium` | Name + description present; formula or lineage absent |
+| `low` | Name only (description absent or < 20 chars); or concept inferred from structural context without explicit source mention |
+
+`formulas`, `evidence`, and metric-specific fields are omitted when absent. `itemKind_ambiguous: true` means structural signals were ambiguous — the steward should review `itemKind` at import time, though it can be corrected post-creation via `SYSTEM$UPDATE_GLOSSARY_TERM`.
 
 **Relationship candidates — two buckets (never mixed):**
 ```json

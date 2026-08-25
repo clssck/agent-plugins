@@ -12,7 +12,9 @@ parent_skill: data-quality
 - "Create DQ alert"
 
 ## When to Load
-Data-quality Step 2: alerting/SLA intent.
+Data-quality Step 2: **custom health-% threshold ALERT** intent only.
+
+For generic "notify me" / email / Slack on expectation or anomaly failures, prefer **`workflows/dq-notifications.md`** (native `DATA_QUALITY_MONITORING_SETTINGS`) instead of this workflow.
 
 ## Template to Use
 **Primary:** `schema-sla-alert.sql`

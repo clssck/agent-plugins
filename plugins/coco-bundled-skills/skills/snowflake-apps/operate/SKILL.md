@@ -13,6 +13,14 @@ Use this skill when the user wants to monitor, troubleshoot, or manage a deploye
 
 ---
 
+## Find the service you're operating on
+
+Every statement below needs the service's `<database>.<schema>.<app_name>`. Read it from the manifest that drives the project ([`@../references/manifests.md`](../references/manifests.md)). If that manifest declares `targets`, each target is a **separate application service** — resolve the one the user means before running anything, and name it in your summary so a `prod` operation is never mistaken for `dev`.
+
+> **On an `app.yml` v2 project, property changes made here do not survive a redeploy.** Deploys apply the manifest declaratively, so `SET AUTO_SUSPEND_SECS`, `SET QUERY_WAREHOUSE`, `SET EXTERNAL_ACCESS_INTEGRATIONS`, and similar revert to whatever the manifest says the next time anyone deploys. When the user wants a lasting change, put it in `app.yml` — and tell them that's why.
+
+---
+
 ## Check App Status
 
 ### Quick status

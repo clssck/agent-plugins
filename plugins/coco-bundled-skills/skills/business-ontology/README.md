@@ -105,6 +105,6 @@ Business Ontology is in **Private Preview**. Known limitations during this phase
 
 - No domain rename API — renaming requires recreating the domain (the skill handles this automatically).
 - No relationship update API — fix a relationship by deleting and recreating it.
-- FQN resolution for term names requires the `ENABLE_GLOSSARY_TERM_FQN` feature flag; without it, use term IDs for disambiguation.
+- FQN resolution for term names requires an account-level feature enabled by Snowflake; without it, use term IDs for disambiguation.
 
 See `reference/NOT_IMPLEMENTED_YET.md` for the full list of gaps and workarounds.

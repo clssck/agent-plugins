@@ -1,0 +1,12 @@
+Snowflake Cortex Code (CoCo) Bundled Snowflake Solutions Plugin
+
+Source release: CoCo 1.1.69+013424.801adc2b71d7 (darwin-arm64)
+Source directory: bundled_external_plugins/sf-solutions/
+Original plugin: sf-solutions 0.1.0
+Original author: Snowflake Inc.
+Permission: See LICENSE in this plugin.
+
+Included skills:
+- sf-solutions
+
+The included registry references six industry accelerators sourced at runtime from Snowflake-Labs solution repositories.

@@ -609,6 +609,29 @@ class TriggerKB:
         found.sort(key=lambda m: (order.get(m.severity, 0), -m.line), reverse=True)
         return found
 
+    def anchor_leaf_names(self) -> set[str]:
+        """Bare (lowercase) method/function names with a rule in this KB.
+
+        Includes ``kind="manual"`` rules too — ``_index()`` skips those for
+        auto-firing, but they're still real documented divergences (e.g.
+        ``join``'s NULL-inclusion gap). Only bare, unqualified anchors are
+        returned: a dotted anchor like ``dbutils.fs.head`` or
+        ``SnowflakeSession.sql`` is about that specific receiver, not every
+        method sharing the trailing name — stripping it to a leaf would
+        wrongly flag the unrelated ``DataFrame.head()`` or ``spark.sql()``.
+        SQL keyword tokens are excluded too, since they're not method names.
+        """
+        leaves: set[str] = set()
+        for r in self.rules:
+            api = r.get("api") or r.get("match_tokens") or []
+            if isinstance(api, str):
+                api = [api]
+            for tok in api:
+                if not tok or "." in tok or _is_sql_token(tok):
+                    continue
+                leaves.add(tok.lower())
+        return leaves
+
 
 class SCOSTriggerRAG(BaseRAG):
     """Drop-in RAG backend backed by the trigger KB (no embeddings, no network).
@@ -643,6 +666,7 @@ class SCOSTriggerRAG(BaseRAG):
                 root_cause=m.note,
                 additional_notes=" | ".join(notes),
                 test_name=m.rule_id,
+                matched_token=m.matched_token,
                 decidable=m.decidable,
                 ewi_code=m.ewi_code,
                 status_class=m.status_class,

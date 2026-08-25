@@ -1,0 +1,33 @@
+## Trigger Model
+
+{%- if transformation_logic_type == 'dbt' and dbt_variant == 'dbt Core (External)' %}
+
+**Auto-selected: An External System Orchestrates It**
+
+Since you're using dbt Core (External), the trigger is always external — dbt Cloud, Airflow, or CI/CD invokes your dbt runs.
+
+{%- else %}
+
+Your pipeline is triggered by: **{{ pipeline_trigger_model }}**
+
+{%- if pipeline_trigger_model == 'Snowflake Handles It Automatically' %}
+
+This points strongly toward **Dynamic Tables** — you define the output SQL, Snowflake keeps it fresh automatically based on target lag.
+{%- elif pipeline_trigger_model == 'New or Changed Data Triggers It' %}
+
+Event-driven execution points toward **Streams & Tasks** — streams detect changes, tasks fire your logic.
+{%- elif pipeline_trigger_model == 'A Schedule (Clock-based)' %}
+
+Clock-based scheduling is supported by:
+- Tasks (native Snowflake scheduler)
+- dbt Projects on Snowflake (Task-orchestrated)
+- Dynamic Tables (target lag acts like a schedule)
+{%- elif pipeline_trigger_model == 'An External System Orchestrates It' %}
+
+External orchestration is supported by:
+- dbt Core (External) — native fit
+- dbt Projects on Snowflake (via `snow dbt execute`)
+- Snowpark jobs (triggered externally)
+- Stored Procedures (called externally)
+{%- endif %}
+{%- endif %}

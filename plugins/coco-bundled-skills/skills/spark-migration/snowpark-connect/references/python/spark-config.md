@@ -84,10 +84,12 @@ Families: `spark.executor.*`, `spark.driver.{memory,cores,maxResultSize,memoryOv
 ### 3. SCOS-specific knobs — consider ADDING for parity
 
 Not in source Spark; set these when a workload needs Snowflake-side behavior.
-(LLM/operator judgment — the recipe never adds configs.)
+Mostly LLM/operator judgment; a row marked *(recipe)* is injected
+deterministically in Phase 0.5 when its trigger is statically decidable.
 
 | Key | Use |
 |---|---|
+| `snowpark.connect.use2000AsTwoDigitCenturyStart` | *(recipe)* default `false`. When `"true"`, SCOS issues `ALTER SESSION SET TWO_DIGIT_CENTURY_START = 2000`, so a two-digit year token (`yy`) parses into Spark's `2000-2099` window instead of Snowflake's default 1970-based one (where `70-99` → `1970-1999`). **Parse-side and session-scoped**: it moves every two-digit-year *interpretation* in the session — all `to_timestamp` / `to_timestamp_ltz` / `to_timestamp_ntz` / `try_to_timestamp` / `to_date` / `unix_timestamp` / `to_unix_timestamp` calls, the same functions reached through `spark.sql(...)`, and native SQL run via `SnowflakeSession` — and nothing else (`yyyy`/`yyy`/`y` map to `YYYY` and never read it; rendering with `date_format` does not either). Injected by `two_digit_year_century_window_config_rewrite` when the format is a literal; see fix-rules Rule 31 for dynamic formats. |
 | `snowpark.connect.integralTypesEmulation` | `enabled`/`disabled`/`client_default` — decimal↔integral conversion parity |
 | `snowpark.connect.handleIntegralOverflow` | surface integral overflow like Spark |
 | `snowpark.connect.artifact_repository` | resolve UDF/UDTF packages from a Snowflake artifact repo instead of Anaconda |

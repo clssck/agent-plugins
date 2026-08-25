@@ -1,6 +1,6 @@
 ---
 name: agent-studio-agent-templated-creation
-description: "Template discovery sub-workflow for Cortex Agent creation. Infers Q1-Q4 answers from the user's request, asks only the unanswered questions, selects the right archetype (T01-T07), and loads the matching template file to write the spec via cortex agent-studio agent-write."
+description: "Template discovery sub-workflow for Cortex Agent creation. Infers Q1-Q3 answers from the user's request, asks only the unanswered questions, selects the right archetype (T01-T07), and loads the matching template file to write the spec via cortex agent-studio agent-write."
 parent_skill: agent-studio-agent-creation
 ---
 
@@ -14,43 +14,39 @@ Always loaded from `creation/SKILL.md` after Step 1. Every create request runs t
 
 ## Step A: Infer Before You Ask
 
-Before asking anything, scan the user's original message for signals that already answer Q1–Q4:
+Before asking anything, scan the user's original message for signals that already answer Q1–Q3:
 
 | Signal in user's message | Inferred answer |
 |--------------------------|-----------------|
 | **"empty agent", "placeholder", "minimal agent", "does nothing", "no tools", "no data access"** | **Skip all questions → Use T00 immediately** |
-| Names a Snowflake table, semantic view, or data domain | Q1: 1 SV (or 2–4 if multiple distinct domains named) |
-| "policies", "runbooks", "documentation", "PDFs", "wiki", "knowledge base" | Q3: Yes — document search layer needed |
-| "create a ticket", "update CRM", "trigger pipeline", "call API", "stored procedure", "file a ticket" | Q4: Yes — action needed (generic tool) |
-| "Jira", "Salesforce", "ServiceNow", "GitHub", "Slack", "external API", "integration", "webhook", "connect to" (external system) | Q4: Yes — action needed (MCP/Integration) |
-| "no structured data", "just answer questions about docs", "only documents" | Q1: 0 SVs |
-| Multiple named domains ("sales and inventory and finance") | Q1: 2–4 SVs |
-| "answer data questions AND look things up in docs" | Q2: Hybrid (analytics + docs) |
+| Names a Snowflake table, semantic view, or data domain | Q1: 1 domain (or multiple if several named) |
+| "no tables", "just answer questions about docs", "only documents" | Q1: none |
+| Multiple named domains ("sales and inventory and finance") | Q1: multiple |
+| "policies", "runbooks", "documentation", "PDFs", "wiki", "knowledge base", "technical docs", "internal docs" | Q2: Yes — document search layer needed |
+| "answer data questions AND look things up in docs" | Q1: 1+ domains, Q2: Yes |
+| "create a ticket", "update CRM", "trigger pipeline", "call API", "stored procedure", "file a ticket" | Q3: procedure/UDF |
+| "Jira", "Salesforce", "ServiceNow", "GitHub", "Slack", "external API", "integration", "webhook", "connect to" (external system) | Q3: external tool |
 
-If all 4 questions are resolved from context, skip to Step C immediately.
+If all 3 questions are resolved from context, skip to Step C immediately.
 
 ---
 
 ## Step B: Ask Only Unanswered Questions
 
-Present all remaining questions in a **single message** — never as separate conversation turns. Open with "To pick the right starting template, I have a few quick questions:" and include only the items below that are still unanswered.
+Present all remaining questions in a **single message** — never as separate conversation turns. Open with "To build the right agent for you, a few quick questions:" and include only the items below that are still unanswered.
 
 **Q1 (include only if not yet inferred):**
-> **1. Data domains** — What structured data should the agent query?
-> How many distinct subject areas? (e.g. "sales only" = 1, "sales + inventory + finance" = 3, "none — only documents" = 0)
+> **1. Your data** — What data does this agent need to answer questions about?
+> Describe it briefly — e.g. "sales tables", "sales + inventory + finance", or "none — I only need it to search documents"
 
 **Q2 (include only if not yet inferred):**
-> **2. Primary job** — Finish this sentence: my users will mostly come to this agent when they want to ___
-> Options: get a number or answer a data question · find a document or policy · both data AND docs · trigger an action
+> **2. Documents** — Will users ever ask questions based on documents or written content — like policies, runbooks, technical docs, or PDFs? (yes / no)
 
 **Q3 (include only if not yet inferred):**
-> **3. Document search** — Do users ever ask "what does our policy say about X" alongside data questions? (yes / no)
+> **3. Other systems** — Does the agent need to connect to other tools or systems — for example, run a Snowflake stored procedure, trigger a pipeline, or read from / write to an external tool like Jira, Salesforce, or Slack?
+> Options: Snowflake procedure or UDF · external tool (Jira, Salesforce, Slack…) · both · no
 
-**Q4 (include only if not yet inferred):**
-> **4. Actions** — Should the agent DO something — run a Snowflake procedure, trigger a pipeline, or connect to an external system (Jira, Salesforce, Slack, etc.)?
-> Options: Snowflake procedure / UDF · external system via MCP · both · no
-
-If the answer to any question is ambiguous (e.g. "I want it to answer questions about our data" doesn't clearly indicate 1 or many domains), ask a brief clarifying follow-up rather than guessing — a wrong template wastes more time than one extra question.
+If the answer to any question is ambiguous (e.g. "I want it to answer questions about our data" doesn't clearly indicate 1 or many domains), ask a brief clarifying follow-up rather than guessing — a wrong starting point wastes more time than one extra question.
 
 Wait for the user's answers, then proceed to Step C.
 
@@ -58,38 +54,42 @@ Wait for the user's answers, then proceed to Step C.
 
 ## Step C: Route to Template
 
-| Q1 SVs | Q2 Job | Q3 Docs | Q4 Actions | Template file |
-|--------|--------|---------|------------|---------------|
-| **—** | **—** | **—** | **—** | **`templates/T00.md` — if user explicitly asks for empty/placeholder/minimal agent with no tools** |
-| 1 | analytics | No | No | `templates/T01.md` |
-| 2–4 | analytics | No | No | `templates/T02.md` |
-| 1 | analytics or both | Yes | No | `templates/T03.md` |
-| 1 | docs (SV is supplementary) | — | No | `templates/T03.md` |
-| 2–4 | analytics or both | Yes | No | `templates/T04.md` |
-| any with SVs | any | any | Yes (procedure/UDF) | `templates/T05.md` |
-| any with SVs | any | any | Yes (MCP/Integration) | `templates/T05.md` — use the MCP variant section |
-| 0 | docs | — | No | `templates/T06.md` |
-| 0 | action | — | Yes (procedure/UDF) | `templates/T07.md` |
-| 0 | action | — | Yes (MCP/Integration) | `templates/T07.md` — use the MCP variant section |
-| 0 | docs | Yes | Yes | `templates/T07.md` — MCP variant + add a `cortex_search` tool |
+| Q1 Data | Q2 Docs | Q3 Actions | Template file |
+|---------|---------|------------|---------------|
+| **—** | **—** | **—** | **`templates/T00.md` — if user explicitly asks for empty/placeholder/minimal agent with no tools** |
+| none | No | No | `templates/T00.md` |
+| 1 domain | No | No | `templates/T01.md` |
+| multiple domains | No | No | `templates/T02.md` |
+| 1 domain | Yes | No | `templates/T03.md` |
+| multiple domains | Yes | No | `templates/T04.md` |
+| any with tables | any | procedure/UDF | `templates/T05.md` |
+| any with tables | any | external tool | `templates/T05.md` — use the external tool variant section |
+| any with tables | any | both | `templates/T05.md` — include both Variant A (procedure) and external tool variant sections |
+| none | Yes | No | `templates/T06.md` |
+| none | No | procedure/UDF | `templates/T07.md` |
+| none | No | external tool | `templates/T07.md` — use the external tool variant section |
+| none | No | both | `templates/T07.md` — include both Variant A (procedure) and external tool variant sections |
+| none | Yes | procedure/UDF | `templates/T07.md` — Variant A + add a `cortex_search` tool |
+| none | Yes | external tool | `templates/T07.md` — external tool variant + add a `cortex_search` tool |
+| none | Yes | both | `templates/T07.md` — both variants + add a `cortex_search` tool |
 
 **Upgrade signals** — if the user's answers contain any of these, upgrade even if the base routing said otherwise:
 
 | User says | Action |
 |-----------|--------|
 | Multiple named domains ("sales, finance, ops") | Bump to T02 or T04 |
-| "runbooks / policies / wikis" | Add search layer → T03 or T04 |
+| "runbooks / policies / wikis / PDFs / technical docs" | Add search layer → T03 or T04 |
 | "create a ticket / update CRM / trigger pipeline" | Add action → T05 or T07 |
-| "Jira / Salesforce / Slack / external API / webhook" | Use MCP variant in T05 or T07 |
+| "Jira / Salesforce / Slack / external API / webhook" | Use external tool variant in T05 or T07 |
 | "answer HR policy questions" / "just our docs" | Pure search → T06 |
 | Cannot describe exact inputs for a procedure action | Ask: "What inputs does the procedure need — parameter names and types?" before proceeding |
-| User mentions MCP but the server doesn't exist yet | Note: a Snowflake MCP Server object must be created first (`CREATE MCP SERVER` for Snowflake-native wrapping, `CREATE CUSTOM MCP SERVER` for SPCS-hosted external services) |
+| User mentions an external tool but the MCP Server doesn't exist yet | Note: a Snowflake MCP Server object must be created first (`CREATE MCP SERVER` for Snowflake-native wrapping, `CREATE CUSTOM MCP SERVER` for SPCS-hosted external services) |
 
 ---
 
 ## Step D: Write the Template Spec
 
-1. Tell the user the recommended template and why (one sentence).
+1. Tell the user what kind of agent this will be and why — one sentence in plain terms (e.g. "This will be a hybrid agent that can answer data questions and search your internal docs").
 
 2. Read the template file from Step C (`templates/T0X.md`). Build the YAML spec by combining the **tools + tool_resources** block with the **instructions starter** from that file.
 
@@ -104,7 +104,7 @@ Wait for the user's answers, then proceed to Step C.
    ```
    (`--file-path` controls the *output* path inside `cortex_project/` — it is **not** the input.)
 
-4. Confirm to the user: "I've written the **T0X** template to the workspace — nothing is deployed to Snowflake yet. Now let's replace the placeholders with your actual values." Then show a short checklist of what they'll need to provide in the edit flow — include only items relevant to the chosen template:
+4. Confirm to the user: "I've set up a starting spec for your agent in the workspace — nothing is deployed to Snowflake yet. Now let's replace the placeholders with your actual values." Then show a short checklist of what they'll need to provide in the edit flow — include only items relevant to the chosen template:
    - **Analytics templates with analyst tool (T01–T04, T05 Variant A):** Semantic view FQN (`DATABASE.SCHEMA.VIEW_NAME`)
    - **Adding search (T03, T04, T06, T07+search):** Cortex Search Service FQN, id column name, title column name
    - **Adding procedure/UDF actions (T05, T07):** Stored procedure or UDF FQN, exact input parameter names and types

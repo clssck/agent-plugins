@@ -427,3 +427,44 @@ def test_date_rule_does_not_fire_on_percentile_without_date_context(kb: TriggerK
     matches = kb.detect(code)
     assert not any(m.rule_id == RULE_DATE_PERCENTILE for m in matches), (
         f"{RULE_DATE_PERCENTILE} should NOT fire on numeric percentile: {code!r}")
+
+
+# --------------------------------------------------------------------------
+# scos:datetime.two-digit-year-century-window#parse-family — the century window
+# is session-scoped, so the rule must fire only where a format really parses a
+# standalone `yy`. A four-digit year must never drag the session config in.
+# --------------------------------------------------------------------------
+
+RULE_TWO_DIGIT_YEAR = "scos:datetime.two-digit-year-century-window#parse-family"
+
+
+@pytest.mark.parametrize("code", [
+    'out = df.select(F.to_date(df.t, "yy-MM-dd"))',
+    'out = df.select(F.to_timestamp(df.t, "yy-MM-dd HH:mm:ss"))',
+    'out = df.select(F.try_to_timestamp(df.t, F.lit("yy-MM-dd")))',
+    'out = df.select(F.unix_timestamp(df.t, "dd/MM/yy"))',
+    'out = df.select(F.to_unix_timestamp(df.t, "yy-MM-dd"))',
+    'df = spark.sql("SELECT TO_DATE(t, \'yy-MM-dd\') FROM tab")',
+])
+def test_two_digit_year_rule_fires_on_standalone_yy(kb: TriggerKB, code: str) -> None:
+    matches = kb.detect(code)
+    assert any(m.rule_id == RULE_TWO_DIGIT_YEAR for m in matches), (
+        f"{RULE_TWO_DIGIT_YEAR} should fire on: {code!r}")
+
+
+@pytest.mark.parametrize("code", [
+    # Four-digit year: maps to Snowflake YYYY, never reads the century start.
+    'out = df.select(F.to_date(df.t, "yyyy-MM-dd"))',
+    'out = df.select(F.to_timestamp(df.t, "yyyy-MM-dd HH:mm:ss"))',
+    'df = spark.sql("SELECT TO_DATE(t, \'yyyy-MM-dd\') FROM tab")',
+    # No format argument at all.
+    'out = df.select(F.to_date(df.t))',
+    # Formatting (not parsing) a two-digit year does not consult the parameter.
+    'out = df.select(F.date_format(df.ts, "yy-MM"))',
+])
+def test_two_digit_year_rule_does_not_fire_without_a_yy_parse(
+    kb: TriggerKB, code: str
+) -> None:
+    matches = kb.detect(code)
+    assert not any(m.rule_id == RULE_TWO_DIGIT_YEAR for m in matches), (
+        f"{RULE_TWO_DIGIT_YEAR} should NOT fire on: {code!r}")

@@ -15,6 +15,7 @@ The manifest holds the entire domain context: scope rules, dashboards, semantic 
 |---|---|---|
 | `business_domain` | The domain identifier (legacy field name; previously called "use case"). Also the **default `domain`** for concepts/relationships/associations that omit one. | Internal name, user-facing value |
 | `version_id`, `created_at`, `updated_at` | Internal versioning, set by the agent at save time. Do not hand-author. | No |
+| `description_synced_version` | Records the `version_id` the context's routing description (COMMENT field) was last confirmed against. Written into the manifest before `put-stage-file` when the builder accepts a description; absent when no description has been confirmed. Never surfaced to the builder. See `reference/DESCRIPTION.md`. | No |
 | `status` | `draft` \| `active`. Internal — always written as `active` once the builder confirms. | No |
 | `warehouse` | **Required.** The Snowflake virtual warehouse the offline build uses for compute. A valid warehouse identifier (e.g. `ANALYTICS_WH`). Resolved from `CURRENT_WAREHOUSE()` during setup; the builder is told which one is used and can change it. | Yes — builder is told and can change it |
 | `sources` | Scope rules per source (`pattern`, `tag`, `file`, …). The structured selection the build consumes. `catalog_objects` rules with `excluded: true` are applied both at ingest-time (tables not indexed) and serving-time (results filtered at query time). | Rendered as narrative summary |

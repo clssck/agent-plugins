@@ -1,0 +1,110 @@
+blueprint_id: blueprint_84a1c3ef
+name: Pipeline Planner
+summary: Collect pipeline requirements through structured discovery to identify the
+  right Snowflake transformation technology
+overview: "The Pipeline Planner collects your pipeline requirements through structured\n\
+  discovery and produces an answers file \u2014 the contract for downstream tooling.\n\
+  \n**What You Will Answer (3-10 questions depending on path):**\n- Whether you're\
+  \ extending an existing pipeline or building new\n- If extending with same tech:\
+  \ your technology, freshness, and consumers\n- If building new or evaluating alternatives:\
+  \ full requirements and technology scoring\n- Your source data reference and transformation\
+  \ intent\n\n**Technologies Evaluated:**\n- Dynamic Tables\n- Streams & Tasks\n-\
+  \ Snowpark\n- dbt Projects on Snowflake (native)\n- dbt Core (external)\n- dbt +\
+  \ Dynamic Tables (combination)\n- Stored Procedures\n\n**Two Entry Paths:**\n- **Expansion**\
+  \ \u2014 Extending an existing pipeline with the same technology? Fast-track through\
+  \ 3 questions.\n- **Net-New / Evaluate** \u2014 Full requirements discovery and\
+  \ technology scoring.\n\n**Output:**\nAn answers file containing all your pipeline\
+  \ requirements and technology selection.\nFeed this file to the `pipeline-plan-generator`\
+  \ skill to produce an implementation plan.\n"
+is_repeatable: true
+steps:
+- work-context
+- project-identification
+- approach-decision
+- expansion-tech-selection
+- expansion-freshness
+- expansion-consumers
+- source-data-identification
+- define-freshness-requirements
+- characterize-transformation-logic
+- pipeline-trigger-model
+- downstream-consumers
+- select-constraints
+- technology-preference
+- technology-recommendation
+- source-seed
+- define-intent
+- pipeline-criticality
+tasks:
+- slug: discovery-and-expansion
+  title: Discovery & Expansion Path
+  summary: Determine if you're extending existing work or building new, then guide
+    expansion users to a quick recommendation.
+  personas:
+  - Data Engineer
+  steps:
+  - slug: work-context
+    title: Work Context
+  - slug: project-identification
+    title: Project Identification
+  - slug: approach-decision
+    title: Approach Decision
+- slug: expansion-fast-track
+  title: Expansion Fast-Track
+  summary: Collect technology, freshness, and consumer answers for expansion users
+    who are continuing with their existing technology.
+  personas:
+  - Data Engineer
+  steps:
+  - slug: expansion-tech-selection
+    title: Expansion Technology Selection
+  - slug: expansion-freshness
+    title: Expansion Freshness
+  - slug: expansion-consumers
+    title: Expansion Consumers
+- slug: define-pipeline-requirements
+  title: Define Pipeline Requirements
+  summary: Gather requirements about source data, freshness, logic type, triggers,
+    consumers, constraints, and technology preference.
+  personas:
+  - Data Engineer
+  - Data Architect
+  steps:
+  - slug: source-data-identification
+    title: Source Data Identification
+  - slug: define-freshness-requirements
+    title: Define Freshness Requirements
+  - slug: characterize-transformation-logic
+    title: Characterize Transformation Logic
+  - slug: pipeline-trigger-model
+    title: Pipeline Trigger Model
+  - slug: downstream-consumers
+    title: Downstream Consumers
+  - slug: select-constraints
+    title: Select Constraints
+  - slug: technology-preference
+    title: Technology Preference
+- slug: technology-recommendation
+  title: Technology Recommendation
+  summary: Present the scored technology recommendation with justification, alternatives,
+    and confirmation.
+  personas:
+  - Data Engineer
+  - Data Architect
+  steps:
+  - slug: technology-recommendation
+    title: Technology Recommendation
+- slug: source-and-intent
+  title: Source, Intent & Criticality Collection
+  summary: Collect the source data reference, transformation intent, and pipeline
+    criticality. Last interactive task before silent investigation begins.
+  personas:
+  - Data Engineer
+  - Data Architect
+  steps:
+  - slug: source-seed
+    title: Source Seed
+  - slug: define-intent
+    title: Define Intent
+  - slug: pipeline-criticality
+    title: Pipeline Criticality

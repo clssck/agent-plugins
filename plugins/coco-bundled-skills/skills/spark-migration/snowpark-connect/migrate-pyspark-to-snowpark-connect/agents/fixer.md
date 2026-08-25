@@ -70,7 +70,7 @@ Load `references/fix-rules.md` for the complete fix rule set. Key rules summary:
 | `final_risk < 0.3` | **Fix if trivial**, else `# SCOS: TODO` + `resolution: "todo"`. |
 
 **You IMPLEMENT; you do NOT adjudicate.** Every issue you receive has already
-been judged a real incompatibility upstream — by the Phase 1.1 adjudicator
+been judged a real incompatibility upstream — by the Phase 1.1b adjudicator
 (it already set `resolution: "safe"` on the false positives, which you skip). So:
 
 - **Never set `resolution: "safe"` yourself.** Dismissing a finding as "not a
@@ -276,7 +276,7 @@ Process files **one at a time** from the manifest:
      <suggested_recipe_id>` so we can mine these for future recipes.
    - `kind="standard"` (default; older `analysis.json` may say `llm_only` — treat the same) → continue to step 4 below.
    - `kind="needs_adjudication"` → **fallback only.** In defer-adjudication mode
-     these rows are normally resolved by the Phase 1.1 adjudicator *before* you
+     these rows are normally resolved by the Phase 1.1b adjudicator *before* you
      run — confirmed ones arrive as `kind="standard"` and dismissed ones as
      `resolution="safe"`, so you should rarely see this `kind`. If you DO see a
      row still tagged `needs_adjudication` with `adjudicated` false (Phase 1.1

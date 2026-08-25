@@ -242,6 +242,71 @@ snow sql -q "EXECUTE DBT PROJECT my_db.my_schema.my_project DBT_VERSION='1.9.4' 
 
 Runs the project using a specific dbt version instead of the project's default. The `DBT_VERSION` parameter must be placed before `ARGS`.
 
+#### Execute with Environment Selection
+
+Select a specific environment from `env.yml` for a single run:
+
+```bash
+# CLI (requires Snowflake CLI >= 3.22)
+snow dbt execute --env prod my_project run
+```
+
+**Fallback if CLI is too old** (use SQL if `--env` is not recognized):
+```sql
+EXECUTE DBT PROJECT my_db.my_schema.my_project
+  ARGS = 'run'
+  ENVIRONMENT = 'prod';
+```
+
+Without `--env` / `ENVIRONMENT`, the project uses the `DEFAULT_ENVIRONMENT` set on the object, falling back to `default_environment` in `env.yml`.
+
+Use `NO_ENV` to run without any environment:
+```bash
+snow dbt execute --env NO_ENV my_project run
+```
+
+#### Execute with Variable Overrides
+
+Override individual environment variables for a single execution without modifying `env.yml`.
+`--env-vars` works standalone — no `--env` required (uses default environment or none):
+
+```bash
+# CLI (requires Snowflake CLI >= 3.22)
+snow dbt execute --env-vars '{"DBT_CURRENT_DB": "staging_db", "DBT_START_DATE": "2024-01-01"}' my_project run
+```
+
+**Fallback if CLI is too old** (use SQL if `--env-vars` is not recognized):
+```sql
+EXECUTE DBT PROJECT my_db.my_schema.my_project
+  ARGS = 'run'
+  ENV_VARS = ('DBT_CURRENT_DB' = 'staging_db', 'DBT_START_DATE' = '2024-01-01');
+```
+
+Overrides merge into the selected environment and take final precedence. Values can be SQL, string literals, or session variables (`$var`).
+
+**Note:** Snowflake secrets can't be referenced in `ENV_VARS` (they'd appear in Query History). Manage secrets through `env.yml` instead.
+
+#### Execute with Shell Environment Variables
+
+Pull `DBT_`-prefixed shell variables into the run (useful for CI/CD):
+
+```bash
+# Requires Snowflake CLI >= 3.22
+snow dbt execute --use-shell-env-vars my_project run
+```
+
+All shell variables prefixed with `DBT_` are used (excluding `DBT_ENV_SECRET_*`), including those not defined in `env.yml`. Only `--env-vars` can override shell values.
+
+#### Execute with Secrets (EAI)
+
+If the project's `env.yml` has a `secrets:` block, an External Access Integration must be attached at execution time:
+
+```bash
+snow dbt execute --external-access-integration MY_EAI --env prod my_project run
+```
+
+The `--external-access-integration` flag is **required** whenever the project references Snowflake secrets via `env.yml`. Without it, secret resolution fails at runtime.
+
 ### Step 3: Verify Results
 
 **Goal:** Confirm command succeeded

@@ -1,6 +1,6 @@
 ---
 name: dbt-projects-on-snowflake
-"description": "ONLY for dbt projects deployed INTO Snowflake as native objects via the `snow dbt` CLI, OR for authoring dbt models using Snowflake-native features (e.g. semantic_view materialization). NOT for normal dbt development. Invoke ONLY when the user explicitly mentions: `snow dbt` commands (deploy, execute, list), `EXECUTE DBT PROJECT` SQL, a deployed dbt project object, `ALTER/DROP/DESCRIBE/SHOW DBT PROJECT` SQL, scheduling a deployed project with CREATE TASK, docs/catalog/lineage for a deployed project, Snowflake-specific dbt materializations (semantic_view, dbt_semantic_view), VERSION$, external-access-integration, or adding a semantic view to a dbt project. Do NOT invoke for standard dbt workflows: dbt run/build/test/seed/init/compile/debug/snapshot/deps/clean/retry/ls, profiles.yml, dbt_project.yml, model editing, source freshness, Jinja/macro development, CI/CD, or any dbt command run from a terminal. Key distinction: dbt-as-a-Snowflake-object (snow dbt deploy), not dbt-as-a-CLI-tool (dbt run)."
+description: "ONLY for dbt projects deployed INTO Snowflake as native objects via the `snow dbt` CLI, OR for authoring dbt models using Snowflake-native features (e.g., semantic_view materialization via dbt_semantic_view package). NOT for normal dbt development. Invoke ONLY when the user explicitly mentions: `snow dbt` commands (deploy, execute, list), `EXECUTE DBT PROJECT` SQL, a deployed dbt project object (e.g., DB.SCHEMA.MY_PROJECT), `ALTER/DROP/DESCRIBE/SHOW DBT PROJECT` SQL, scheduling a deployed dbt project with CREATE TASK, generating documentation/catalog/lineage for a deployed project, OR authoring Snowflake-specific dbt materializations (semantic_view, dbt_semantic_view), OR adding a semantic view to an existing dbt project. Do NOT invoke for standard dbt workflows: dbt run, dbt build, dbt test, dbt seed, dbt init, dbt compile, dbt debug, dbt snapshot, dbt deps, dbt clean, dbt retry, dbt ls, profiles.yml, dbt_project.yml, model editing, source freshness, Jinja/macro development, CI/CD pipelines, or any dbt command run from a terminal. The key distinction: this skill is about dbt-as-a-Snowflake-object (snow dbt deploy), not dbt-as-a-CLI-tool (dbt run). Triggers: snow dbt, snow dbt deploy, snow dbt execute, snow dbt list, EXECUTE DBT PROJECT, deployed dbt project, ALTER DBT PROJECT, DROP DBT PROJECT, DESCRIBE DBT PROJECT, SHOW DBT PROJECTS, VERSION$, external-access-integration, dbt project object, migrate, prepare for snowflake, docs generate deployed, documentation deployed project, data catalog deployed, lineage deployed project, generate documentation for deployed, semantic_view materialization, dbt_semantic_view, semantic view in dbt project, add semantic view to dbt, dbt project semantic view, analytical access dbt project."
 ---
 
 # Snowflake-Native dbt Projects
@@ -43,7 +43,7 @@ If the request involves writing dbt model SQL with AI or Cortex functions, read 
 | **MANAGE** | "snow dbt list", "list dbt projects", "show dbt projects", "describe dbt project", "drop dbt project", "rename dbt project", "SHOW DBT PROJECTS", "ALTER DBT PROJECT", "add version", "VERSION$", "set comment", "set default target", "download project files", "get model SQL from deployed", "inspect deployed project", "access project files", "list files in project" | Load `manage/SKILL.md` |
 | **SCHEDULE** | "schedule dbt project", "CREATE TASK for dbt", "EXECUTE DBT PROJECT in task", "automate dbt runs", "Snowflake task for dbt" | Load `schedule/SKILL.md` |
 | **MONITOR** | "dbt execution logs", "dbt artifacts", "dbt archive", "dbt execution history", "download artifacts" | Load `monitoring/SKILL.md` |
-| **MIGRATE** | "migrate", "env_var", "environment variable", "convert to var", "migration", "prepare for snowflake" | ⚠️ **You MUST `Read` `migrate/SKILL.md` before taking any action.** Migration has complex, non-obvious requirements that will cause failures if skipped. Do NOT attempt migration from general knowledge. |
+| **MIGRATE** | "migrate", "env_var", "environment variable", "env.yml", "env yml", "migration", "prepare for snowflake" | ⚠️ **You MUST `Read` `migrate/SKILL.md` before taking any action.** Migration has complex, non-obvious requirements that will cause failures if skipped. Do NOT attempt migration from general knowledge. |
 | **SEMANTIC VIEW** | "semantic view", "create semantic view", "dbt_semantic_view", "cortex analyst semantic", "semantic_view materialization" | Load `references/semantic-views.md` |
 
 ## ⚠️ Critical: Incremental Model Fixes Require `--full-refresh`
@@ -56,11 +56,20 @@ After fixing an incremental model's logic (e.g., restoring a missing `is_increme
 # Deploy (add --external-access-integration if project needs external network access)
 snow dbt deploy my_project --source /path/to/dbt --database my_db --schema my_schema --external-access-integration MY_EAI
 
+# Deploy with default environment
+snow dbt deploy my_project --source /path/to/dbt --database my_db --schema my_schema --default-env prod
+
 # PREVIEW model output (does NOT create objects)
 snow dbt execute -c default --database my_db --schema my_schema my_project show --select model_name
 
 # Execute/RUN models (creates tables/views)
 snow dbt execute -c default --database my_db --schema my_schema my_project run
+
+# Execute with a specific environment
+snow dbt execute --env prod my_project run
+
+# Execute with variable overrides (all keys in one JSON object)
+snow dbt execute --env-vars '{"DBT_KEY": "value", "DBT_KEY_2": "value2"}' my_project run
 
 # Full refresh (REQUIRED after fixing incremental model logic)
 snow dbt execute -c default --database my_db --schema my_schema my_project run --full-refresh
@@ -81,7 +90,9 @@ CREATE TASK my_db.my_schema.run_dbt_daily
   WAREHOUSE = my_wh
   SCHEDULE = 'USING CRON 0 6 * * * UTC'
 AS
-EXECUTE DBT PROJECT my_db.my_schema.my_project ARGS = 'run';
+EXECUTE DBT PROJECT my_db.my_schema.my_project
+  ARGS = 'run'
+  ENVIRONMENT = 'prod';
 ```
 
 ## Workflow

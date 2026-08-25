@@ -84,7 +84,7 @@ To force a specific backend, add `--rag-backend trigger` (offline, recommended),
 Structurally-certain triggers (unsupported APIs, signature kwarg violations,
 attribute gateways) are emitted deterministically; every non-decidable block is
 written to `analysis.json` with `kind="needs_adjudication"` /
-`detected_by="deferred_to_fixer"` / `adjudicated=false` for the **Phase 1.1
+`detected_by="deferred_to_fixer"` / `adjudicated=false` for the **Phase 1.1b
 adjudicator** to confirm-or-dismiss and the Phase 2 fixer to implement. There is
 no LLM/self-consistency path and no `--require-llm` / `--use-cortex-complete`
 flag; `--defer-adjudication` is accepted but ignored (it is the default).

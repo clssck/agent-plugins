@@ -570,12 +570,16 @@ Hooks are shell commands that execute in response to lifecycle events:
 | `PermissionRequest` | When a permission prompt is shown |
 | `UserPromptSubmit` | When the user submits a prompt |
 | `Stop` | When the agent stops |
+| `SubagentStart` | When a subagent starts or resumes |
 | `SubagentStop` | When a subagent stops |
 | `Notification` | When a notification is received |
 | `SessionStart` | When a session starts |
 | `SessionEnd` | When a session ends |
 | `PreCompact` | Before context compaction |
 | `Setup` | During initial setup |
+
+See [HOOKS.md](HOOKS.md) for matcher behavior, event payloads, and transcript
+timing.
 
 ---
 

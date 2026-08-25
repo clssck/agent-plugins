@@ -182,7 +182,11 @@ def main() -> int:
                         help="only invert assets for terms in the SVs' location domains (faster; may miss cross-domain lineage)")
     args = parser.parse_args()
 
-    estate = json.loads(Path(args.estate).read_text())
+    try:
+        estate = json.loads(Path(args.estate).read_text())
+    except (json.JSONDecodeError, OSError) as exc:
+        print(f"Error: could not load estate file {args.estate!r}: {exc}", file=sys.stderr)
+        return 1
     svs = estate.get("semantic_views", [])
     location_domains = {sv.get("location_domain", "Default") for sv in svs}
     idx = build_index(args.connection, args.warehouse, location_domains, args.scope_to_domains, args.role)

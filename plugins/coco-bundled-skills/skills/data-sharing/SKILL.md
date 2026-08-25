@@ -1,6 +1,27 @@
 ---
 name: data-sharing
-"description": "Snowflake secure data sharing: create direct shares, external marketplace listings, debug grant failures. Triggers: create share, share data/table/database, outbound share, data sharing, share with account, direct share, external listing, marketplace listing, debug share, share not working, grant failed, consumer can't access, share error, permission denied on share, share iceberg table, iceberg data sharing, share S3/Azure/GCS data, data outside snowflake, iceberg listing, move data to snowflake and share, replicate and share, reshare imported database, reshare ULL, reshare from ORGDATACLOUD.\nUSE THIS SKILL for generic share intent, direct shares with specific accounts, external Snowflake Marketplace listings, resharing data received from another account (imported DB or ULL), or debugging why a share isn't working.\nUSE the org-listing workflow INSTEAD when the user mentions \"internal marketplace\", \"organization listing\", or \"data product\", or wants to share within their Snowflake organization."
+description: >
+  Snowflake secure data sharing: create direct shares, external marketplace listings, debug grant failures.
+  Triggers: create share, share data, share table, share database, outbound share, data sharing,
+  share with account, direct share, external listing, marketplace listing,
+  debug share, share not working, grant failed, consumer can't access,
+  share troubleshooting, why can't they see my data, share error, permission denied on share,
+  share external data, share iceberg table, iceberg data sharing, share S3 data, share Azure data,
+  share GCS data, share without moving data, data outside snowflake, iceberg listing,
+  move data to snowflake and share, replicate and share, openflow and share, load data then share,
+  reshare imported database, reshare incoming data, reshare from listing, reshare ULL,
+  reshare data I received, reshare from ORGDATACLOUD, share data from imported database.
+  
+  WHEN TO USE THIS SKILL:
+  - User wants to share data (generic intent — will ask who they want to share with)
+  - User wants to create direct shares with specific accounts
+  - User wants to create external listings (Snowflake Marketplace)
+  - User wants to reshare data they received from another account (imported DB or ULL)
+  - User needs to debug why a share isn't working
+  
+  WHEN TO USE org-listing workflow INSTEAD:
+  - User mentions "internal marketplace", "organization listing", or "data product"
+  - User wants to share within their Snowflake organization
 ---
 
 # Data Sharing

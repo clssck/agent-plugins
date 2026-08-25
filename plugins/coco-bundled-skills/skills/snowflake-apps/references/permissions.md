@@ -9,15 +9,19 @@ The admin experience (`/settings/account/apps` in Snowsight) provisions infrastr
 
 Admins can change any of these defaults by setting account parameters (`DEFAULT_SNOWFLAKE_APPS_DESTINATION_DATABASE`, `DEFAULT_SNOWFLAKE_APPS_DESTINATION_SCHEMA`, `DEFAULT_SNOWFLAKE_APPS_QUERY_WAREHOUSE`, and others). See the parameter table in `references/debugging.md` for the full list.
 
-After running `snow app setup`, all resolved values are written into `snowflake.yml`. That file is the source of truth for which database, schema, and warehouse the app is actually using. Before granting permissions, check `snowflake.yml` (specifically `identifier.database`, `identifier.schema`, and `query_warehouse`) to confirm the actual values, especially if the account has non-default configuration.
+After running `snow app setup`, all resolved values are written into the project's deployment manifest. That file is the source of truth for which database, schema, and warehouse the app is actually using. Before granting permissions, check it to confirm the actual values, especially if the account has non-default configuration:
+
+- **`snowflake.yml`** — `identifier.database`, `identifier.schema`, `query_warehouse`.
+- **`app.yml` with `version: 2`** — top-level `database`, `schema`, `query_warehouse`, plus any overrides on the target being deployed. Each target can point at a different database or schema, so grant against the target you're setting up. See [`manifests.md`](manifests.md).
 
 Compute pools, external access integrations, and image repositories are managed automatically by the platform. Replace `<ROLE>` with the target role name.
 
 ## Full Grant List
 
 ```sql
--- Replace <database>, <schema>, <warehouse> with values from snowflake.yml
--- (identifier.database, identifier.schema, query_warehouse).
+-- Replace <database>, <schema>, <warehouse> with values from the deployment
+-- manifest (snowflake.yml identifier.database/identifier.schema/query_warehouse,
+-- or the resolved target's database/schema/query_warehouse in app.yml v2).
 -- Platform defaults: SNOWFLAKE_APPS / PUBLIC / SNOWFLAKE_APPS_QUERY_WH
 
 -- Database and schema
@@ -96,4 +100,6 @@ For diagnosing caller's-rights failures, see `references/debugging.md`.
 - `DATABASE` and `WAREHOUSE` grants require `SYSADMIN` or `SECURITYADMIN`. Schema and stage privileges can be granted by the role that owns the database/schema.
 - The deploying role automatically owns any artifact repository it creates. `GRANT READ, WRITE ON ARTIFACT REPOSITORY` is for delegating access to other roles post-deploy; see Post-Deploy Privileges above.
 - `CREATE STAGE` is required so the deploying role creates and owns the per-app code stage. If a code stage was previously created by a different role, drop it before redeploying so the publisher role can recreate it with correct ownership.
+- `CREATE WORKSPACE` on the schema is what lets the deploying role use the workspace code-storage backend. It is optional: without it, an `app.yml` v2 deploy falls back to a `<NAME>_CODE` stage (and a personal-database deploy, which has no stage fallback, fails with a privilege error).
+- An `app.yml` v2 deploy applies the service with `CREATE OR ALTER APPLICATION SERVICE`, so a redeploy needs `OWNERSHIP` of the existing service in addition to `CREATE APPLICATION SERVICE` on the schema. It also needs `USAGE` on every warehouse, secret, and external access integration the target references.
 - **Role design:** `<ROLE>` should be a dedicated publisher role (e.g. `APP_PUBLISHER`). User roles should have `APP_PUBLISHER` granted as a secondary role rather than receiving these grants directly. Deploy using a connection with `APP_PUBLISHER` as the primary role and secondary roles disabled. This ensures all created objects (stages, services) are owned by `APP_PUBLISHER`, and SPCS owner's rights tokens in the running service resolve to that role.

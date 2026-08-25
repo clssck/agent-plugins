@@ -11,8 +11,12 @@
 **Fix:** Remove `password` and `authenticator` fields.
 
 ### "Env var required but not provided"
-**Cause:** profiles.yml uses `{{ env_var('...') }}`.
-**Fix:** Replace with literal values.
+**Cause:** `profiles.yml` or models use `env_var()` but no `env.yml` defines the referenced variables.
+**Fix:** Create an `env.yml` file in the project root that defines the variables. All keys must be `DBT_`-prefixed and UPPERCASE. See `migrate/SKILL.md` for the full migration workflow.
+
+### env.yml variable naming errors
+**Cause:** Keys in `env.yml` are missing the `DBT_` prefix or aren't UPPERCASE.
+**Fix:** Rename all keys to be UPPERCASE with `DBT_` prefix. Keys in `secrets:` must use `DBT_ENV_SECRET_` prefix.
 
 ### "Project already exists"
 **Cause:** Project name already in use.

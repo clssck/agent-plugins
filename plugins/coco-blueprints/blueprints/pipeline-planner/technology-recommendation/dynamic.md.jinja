@@ -1,0 +1,177 @@
+{%- set primary = '' -%}
+{%- set alternative = '' -%}
+{%- set rationale = '' -%}
+{%- set primary_tradeoffs = '' -%}
+{%- set alternative_tradeoffs = '' -%}
+
+{# --- TRADEOFF DEFINITIONS PER TECHNOLOGY --- #}
+{%- set dt_tradeoffs = 'No row-level error handling — refresh is all-or-nothing. Target lag is a floor, not a guarantee — complex queries may refresh slower. Limited debugging for refresh failures. No Python UDFs in DT definitions.' -%}
+{%- set st_tradeoffs = 'Operational overhead — schedules to manage and monitor. No built-in lineage or documentation framework. Each stream+task pair is independently managed. More moving parts to debug.' -%}
+{%- set snowpark_tradeoffs = 'Requires Python/Scala expertise. Higher warehouse cost for DataFrame operations vs SQL. Less mature ecosystem than dbt for data engineering. No declarative refresh model — must build orchestration.' -%}
+{%- set dbt_native_tradeoffs = 'Task-scheduled only (no auto-refresh). Native dbt is newer with fewer community packages available. Limited to SQL (no Python models on native). Debugging requires Snow CLI.' -%}
+{%- set dbt_external_tradeoffs = 'Requires external orchestration (Airflow/dbt Cloud). Not Snowflake-native — adds external dependency. Potential cost of external tool licensing. Network connectivity requirements between dbt and Snowflake.' -%}
+{%- set dbt_dt_tradeoffs = 'Combines DT limitations with dbt limitations. DT materialization not supported for all dbt model types. Incremental models may not behave as expected when materialized as DTs. Newer pattern with less community documentation.' -%}
+{%- set sp_tradeoffs = 'Imperative, not declarative — harder to maintain at scale. No built-in lineage or testing framework. Procedural code is harder to review and audit. Limited parallelism compared to SQL-based approaches.' -%}
+
+{# --- ROUTING TABLE: (freshness × logic × trigger) → technology --- #}
+
+{%- if data_freshness_requirement == 'Continuous' and transformation_logic_type == 'SQL' %}
+{%- set primary = 'Streams & Tasks' -%}
+{%- set alternative = 'Dynamic Tables' -%}
+{%- set rationale = 'Continuous SQL processing requires event-driven execution. Streams & Tasks offer ~5s scheduling overhead.' -%}
+{%- set primary_tradeoffs = st_tradeoffs -%}
+{%- set alternative_tradeoffs = dt_tradeoffs ~ ' Under continuous freshness, DTs can achieve 15-30s latency for simple operations but complex queries on foundation tables may take longer.' -%}
+
+{%- elif data_freshness_requirement == 'Continuous' and transformation_logic_type == 'Python or Scala' %}
+{%- set primary = 'Streams & Tasks + Snowpark' -%}
+{%- set rationale = 'Continuous Python processing uses streams to trigger Snowpark tasks with ~5s scheduling overhead.' -%}
+{%- set primary_tradeoffs = st_tradeoffs ~ ' ' ~ snowpark_tradeoffs -%}
+
+{%- elif data_freshness_requirement == 'Continuous' and transformation_logic_type == 'Procedural' %}
+{%- set primary = 'Streams & Tasks' -%}
+{%- set alternative = 'Stored Procedures' -%}
+{%- set rationale = 'Continuous procedural logic uses stream-triggered tasks.' -%}
+{%- set primary_tradeoffs = st_tradeoffs -%}
+{%- set alternative_tradeoffs = sp_tradeoffs -%}
+
+{%- elif data_freshness_requirement == 'Near Real-time' and transformation_logic_type == 'SQL' and pipeline_trigger_model == 'Snowflake Handles It Automatically' %}
+{%- set primary = 'Dynamic Tables' -%}
+{%- set alternative = 'Streams & Tasks' -%}
+{%- set rationale = 'Near real-time auto-refresh SQL is the sweet spot for Dynamic Tables.' -%}
+{%- set primary_tradeoffs = dt_tradeoffs -%}
+{%- set alternative_tradeoffs = st_tradeoffs -%}
+
+{%- elif data_freshness_requirement == 'Near Real-time' and transformation_logic_type == 'SQL' and pipeline_trigger_model == 'New or Changed Data Triggers It' %}
+{%- set primary = 'Streams & Tasks' -%}
+{%- set alternative = 'Dynamic Tables' -%}
+{%- set rationale = 'Change-driven near real-time SQL fits Streams & Tasks.' -%}
+{%- set primary_tradeoffs = st_tradeoffs -%}
+{%- set alternative_tradeoffs = dt_tradeoffs -%}
+
+{%- elif data_freshness_requirement == 'Near Real-time' and transformation_logic_type == 'Python or Scala' %}
+{%- set primary = 'Snowpark + Tasks' -%}
+{%- set rationale = 'Near real-time Python requires Snowpark with task scheduling.' -%}
+{%- set primary_tradeoffs = snowpark_tradeoffs ~ ' ' ~ st_tradeoffs -%}
+
+{%- elif transformation_logic_type == 'dbt' and dbt_variant == 'dbt Core (External)' %}
+{%- set primary = 'dbt Core (External)' -%}
+{%- set rationale = 'External dbt is always externally orchestrated.' -%}
+{%- set primary_tradeoffs = dbt_external_tradeoffs -%}
+
+{%- elif transformation_logic_type == 'dbt' and dbt_variant == 'dbt Projects on Snowflake' and pipeline_trigger_model == 'Snowflake Handles It Automatically' %}
+{%- set primary = 'dbt + Dynamic Tables' -%}
+{%- set alternative = 'dbt Projects on Snowflake' -%}
+{%- set rationale = 'Native dbt with auto-refresh combines dbt dev workflow with DT operational simplicity.' -%}
+{%- set primary_tradeoffs = dbt_dt_tradeoffs -%}
+{%- set alternative_tradeoffs = dbt_native_tradeoffs -%}
+
+{%- elif transformation_logic_type == 'dbt' and dbt_variant == 'dbt Projects on Snowflake' and pipeline_trigger_model == 'A Schedule (Clock-based)' %}
+{%- set primary = 'dbt Projects on Snowflake' -%}
+{%- set alternative = 'dbt + Dynamic Tables' -%}
+{%- set rationale = 'Native dbt with Task-based scheduling gives explicit run control.' -%}
+{%- set primary_tradeoffs = dbt_native_tradeoffs -%}
+{%- set alternative_tradeoffs = dbt_dt_tradeoffs -%}
+
+{%- elif transformation_logic_type == 'dbt' and dbt_variant == 'dbt Projects on Snowflake' %}
+{%- set primary = 'dbt Projects on Snowflake' -%}
+{%- set alternative = 'dbt Core (External)' -%}
+{%- set rationale = 'Native dbt with external trigger via Snow CLI.' -%}
+{%- set primary_tradeoffs = dbt_native_tradeoffs -%}
+{%- set alternative_tradeoffs = dbt_external_tradeoffs -%}
+
+{%- elif data_freshness_requirement == 'Batch' and transformation_logic_type == 'SQL' and pipeline_trigger_model == 'Snowflake Handles It Automatically' %}
+{%- set primary = 'Dynamic Tables' -%}
+{%- set rationale = 'Batch SQL with auto-refresh is the core Dynamic Tables use case.' -%}
+{%- set primary_tradeoffs = dt_tradeoffs -%}
+
+{%- elif data_freshness_requirement == 'Batch' and transformation_logic_type == 'SQL' and pipeline_trigger_model == 'An External System Orchestrates It' %}
+{%- set primary = 'dbt Core (External)' -%}
+{%- set alternative = 'Dynamic Tables' -%}
+{%- set rationale = 'Externally orchestrated batch SQL fits dbt Core or can use DTs.' -%}
+{%- set primary_tradeoffs = dbt_external_tradeoffs -%}
+{%- set alternative_tradeoffs = dt_tradeoffs -%}
+
+{%- elif data_freshness_requirement == 'Batch' and transformation_logic_type == 'SQL' and pipeline_trigger_model == 'A Schedule (Clock-based)' %}
+{%- set primary = 'Dynamic Tables' -%}
+{%- set alternative = 'Stored Procedures' -%}
+{%- set rationale = 'Scheduled batch SQL can use DTs (target lag as schedule) or scheduled Tasks.' -%}
+{%- set primary_tradeoffs = dt_tradeoffs -%}
+{%- set alternative_tradeoffs = sp_tradeoffs -%}
+
+{%- elif transformation_logic_type == 'Python or Scala' %}
+{%- set primary = 'Snowpark' -%}
+{%- set rationale = 'Python/Scala logic requires Snowpark regardless of freshness.' -%}
+{%- set primary_tradeoffs = snowpark_tradeoffs -%}
+
+{%- elif data_freshness_requirement == 'Batch' and transformation_logic_type == 'Procedural' and pipeline_trigger_model == 'A Schedule (Clock-based)' %}
+{%- set primary = 'Stored Procedures' -%}
+{%- set alternative = 'Snowpark' -%}
+{%- set rationale = 'Scheduled procedural logic uses Stored Procedures or Snowpark.' -%}
+{%- set primary_tradeoffs = sp_tradeoffs -%}
+{%- set alternative_tradeoffs = snowpark_tradeoffs -%}
+
+{%- elif data_freshness_requirement == 'Batch' and transformation_logic_type == 'Procedural' %}
+{%- set primary = 'Snowpark' -%}
+{%- set alternative = 'Stored Procedures' -%}
+{%- set rationale = 'Externally triggered procedural logic works well with Snowpark.' -%}
+{%- set primary_tradeoffs = snowpark_tradeoffs -%}
+{%- set alternative_tradeoffs = sp_tradeoffs -%}
+
+{%- else %}
+{%- set primary = 'Dynamic Tables' -%}
+{%- set rationale = 'Default recommendation for unmatched combinations.' -%}
+{%- set primary_tradeoffs = dt_tradeoffs -%}
+{%- endif %}
+
+{# --- APPLY SOURCE BOOST --- #}
+{%- if source_data_location == 'Streaming Platform' and primary != 'Streams & Tasks' and 'Streams' not in primary %}
+{%- set rationale = rationale ~ ' Note: streaming source adds affinity toward Streams & Tasks.' -%}
+{%- endif %}
+{%- if source_data_location == 'Already in Snowflake' and primary != 'Dynamic Tables' and 'Dynamic' not in primary %}
+{%- set rationale = rationale ~ ' Note: Snowflake-internal source adds affinity toward Dynamic Tables.' -%}
+{%- endif %}
+{%- if source_data_location == 'Cloud Storage' and primary != 'Snowpark' and 'Snowpark' not in primary %}
+{%- set rationale = rationale ~ ' Note: cloud storage source adds affinity toward Snowpark.' -%}
+{%- endif %}
+
+## ★ Recommended Technology
+
+### Primary: {{ primary }}
+
+**Why this fits:** {{ rationale }}
+
+| Factor | Your Answer |
+|--------|-------------|
+| Freshness | {{ data_freshness_requirement }} |
+| Logic | {{ transformation_logic_type }}{% if transformation_logic_type == 'dbt' %} ({{ dbt_variant }}){% endif %} |
+| Trigger | {{ pipeline_trigger_model }} |
+| Source | {{ source_data_location }} |
+| Preference | {{ technology_preference }} |
+
+{%- if primary_tradeoffs %}
+
+**Tradeoffs to consider:** {{ primary_tradeoffs }}
+{%- endif %}
+
+{%- if alternative %}
+
+### Alternative: {{ alternative }}
+
+Also viable for your requirements. Consider this if the primary doesn't fit your team's expertise or existing tooling.
+
+{%- if alternative_tradeoffs %}
+
+**Tradeoffs to consider:** {{ alternative_tradeoffs }}
+{%- endif %}
+{%- endif %}
+
+{%- if technology_preference != 'No Preference' and technology_preference != primary %}
+
+### Preference Note
+
+You indicated existing technology needs. The routing table recommends **{{ primary }}** based on your freshness, logic, and trigger requirements. Review whether your existing stack or the data-driven recommendation better serves your use case.
+{%- endif %}
+
+### Confirm Your Selection
+
+Select your final technology choice below. You can accept the recommendation or override it based on your judgment.

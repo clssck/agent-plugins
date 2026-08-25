@@ -1,17 +1,6 @@
 ---
 name: machine-learning
-description: >-
-  **[REQUIRED]** For **ALL** data science and machine learning tasks; load it even when only part
-  of the workflow is ML. Routes to specialized sub-skills. Use when: analyzing data, building or
-  training models (sklearn, XGBoost, LightGBM, PyTorch, TensorFlow, deep learning, Ray, GPU);
-  classification, regression, clustering, forecasting and time series, anomaly detection,
-  prediction; model registry, logging or registering models, deploying a pickle file, model
-  services, inference and inference logs, batch or SPCS inference; experiment tracking, model
-  monitoring, ML observability, drift, gateway A/B testing; distributed training, DPF, many-model
-  training, hyperparameter tuning (HPO), compute pools, training at scale; feature store, feature
-  views, entities, online features, training datasets; ML and model lineage, GET_LINEAGE; pipeline
-  orchestration, DAGs, scheduled training; explainability (SHAP, feature importance);
-  preprocessing (scaling, encoding, imputation, normalization).
+description: "**[REQUIRED]** For **ALL** data science and machine learning tasks. This skill should ALWAYS be loaded in even if only a portion of the workflow is related to machine learning. Use when: analyzing data, training models, deploying models to Snowflake, registering models, working with ML workflows, running ML jobs on Snowflake compute, model registry, model service, model inference, log model, deploy pickle file, experiment tracking, model monitoring, gateway A/B testing, ML observability, tracking drift, model performance analysis, distributed training, XGBoost, LightGBM, PyTorch, DPF, distributed partition function, many model training, hyperparameter tuning, HPO, compute pools, train at scale, feature store, feature views, entities, training datasets, online features, pipeline orchestration, DAG, task graph, schedule training, datasets, dataset versioning, DataConnector, ML lineage, model lineage, GET_LINEAGE, trace lineage, forecast, forecasting, time series, anomaly detection, outlier, predict, predictions, backtest, classify, classification, regression, clustering, build a model, create a model, sklearn, scikit-learn, tensorflow, ML, mlops, ray, GPU, deep learning, neural network, explain model, SHAP, Shapley, feature importance, model explainability, interpret model, preprocessing, preprocessor, scaling, encoding, imputation, normalize, transform data before training, preprocessing pipeline. Routes to specialized sub-skills."
 ---
 
 # Data Science & Machine Learning Skills

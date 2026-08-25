@@ -1,0 +1,45 @@
+## Your Constraints
+
+{%- if 'None of These Apply' in pipeline_constraints %}
+
+No constraints selected — all technologies remain viable. The recommendation will be based purely on freshness, logic type, trigger model, and source data.
+
+{%- else %}
+
+Selected constraints:
+{%- for constraint in pipeline_constraints %}
+- {{ constraint }}
+{%- endfor %}
+
+### Impact on Technology Selection
+
+{%- if 'Must Integrate with Existing Airflow/Dagster/Prefect' in pipeline_constraints %}
+- **Vetoes:** Dynamic Tables (cannot be externally triggered)
+{%- endif %}
+{%- if 'Must Use Our Existing dbt Project' in pipeline_constraints %}
+- **Vetoes:** Dynamic Tables (standalone), Stored Procedures
+- **Boosts:** dbt Core, dbt Projects on SF, dbt+DTs
+{%- endif %}
+{%- if 'Needs Row-level Error Handling' in pipeline_constraints %}
+- **Vetoes:** Dynamic Tables (no row-level error access)
+{%- endif %}
+{%- if 'Must Process Data in Python' in pipeline_constraints %}
+- **Vetoes:** Dynamic Tables, dbt (both variants)
+- **Boosts:** Snowpark
+{%- endif %}
+{%- if 'Pipeline Spans Multiple Systems' in pipeline_constraints %}
+- **Vetoes:** Dynamic Tables (Snowflake-only)
+{%- endif %}
+{%- if 'Minimize Operational Overhead' in pipeline_constraints %}
+- **Vetoes:** Streams & Tasks, Stored Procedures
+- **Boosts:** Dynamic Tables, dbt+DTs
+{%- endif %}
+{%- if 'Data Arrives as Continuous Stream' in pipeline_constraints %}
+- **Vetoes:** dbt (both), Stored Procedures
+- **Boosts:** Streams & Tasks
+{%- endif %}
+{%- if 'Want Everything Native to Snowflake' in pipeline_constraints %}
+- **Vetoes:** dbt Core (External)
+- **Boosts:** Dynamic Tables, Streams & Tasks, dbt Projects on SF
+{%- endif %}
+{%- endif %}

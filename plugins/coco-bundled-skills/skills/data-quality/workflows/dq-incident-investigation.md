@@ -157,14 +157,41 @@ If evidence is sparse, state the most probable hypothesis and what additional in
 
 ---
 
-### Step 6: Circuit Breaker Option
+### Step 6: Next Steps (skill-backed only)
 
-After presenting the report, always offer:
+After presenting the report, use `ask_user_question` and offer **only** options that load an existing workflow. Do **not** offer freeform “fix the data.”
 
-> "Would you like to set up a **circuit breaker** to automatically pause downstream pipelines if this violation recurs?
-> This would prevent bad data from propagating further until the upstream issue is resolved."
+Present options as **user-facing click labels** (action-oriented, plain language). **Copy the click labels below verbatim** for the default top 6 — do not paraphrase, reorder, or replace any item (e.g. do **not** substitute “trace upstream lineage” for #6; lineage belongs earlier in the investigation, not as a post-report swap-in). Offer in **this priority order**. Default ask shows the **top 6** + “No thanks”; reveal 7–11 only if the user asks “what else?” or the case clearly fits.
 
-If yes → Load `workflows/circuit-breaker.md`.
+| Priority | Click label (show to user) | Load | When |
+|----------|----------------------------|------|------|
+| 1 | **Set up notifications on this association to get alerts when it fails** | `workflows/dq-notifications.md` | Default |
+| 2 | **Set up a circuit breaker to auto-pause downstream pipelines when this fails again** | `workflows/circuit-breaker.md` | Default |
+| 3 | **Adjust the pass/fail threshold for this check** | `workflows/expectations-management.md` | Default |
+| 4 | **See whether this just broke or has been failing for a while** | `workflows/regression-detection.md` | Default |
+| 5 | **Show how this metric has changed over time** | `workflows/trend-analysis.md` | Default |
+| 6 | **Recommend or attach better monitors on these tables** | `workflows/monitor-recommendations.md` | Default |
+| 7 | **Create a custom quality rule (or ACCEPTED_VALUES allow-list)** | `workflows/custom-dmf-patterns.md` | “What else?” / rule gap |
+| 8 | **Check overall schema health score** | `workflows/health-scoring.md` | “What else?” / posture |
+| 9 | **Find unmonitored tables or noisy monitors** | `workflows/coverage-gaps.md` | “What else?” / hygiene |
+| 10 | **Compare two tables (e.g. staging vs prod)** | `workflows/compare-tables.md` | “What else?” / parity |
+| 11 | **Break this metric down by a column (e.g. per region)** | `workflows/within-group-dmf.md` | “What else?” / segments |
+| — | **No thanks — I’m done for now** | — | Exit |
+
+Example default prompt (top 6):
+
+> What would you like to do next?
+> 1. Set up notifications on this association to get alerts when it fails  
+> 2. Set up a circuit breaker to auto-pause downstream pipelines when this fails again  
+> 3. Adjust the pass/fail threshold for this check  
+> 4. See whether this just broke or has been failing for a while  
+> 5. Show how this metric has changed over time  
+> 6. Recommend or attach better monitors on these tables  
+> Or **No thanks**. (Say **“what else?”** for more options.)
+
+Load the matching workflow from the table. Prefer `dq-notifications` over `sla-alerting` unless the user asks for a custom health-% ALERT.
+
+Do not invent follow-ups that lack a workflow file.
 
 ---
 
@@ -180,7 +207,7 @@ If yes → Load `workflows/circuit-breaker.md`.
 
 ## Stopping Points
 - ✋ **Step 1**: If affected table is not provided — ask before proceeding
-- ✋ **Step 5**: After presenting the full report — offer circuit breaker option and await user response
+- ✋ **Step 5**: After presenting the full report — offer skill-backed next steps from the Step 6 table and await user response
 
 ## Error Handling
 | Issue | Resolution |

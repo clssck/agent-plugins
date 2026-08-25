@@ -1,0 +1,24 @@
+## Pipeline Criticality: {{ pipeline_criticality }}
+
+{%- if pipeline_criticality == 'Mission-critical' %}
+Your implementation plan will include a **comprehensive test suite** covering:
+- Primary key uniqueness and non-null constraints
+- Data completeness and partition existence checks
+- Referential integrity validation
+- Statistical stability (day-over-day variance, distribution drift)
+- Enum validity and conditional column gating
+- Downstream compatibility tests
+- Monitoring alerts with severity levels and recovery actions
+- Retention and housekeeping validation
+{%- elif pipeline_criticality == 'Important' %}
+Your implementation plan will include a **standard test suite** covering:
+- Primary key uniqueness and non-null constraints
+- Data completeness and partition existence checks
+- Row count stability (day-over-day variance)
+- Basic monitoring alerts (missing partition, row count drops)
+- Retention validation
+{%- else %}
+Your implementation plan will include **minimal testing**:
+- Primary key uniqueness
+- Key column non-null constraints
+{%- endif %}

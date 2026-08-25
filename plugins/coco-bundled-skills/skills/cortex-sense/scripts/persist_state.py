@@ -127,7 +127,7 @@ class VersionRef:
 # `created_at` is version metadata and only meaningful at the top level; it is NOT
 # in _STRIPPED_FIELD_NAMES so a nested `created_at` (e.g. inside an `extra` map)
 # survives the recursive strip.
-_STRIPPED_TOP_LEVEL = {"version_id", "created_at", "updated_at"}
+_STRIPPED_TOP_LEVEL = {"version_id", "created_at", "updated_at", "description_synced_version"}
 _STRIPPED_FIELD_NAMES = {"id", "superseded_by"}
 
 # Default DB/schema used in create-context when no env override is set.

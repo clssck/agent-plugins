@@ -1,6 +1,6 @@
 ---
 name: dbt-migration
-description: "Migrate dbt projects to run on Snowflake. Triggers: migrate, env_var, environment variable, convert to var, migration, prepare for snowflake."
+description: "Migrate dbt projects to run on Snowflake. Triggers: migrate, env_var, environment variable, env.yml, env yml, migration, prepare for snowflake."
 parent_skill: dbt-projects-on-snowflake
 ---
 
@@ -8,13 +8,13 @@ parent_skill: dbt-projects-on-snowflake
 
 ## When to Load
 
-Main skill routes here for: "migrate", "env_var", "environment variable", "convert to var", "migration", "prepare for snowflake"
+Main skill routes here for: "migrate", "env_var", "environment variable", "env.yml", "migration", "prepare for snowflake"
 
 ## Overview
 
 **This is an ACTION skill** - proceed with creation of dbt project. Do not just analyze and report.
 
-This skill helps migrate existing dbt projects to run on Snowflake.
+This skill helps migrate existing dbt projects to run on Snowflake using the `env.yml` environment variables feature.
 
 ## General Steps (Apply to All Migrations)
 
@@ -37,225 +37,365 @@ cp -r /path/to/my_project /path/to/my_project_snowflake
 
 **Exception:** Only edit in-place if the user explicitly requests it (e.g., "edit files directly", "modify in place").
 
-### Resolving env_var() Values
-
-Whenever you replace an `env_var()` call with a literal value (in `profiles.yml`, `dbt_project.yml`, or `packages.yml`), resolve it using this priority order:
-
-1. **`env_var()` second argument** — e.g., `env_var('START_DATE', '2024-01-01')` → use `"2024-01-01"`
-2. **Terminal value** — **MUST** run `echo $VAR_NAME` in bash for every env var that lacks a second argument. Do NOT skip this step. Batch multiple variables in one command: `echo "SNOWFLAKE_ACCOUNT=$SNOWFLAKE_ACCOUNT SNOWFLAKE_ROLE=$SNOWFLAKE_ROLE ..."`
-3. **If both are empty** (no second argument AND `echo` returned empty) — use `TODO_INSERT_<VAR_NAME>` placeholder and tell the user which values need to be filled in before deployment
-
 ### Step 2: Update profiles.yml
 
 Update `profiles.yml` for Snowflake-hosted dbt:
 
-**CRITICAL: Snowflake-hosted dbt does NOT support `env_var()` in profiles.yml!**
-
-You must:
 1. **Remove authentication fields** (`password`, `authenticator`, `private_key_path`, `private_key_passphrase`, `token`) - authentication is handled by the Snowflake session
-2. **Keep all other fields** - do not remove fields like `database`, `warehouse`, `schema`, etc.
-3. **Replace ALL `env_var()` calls with literal values** using the resolution priority above
+2. **Keep `env_var()` calls** — they ARE supported when backed by an `env.yml` file
+3. **Rename env_var keys to `DBT_` prefix UPPERCASE** — e.g., `env_var('SNOWFLAKE_ROLE')` becomes `env_var('DBT_CURRENT_ROLE')`
+4. `account` and `user` fields can be set to `"not needed"` (auth is handled by the Snowflake session)
 
 **Before (local dbt with env_var and password):**
 ```yaml
-account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
-user: "{{ env_var('SNOWFLAKE_USER') }}"
-password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"  # REMOVE this line
-role: "{{ env_var('SNOWFLAKE_ROLE') }}"
-...
+default:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
+      schema: "{{ env_var('SNOWFLAKE_SCHEMA') }}"
+      threads: 4
 ```
 
-**After (real values from `echo $VAR_NAME`, password removed):**
+**After (env_var backed by env.yml, password removed):**
 ```yaml
-account: "myorg-myaccount"      # from: echo $SNOWFLAKE_ACCOUNT
-user: "dbt_user"                # from: echo $SNOWFLAKE_USER
-role: "TODO_INSERT_SNOWFLAKE_ROLE"   # env var was empty - user must fill in before deployment
-...
-# password line removed
+default:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "not needed"
+      user: "not needed"
+      role: "{{ env_var('DBT_CURRENT_ROLE') }}"
+      database: "{{ env_var('DBT_CURRENT_DB') }}"
+      warehouse: "{{ env_var('DBT_CURRENT_WH') }}"
+      schema: "{{ env_var('DBT_CURRENT_SCHEMA') }}"
+      threads: 4
 ```
 
 See `references/profiles-yml.md` for all requirements.
 
-### Step 3: Check for Special Cases
+### Step 3: Create env.yml
+
+**Create `env.yml` in the project root** (same directory as `dbt_project.yml`). This file defines the environment variables that `env_var()` calls resolve from.
+
+**Naming rules (enforced — run fails if broken):**
+- Every key in `env:` must be prefixed with `DBT_`
+- Every key must be UPPERCASE
+- Keys in `secrets:` must be prefixed with `DBT_ENV_SECRET_`
+- Key names must be plain text (no SQL on the left-hand side)
+- Environment names are case sensitive (letters, numbers, underscores, up to 256 chars)
+
+**Values in `env:` can be:**
+- Plain text: `DBT_MY_VAR: my_value`
+- SQL that returns one row, one VARCHAR column: `DBT_CURRENT_ROLE: "{{ select CURRENT_ROLE() }}"`
+- Stored procedure calls: `DBT_SCHEMA: "{{ select * FROM TABLE(my_proc()) }}"`
+
+**Example env.yml:**
+```yaml
+env_config:
+  default_environment: dev
+  environments:
+    - name: dev
+      env:
+        DBT_CURRENT_WH: "{{ select CURRENT_WAREHOUSE() }}"
+        DBT_CURRENT_DB: "{{ select CURRENT_DATABASE() }}"
+        DBT_CURRENT_SCHEMA: "{{ select CURRENT_SCHEMA() }}"
+        DBT_CURRENT_ROLE: "{{ select CURRENT_ROLE() }}"
+        DBT_DATA_INTERVAL_START: "2020-01-01 00:00:00"
+        DBT_DATA_INTERVAL_END: "2099-12-31 23:59:59"
+    - name: prod
+      env:
+        DBT_CURRENT_WH: <your_prod_warehouse>
+        DBT_CURRENT_DB: <your_prod_database>
+        DBT_CURRENT_SCHEMA: <your_prod_schema>
+        DBT_CURRENT_ROLE: <your_prod_role>
+        DBT_DATA_INTERVAL_START: "{{ select (DATE_TRUNC('DAY', CURRENT_TIMESTAMP()) - INTERVAL '1 DAY')::string }}"
+        DBT_DATA_INTERVAL_END: "{{ select (DATE_TRUNC('DAY', CURRENT_TIMESTAMP()) - INTERVAL '1 SECOND')::string }}"
+```
+
+### Step 4: Check for Special Cases
 
 After general steps, check if any special handling is needed:
 
 | Case | Detect | Action |
 |------|--------|--------|
-| **env_var() in project** | `dbt_project.yml`, `packages.yml`, or models contain `env_var()` | Go to **Case 1** below |
+| **env_var() in project** | Models, macros, `dbt_project.yml` contain `env_var()` with non-`DBT_` prefixed names | Go to **Case 1** below |
+| **Private Git packages** | `packages.yml` uses git tokens via `env_var()` | Go to **Case 2** below |
 
 ---
 
-## Case 1: env_var() Migration
+## Case 1: env_var() Rename Migration
 
 ### Why
 
-**Snowflake does not currently support `env_var()` in dbt projects.** The deployment will fail for projects with `env_var()`.
-
-**Important:** Not all files can use `var()` as a replacement. dbt parses `dbt_project.yml`, `packages.yml`, and `profiles.yml` **before** Jinja renders, so `vars` from `dbt_project.yml` do NOT work in these files. Also, Snowflake managed project doesn't support `--vars` to be provided during project creation. So only SQL models, schema.yml, macros, and other Jinja-rendered files support `vars` from `dbt_project.yml` for Snowflake managed dbt projects.
-
-**Solution (two-tier):**
-- **Pre-Jinja files** (`dbt_project.yml` config fields, `packages.yml`): Replace `env_var()` with **literal values** resolved from the terminal (same approach as profiles.yml in Step 2)
-- **Jinja-rendered files** (`.sql` models, `schema.yml`, macros, snapshots): Convert `env_var()` to `var()` and pass values at runtime using `--vars`
+Snowflake's `env.yml` requires all environment variable keys to be **UPPERCASE with a `DBT_` prefix**. Existing projects that use `env_var()` with non-conforming names (e.g., `env_var('SNOWFLAKE_ROLE')`, `env_var('my_schema')`) must rename those variables.
 
 ### Step 1: Scan for env_var() Usage
 
-Search project files (excluding `profiles.yml` which was handled in General Steps):
+Search project files for all `env_var()` references:
 
 ```bash
 grep -r "env_var" <project_path> --include="*.yml" --include="*.yaml" --include="*.sql"
 ```
 
 Common locations:
+- `profiles.yml` - connection settings
 - `dbt_project.yml` - project-level variables and config
-- `packages.yml` - package dependencies (e.g., private package URLs with tokens)
+- `packages.yml` - package dependencies
 - `models/**/*.sql` - model files
 - `macros/**/*.sql` - macro files
 - `models/**/*.yml` - schema/docs files
 
-### Step 2: Replace env_var() Calls
+### Step 1b: Identify Secrets
 
-**CRITICAL: Different files require different handling!**
+**⚠️ CRITICAL: Never put secret values as plain text in env.yml!**
 
-#### In `dbt_project.yml` (outside `vars:`) and `packages.yml` → Replace with LITERAL VALUES
+After scanning, identify any `env_var()` calls that reference secrets — variables whose names contain `SECRET`, `TOKEN`, `PASSWORD`, `CREDENTIAL`, `KEY`, or that will be renamed to `DBT_ENV_SECRET_*`. These MUST be handled via the `secrets:` section of `env.yml` (backed by Snowflake secret objects), never as plain `env:` values.
 
-These files are parsed before Jinja renders, so `var()` does NOT work here. Replace `env_var()` with literal values using the **resolution priority** from the General Steps section.
+**Behavior:**
+- **Auto-mode (non-interactive):** Skip secret variables entirely. In the generated `env.yml`, leave a commented-out `secrets:` block with TODO instructions:
+  ```yaml
+  env_config:
+    default_environment: dev
+    environments:
+      - name: dev
+        # TODO: Configure secrets. Create a Snowflake secret object for each value, then uncomment:
+        # secrets:
+        #   - snowflake_secret: <database>.<schema>.<secret_name>
+        #     env_var_name: DBT_ENV_SECRET_GIT_TOKEN
+        env:
+          # ... plain env vars ...
+  ```
+  In the output summary, list all skipped secrets and tell the user they need to:
+  1. Create Snowflake secret objects (`CREATE SECRET ... TYPE = GENERIC_STRING`)
+  2. Grant `READ` on each secret to the executing role
+  3. Uncomment and fill in the `secrets:` block
+  4. Attach an External Access Integration at deploy time
 
-- **Do NOT inline secrets or tokens** (e.g., git tokens in `packages.yml`). If `env_var()` is used for credentials, flag it to the user — those need a different solution.
+- **Interactive mode:** Ask the user about each detected secret:
+  - What Snowflake secret object should it reference? (existing or new)
+  - If new: guide creation of `CREATE SECRET`, grant `READ`, and set up EAI
 
-**Before (`dbt_project.yml` config):**
+> ⚠️ **MANDATORY CHECKPOINT — STOP HERE:**
+> Present all objects to be created/modified:
+> - `CREATE SECRET <db>.<schema>.<secret_name> TYPE = GENERIC_STRING SECRET_STRING = '...';`
+> - `GRANT READ ON SECRET <db>.<schema>.<secret_name> TO ROLE <role>;`
+> - Any EAI changes (CREATE or ALTER)
+>
+> **Wait for explicit approval (Yes/No/Modify). NEVER proceed without user confirmation.**
+
+  - Add the proper `secrets:` entry to env.yml
+
+**Detection rules — treat as a secret if ANY of these match:**
+- Variable name contains `SECRET`, `TOKEN`, `PASSWORD`, `CREDENTIAL`, `KEY`, `PAT` (case-insensitive)
+- Variable name already has `DBT_ENV_SECRET_` prefix
+- Variable is used in `packages.yml` as part of a git URL (e.g., `https://{{env_var('...')}}@github.com/...`)
+- Variable value (from terminal or default arg) looks like a credential (starts with `ghp_`, `glpat-`, `AKIA`, contains 40+ hex chars, etc.)
+
+**Never do this:**
 ```yaml
-name: 'my_project'
-profile: "{{ env_var('DBT_PROFILE') }}"
+# ❌ WRONG — exposes secret value as plain text in env.yml
+env:
+  DBT_ENV_SECRET_GIT_TOKEN: "ghp_abc123..."
 ```
 
-**After:**
+### Step 2: Build Variable Mapping
+
+Create a mapping from old names to new `DBT_`-prefixed UPPERCASE names:
+
+| Old Name | New Name | Source Value for env.yml |
+|----------|----------|------------------------|
+| `SNOWFLAKE_ROLE` | `DBT_CURRENT_ROLE` | `"{{ select CURRENT_ROLE() }}"` |
+| `SNOWFLAKE_DATABASE` | `DBT_CURRENT_DB` | literal or SQL |
+| `SNOWFLAKE_WAREHOUSE` | `DBT_CURRENT_WH` | `"{{ select CURRENT_WAREHOUSE() }}"` |
+| `SNOWFLAKE_SCHEMA` | `DBT_CURRENT_SCHEMA` | `"{{ select CURRENT_SCHEMA() }}"` |
+| `START_DATE` | `DBT_START_DATE` | value from `echo $START_DATE` or default arg |
+| `my_schema` | `DBT_MY_SCHEMA` | value from context |
+
+**To determine the value for each variable in env.yml:**
+1. **`env_var()` second argument** — e.g., `env_var('START_DATE', '2024-01-01')` → use `"2024-01-01"` as the env.yml value
+2. **Terminal value** — run `echo $VAR_NAME` to get the current value
+3. **If it maps to a Snowflake context** (account, role, warehouse, user, schema, database) → use a `"{{ select CURRENT_X() }}"` expression
+4. **If both are empty** — use a placeholder and tell the user
+
+### Step 3: Rename env_var() References
+
+Update all `env_var()` calls to use the new `DBT_`-prefixed names:
+
+**In profiles.yml:**
 ```yaml
-name: 'my_project'
-profile: "default"  # from: echo $DBT_PROFILE
+# Before
+role: "{{ env_var('SNOWFLAKE_ROLE') }}"
+# After
+role: "{{ env_var('DBT_CURRENT_ROLE') }}"
 ```
 
-#### In `dbt_project.yml` `vars:` section → Use PLAIN STRING defaults (NO Jinja)
-**CRITICAL: Different handling for vars section vs everything else!**
-The `vars:` section defines default values. Use simple strings, NOT `{{ var(...) }}` which causes infinite recursion.
+**In SQL model/macro files:**
+```sql
+-- Before
+SELECT * FROM table WHERE date >= '{{ env_var("START_DATE") }}'
+-- After
+SELECT * FROM table WHERE date >= '{{ env_var("DBT_START_DATE") }}'
+```
 
-Resolve values using the **resolution priority** from the General Steps section.
-
-**Before:**
+**In dbt_project.yml:**
 ```yaml
-# dbt_project.yml
+# Fields like vars: use env_var() with DBT_ prefix:
+# Before
 vars:
   start_date: "{{ env_var('START_DATE', '2024-01-01') }}"
-  environment: "{{ env_var('ENVIRONMENT') }}"
-```
-
-**After (CORRECT):**
-```yaml
-# Snowflake does not currently support env_var() in dbt projects.
-# This project was updated to use vars instead. To override vars at runtime:
-# CLI: snow dbt execute <project> run --vars '{"start_date": "2024-01-01", "environment": "dev"}'
-# SQL: EXECUTE DBT PROJECT <name> ARGS = 'run --vars ''{"start_date": "2024-01-01", "environment": "dev"}''';
-
-name: 'my_project'
-# ... rest of config ...
+# After
 vars:
-  start_date: "2024-01-01"          # from env_var default argument
-  environment: "TODO_INSERT_ENVIRONMENT"  # env var was empty - user must fill in
+  start_date: "{{ env_var('DBT_START_DATE', '2024-01-01') }}"
 ```
 
-**IMPORTANT:** Always add a comment block at the top of `dbt_project.yml` explaining why vars are used (Snowflake doesn't support env_var) and showing how to override vars using both CLI and SQL syntax. Use 3 example variables from the project.
+### Step 4: Add env variables to env.yml
 
-**WRONG (causes infinite recursion - DO NOT DO THIS):**
-```yaml
-# dbt_project.yml
-vars:
-  start_date: "{{ var('start_date') }}"  # WRONG! Infinite recursion!
-```
+Add all mapped variables to the `env:` section of the `env.yml` created in General Step 3.
 
-#### In SQL model/macro files → Use `{{ var('key') }}`
+### Step 5: Provide Execution Examples
 
-In `.sql` files, you CAN use `{{ var('key') }}` to reference variables:
+After migration, provide examples showing how to execute with environments and overrides.
 
-**Before (model.sql):**
-```sql
-SELECT * FROM table WHERE date >= '{{ env_var("START_DATE") }}'
-```
-
-**After (model.sql):**
-```sql
-SELECT * FROM table WHERE date >= '{{ var("start_date") }}'
-```
-
-### Step 3: Provide Execution Examples
-
-After migration, provide examples showing how to pass variables at runtime.
-
-#### SQL Example (EXECUTE DBT PROJECT)
-
-The `--vars` syntax requires escaping single quotes inside the SQL string:
-
-```sql
--- Project variables can be overridden during execution using --vars
-EXECUTE DBT PROJECT my_database.my_schema.my_project
-  ARGS = 'run --vars ''{"start_date": "2024-01-01", "environment": "prod", "debug": "false"}''';
-```
-
-**Syntax breakdown:**
-- `ARGS = '...'` - SQL string containing the dbt command
-- `''{"key": "value"}''` - Escaped single quotes around JSON object (use `''` to escape `'` in SQL)
-
-#### Snowflake CLI Example (snow dbt execute)
-
-The CLI syntax is simpler - just pass JSON directly:
+#### Snowflake CLI Example (snow dbt execute — requires CLI >= 3.22)
 
 ```bash
-# Project variables can be overridden using --vars flag
-snow dbt execute my_project run --vars '{"start_date": "2024-01-01", "environment": "prod", "debug": "false"}'
+# Run with a specific environment
+snow dbt execute --env prod my_project run
+
+# Override specific variables
+snow dbt execute --env-vars '{"DBT_START_DATE": "2024-06-01", "DBT_CURRENT_DB": "staging_db"}' my_project run
+
+# Use shell environment variables (reads all DBT_-prefixed shell vars)
+snow dbt execute --use-shell-env-vars my_project run
 ```
 
-### Step 4: Output Summary
+#### SQL Fallback (if CLI is older than 3.22)
 
-After completing migration, output a summary with ready-to-use commands:
+```sql
+-- Run with a specific environment
+EXECUTE DBT PROJECT my_database.my_schema.my_project
+  ARGS = 'run'
+  ENVIRONMENT = 'prod';
+
+-- Override specific variables for a single run
+EXECUTE DBT PROJECT my_database.my_schema.my_project
+  ARGS = 'run'
+  ENV_VARS = ('DBT_START_DATE' = '2024-06-01', 'DBT_CURRENT_DB' = 'staging_db');
+```
+
+### Step 6: Output Summary
+
+After completing migration, output a summary:
 
 ```
 Migration complete for project: <project_name>
 
-Found and converted X env_var() calls to var().
+Created env.yml with X environment variables across Y environments.
+Renamed Z env_var() references to use DBT_ prefix.
 
-Project variables can be overridden during execution in the following ways:
+Execution options:
 
 **SQL (EXECUTE DBT PROJECT):**
 EXECUTE DBT PROJECT <database>.<schema>.<project_name>
-  ARGS = 'run --vars ''{"var1": "value1", "var2": "value2"}''';
+  ARGS = 'run'
+  ENVIRONMENT = 'dev';
 
 **Snowflake CLI:**
-snow dbt execute <project_name> run --vars '{"var1": "value1", "var2": "value2"}'
-```
+snow dbt execute --env dev <project_name> run
 
-Include a ready-to-use command with all the project's migrated variable keys.
+**Override variables at runtime:**
+EXECUTE DBT PROJECT <database>.<schema>.<project_name>
+  ARGS = 'run'
+  ENV_VARS = ('DBT_VAR1' = 'value1', 'DBT_VAR2' = 'value2');
+```
 
 ### Checklist for Case 1
 
 - [ ] Scan all `.yml`, `.yaml`, `.sql` files for `env_var()`
-- [ ] In `dbt_project.yml` (outside `vars:`) and `packages.yml`: Replace `env_var()` with literal values (use resolution priority)
-- [ ] In `dbt_project.yml` `vars:` section: Replace `env_var('KEY')` with PLAIN STRING defaults (NOT `{{ var(...) }}`)
-- [ ] **Add comment block at top of `dbt_project.yml`** explaining why vars are used (Snowflake doesn't support env_var) and showing how to override vars (CLI and SQL examples with 3 vars)
-- [ ] In SQL model/macro files: Replace `env_var('KEY')` with `{{ var('key') }}`
-- [ ] Provide SQL execution example with `--vars` syntax
-- [ ] Provide CLI execution example with `--vars` syntax
-- [ ] Output ready-to-use commands with all project variables
+- [ ] Build variable mapping (old name → new `DBT_` prefixed UPPERCASE name)
+- [ ] Create `env.yml` with all variables and at least one environment (dev)
+- [ ] Rename all `env_var()` calls in profiles.yml, `dbt_project.yml`, packages.yml, models, macros, schema files
+- [ ] Provide SQL and CLI execution examples
+- [ ] Output ready-to-use commands
+
+---
+
+## Case 2: Private Git Packages (secrets)
+
+⚠️ **MANDATORY CHECKPOINT:** Before creating any Snowflake objects (SECRET, NETWORK RULE, EAI), list all objects to be created and get explicit user confirmation. Wait for explicit user approval (Yes/No/Modify). NEVER proceed without confirmation.
+
+**Load `references/private-git-packages.md`** for the full setup workflow.
+
+---
+
+## Reference: env.yml Structure
+
+```yaml
+env_config:                          # Required top-level key
+  default_environment: dev           # Used when no environment specified at runtime
+  environments:
+    - name: dev                      # Environment name (case sensitive)
+      secrets:                       # Optional: Snowflake secrets → masked env vars
+        - snowflake_secret: db.schema.secret_name
+          env_var_name: DBT_ENV_SECRET_MY_TOKEN
+      env:                           # Optional: plain or SQL-computed env vars
+        DBT_KEY: "plain_value"
+        DBT_DYNAMIC: "{{ select CURRENT_USER() }}"
+```
+
+### Supported SQL in env: values
+
+- Context functions: `CURRENT_USER()`, `CURRENT_ROLE()`, `CURRENT_DATABASE()`, `CURRENT_SCHEMA()`, `CURRENT_WAREHOUSE()`
+- Date/time: `CURRENT_TIMESTAMP()`, `DATE_TRUNC(...)`, `DATEADD(...)`, etc.
+- Any query returning one row, one VARCHAR column: `SELECT col FROM table LIMIT 1`
+- Stored procedures: `SELECT * FROM TABLE(my_proc(...))`
+- String ops and concatenation: `CURRENT_USER() || '_schema'`
+
+### NOT supported in env: values
+
+- Macros (`{{ ref(...) }}`, `{{ source(...) }}`)
+- Jinja loops/conditionals (`{% for ... %}`, `{% if ... %}`)
+- `CURRENT_SESSION()`, `CURRENT_CLIENT()`, `CURRENT_IP_ADDRESS()`
+
+### Value Precedence (highest to lowest)
+
+1. `--env-vars` / `EXECUTE ... ENV_VARS` (highest)
+2. Shell variables (only with `--use-shell-env-vars`, reads `DBT_*` excluding `DBT_ENV_SECRET_*`)
+3. `env.yml` selected environment (lowest)
+
+### Environment Selection (highest to lowest)
+
+1. `ENVIRONMENT = '...'` on `EXECUTE DBT PROJECT`
+2. `DEFAULT_ENVIRONMENT` on the dbt project object
+3. `default_environment` in `env.yml`
+
+Use `NO_ENV` to run without any environment.
+
+### File location and size
+
+- Place `env.yml` in the root of your dbt project, next to `dbt_project.yml`
+- 2 MB limit (roughly 12,000 lines)
 
 ---
 
 ## Stopping Points
 
-None - proceed with migration. The original files are preserved by creating a copy first (Step 1).
+- ⚠️ Case 2 (Private Git Packages): Before creating Snowflake objects (SECRET, NETWORK RULE, EAI), list all objects and get explicit user confirmation.
 
 ## Output
 
 - Modified project files in the `_snowflake` copy (original project left untouched)
-- Updated `profiles.yml` with actual values (or `TODO_INSERT_<VAR_NAME>` placeholders for unset variables)
-- Execution examples (SQL and CLI) with ready-to-use commands (e.g., Case 1 includes `--vars` syntax with all project variable keys)
+- Updated `profiles.yml` with `DBT_`-prefixed env_var() calls (password/auth fields removed)
+- New `env.yml` file with environments and variables
+- Execution examples (SQL and CLI) with ready-to-use commands
 
 ## Next Steps
 

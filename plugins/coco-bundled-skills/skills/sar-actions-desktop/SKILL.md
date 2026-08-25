@@ -1,6 +1,6 @@
 ---
 name: sar-actions-desktop
-description: "Desktop/CLI environment for building Snowflake Apps in CoCo Desktop on a local machine with a full shell, the `snow` CLI, and `npm`. Load this alongside the `snowflake-apps` skill for ANY Snowflake App request on the desktop: create, scaffold, build, develop, run locally, deploy, publish, operate, monitor, or troubleshoot. A Snowflake App is a web application (typically Next.js) deployed to SPCS via `snow app` — NOT a Streamlit app or Native App. Triggers: build me an app, new app, scaffold, web app, dashboard, data app, deploy my app, push to snowflake, ship it, deploy failed, run locally, develop, app logs, app status, app.yml, snowflake-app."
+description: "Desktop/CLI environment for building Snowflake Apps in CoCo Desktop on a local machine with a full shell, the `snow` CLI, and `npm`. Load this alongside the `snowflake-apps` skill for ANY Snowflake App request on the desktop: create, scaffold, build, develop, run locally, deploy, publish, operate, monitor, or troubleshoot. A Snowflake App is a web application (typically Next.js) deployed to SPCS via `snow app` — NOT a Streamlit app or Native App. Triggers: build me an app, new app, scaffold, web app, dashboard, data app, deploy my app, push to snowflake, ship it, deploy failed, run locally, develop, app logs, app status, app.yml, app.yml v2, snowflake.yml, snow app setup, snow app deploy --target, snowflake-app."
 ---
 
 # Snowflake Apps — Desktop Environment
@@ -23,9 +23,11 @@ The `snowflake-apps` skill references these actions by name; below is how to per
 
 Given the chosen template directory, copy its contents into the project root with a bash copy (`cp -r <template-dir>/. <project-root>/`) or the `write` tool. Exclude build artifacts and dependency directories (e.g. `node_modules/`, `.next/`, `*.tsbuildinfo`). Then, from the project root, install dependencies using the command documented in the template's `README.md` **in the background**, so it runs while you work through the rest of create.
 
-### Generate snowflake.yml
+### Generate the deployment manifest
 
-Generate and configure `snowflake.yml` using the `snow app setup` flow. Follow [`references/snowflake-yml-setup.md`](references/snowflake-yml-setup.md) for the full procedure: confirm the command surface (`snow app setup --help`), dry-run (`snow app setup --app-name="<app_name>" --dry-run`, use `--warehouse` to resolve a missing warehouse), then run without `--dry-run` to write the file. Do not hand-author `snowflake.yml`. Configure only the allowed fields (`identifier.name`, `artifacts`) and set `app.yml` `profile` metadata (`label`, `description`, `icon: public/icon.svg`); omit `meta`.
+Generate and configure the manifest using the `snow app setup` flow. Follow [`references/manifest-setup.md`](references/manifest-setup.md) for the full procedure: confirm the command surface (`snow app setup --help`), move any template-provided `app.yml` aside, dry-run (`snow app setup --app-name="<app_name>" --dry-run`, use `--warehouse` to resolve a missing warehouse), then run without `--dry-run` to write the file.
+
+The CLI decides which manifest it writes — `snowflake.yml`, or an `app.yml` with `version: 2` — so read the output to see which one appeared and configure that one. Do not hand-author deployment values that setup can resolve.
 
 ### Run locally
 
@@ -35,10 +37,10 @@ First ensure dependencies are installed (run the template's `README.md` install 
 
 Deploy with the CLI. Load [`references/cli-guide.md`](references/cli-guide.md) for semantics and, when debugging, [`../snowflake-apps/references/debugging.md`](../snowflake-apps/references/debugging.md).
 
-1. If multiple `snowflake-app` entities exist in `snowflake.yml`, resolve the correct entity and include `--entity-id="<app_id>"` in all app commands; omit it when there is a single entity.
+1. Pick the selector every app command needs, from the manifest that drives the project: `--entity-id="<app_id>"` for a `snowflake.yml` with multiple `snowflake-app` entities, or `--target "<name>"` for an `app.yml` v2 that declares `targets`. Neither is interchangeable and neither is needed in the single-instance case — see `cli-guide.md` → "Selecting what to act on".
 2. Run the deploy **in the background** with `--verbose` so logs are captured:
    ```bash
-   snow app deploy --verbose [--entity-id "<app_id>"]
+   snow app deploy --verbose [--entity-id "<app_id>" | --target "<name>"]
    ```
    Append `--connection <connection_name>` only if the user explicitly requests a specific connection.
 3. **Actively poll** the terminal output — read it every 30 seconds and relay new lines (build progress, upload status, warnings). Do not go silent. **Measure elapsed time from a clock** using the epoch-marker convention in `cli-guide.md` → "Timing long-running commands"; never estimate duration from the number of log lines.
@@ -47,12 +49,12 @@ Deploy with the CLI. Load [`references/cli-guide.md`](references/cli-guide.md) f
 
 ### Operate
 
-Most operations are SQL; the CLI adds conveniences — prefer these, falling back to SQL if the CLI is unavailable or its session token has expired:
+Most operations are SQL; the CLI adds conveniences — prefer these, falling back to SQL if the CLI is unavailable or its session token has expired. Each command below takes the same selector as deploy:
 
-- **View logs** — `snow app events [--entity-id "<id>"]` (add `--last 1000` for more lines). Requires `MONITOR`.
-- **Open the app** — `snow app open [--entity-id "<id>"]` (`--print-only` for URL only, `--settings` for the Snowsight settings page). Requires `USAGE`.
-- **Teardown** — `snow app teardown --force [--entity-id "<id>"]`. Drops the application service and clears its code stage/workspace subdirectory (artifact repository and built packages are not deleted). Requires `OWNERSHIP`. Cannot be undone.
+- **View logs** — `snow app events` (add `--last 1000` for more lines). Requires `MONITOR`.
+- **Open the app** — `snow app open` (`--print-only` for URL only, `--settings` for the Snowsight settings page). Requires `USAGE`.
+- **Teardown** — `snow app teardown --force`. Drops the application service and clears its code stage/workspace subdirectory (artifact repository and built packages are not deleted). Requires `OWNERSHIP`. Cannot be undone. With targets, this tears down **only the selected target's** service — confirm which one with the user first.
 
 ## Reference docs
 
-For grants and permissions, see [`../snowflake-apps/references/permissions.md`](../snowflake-apps/references/permissions.md); for personal-database implications, [`../snowflake-apps/references/personal-databases.md`](../snowflake-apps/references/personal-databases.md); for finding a deployable database/schema, [`../snowflake-apps/references/finding-database-and-schema.md`](../snowflake-apps/references/finding-database-and-schema.md); for platform constraints, [`../snowflake-apps/references/limitations.md`](../snowflake-apps/references/limitations.md).
+For the two manifest layouts, the `version: 2` field reference, and migrating between them, see [`../snowflake-apps/references/manifests.md`](../snowflake-apps/references/manifests.md); for grants and permissions, [`../snowflake-apps/references/permissions.md`](../snowflake-apps/references/permissions.md); for personal-database implications, [`../snowflake-apps/references/personal-databases.md`](../snowflake-apps/references/personal-databases.md); for finding a deployable database/schema, [`../snowflake-apps/references/finding-database-and-schema.md`](../snowflake-apps/references/finding-database-and-schema.md); for platform constraints, [`../snowflake-apps/references/limitations.md`](../snowflake-apps/references/limitations.md).

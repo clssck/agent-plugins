@@ -4,7 +4,7 @@
 > Placeholders (`<SKILL_DIRECTORY>`, `<CONVERSION>`, `<MIGRATED>`, `coordinator_mode`)
 > are defined in the coordinator; the universal gate contract lives there too.
 
-**Run mode (size-aware)**: if `coordinator_mode == false` (single-file / small), run this phase **inline** by reading `../agents/analyzer.md` and following its steps yourself; if `coordinator_mode == true` (multi-file), **spawn a `task()` sub-agent** with the content of `../agents/analyzer.md` as prompt context (pass the `migration_state.json` path), so its many source reads and the growing `analysis.json` stay out of your window. The procedure is identical either way: run `analyze_pyspark.py` with `--recipe-edits <CONVERSION>/migration_state.json` so **the Phase 0.5 `recipe_edits` block is injected as per-block grounding** (issues become tiered by `kind`: `recipe_validated` | `recipe_incomplete` | `recipe_adjacent` | `standard`). The analyzer makes **no `CORTEX.COMPLETE` calls** — fully-decidable triggers are emitted directly and every non-decidable block is deferred as `needs_adjudication` for Phase 1.1. Then perform the supplementary blind-spot scan from `../agents/analyzer.md` Step 2 (UDF / `pandas_udf` / `applyInPandas` / `checkpoint` / map-subscript patterns the script may miss) and append any genuinely-missing entries. When running inline, prefer `grep`/`Bash` over `Read` for that scan. Produces `analysis.json`.
+**Run mode (size-aware)**: if `coordinator_mode == false` (single-file / small), run this phase **inline** by reading `../agents/analyzer.md` and following its steps yourself; if `coordinator_mode == true` (multi-file), **spawn a `task()` sub-agent** with the content of `../agents/analyzer.md` as prompt context (pass the `migration_state.json` path), so its many source reads and the growing `analysis.json` stay out of your window. The procedure is identical either way: run `analyze_pyspark.py` with `--recipe-edits <CONVERSION>/migration_state.json` so **the Phase 0.5 `recipe_edits` block is injected as per-block grounding** (issues become tiered by `kind`: `recipe_validated` | `recipe_incomplete` | `recipe_adjacent` | `standard`). The analyzer makes **no `CORTEX.COMPLETE` calls** — fully-decidable triggers are emitted directly, every non-decidable block is deferred as `needs_adjudication` for Phase 1.1b, and API calls not covered by any detection source are emitted as `needs_classification` for the lightweight Phase 1.1a classifier. Then perform the supplementary blind-spot scan from `../agents/analyzer.md` Step 2 (UDF / `pandas_udf` / `applyInPandas` / `checkpoint` / map-subscript patterns the script may miss) and append any genuinely-missing entries. When running inline, prefer `grep`/`Bash` over `Read` for that scan. Produces `analysis.json`.
 
 **Cross-language notebooks**: inspect `migration_state.json :: notebook_index`. Any entry whose `code_cells_by_language` has more than one of `{python, scala}` is cross-language. For those workloads, ALSO run `analyze_scala.py` on the same inputs (with the same `--notebook-index` flag) and merge its output into the same `analysis.json` — each row carries a `language` field so the fixer and CELL_MODE pre-filter can distinguish Python-cell issues from Scala-cell issues. If no notebook is cross-language, skip the Scala analyzer.
 
@@ -32,15 +32,38 @@ Record the result and set `migration_state.json` phase to 1:
 "phases_completed": {"1_analysis": {"status": "passed", "gate": "scos_gates.analyzer", "verdict": "<PASS|PASS_WITH_GAPS>", "attempts": <n>}}
 ```
 
-# Phase 1.1: Adjudication (default; skipped only when there are no non-decidable blocks)
+# Phase 1.1a: Unknown API Classification (skip if no needs_classification rows)
+
+```bash
+uv run --project <SKILL_DIRECTORY> python <SKILL_DIRECTORY>/scripts/classify_unknown_modules.py \
+  --analysis <CONVERSION>/analysis.json --list-modules
+```
+If the output is `[]`, skip to Phase 1.1b.
+
+Otherwise, classify each module name using your own knowledge: is it part of the
+Spark/PySpark/Delta ecosystem, or a Spark-adjacent library (Azure Synapse utilities,
+Databricks Connect, GraphFrames, Koalas, MLlib wrappers, etc.)? Then apply:
+
+```bash
+uv run --project <SKILL_DIRECTORY> python <SKILL_DIRECTORY>/scripts/classify_unknown_modules.py \
+  --analysis <CONVERSION>/analysis.json \
+  --classifications '{"<module>": "spark_related"|"not_spark_related", ...}'
+```
+
+```json
+"phases_completed": {"1_5a_classification": {"status": "passed", "classify_spark": <n>, "classify_not_spark": <n>}}
+```
+**Git checkpoint**: `cd <CONVERSION> && git add -A && git commit -m "Phase 1.1a: unknown APIs classified"`
+
+# Phase 1.1b: Adjudication (default; skipped only when there are no needs_adjudication rows)
 
 **Run this phase by default.** The analyzer never calls `CORTEX.COMPLETE`; it
 emits every non-decidable block as a `kind == "needs_adjudication"` row, so this
-phase confirms-or-dismisses them. **Skip this phase only** when a workload has no
-non-decidable blocks (nothing was deferred).
+phase confirms-or-dismisses them. After Phase 1.1a runs, any Spark-relevant
+unknown APIs are also present as `needs_adjudication` rows. **Skip this phase
+only** when a workload has no `needs_adjudication` rows.
 
-Quick check — if this prints `0`, there is nothing to adjudicate (no
-non-decidable blocks), so skip Phase 1.1:
+Quick check — if this prints `0`, there is nothing to adjudicate, so skip Phase 1.1b:
 ```bash
 python3 -c "import json;print(sum(1 for r in json.load(open('<CONVERSION>/analysis.json')) if r.get('kind')=='needs_adjudication'))"
 ```
@@ -84,7 +107,7 @@ out across bounded workers:
    **Exit `1` means verdicts were dropped — do not advance.** Every submitted
    verdict must be applied; if `applied < submitted`, adjudicator reasoning was
    discarded and the Phase-2 fixer would end up judging those rows itself, which is
-   exactly what Phase 1.1 exists to prevent. Re-dispatch the chunk whose verdicts
+   exactly what Phase 1.1b exists to prevent. Re-dispatch the chunk whose verdicts
    went unapplied, then re-run the merge. Use `--allow-unapplied` only to
    deliberately proceed after recording why.
 
@@ -106,4 +129,4 @@ normal per-issue path). Record the merge script's counts:
 ```json
 "phases_completed": {"1_5_adjudication": {"status": "passed", "confirmed": <n>, "dismissed": <n>, "chunks": <c>}}
 ```
-**Git checkpoint**: `cd <CONVERSION> && git add -A && git commit -m "Phase 1.1: deferred issues adjudicated"`
+**Git checkpoint**: `cd <CONVERSION> && git add -A && git commit -m "Phase 1.1b: deferred issues adjudicated"`

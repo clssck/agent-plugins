@@ -1,16 +1,8 @@
 ---
 name: spark-migration
-description: >-
-  Migrate Spark scripts and notebooks to Snowflake. Routes between two bundled conversion paths
-  and orchestrates the post-conversion pipeline: the **default path is Snowpark Connect (SCOS)**,
-  which preserves the PySpark API surface; the SMA / Snowpark API path is invoked only when the
-  user explicitly asks for it. Use for: convert or migrate spark, pyspark, or databricks workloads
-  to Snowflake or Snowpark; snowpark connect, scos migration; snowflake.snowpark rewrite; SMA CLI
-  runs, sma dashboard, 'already ran sma', fix EWIs, stage conversion, DVP orchestrator and resume
-  dvp; and pre-migration analysis — spark/pyspark/databricks assessment, compatibility or
-  readiness reports, migration feasibility, effort, complexity or scope estimates, 'can my spark
-  run on snowflake', 'should I migrate to snowflake', and analyze, scan, audit, review, check or
-  evaluate spark workloads.
+description: |
+  Migrate Spark scripts and notebooks to Snowflake. Routes to one of two bundled conversion paths and orchestrates the post-conversion pipeline. **Default path: Snowpark Connect (SCOS)**, which preserves the PySpark API surface. The SMA / Snowpark API path is invoked only when the user explicitly asks for it.
+  Triggers: convert spark, migrate pyspark, migrate spark, migrate to snowpark, convert to snowpark, snowpark connect, scos, scos migration, migrate to snowpark connect, migrate to scos, snowpark api, sma cli, sma conversion, run sma, snowflake.snowpark rewrite, already migrated, already ran sma, sma dashboard, fix ewis, stage conversion, dvp orchestrator, resume dvp, assess pyspark, assess spark, assess databricks, spark assessment, databricks assessment, spark workload assessment, migration readiness, migration readiness report, spark readiness, spark compatibility, spark compatibility report, pyspark compatibility, pyspark compatibility report, databricks compatibility, databricks to snowflake, pyspark to snowflake, spark to snowflake, spark snowflake, migration feasibility, migration effort, migration effort estimate, migration complexity, migration scope, how hard is migration, how complex is migration, analyze spark, analyze pyspark, analyze databricks, spark analysis, pyspark analysis, workload analysis, pre-migration analysis, spark workload analysis, check spark, check pyspark, check databricks, check compatibility, spark compatibility check, scan spark, scan pyspark, spark audit, audit spark, review spark, understand spark, understand pyspark, understand databricks, evaluate spark workload, should I migrate to snowflake, can my spark run on snowflake, snowflake readiness, spark migration scope, scope the migration.
 ---
 
 # Spark Migration

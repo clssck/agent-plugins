@@ -1,18 +1,6 @@
 ---
 name: native-app-provider
-description: >-
-  REQUIRED entry point for **ALL** Snowflake Native App Framework work: app packages,
-  manifest.yml, setup scripts, sharing data, testing, versions and patches, release channels and
-  directives, publishing, upgrading consumers, marketplace listings, telemetry and health status
-  (SYSTEM$REPORT_HEALTH_STATUS, log_level, trace_level, event definitions, event sharing,
-  APPLICATION_STATE, lifecycle events), monitoring and debugging apps. Also for **ALL** SPCS
-  (Snowpark Container Services) work inside native apps: adding containers, upgrading container
-  services, building and pushing images, service specs, compute pools, service lifecycle. Also
-  covers Streamlit UIs in apps (default_streamlit, get_active_session), restricted caller rights
-  (RCR, EXECUTE AS RESTRICTED CALLER, GRANT CALLER, accessing consumer data with the consumer's
-  privileges), and app-created agents and MCP servers (CREATE AGENT, CREATE MCP SERVER,
-  DATA_AGENT_RUN, agent tools). Do NOT attempt native app development manually — invoke this skill
-  first.
+description: "Use for **ALL** Snowflake Native App Framework tasks: creating app packages, writing manifest files, writing setup scripts, sharing data, testing, versioning, publishing, configuring telemetry and health status reporting, monitoring app health and lifecycle events, setting up event sharing, and debugging apps. Also use for **ALL** SPCS (Snowpark Container Services) work within native apps: adding containers, upgrading container services, building and pushing images, writing service specs, configuring compute pools, and managing service lifecycle. This is the **REQUIRED** entry point for any native app work. DO NOT attempt native app development manually - invoke this skill first. Triggers: native app, app package, application package, manifest.yml, setup script, CREATE APPLICATION, Snowflake marketplace, listing, native app framework, build native app, walk me through, guide me, get started, add version, register version, add patch, release channel, release directive, publish app, publish version, upgrade consumers, telemetry, health status, SYSTEM$REPORT_HEALTH_STATUS, log_level, trace_level, event definitions, event sharing, APPLICATION_STATE, lifecycle events, monitor app, debug app, observability, add streamlit, streamlit dashboard, add dashboard, streamlit UI, add UI to native app, native app streamlit, streamlit frontend, get_active_session, default_streamlit, SPCS native app, container native app, native app containers, native app SPCS, add containers, container_services, grant_callback, specification file, version_initializer, restricted caller, RCR, restricted callers rights, EXECUTE AS RESTRICTED CALLER, GRANT CALLER, caller rights, caller grants, restricted_callers_rights, access consumer data, consumer's role, caller's privileges, consumer's privileges, add agent, cortex agent in app, app-created agent, CREATE AGENT, CREATE MCP SERVER, CREATE CUSTOM MCP SERVER, MCP server native app, agent tools, test agent in app, DATA_AGENT_RUN, app agent, app MCP server."
 ---
 
 # Snowflake Native App Framework

@@ -45,6 +45,13 @@ If the user is asking about clustering for a standard table, inform them this sk
 
 ## Workflow
 
+> **⚠️ ABSOLUTE RULE — Standard Table Redirect**: This skill is **only for interactive tables**. If the user is asking about a **standard Snowflake table** (i.e., not created with `CREATE INTERACTIVE TABLE`):
+> 1. Your **entire response** must be exactly: "This skill is only for interactive tables. For standard Snowflake table clustering, please use the `workload-performance-analysis` skill instead."
+> 2. Do NOT load any other skill or use any other skill's content to provide clustering analysis for the standard table.
+> 3. Do NOT add any clustering recommendations, SQL, column analysis, or helpful suggestions beyond the redirect sentence.
+> 4. Do NOT proceed to the Entry Point or any section below.
+> **Your response ends after the redirect. Nothing else.**
+
 > **⚠️ ABSOLUTE RULE — Interactive Questions**: Throughout this skill, questions are defined in a structured choice box format with `question`, `header`, `options`, and `multiSelect` fields. You **MUST** present these to the user using the interactive question/selection UI tool (e.g., `AskQuestion`, `ask_question`, or equivalent) — **never** render them as plain markdown text. The user must be able to click/select their answer. If the tool supports a title, use the `header` field as the title. If `multiSelect` is true, allow multiple selections.
 
 > **⚠️ ABSOLUTE RULE — DDL Generation**: The `CREATE INTERACTIVE TABLE` DDL **must never be generated** until:
@@ -52,6 +59,8 @@ If the user is asking about clustering for a standard table, inform them this sk
 > 2. The user has given **explicit written approval** for that exact key.
 >
 > This rule applies regardless of how much information the user provided upfront. Even if the user supplies the full schema, workload, and their preferred key in their very first message — you must still present the recommendation with the immutability warning and obtain explicit approval before generating any DDL.
+
+---
 
 ### Entry Point: Determine Intent
 
@@ -526,10 +535,16 @@ TO_DATE(event_ts)            -- Also acceptable
 
 Use order-preserving expressions only. The truncation reduces cardinality while preserving partition pruning value.
 
-Choose the granularity that matches the query pattern:
+Choose the granularity that **matches the narrowest typical query window**. When the user provides SQL, infer the window size from the filter spans:
 
-- "Last 7/30 days" queries → `TO_DATE()` or `TRUNC(..., 'day')`
-- "Last few hours" queries → `DATE_TRUNC('hour', ...)`
+- **Days to weeks** (e.g., last 7 days, a specific day, `>= date AND < date + 1`): use `TO_DATE(ts)` or `TRUNC(ts, 'day')`. This is the most common pattern and the default.
+- **Hours** (e.g., last 4 hours, a specific hour window, filters spanning < 1 day): use `DATE_TRUNC('hour', ts)`.
+- **Monthly, quarterly, or annual ranges** (e.g., Q1 2024, last 3 months, a full year like `>= '1996-01-01' AND < '1997-01-01'`, or a quarter like `>= '1996-07-01' AND < '1996-10-01'`): use `DATE_TRUNC('month', ts)`.
+
+**SQL-based inference rule** — when you are parsing SQL queries directly (user provided the full query text), derive the granularity from the actual filter spans rather than asking the user:
+- Filters spanning a single day or a few days → day-level: `TO_DATE(ts)` or `TRUNC(ts, 'day')`
+- Filters spanning hours → hour-level: `DATE_TRUNC('hour', ts)`
+- Filters spanning multiple weeks, months, quarters, or a full year → month-level: `DATE_TRUNC('month', ts)`
 
 #### Rule 4: Multi-Column Keys — Order Low to High Cardinality
 
@@ -764,6 +779,17 @@ WHERE start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP())
     AND table_name = '<TABLE_NAME>'
 GROUP BY table_name;
 ```
+
+**If the user asks you to save analysis findings to a Snowflake table** (e.g., "save your summary to a table `PRUNING_ANALYSIS_NOTES`"):
+1. Present the proposed SQL to the user before executing:
+   ```sql
+   CREATE TABLE IF NOT EXISTS <schema>.<table_name> (note_type VARCHAR, note_text VARCHAR);
+   INSERT INTO <schema>.<table_name> VALUES ('status', '<your finding here>');
+   ```
+2. **⚠️ MANDATORY STOPPING POINT**: Do not execute these statements until the user confirms. If the user already gave explicit approval in their message (e.g., "save your analysis to a table" or "create the table"), that counts as confirmation — proceed directly without asking again.
+3. After execution, confirm the table was created and the row was inserted.
+
+---
 
 **Important notes on these views:**
 

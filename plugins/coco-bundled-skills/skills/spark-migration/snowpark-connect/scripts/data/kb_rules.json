@@ -14816,10 +14816,12 @@
    "to_timestamp_ltz"
   ],
   "kind": "python_or_sql",
-  "note": "SCOS: with a 2-digit year format ('yy'), SCOS uses Snowflake's century window (70-99 map to 1970-1999) while Spark maps all 2-digit years 00-99 to 2000-2099, silently producing incorrect timestamps for years in the 70-99 range unless the Spark-compatible century-start setting is enabled.",
+  "note": "SCOS: with a 2-digit year format ('yy'), Snowflake resolves `YY` against the TWO_DIGIT_CENTURY_START session parameter (default 1970, so 00-69 -> 2000-2069 but 70-99 -> 1970-1999), while Spark always maps 00-99 to 2000-2099 — years 70-99 parse one century early with no error and no runtime EWI. Remedy: `spark.conf.set(\"snowpark.connect.use2000AsTwoDigitCenturyStart\", \"true\")` once after the session is created; SCOS turns that into `ALTER SESSION SET TWO_DIGIT_CENTURY_START = 2000`, which covers every 2-digit-year parse in the session (all `to_timestamp*` / `to_date` / `unix_timestamp` forms and the same functions via `spark.sql`). Only applies when a format actually parses a standalone `yy` — `yyyy`/`yyy`/`y` map to `YYYY` and are unaffected. Literal formats are injected automatically by the `two_digit_year_century_window_config_rewrite` recipe; set it by hand when the format comes from a variable, config, or reader option.",
   "severity": "high",
+  "fix": "spark.conf.set(\"snowpark.connect.use2000AsTwoDigitCenturyStart\", \"true\")  # once, after the session is created — only when a format parses a standalone 'yy'",
   "sources": [
-   "parity::api_parity_list.csv"
+   "parity::api_parity_list.csv",
+   "src/snowflake/snowpark_connect/config.py:set_snowflake_parameters"
   ],
   "status": "Partial",
   "surface": "function",
@@ -14834,16 +14836,50 @@
    "to_timestamp_ntz"
   ],
   "kind": "python_or_sql",
-  "note": "SCOS: with a 2-digit year format ('yy'), SCOS uses Snowflake's native century start, mapping 70-99 to 1970-1999, whereas Spark maps 70-99 to 2070-2099, silently producing incorrect timestamps.",
+  "note": "SCOS: with a 2-digit year format ('yy'), Snowflake resolves `YY` against the TWO_DIGIT_CENTURY_START session parameter (default 1970), mapping 70-99 to 1970-1999, whereas Spark maps 70-99 to 2070-2099 — parsed one century early, with no error and no runtime EWI. Remedy: `spark.conf.set(\"snowpark.connect.use2000AsTwoDigitCenturyStart\", \"true\")` once after the session is created; SCOS turns that into `ALTER SESSION SET TWO_DIGIT_CENTURY_START = 2000` for the whole session. Only applies when a format actually parses a standalone `yy`; `yyyy`/`yyy`/`y` are unaffected. Literal formats are injected automatically by the `two_digit_year_century_window_config_rewrite` recipe; set it by hand when the format is dynamic.",
   "severity": "high",
+  "fix": "spark.conf.set(\"snowpark.connect.use2000AsTwoDigitCenturyStart\", \"true\")  # once, after the session is created — only when a format parses a standalone 'yy'",
   "sources": [
-   "parity::api_parity_list.csv"
+   "parity::api_parity_list.csv",
+   "src/snowflake/snowpark_connect/config.py:set_snowflake_parameters"
   ],
   "status": "Partial",
   "surface": "function",
   "condition": "always",
   "ewi_code": "SPRKCNTPY5400",
   "status_class": "Warning",
+  "category": "code_logic"
+ },
+ {
+  "rule_id": "scos:datetime.two-digit-year-century-window#parse-family",
+  "api": [
+   "to_timestamp",
+   "try_to_timestamp",
+   "to_date",
+   "unix_timestamp",
+   "to_unix_timestamp"
+  ],
+  "kind": "python_or_sql",
+  "note": "SCOS: a datetime *parse* format containing a standalone `yy` resolves the 2-digit year through Snowflake's TWO_DIGIT_CENTURY_START session parameter (default 1970, so 70-99 -> 1970-1999), while Spark maps 00-99 to 2000-2099. Years 70-99 come back one century early with no error and no runtime EWI. The century window is a property of the session, not of the individual function: `yy` is mapped to Snowflake's `YY` by one shared format mapping, so every member of this family — and the same functions called through `spark.sql(...)` — diverges identically. Fix once per session: `spark.conf.set(\"snowpark.connect.use2000AsTwoDigitCenturyStart\", \"true\")`, which SCOS issues as `ALTER SESSION SET TWO_DIGIT_CENTURY_START = 2000`. `yyyy`/`yyy`/`y` map to `YYYY` and never consult the parameter, and formatting-only APIs (`date_format`, `from_unixtime`) are unaffected — rendering a 2-digit year does not read the century start. Literal formats are handled deterministically by the `two_digit_year_century_window_config_rewrite` recipe; a dynamic format (variable, config value, or a reader `timestampFormat`/`dateFormat` option) is invisible to it and must be set by hand.",
+  "severity": "high",
+  "fix": "spark.conf.set(\"snowpark.connect.use2000AsTwoDigitCenturyStart\", \"true\")  # once, after the session is created; do NOT repeat per call site",
+  "gate": {
+   "arg_contains": [
+    "yy"
+   ],
+   "not_contains": [
+    "yyyy"
+   ]
+  },
+  "sources": [
+   "src/snowflake/snowpark_connect/config.py:set_snowflake_parameters",
+   "src/snowflake/snowpark_connect/date_time_format_mapping.py"
+  ],
+  "status": "Partial",
+  "surface": "function",
+  "condition": "gated",
+  "ewi_code": "SPRKCNTPY5400",
+  "status_class": "Fixed",
   "category": "code_logic"
  },
  {

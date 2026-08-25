@@ -1,0 +1,23 @@
+## Downstream Consumers
+
+Your output will be consumed by:
+{%- for consumer in downstream_consumers %}
+- {{ consumer }}
+{%- endfor %}
+
+{%- if 'BI Dashboards' in downstream_consumers %}
+
+**BI workloads** benefit from pre-materialized tables that are always fresh — Dynamic Tables and dbt models excel here.
+{%- endif %}
+{%- if 'Data Science / ML Pipelines' in downstream_consumers %}
+
+**ML pipelines** may need feature tables updated on specific schedules — consider how your transform output integrates with ML workflows.
+{%- endif %}
+{%- if 'Operational Applications' in downstream_consumers %}
+
+**Operational apps** need reliable, low-latency access — ensure your chosen technology provides consistent performance.
+{%- endif %}
+{%- if 'Other Downstream Pipelines' in downstream_consumers %}
+
+**Downstream pipelines** suggest transformation chaining — Dynamic Tables excel at this pattern since downstream DTs automatically refresh when upstream data changes.
+{%- endif %}

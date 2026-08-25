@@ -44,7 +44,9 @@ Once it's running, confirm it renders without errors and is fetching **real** Sn
 
 ## Secrets
 
-For reading secrets, consult the project's `README.md`. Keep one platform-level guardrail in mind: declare each secret as a **top-level** `secrets:` block in `app.yml` (a sibling of `install:`/`run:`/`profile:`), **not** nested under `run:`, or the SPCS runtime ignores it.
+For reading secrets, consult the project's `README.md`. Keep one platform-level guardrail in mind: declare each secret as a **top-level** `secrets:` block in `app.yml` (a sibling of `install:` / `run:`), **not** nested under `run:`, or the secret is never mounted. This placement is the same in both manifest layouts.
+
+In an `app.yml` `version: 2` project the CLI applies these declaratively, so a secret dropped from the manifest is also unmounted from the running service on the next deploy — see [`@../references/manifests.md`](../references/manifests.md).
 
 ## Next Steps
 

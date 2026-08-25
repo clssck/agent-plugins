@@ -19,6 +19,25 @@ Read once before calling any functions:
 
 `<SKILL_DIR>` is a placeholder the agent resolves.
 
+## Progress and output rules
+
+**Progress header:** At the start of each major step, emit a single-line status header in this format:
+
+```
+[Phase X — <Step name>]  <key counts>
+```
+
+Examples:
+```
+[Phase 1 — Snapshot]     Existing ontology: 42 nodes across 3 domains
+[Phase 2 — Scanning]     Corpus: 3 files  |  Candidates so far: 0
+[Phase 3 — Deduplicating]  Candidates: 47  |  Reuse: 12  |  Conflicts: 2  |  Proceeding: 33
+[Phase 4 — Reviewing]    Reviewing 33 candidates  |  Approved: 0  |  Remaining: 33
+[Phase 5 — Finalizing]   Approved: 27  |  Drafted: 3  |  Skipped: 2  |  Failed: 1
+```
+
+**Output hygiene:** Never expose raw JSON candidate objects, draft IDs, internal reasoning traces, or SYSTEM$ response payloads in the default response. Show only business labels (names, domains, types, counts). If the steward asks for evidence or raw detail for a specific candidate, provide it on request: `show evidence for #N` or `show raw for #N`.
+
 ## Resolution and approval rules
 
 - **Always use FQN (`<domain>.<term>`) for relationship and association calls.** The API resolves bare names globally — if the same term name exists in two domains, it silently picks the wrong one. FQN pins resolution to the intended domain. Fall back to term ID only when the term name itself contains a literal dot (FQN parsing splits on first dot).
@@ -90,6 +109,32 @@ Confirm: `"Domain '<name>' created (ID: <domainId>)."` then proceed to Step 1.
 
 If no target domain was named, skip Step 0b — domain assignment happens per-candidate during extraction.
 
+## Step 0c — Snapshot existing ontology (always run)
+
+Run immediately after Step 0b, before reading any source file. This snapshot is used throughout extraction and deduplication to avoid re-proposing concepts that already exist under any name or synonym.
+
+```sql
+-- Note: the 2nd arg to GET_GLOSSARY_TERM_LIST is sort_by ('TERM' = sort by term name),
+-- NOT a kind filter — this returns ALL itemKinds (TERM, METRIC, ENTITY, DIMENSION_CONCEPT, etc.).
+SELECT value:termId::STRING AS id,
+       value:name::STRING AS name,
+       value:domain::STRING AS domain,
+       value:itemKind::STRING AS kind,
+       value:description::STRING AS description,
+       value:synonyms::ARRAY AS synonyms
+FROM TABLE(FLATTEN(PARSE_JSON(SYSTEM$GET_GLOSSARY_TERM_LIST('', 'TERM')):terms));
+```
+
+Store the result as `ontology_snapshot` in context — a list of `{id, name, domain, kind, description, synonyms}`. Also build two lookup indexes:
+- `name_index`: normalized name → `{id, name, domain, kind}` (use in Step 2A and Step 2B)
+- `synonym_index`: each synonym value (normalized) → `{id, name, domain}` (use in Step 2B dedup)
+
+**During Step 2A extraction:** before adding a candidate to `term_candidates`, check `name_index` and `synonym_index`. If a match exists:
+- Name match in same domain → mark as `update candidate` (skip proposing a new node)
+- Synonym match → mark as `reuse` (the concept exists; propose adding the new name as a synonym only)
+
+If the ontology is empty (0 terms returned), proceed normally — the snapshot is a no-op.
+
 ## Step 1 — Accept source
 
 Determine the input path **automatically** — do not ask the user which path to use. Pick the best fit based on what they provided:
@@ -97,10 +142,11 @@ Determine the input path **automatically** — do not ask the user which path to
 ### Path selection logic
 
 1. If the user says "promote" / references a Cortex Sense use case → **Path E**
-2. If the user says "extract from tables" / "scan schema" / "table introspection" → **Path C**
-3. If the user says "import from dbt" / "parse dbt manifest" or provides a `manifest.json` path → **Path D**
-4. If the user provides structured inline data with clearly named columns (or a candidate JSON from an extraction script) → **Path C**
-5. If the user provides a stage path (`@DB.SCHEMA.STAGE/...`):
+2. If the user says "extract from semantic views" / "scan SVs for concepts" / "import from SVs" / provides SV FQN patterns → **Path H**
+3. If the user says "extract from tables" / "scan schema" / "table introspection" → **Path C**
+4. If the user says "import from dbt" / "parse dbt manifest" or provides a `manifest.json` path → **Path D**
+5. If the user provides structured inline data with clearly named columns (or a candidate JSON from an extraction script) → **Path C**
+6. If the user provides a stage path (`@DB.SCHEMA.STAGE/...`):
    - Read the file. Choose the read method by extension:
      - `.csv` → `SELECT $1 AS raw FROM @stage/file.csv (FILE_FORMAT => (TYPE = CSV SKIP_HEADER = 1))`
      - `.json` → `SELECT PARSE_JSON($1) AS raw FROM @stage/file.json (FILE_FORMAT => (TYPE = JSON))`
@@ -126,6 +172,44 @@ Full source catalog and mechanics: `../../reference/EXTRACTION_SOURCES.md`. Summ
 | **D** — dbt manifest | `D` | Invoke `dbt_manifest_parser.py` per Source D → proceed as Path C |
 | **E** — Cortex Sense promotion | `E` | Load manifest per `CORTEX_SENSE_MANIFEST_CONTRACT.md`; extract `concepts` + `relationships` → Step 2A |
 | **G** — SV DDL import | `G` | Parse DDL per Source G in EXTRACTION_SOURCES.md → Step 2A |
+| **H** — Live SV concept extraction | `H` | Invoke `sv_estate_scan.py` → `sv_concept_extractor.py`; outputs scored, deduped candidates → Step 2A |
+
+**Path H — Live SV concept extraction:**
+
+Extracts business concepts (METRIC/FACT/DIMENSION) directly from live Semantic Views via DESCRIBE. Applies cross-SV dedup, canonical key normalization, noise filtering, importance scoring, and VQR backing. Use when the user has in-scope semantic views and wants business concepts, not data inventory.
+
+```bash
+# One-step (scan + extract):
+uv run --project <SKILL_DIR>/../.. python <SKILL_DIR>/../../scripts/sv_concept_extractor.py \
+    --database <DB> --schema <SCHEMA> \
+    --connection <connection> --warehouse <warehouse> \
+    --domain <target_domain> --score-floor 25 \
+    --emit-associations \
+    --output /tmp/sv_concepts.json
+
+# Two-step (scan separately, then extract):
+uv run --project <SKILL_DIR>/../.. python <SKILL_DIR>/../../scripts/sv_estate_scan.py \
+    --connection <connection> --database <DB> --schema <SCHEMA> \
+    --warehouse <warehouse> --include-facts --no-lineage \
+    --output /tmp/sv_estate.json
+
+uv run --project <SKILL_DIR>/../.. python <SKILL_DIR>/../../scripts/sv_concept_extractor.py \
+    --input /tmp/sv_estate.json --domain <target_domain> --score-floor 25 \
+    --emit-associations --output /tmp/sv_concepts.json
+```
+
+Score-floor guidance: `~20` for small estates (≤10 SVs), `~25` for medium (10–50 SVs), `~25` for large (50+ SVs). With `--emit-associations`, output is `{"concepts": [...], "associations": [...]}`.
+
+After extraction, use `batch_import.py` for fast import (batches 50 CALL statements per subprocess):
+
+```bash
+uv run --project <SKILL_DIR>/../.. python <SKILL_DIR>/../../scripts/batch_import.py \
+    --input /tmp/sv_concepts.json \
+    --connection <connection> --warehouse <warehouse> \
+    --domain <target_domain>
+```
+
+This handles: domain check → batch draft → batch approve → batch create associations. Alternatively, proceed to Step 2A with the `concepts` array for manual review before import.
 
 **Path B — read command** (the only mechanics not in EXTRACTION_SOURCES.md):
 
@@ -203,6 +287,7 @@ Read the content loaded in Step 2 (already in context). Extract four candidate l
 - `name` (required)
 - `description` (copy enumerated value lists verbatim; shorten explanatory prose — do NOT embed formula expressions here)
 - `domainName` (infer from context or file/section name)
+- `confidence` and `confidence_reason` — set per the scoring table in `../../reference/EXTRACTION_SOURCES.md §Confidence scoring rules`. Required; every candidate must have these fields.
 - `itemKind` — classify using these signals in priority order:
   1. Section header: "measures/metrics/derived metrics" → `METRIC`; "entity/entities/dataset/panel/dimension/mapping" → `ENTITY`; "rules/conventions/policies/thresholds/constraints/data quality" → `TERM`; all other → `TERM`
   2. Entry shape: contains aggregation/derivation formula → `METRIC`; names a physical object/dataset/population → `ENTITY`; rule/convention/threshold/policy → `TERM`; otherwise → `TERM`
@@ -211,6 +296,14 @@ Read the content loaded in Step 2 (already in context). Extract four candidate l
 - `synonyms` (optional array)
 - `formulas` (array — ONLY when an explicit formula is present; each: `{label: "SQL"|"DSL"|"prose"|"<source label>", expression: "<copy verbatim>"}`. Preserve ALL labeled formula variants; never merge.)
   > **Formula detection rule:** For any candidate where `itemKind == METRIC` (or `itemKind_ambiguous: true`), scan the extracted `description` for formula-like content: SQL aggregation keywords (`SUM`, `COUNT`, `AVG`, `MAX`, `MIN`, `DISTINCT`), arithmetic operators in context (`/`, `*`, `-`, `+`), or plain-English computation phrases (`minus`, `divided by`, `sum of`, `multiplied by`, `average of`). If found, move the formula-like fragment to `formulas[{label: "prose", expression: "<fragment>"}]` and keep only the non-formula prose in `description`. Do NOT leave formula expressions embedded in `description` — they become unsearchable and can't be used by downstream tooling.
+  >
+  > **METRIC semantic guardrails (set `_metric_only` fields):** For every METRIC candidate, also extract:
+  > - `aggregationFn`: the outermost aggregation keyword in the formula expression (`SUM`, `COUNT`, `COUNT_DISTINCT`, `AVG`, `MAX`, `MIN`, `RATIO`, etc.). When the formula contains multiple aggregations, use the top-level one.
+  > - `grain`: the temporal or entity unit implied by GROUP BY, a time-window phrase ("daily", "monthly", "per user", "per session"), or a source-document heading. Leave blank if not determinable.
+  > - `filterConditions`: array of WHERE / HAVING / filter clause fragments from the formula. Map this to the `exclusions` field in `SYSTEM$DRAFT_GLOSSARY_TERM`.
+  > - `sliceDimensions`: array of dimensional columns or "by X" text from the source (e.g., "by region", "by channel"). If not captured elsewhere, append as a note in the description.
+  >
+  > These fields are used for conflict detection (Step 2c) and are surfaced in the candidate card so the steward can verify that two metrics with the same name are genuinely distinct (e.g. daily vs. monthly grain) rather than duplicates.
 - `evidence` (object if verification metadata present: `{verified_query, sample_output, verified_as_of, source_ref}`)
 
 **GRANULARITY:** Extract only high-level business concepts, measures, and entities. Do NOT extract: identifiers (`_id`, `_key`, `_uuid`), timestamps (`_at`, `_date`), boolean flags (`_is_`, `_has_`), raw counters. Rule of thumb: would a domain expert use this term in a business document?
@@ -271,46 +364,105 @@ After extraction and before Step 2B, resolve every relationship target and brack
 Detection heuristic: a title with "/" or " and the " where the text on each side references different objects, different schemas, or different conceptual roles (e.g. one is a lookup join, the other is an identifier chain).
 
 **Structured-source relationship extraction (Paths A and C):**
-When the source has a column that names related terms (e.g. `Related`, `See Also`, `Derived From`, `Parent`), map each value to a `relationship_candidates` entry:
-- One entry per related term name
-- Default `relationshipType`: `RELATED_TO` unless the column name implies otherwise (`EQUIVALENT_TO` for `Alias`/`See Also`; `HAS_PART` or `DERIVES` for `Parent`/`Source Of` depending on context; `DERIVES` for `Derived From` — note direction: source is the input)
-- `label`: the column name, lowercased (e.g. `"related to"`, `"derived from"`)
+When the source has a column that names related terms (e.g. `Related`, `See Also`, `Derived From`, `Parent`), map each value to a `relationship_candidates` entry. Use the table below to set `sourceName`, `targetName`, and `relationshipType` for each column name pattern. X = the current row's term; Y/Z = the column value.
+
+| Column name pattern | Type | sourceName | targetName | Direction rationale |
+|---|---|---|---|---|
+| `Derived From: Y` | `DERIVES` | Y (column value) | X (current row) | Y is the INPUT that X was computed from |
+| `Derives: Z` | `DERIVES` | X (current row) | Z (column value) | X is the INPUT; Z is the computed OUTPUT |
+| `Source Of: Z` | `DERIVES` | X (current row) | Z (column value) | X is the INPUT; Z is the derived OUTPUT |
+| `Parent: Y` | `HAS_PART` | Y (column value) | X (current row) | Y is the WHOLE; X is the PART/component |
+| `Part Of: Y` | `HAS_PART` | Y (column value) | X (current row) | Y is the WHOLE; X is the PART/component |
+| `Related: Y` | `RELATED_TO` | X (current row) | Y (column value) | Symmetric; order is arbitrary |
+| `See Also: Y` | `RELATED_TO` | X (current row) | Y (column value) | Symmetric; order is arbitrary |
+| `Alias: Y` | `EQUIVALENT_TO` | X (current row) | Y (column value) | Symmetric; prefer canonical term as source. Use only when the column is explicitly named `Alias` — `See Also` always maps to `RELATED_TO` regardless of whether values happen to match existing names. |
+| `Measures: Y` | `MEASURES` | X (current row) | Y (column value) | X is the METRIC; Y is the entity measured |
+| `Classifies: Y` | `CLASSIFIES` | X (current row) | Y (column value) | X is the DIMENSION; Y is the entity categorized |
+
+- `label`: the column name, lowercased (e.g. `"derived from"`, `"part of"`)
 - `provenance`: the column name
+
+**Direction verification before drafting:** For every relationship in `relationship_candidates` with type `DERIVES`, `HAS_PART`, `MEASURES`, or `CLASSIFIES`, verify the direction makes semantic sense before drafting: "Does `<sourceName>` logically produce, contain, or categorize `<targetName>`?" If not, swap source and target and note the correction.
 
 ## Step 2B — Deduplicate against existing ontology
 
-Before presenting candidates to the user, check what already exists:
+Use the `ontology_snapshot` from Step 0c (already in context). If Step 0c was skipped for any reason, run the fetch now:
 
 ```sql
-SELECT value:name::STRING AS name, value:domain::STRING AS domain,
-       value:description::STRING AS description, value:itemKind::STRING AS kind
+-- Note: 2nd arg is sort_by ('TERM' = sort by name), NOT a kind filter — returns all itemKinds.
+SELECT value:termId::STRING AS id, value:name::STRING AS name, value:domain::STRING AS domain,
+       value:description::STRING AS description, value:itemKind::STRING AS kind,
+       value:synonyms::ARRAY AS synonyms
 FROM TABLE(FLATTEN(PARSE_JSON(SYSTEM$GET_GLOSSARY_TERM_LIST('', 'TERM')):terms))
 ```
 
-For each extracted candidate, compare against the existing terms:
+**Name normalization (apply to every candidate and every existing term before comparing):**
+Normalize: lowercase → strip punctuation → collapse whitespace → expand common abbreviations (`po` → `purchase order`, `arr` → `annual recurring revenue`, `mrr` → `monthly recurring revenue`, `cac` → `customer acquisition cost`, `ltv` → `lifetime value`, `nrr` → `net revenue retention`). Store the normalized form as `name_norm`.
 
-- **Exact match** (same `name` case-insensitive AND same `domain`): the term already exists. Check if the description differs meaningfully — if yes, mark as `update candidate`; if identical, mark as `already exists (skip)`.
-- **Name match, different domain**: the term exists in another domain. Still propose it as new (different domain = different term identity) but note the existing domain in the review.
-- **No match**: genuinely new — propose normally.
+If the source contains an abbreviation not in the list above, **do not guess the expansion** — ask the steward to confirm it before normalizing: "What does '<abbrev>' stand for in this context?" Proceed only after confirmation.
 
-Render a summary before proceeding to review:
+**4-state classification — assign one state per candidate:**
+
+| State | Condition | Action |
+|---|---|---|
+| `reuse` | `name_norm` matches an existing term's `name_norm` in the **same domain**, OR candidate's original name appears in an existing term's `synonyms` list | Skip creating a new node. If the matched term lacks this source's name as a synonym, flag for synonym addition only. |
+| `upd` | `name_norm` matches same domain (or exact name match), but description differs meaningfully | Update candidate — apply via `SYSTEM$UPDATE_GLOSSARY_TERM` on the existing term. **Caveat:** `GET_GLOSSARY_TERM_LIST` returns a truncated description. Before classifying as `upd` (rather than `reuse`), fetch the full description via `SYSTEM$GET_GLOSSARY_TERM('<termId>')` and compare against the full value to avoid false-positive updates. |
+| `merge` | `name_norm` matches an existing term in a **different domain** | Surface as cross-domain homonym. Ask steward: **(a) create scoped variant** — proceeds as `new` in the target domain; or **(b) reuse the existing cross-domain term** — add the candidate name as a synonym on the existing term via `SYSTEM$UPDATE_GLOSSARY_TERM('<existingTermId>', '{"addSynonyms": [{"text": "<candidate name>"}]}')` and do **not** draft a new node. |
+| `new` | No match in name, normalized name, or synonyms | Genuinely new — proceed to draft |
+
+Running the same source twice produces: `reuse` for everything already imported → idempotent by design.
+
+Render a summary before proceeding:
 
 ```
 Extracted N candidates from the source.
-  • M already exist in the ontology (identical) — skipping
-  • K have updated definitions — will show for review
-  • J are new terms — will show for review
+  • M reuse   — concept already exists (name or synonym match); skipping
+  • K upd     — updated definition; will show for review
+  • P merge   — cross-domain homonym; steward decision needed
+  • J new     — genuinely new; will show for review
 
-Proceeding with K + J candidates.
+Proceeding with K + P + J candidates.
 ```
 
-If all candidates already exist identically, say so and stop:
+If all candidates are `reuse`, say so and stop:
 
 ```
-All N nodes from this source already exist in the ontology with identical definitions. Nothing to import.
+All N nodes from this source already exist in the ontology. Nothing new to import.
 ```
 
-Do **not** draft nodes that are identical to existing ones. Only present genuinely new nodes and nodes with meaningful description changes to the user for review.
+Do **not** draft `reuse` nodes. Only present `upd`, `merge`, and `new` candidates to the user for review.
+
+## Step 2c — Intra-batch conflict detection
+
+After Step 2B, scan the surviving candidates (`upd`, `merge`, `new`) for within-batch conflicts before showing them to the steward. This detects cases where two sections of the same source (or two merged sources) define the same concept differently.
+
+**Conflict triggers:**
+- Same `name_norm` AND same `domain` → if descriptions differ by more than whitespace/punctuation, flag as `INTRA_BATCH_CONFLICT`. Note: this is an intra-batch check comparing two candidates from the same source import — neither description is truncated here.
+- For METRIC candidates: same `name_norm` AND same `domain` AND different `grain` or `aggregationFn` → always flag, even if descriptions are identical (these are distinct metrics masquerading as the same one)
+
+If conflicts are found, surface them before the main candidate table:
+
+```
+Conflicts detected within this batch — resolve before proceeding:
+
+  #  Name           Domain    Found in               Issue
+  1  Net Revenue    Finance   sections 2 and 5       Different definitions: "Revenue after discounts" vs "Revenue net of refunds"
+  2  Active Users   Growth    queries Q1 and Q4      Same name, different grain: daily vs monthly
+
+  For each conflict:
+    resolve #N   → pick one definition / rename one to include a scope discriminator (e.g. "Active Users - Daily")
+    keep both #N → rename each candidate to include a scope discriminator in its name (e.g. "Active Users - Daily", "Active Users - Monthly"); both proceed as separate 'new' candidates
+    skip #N      → drop both from this batch
+```
+
+**Do not proceed to Step 3 until all conflicts are resolved or skipped.**
+
+After resolution:
+- `resolve` → update the winning candidate; drop the losing one
+- `keep both` → rename each candidate to include a scope discriminator in its name (e.g. `"Active Users - Daily"` and `"Active Users - Monthly"`); both proceed as `new`. Do **not** add a `scope` field — the Glossary API has no scope field; the name itself must be unique.
+- `skip` → mark both as skipped; they do not appear in Step 4
+
+If no conflicts are found, skip the prompt and proceed directly to Step 3.
 
 ## Step 3 — Prepare candidates (defer drafting)
 
@@ -318,10 +470,12 @@ Four candidate lists arrive from Step 2A: `term_candidates`, `relationship_candi
 
 ### 3a — Classify node candidates
 
-**Split the batch first.** Update candidates (marked `update candidate` in Step 2B) target an **existing ACTIVE term** — they are applied via `SYSTEM$UPDATE_GLOSSARY_TERM` during review (see Step 5), never drafted.
+**Split the batch by state from Step 2B:**
 
-- **New candidates** → carry to Step 4 for review; drafting happens in Step 5 based on the user's decision.
-- **Update candidates** → carry to Step 4 flagged `(upd)`; applied via `SYSTEM$UPDATE_GLOSSARY_TERM` on the existing node during review.
+- `new` candidates → carry to Step 4 for review; drafting happens in Step 5.
+- `upd` candidates → carry to Step 4 flagged `[upd]`; applied via `SYSTEM$UPDATE_GLOSSARY_TERM` on the existing node during review (never drafted).
+- `merge` candidates → carry to Step 4 flagged `[merge]`; steward chooses: (a) create scoped variant in target domain — agent proceeds as `new`; or (b) reuse existing cross-domain term — agent calls `SYSTEM$UPDATE_GLOSSARY_TERM('<existingTermId>', '{"addSynonyms": [{"text": "<candidate name>"}]}')` and skips drafting a new node.
+- `reuse` candidates → do not carry to Step 4. If the matched term is missing the candidate's name as a synonym, add a note in the Step 6 report: "N terms reused from existing ontology; M synonym additions suggested."
 
 **Do NOT call `SYSTEM$DRAFT_GLOSSARY_TERM` here.** Drafting is deferred to Step 5 so that when the user says "approve all", terms are created directly as canonical ACTIVE entries (draft+approve in one pass) without leaving intermediate DRAFT state.
 
@@ -354,26 +508,35 @@ For each association candidate, resolve `termName` the same way.
 
 ```
 Found <N> node candidates, <R> source-stated relationships, <I> agent-inferred suggestions, <A> association candidates.
+  (<L> low-confidence nodes will default to draft)
 Reviewing nodes first — relationships and associations follow immediately after.
 ```
 
 If this batch is resuming drafts persisted in a prior session (e.g. the user returned via `@business-ontology` after choosing "save as drafts"), lead with the **Multi-session resume header** from `../../reference/SUMMARY_FORMAT.md` before the candidate table so the reviewer knows they are continuing an earlier batch.
 
-Render the candidate table using the **Candidate table** format in `../../reference/SUMMARY_FORMAT.md` (Bulk import formats → Candidate table). Truncate descriptions to ~80 characters and prefix update candidates with `(upd)` in the `#` column.
+Before rendering the table, pre-populate each candidate's `Graph` summary from the resolved `relationship_candidates` and `association_candidates` (Step 3b) — do not wait until Step 7 to surface this information. The steward reviews the full graph unit (node + edges + associations) in one view.
+
+Render the candidate table using the **Candidate table** format in `../../reference/SUMMARY_FORMAT.md` (Bulk import formats → Candidate table). Truncate descriptions to ~80 characters. Use the state badge in the `#` column: `[upd]` for update candidates, `[merge]` for cross-domain homonyms; no suffix for `new`. Include a `Conf` column showing `▲` (high), `●` (medium), `▼` (low). Include a `Graph` column with inline relationship and association summary.
+
+**Low-confidence default:** `low`-confidence candidates are flagged with `▼` and their default action in the options menu is `draft` rather than `make active`. The steward must explicitly choose `approve #N` to override and make them active immediately.
 
 Then offer the options:
 
 ```
 Options:
-  approve all            → make all <N> candidates active now
+  approve all            → make all <N> candidates active now (low-confidence ones will be drafted)
   approve 1 3 5          → make selected rows active
+  draft 1 3 5            → call SYSTEM$DRAFT_GLOSSARY_TERM immediately for selected rows; no approve call — they remain in DRAFT state and can be approved later via "approve N" or in the Snowflake UI
   edit #N                → review and edit a candidate before making active
   skip #N                → remove a candidate from this batch
   one by one             → walk through each candidate sequentially
   save as drafts         → leave all as Snowflake drafts; review in Snowflake UI later
 ```
 
-`(upd)` marks candidates that update an existing ACTIVE term (detected in Step 2B). When the user selects `edit #N` on an `(upd)` row, or `one by one` reaches one, show the **edit diff card** (from `../../reference/SUMMARY_FORMAT.md`) instead of the standard card, and apply the change via `SYSTEM$UPDATE_GLOSSARY_TERM` (see Step 5).
+State-badge handling:
+- `[upd]` rows → show the **edit diff card** on `edit #N` or `one by one`; apply via `SYSTEM$UPDATE_GLOSSARY_TERM`
+- `[merge]` rows → show a cross-domain comparison card: "This concept already exists in domain X. Options: (a) create scoped variant here — proceeds as new; (b) reuse existing term — adds this name as a synonym via `SYSTEM$UPDATE_GLOSSARY_TERM` on the existing termId, no new node drafted." Wait for steward choice before taking any action.
+- No badge (`new`) → standard concept card + draft+approve flow
 
 ⚠️ MANDATORY STOPPING POINT — Do NOT proceed to Step 5 until the user responds.
 
@@ -395,6 +558,7 @@ For each new candidate:
 -- Draft the term
 -- For METRIC nodes: include "formula", "exclusions", "formulaSource" from the extracted `formulas` array.
 -- Take formulas[0].expression as "formula". DO NOT embed formula text in "description".
+-- "exclusions" comes from _metric_only.filterConditions (WHERE/HAVING clause fragments extracted in Step 2A).
 -- Omit formula fields entirely for non-METRIC nodes — the backend rejects them.
 CALL SYSTEM$DRAFT_GLOSSARY_TERM('{
   "name": "<name>",
@@ -402,7 +566,7 @@ CALL SYSTEM$DRAFT_GLOSSARY_TERM('{
   "itemKind": "<itemKind>",
   "description": "<description>",
   "formula": "<formulas[0].expression — METRIC only>",
-  "exclusions": ["<filter — METRIC only>"],
+  "exclusions": ["<_metric_only.filterConditions entries — METRIC only; omit if empty>"],
   "formulaSource": "<provenance — METRIC only>",
   "tags": [...],
   "synonyms": [{"text": "..."}]
@@ -500,7 +664,9 @@ Apply-now routes each update via `SYSTEM$UPDATE_GLOSSARY_TERM` (as in Step 5); s
 
 ## Step 6 — Report
 
-Display using the **Session report** template in `../../reference/SUMMARY_FORMAT.md` (Bulk import formats → Session report), filling in the counts for made-active, edited, left-as-drafts, skipped, and failed, plus any failure reasons.
+Display using the **Session report** template in `../../reference/SUMMARY_FORMAT.md` (Bulk import formats → Session report), filling in the counts for made-active, updated, left-as-drafts, skipped, failed, and reused, plus any failure reasons.
+
+→ **Proceed immediately to Step 7** if `relationship_candidates` or `association_candidates` are non-empty. Do not treat the session report as the end of the flow.
 
 ## Step 6b — Domain recovery (if failures include "domain not found")
 
@@ -519,11 +685,15 @@ On **yes**:
 
 On **no**: leave the failed candidates as-is and proceed.
 
-## Step 7 — Review and draft relationships and associations
+## Step 7 — Confirm and draft relationships and associations
+
+Step 4 already showed a compact `Graph` preview inline with each node. This step handles the actual drafting and approval, plus any relationships or associations that couldn't be shown inline (unresolved targets, agent-inferred suggestions, associations for skipped nodes).
 
 Run this step whenever `relationship_candidates` or `association_candidates` are non-empty. This is **not optional** — skipping it means relationship and association data extracted from the source is silently discarded.
 
 Skip this step only if both lists are empty.
+
+**Relationships already approved during Step 5 node review:** if the steward approved a candidate and its graph edges together in Step 5 (e.g. via "approve all"), those edges are already queued. Only show the remaining unconfirmed relationships and associations here.
 
 ### 7a — Relationship review
 

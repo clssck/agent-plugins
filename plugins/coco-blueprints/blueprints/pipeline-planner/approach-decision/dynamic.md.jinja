@@ -1,0 +1,11 @@
+## Your Decision
+
+Based on your project: **{{ expand_target_project }}**
+
+{%- if expand_approach == 'Same Technology' %}
+
+You've chosen to continue with your current technology. The next step will provide specific guidance for expanding your pipeline.
+{%- elif expand_approach == 'Evaluate Alternatives' %}
+
+You've chosen to evaluate whether a different technology fits better. We'll walk through requirements to compare all available options.
+{%- endif %}

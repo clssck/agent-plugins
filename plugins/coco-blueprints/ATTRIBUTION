@@ -1,0 +1,19 @@
+Snowflake Cortex Code (CoCo) Bundled Blueprints Plugin
+
+Source release: CoCo 1.1.69+013424.801adc2b71d7 (darwin-arm64)
+Source directory: bundled_external_plugins/blueprints/
+Original plugin: blueprints 0.1.0
+Original author: Snowflake Inc.
+Permission: See LICENSE in this plugin.
+Original terms: See UPSTREAM_LICENSE in this plugin.
+
+Included skills:
+- blueprint-builder
+- pipeline-plan-generator
+- snowflake-best-practices
+
+Included support assets:
+- blueprint workflows and images
+- slash command definitions
+- question definitions
+- rendering and migration scripts

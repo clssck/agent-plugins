@@ -23,7 +23,9 @@ This project deploys as an Application Service on Snowflake via `snow app deploy
 
 ## Project Structure
 
-This Next.js project uses `app.yml` to configure the deployment. The app runs on HTTPS and is accessible via the generated Application Service endpoint in Snowflake.
+This Next.js project configures its build and runtime in `app.yml`. Where the *deployment* configuration lives depends on the manifest layout: if `app.yml` has a top-level `version: 2` it holds both, and any `snowflake.yml` is ignored; otherwise `snowflake.yml` holds the deployment configuration and `app.yml` is build-only. The app runs on HTTPS and is accessible via the generated Application Service endpoint in Snowflake.
+
+Note that a `version: 2` deploy applies the manifest declaratively, so `ALTER APPLICATION SERVICE ... SET` changes are reverted on the next deploy unless they are also in `app.yml`.
 
 ## Next Steps
 

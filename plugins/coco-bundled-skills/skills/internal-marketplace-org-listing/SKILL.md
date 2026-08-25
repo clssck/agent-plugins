@@ -1,6 +1,27 @@
 ---
 name: internal-marketplace-org-listing
-"description": "Create organizational listings to share data products via Internal Marketplace. Triggers: create data product, share to internal marketplace, publish to internal marketplace, share to/with other accounts, organization listing, org listing, share across accounts, internal marketplace, cross-account sharing, share my agent to other accounts.\nUSE THIS SKILL when the user wants to share with OTHER ACCOUNTS, or mentions \"internal marketplace\" or \"data product\" (even for the same account).\nUSE RBAC INSTEAD when sharing with roles in the SAME account only and the user does not mention internal marketplace, data product, or listing — e.g. \"share this table with ANALYST role\" uses GRANT, not this skill.\nDO NOT USE for migrating an EXISTING share or listing to an org listing: use direct-share-to-org-listing-migration, personalized-listing-to-org-listing-migration, or pdx-listing-to-org-listing-migration instead."
+description: >
+  Create organizational listings to share data products via Internal Marketplace.
+  Triggers: create data product, share to internal marketplace, publish to internal marketplace,
+  share to other accounts, share with other accounts, organization listing, org listing,
+  share across accounts, internal marketplace, cross-account sharing, share my agent to other accounts.
+  
+  WHEN TO USE THIS SKILL:
+  - User wants to share with OTHER ACCOUNTS → Use this skill
+  - User mentions "internal marketplace" or "data product" (even for same account) → Use this skill
+  
+  WHEN TO USE RBAC INSTEAD (not this skill):
+  - User wants to share with roles in SAME account only
+  - User does NOT mention "internal marketplace" or "data product" or "listing"
+  - Example: "share this table with ANALYST role" → Use GRANT, not this skill
+
+  WHEN NOT TO USE THIS SKILL:
+  - User wants to migrate an EXISTING direct share to an org listing → Use the direct-share-to-org-listing-migration skill instead
+  - User wants to migrate an EXISTING personalized listing to an org listing → Use the personalized-listing-to-org-listing-migration skill instead
+  - User wants to migrate an EXISTING private data exchange (PDX) listing to an org listing → Use the pdx-listing-to-org-listing-migration skill instead
+  
+  KEY: If user says "share via internal marketplace" or "as a data product" even for
+  same-account roles, use this skill. Otherwise, same-account = regular RBAC grants.
 ---
 
 # Organizational Listing Provider Skill

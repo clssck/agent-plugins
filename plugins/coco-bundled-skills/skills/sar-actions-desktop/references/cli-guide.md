@@ -13,16 +13,25 @@ Use `snow app` for all Snowflake Apps commands. Confirm it is available before r
 
 | Command | Purpose |
 |---------|---------|
-| `snow app setup --app-name="<name>"` | Initialize a new app, creates `snowflake.yml`. Falls back to SnowApps account parameters (`DEFAULT_SNOWFLAKE_APPS_*`), then config table, then current session. |
+| `snow app setup --app-name="<name>"` | Initialize a new app; writes `snowflake.yml`, or an `app.yml` with `version: 2` when the CLI's `ENABLE_SAR_APP_YML_V2` feature flag is on. Never overwrites an existing manifest. Falls back to SnowApps account parameters (`DEFAULT_SNOWFLAKE_APPS_*`), then config table, then current session. |
 | `snow app setup --app-name="<name>" --compute-pool <pool> --build-eai <eai>` | Same, with explicit compute pool and EAI. Required if those values are not in account parameters or the config table. |
-| `snow app setup --app-name="<name>" --compute-pool <pool> --build-eai <eai> --dry-run` | Preview resolved configuration without writing `snowflake.yml`. Each value shows its source: `user input`, `account parameter`, `config table`, `default`, or `current session`. |
-| `snow app bundle [--entity-id "<id>"] [--project <path>]` | Resolve artifacts into `output/bundle` so you can inspect what deploy will upload. No Snowflake connection required. |
-| `snow app validate` | Validate `snowflake.yml` and app structure before deploying |
-| `snow app deploy [--entity-id "<id>"]` | Run the full Snowflake App Runtime pipeline (upload, build, promote). |
-| `snow app deploy --upload-only/--build-only/--promote-only [--entity-id "<id>"]` | Run only one pipeline phase when retrying or debugging deploy failures. |
-| `snow app events --last <n> [--entity-id "<id>"]` | Fetch recent service logs from the deployed app (`--last` defaults to 500 lines, capped at 100KB output). |
-| `snow app open [--print-only] [--settings] [--entity-id "<id>"]` | Open the deployed app URL (or settings page) in the browser; `--print-only` returns the URL without launching a browser. |
-| `snow app teardown [--force] [--entity-id "<id>"]` | Drop the deployed service and related Snowflake App Runtime resources. |
+| `snow app setup --app-name="<name>" --compute-pool <pool> --build-eai <eai> --dry-run` | Preview resolved configuration without writing anything. Each value shows its source: `user input`, `account parameter`, `config table`, `default`, or `current session`. |
+| `snow app bundle [--entity-id "<id>"] [--project <path>]` | Resolve artifacts into `output/bundle` so you can inspect what deploy will upload. No Snowflake connection required. Target-independent — takes no `--target`. |
+| `snow app validate [--target "<name>"]` | Validate the manifest and app structure before deploying |
+| `snow app deploy [--entity-id "<id>" \| --target "<name>"]` | Run the full Snowflake App Runtime pipeline (upload, build, promote). |
+| `snow app deploy --upload-only/--build-only/--promote-only [...]` | Run only one pipeline phase when retrying or debugging deploy failures. |
+| `snow app events --last <n> [--entity-id "<id>" \| --target "<name>"]` | Fetch recent service logs from the deployed app (`--last` defaults to 500 lines, capped at 100KB output). |
+| `snow app open [--print-only] [--settings] [--entity-id "<id>" \| --target "<name>"]` | Open the deployed app URL (or settings page) in the browser; `--print-only` returns the URL without launching a browser. |
+| `snow app teardown [--force] [--entity-id "<id>" \| --target "<name>"]` | Drop the deployed service and related Snowflake App Runtime resources. |
+
+### Selecting what to act on: `--entity-id` vs `--target`
+
+The two selectors belong to different manifest layouts and are not interchangeable:
+
+- **`--entity-id`** picks a `snowflake-app` entity out of a `snowflake.yml`. Pass it only when the project has more than one.
+- **`--target`** picks a named deployment target out of an `app.yml` with `version: 2`. Defaults to the manifest's `default_target`; required once any `targets` are declared. Passing it in a `snowflake.yml` project fails with `--target is only supported for Snowflake App Runtime projects that define deployment targets in app.yml (version 2)`.
+
+`--target` appears in `snow app deploy --help` only on a CLI that supports `app.yml` v2 — use that as the capability probe before relying on any v2 behaviour.
 
 ### Timing long-running commands
 
@@ -58,9 +67,13 @@ Because of this, you do **not** need to pass `--connection` explicitly in most c
 
 For commands that support `--entity-id`, pass it only when the project has multiple `snowflake-app` entities. With a single entity, CLI can infer it.
 
-## snowflake.yml
+## Manifest layouts
 
-The deployment configuration file. Created by `snow app setup` or manually. Keep deploy/runtime settings here; app title/description/icon belong in `app.yml` (`profile`).
+A project uses one of two layouts. An `app.yml` with a top-level `version: 2` owns the deployment configuration and makes `snowflake.yml` irrelevant; otherwise `snowflake.yml` owns it. Full field reference, defaults, and migration in both directions: [`../../snowflake-apps/references/manifests.md`](../../snowflake-apps/references/manifests.md).
+
+### `snowflake.yml` (+ build-only `app.yml`)
+
+Created by `snow app setup`. Keep deploy/runtime settings here; app title/description/icon belong in `app.yml`'s `profile` block.
 
 ```yaml
 definition_version: "2"
@@ -83,16 +96,22 @@ entities:
       name: <external_access_integration>
 ```
 
-## app.yml
-
-Set app metadata in `app.yml`:
-
 ```yaml
+# app.yml — build phases plus display metadata
+install:
+  commands:
+    - ["npm", "ci", "--include=dev"]
+run:
+  command: ["node", ".next/standalone/server.js"]
 profile:
   label: "My App"
   description: "What the app does"
   icon: public/icon.svg
 ```
+
+### `app.yml` with `version: 2`
+
+One file instead of two: the same deployment values live at the top level of `app.yml` as plain strings (`name`, `database`, `schema`, `query_warehouse`, `build_eai`) alongside the build phases, there is no `profile:` block, and `snowflake.yml` is ignored. An optional `targets:` block overrides fields per environment, selected with `--target`. For the annotated example, the defaults, and the v1 ↔ v2 field mapping, see [`../../snowflake-apps/references/manifests.md`](../../snowflake-apps/references/manifests.md).
 
 ## Troubleshooting
 
@@ -107,3 +126,5 @@ profile:
 | `snow app deploy` is not idempotent | Calling it again restarts the deployment | Check job status before re-running if build is slow |
 | `snow --version` shows version earlier than 3.17 | CLI is outdated | Follow `cli-version-check.md` to detect the install method and update |
 | `snow` commands fail with credential or auth errors mid-session | Snowflake CLI token has expired | Run any SQL query (e.g., `SELECT 1`) via Cortex Code to trigger a token refresh, then retry the `snow` command |
+
+Errors that come from the manifest itself — missing required fields, `--target` rejected, a v2 edit that had no effect, setup writing nothing, or a v2 project on a CLI too old for it — are listed with their fixes in [`../../snowflake-apps/references/manifests.md`](../../snowflake-apps/references/manifests.md).

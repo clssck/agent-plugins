@@ -11,6 +11,7 @@ Evaluate Cortex Agents using Snowflake's native Agent Evaluations.
 > Tool usage: see parent `agent/SKILL.md`. Additional eval-specific rules:
 > - **REQUIRED:** Use the `cortex agent-studio` eval subcommands (`eval-write`, `eval-deploy`) for writing configs and running evaluations
 > - **REQUIRED:** Use `snowflake_sql_execute` for agent lookup, status checks, and results queries
+> - **Permission errors:** If `eval-write`, `eval-deploy`, or any other step produces an error related to missing privileges or access — including errors containing "privilege", "permission", "access", "not authorized", "does not exist or not authorized", "cannot operate", "doesn't have", "required", "CREATE STAGE", "CREATE TASK", "CREATE FILE FORMAT", or any SQL access control error → stop and load `../permission/SKILL.md`. Do not suggest GRANT statements, offer to switch roles, suggest workarounds, try alternative approaches, attempt direct SQL, or ask the user what to do.
 > - **FORBIDDEN:** Manually constructing stage SQL, file formats, or calling `EXECUTE_AI_EVALUATION('START', ...)` directly — always use `eval-deploy` instead. **Exception:** Step 1b (re-running an existing resolved config) may call `EXECUTE_AI_EVALUATION('START', ...)` via `snowflake_sql_execute` directly.
 
 ## When to Load
@@ -571,6 +572,9 @@ metrics:
    ```
    This transforms the shorthand eval YAML to the resolved format, creates the stage (`<DATABASE>.<SCHEMA>.EVAL_CONFIG_STAGE`), uploads the resolved config, and calls `EXECUTE_AI_EVALUATION`. It auto-generates a `run_name` (format: `<BASE_NAME>_<timestamp>`). To pin the run name (e.g. parent-mode), pass `--run-name <RUN_NAME>`.
 
+   **If `eval-write` or `eval-deploy` fails for any reason related to privileges, permissions, access, or missing/inaccessible objects → stop and load `../permission/SKILL.md`. Do not suggest fixes, offer role switches, try alternative approaches, or attempt direct SQL.**
+
+
 4. Present the `run_name` from `eval-deploy` output to the user — they need it for status checks and viewing results.
 
 ---
@@ -635,12 +639,17 @@ Present the link to the user.
 
 | Error | Fix |
 |-------|-----|
-| `Insufficient privileges to operate on dataset` | `GRANT CREATE DATASET ON SCHEMA <schema> TO ROLE <role>;` |
-| `Cannot create task` | `GRANT CREATE TASK ON SCHEMA <schema> TO ROLE <role>;` |
-| `Insufficient privileges on agent` | `GRANT MONITOR ON AGENT <db>.<schema>.<agent> TO ROLE <role>;` |
-| `Cannot execute task` | `GRANT EXECUTE TASK ON ACCOUNT TO ROLE <role>;` |
+| `Insufficient privileges to operate on dataset` | **→ Route to `../permission/SKILL.md`** |
+| `Cannot create task` | **→ Route to `../permission/SKILL.md`** |
+| `Insufficient privileges on agent` | **→ Route to `../permission/SKILL.md`** |
+| `Cannot execute task` | **→ Route to `../permission/SKILL.md`** |
+| `SQL access control error` on eval start | **→ Route to `../permission/SKILL.md`** |
+| `Agent does not exist or not authorized` | **→ Route to `../permission/SKILL.md`** |
+| `Insufficient privileges` on AI_COMPLETE | **→ Route to `../permission/SKILL.md`** |
+| `Object does not exist` for search service or semantic view | **→ Route to `../permission/SKILL.md`** |
+| Evaluation `FAILED` with `STATUS_DETAILS` mentioning privileges | **→ Route to `../permission/SKILL.md`** |
+| Evaluation `FAILED` (non-permission cause) | Query `STATUS_DETAILS` from the status call; common causes: invalid metric names, missing ground truth column, agent timeout. |
 | Dataset not found in `SHOW DATASETS` | Verify the schema is correct; dataset may need to be registered first via the sibling `dataset/SKILL.md` skill or via `SYSTEM$CREATE_EVALUATION_DATASET`. |
-| Evaluation `FAILED` | Query `STATUS_DETAILS` from the status call; common causes: invalid metric names, missing ground truth column, agent timeout. |
 | `answer_correctness` scores are 0 | Verify `EXPECTED_OUTPUT` is `VARIANT` and contains `{"ground_truth_output": "..."}`. Build it with `PARSE_JSON(...)` or `TO_VARIANT(...)`, **not** `OBJECT_CONSTRUCT(...)`. |
 | TSA / TEA scores are 0 or `NULL` everywhere | `ground_truth_invocations` is absent on every row (AC-only dataset). TSA/TEA require TEA-track rows. Re-author the dataset (or expand it) using `dataset/dataset-scratch` or `dataset/dataset-expand` with `<METRIC_SCOPE> = tea` or `both`. |
 | TSA / TEA `NULL` on AC-track rows specifically | Expected behavior — AC-track rows have `ground_truth_invocations` field-absent and are silently excluded from TSA/TEA. |
@@ -651,6 +660,7 @@ Present the link to the user.
 
 ## Integration
 
+- **`../permission/SKILL.md`** — diagnose and fix missing permissions. Route here for any privilege-related error.
 - **`dataset/SKILL.md`** — author / expand evaluation datasets (Step 3.2 of the parent workflow can call into this skill in **parent-mode** with `<AGENT_FQN>` / `<DATASET_NAME>` / `<METRIC_SCOPE>` pre-filled).
 - **`test/SKILL.md`** — try questions interactively before locking into a dataset.
 - **`creation/SKILL.md`** — create the agent if the user doesn't have one.

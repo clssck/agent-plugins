@@ -1,0 +1,11 @@
+## Freshness: {{ data_freshness_requirement }}
+
+Your expansion targets **{{ data_freshness_requirement }}** freshness.
+
+{%- if data_freshness_requirement == 'Continuous (within minutes)' %}
+The plan will configure minimal latency — continuous refresh or sub-minute scheduling.
+{%- elif data_freshness_requirement == 'Near Real-time (minutes to an hour)' %}
+The plan will configure moderate refresh intervals aligned with near real-time requirements.
+{%- else %}
+The plan will configure batch-appropriate scheduling (hourly, daily, or on-demand).
+{%- endif %}

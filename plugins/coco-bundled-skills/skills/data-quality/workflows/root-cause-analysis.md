@@ -116,12 +116,39 @@ Then load the lineage skill and run its root cause analysis workflow:
 - The user has already said they don't want lineage tracing in this session, OR
 - There are more than 10 failing tables (ask which ones to prioritize)
 
-**After lineage investigation**, offer:
+**After lineage investigation**, offer **only** options that load an existing workflow (use `ask_user_question`). Do **not** offer freeform “fix the data” — that is not a skill.
 
-| Option | Description |
-|--------|-------------|
-| **Fix the quality issues** | Address the DMF failures directly (add constraints, fix nulls, deduplicate). |
-| **Set up alerts so I'm notified next time** | Load the `sla-alerting` workflow to create monitors for these metrics. |
+Present options as **user-facing click labels** (action-oriented, plain language). **Copy the click labels below verbatim** for the default top 6 — do not paraphrase, reorder, or replace any item (e.g. do **not** substitute “trace upstream lineage” for #6; lineage was already offered/run above). Offer in **this priority order**. Default ask shows the **top 6** + “No thanks”; reveal 7–11 only if the user asks “what else?” or the case clearly fits.
+
+| Priority | Click label (show to user) | Load | When |
+|----------|----------------------------|------|------|
+| 1 | **Set up notifications on this association to get alerts when it fails** | `workflows/dq-notifications.md` | Default |
+| 2 | **Set up a circuit breaker to auto-pause downstream pipelines when this fails again** | `workflows/circuit-breaker.md` | Default |
+| 3 | **Adjust the pass/fail threshold for this check** | `workflows/expectations-management.md` | Default |
+| 4 | **See whether this just broke or has been failing for a while** | `workflows/regression-detection.md` | Default |
+| 5 | **Show how this metric has changed over time** | `workflows/trend-analysis.md` | Default |
+| 6 | **Recommend or attach better monitors on these tables** | `workflows/monitor-recommendations.md` | Default |
+| 7 | **Create a custom quality rule (or ACCEPTED_VALUES allow-list)** | `workflows/custom-dmf-patterns.md` | “What else?” / rule gap |
+| 8 | **Check overall schema health score** | `workflows/health-scoring.md` | “What else?” / posture |
+| 9 | **Find unmonitored tables or noisy monitors** | `workflows/coverage-gaps.md` | “What else?” / hygiene |
+| 10 | **Compare two tables (e.g. staging vs prod)** | `workflows/compare-tables.md` | “What else?” / parity |
+| 11 | **Break this metric down by a column (e.g. per region)** | `workflows/within-group-dmf.md` | “What else?” / segments |
+| — | **No thanks — I’m done for now** | — | Exit |
+
+Example default prompt (top 6):
+
+> What would you like to do next?
+> 1. Set up notifications on this association to get alerts when it fails  
+> 2. Set up a circuit breaker to auto-pause downstream pipelines when this fails again  
+> 3. Adjust the pass/fail threshold for this check  
+> 4. See whether this just broke or has been failing for a while  
+> 5. Show how this metric has changed over time  
+> 6. Recommend or attach better monitors on these tables  
+> Or **No thanks**. (Say **“what else?”** for more options.)
+
+Prefer `dq-notifications` over `sla-alerting` unless the user explicitly wants a custom health-% `CREATE ALERT`.
+
+Do not invent follow-ups that lack a workflow file.
 
 ## Output Format
 - Table name and column name (if applicable)

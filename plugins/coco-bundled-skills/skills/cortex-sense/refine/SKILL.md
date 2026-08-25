@@ -19,7 +19,7 @@ Read once before mutating state:
 - `../reference/INSTRUCTIONS.md` — how to classify builder prose into the right manifest slot
 - `../reference/SCOPE_MANIFEST.md` — manifest shape
 - `../reference/SUMMARY_FORMAT.md` — narrative summary
-- `../reference/NOT_YET_IMPLEMENTED.md` — exact placeholder lines (notably: feedback-storage flags, propagation)
+- `../reference/NOT_YET_IMPLEMENTED.md` — exact placeholder lines (notably: propagation, hand-off, feedback consumption)
 - `../reference/CONTEXT_LOOKUP.md` — lookup contract for the pre-correction diagnostic step (§1b)
 
 `<WORKSPACE_DIR>` and `<SKILL_DIR>` are placeholders the agent resolves.
@@ -163,6 +163,8 @@ Append the matching line from `../reference/NOT_YET_IMPLEMENTED.md` exactly **on
   > *(Propagation across similar metrics is not yet implemented — recorded as a single declared fact.)*
 - Only if the builder asks to share or hand off (item 8):
   > *(Hand-off and delegation are not yet implemented. For now, share the domain name with your reviewer; they can run `@cortex-sense resume <domain>`.)*
+- After an answer-shaped correction — `concepts`, `relationships`, or `associations`, never a `sources[].rules` scope change, which `feedback` rejects outright:
+  > *(If an answer was wrong rather than the data being out of scope, `@cortex-sense feedback <domain>` records that directly — still a work in progress.)*
 
 ## 5b. Promote to Business Ontology
 
@@ -193,13 +195,19 @@ Cortex Sense does nothing further after the handoff. All draft, dedup, review, a
 
 When the builder says **done** (or otherwise signals they're finished):
 
-Assemble the manifest as YAML in-memory (status: active). The top-level `warehouse` field is **required**: if the loaded manifest already has one, keep it; if it is missing (e.g. an older manifest), resolve it with `SELECT CURRENT_WAREHOUSE()` and set it — when the session has no active warehouse, ask the builder to name one before saving (same handling as `setup/SKILL.md` §6). Pipe the manifest through `scripts/persist_state.py merge` (deduplicates `additional_instructions`, validates). Then run two SQL calls per `../reference/STORAGE.md` "Saving — two calls in sequence":
+Assemble the manifest as YAML in-memory (status: active). The top-level `warehouse` field is **required**: if the loaded manifest already has one, keep it; if it is missing (e.g. an older manifest), resolve it with `SELECT CURRENT_WAREHOUSE()` and set it — when the session has no active warehouse, ask the builder to name one before saving (same handling as `setup/SKILL.md` §6).
+
+Then **confirm description:** follow the full contract in `../reference/DESCRIPTION.md` — regenerate the description from the updated manifest, show the confirm block, and wait for the builder's reply. If the builder accepts, set `description_synced_version` in the in-memory manifest to the `version_id` being minted before saving. If the builder skips, leave `description_synced_version` unchanged. Both flows (first-time and subsequent saves) always regenerate and re-offer — there is no drift gate here; the description confirm always runs. This gate runs while the builder is still interactive, before any save calls.
+
+Pipe the manifest through `scripts/persist_state.py merge` (deduplicates `additional_instructions`, validates). Then run two SQL calls per `../reference/STORAGE.md` "Saving — two calls in sequence":
 - **create-context** (or "already exists" → treat as success).
-- **put-stage-file** (path: `scope.yaml`, content: JSON-escaped YAML, overwrite: true).
+- **put-stage-file** (path: `scope.yaml`, content: JSON-escaped YAML, overwrite: true). `description_synced_version` is included here if the builder accepted a description above.
 
 On any error, render the one-line warning from `../reference/STORAGE.md` and stop.
 
 Then call `force-reprocess` per `../reference/STORAGE.md` "Force-reprocessing a context". This is non-blocking — if it fails, continue without surfacing the error to the builder.
+
+Then, if the builder accepted a description, run `ALTER CORTEX SENSE` per `../reference/DESCRIPTION.md` "Applying it". Non-blocking — handle failures per the response-handling table in that file and continue.
 
 There is no "save as draft" step. There is no "activate now" prompt. The builder confirmed by typing the changes; the save is silent and immediate.
 

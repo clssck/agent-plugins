@@ -11,7 +11,7 @@ Key constraints and limitations for interactive tables and warehouses.
 | **Query timeout** | 5 seconds on interactive warehouse. Queries exceeding this fail unless FALLBACK_WAREHOUSE is configured, in which case they are transparently retried on the (non-interactive) fallback warehouse. |
 | **Standard tables** | Cannot query standard tables |
 | **Mixed queries** | Cannot JOIN interactive with standard tables |
-| **Auto-suspend** | Does not auto-suspend (always running) |
+| **Auto-suspend** | Supported. Configure via `ALTER WAREHOUSE ... SET AUTO_SUSPEND = <seconds>`. |
 | **Auto-scale** | Supported. MIN_CLUSTER_COUNT and MAX_CLUSTER_COUNT can differ for auto-scaling. |
 | **Stored procedures** | CALL commands not supported |
 | **Pipe operator** | ->> operator not supported |
@@ -93,16 +93,6 @@ AS SELECT *, NULL AS new_column FROM source_table;
 
 ## Region Availability
 
-Interactive tables/warehouses available in AWS regions:
+Interactive tables and warehouses are available across AWS, Azure, and GCP.
 
-| Region Code | Region Name |
-|-------------|-------------|
-| us-east-1 | US East (N. Virginia) |
-| us-west-2 | US West (Oregon) |
-| us-east-2 | US East (Ohio) |
-| ca-central-1 | Canada (Central) |
-| ap-northeast-1 | Asia Pacific (Tokyo) |
-| ap-southeast-2 | Asia Pacific (Sydney) |
-| eu-central-1 | EU (Frankfurt) |
-| eu-west-1 | EU (Ireland) |
-| eu-west-2 | Europe (London) |
+For the current list of supported regions, see the [Snowflake documentation](https://docs.snowflake.com/en/user-guide/interactive#label-interactive-region-availability).

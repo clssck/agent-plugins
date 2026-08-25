@@ -38,6 +38,8 @@ The user can provide the response in a freeform manner, ask clarification if nee
    - Internal stages (for data loading/unloading)
    - External stages (S3, Azure, GCS)
    - Tasks (scheduled operations, ETL orchestration)
+   - Streams (change tracking / CDC)
+   - Pipes (continuous file ingestion via Snowpipe)
    - Warehouses
    - Roles and grants
    - Data quality expectations
@@ -46,8 +48,11 @@ The user can provide the response in a freeform manner, ask clarification if nee
 The user might provide some of this information in the initial prompt, so ask clarification questions as needed.
 
 **⚠️ Stage-Specific Guidance:**
-   - Internal stages (no URL) → Use `DEFINE STAGE` in infrastructure.sql
-   - External stages (S3/Azure/GCS with URL) → Place in `post_deploy.sql` (not supported by DEFINE)
+   - Internal stages (no URL) → `DEFINE STAGE` in infrastructure.sql
+   - External stages (S3/Azure/GCS with URL) → also `DEFINE STAGE` in infrastructure.sql
+   - ⚠️ Never inline cloud credentials in a definition — DCM stores definitions in
+     plain text (including deployment history). Use `STORAGE_INTEGRATION` and create
+     the integration in `pre_deploy.sql` (ACCOUNTADMIN required).
 
 2.5. **⚠️ If roles/grants are needed, clarify:**
 
@@ -186,6 +191,8 @@ Based on the objects identified in Step 1, **load the relevant references** befo
 - **Views**: Load `../reference/primitives/views.md`
 - **Dynamic tables**: Load `../reference/primitives/dynamic_tables.md`
 - **Tasks**: Load `../reference/primitives/tasks.md`
+- **Streams (CDC)**: Load `../reference/primitives/streams.md`
+- **Pipes (Snowpipe ingestion)**: Load `../reference/primitives/pipes.md`
 - **Stages**: Load `../reference/primitives/stages.md`
 - **Warehouses**: Load `../reference/primitives/warehouses.md`
 - **Roles/grants**: Load `../reference/primitives/roles_and_grants.md` AND `../roles-and-grants/SKILL.md`
@@ -196,7 +203,7 @@ Based on the objects identified in Step 1, **load the relevant references** befo
 | Reference | Load when the user... |
 |-----------|-----------------------|
 | `../reference/primitives/jinja_templating.md` | Requests multi-environment support (DEV/PROD); uses templated object names (suffixes, prefixes); needs team-based or user-based loops; wants conditional object creation; mentions macros or reusable patterns; requests parameterized configurations (warehouse sizes, retention policies per team); **identical infrastructure needed for multiple teams, schemas, or entities** (e.g., same roles/grants across several teams — use macros + loops instead of duplicating); user says "DRY", "don't repeat", or "avoid duplication" |
-| `../reference/primitives/unsupported_objects.md` | Requests external stages (S3, Azure, GCS with URL); needs streams, alerts, or file formats; requires integrations (API, notification, external access, catalog, security); asks for semantic views, shares, or network policies; mentions any object type not in the primitives list above; OR existing files contain `ATTACH PRE_HOOK` / `POST_HOOK` |
+| `../reference/primitives/unsupported_objects.md` | Requests an external stage backed by a **storage integration**, or an `AUTO_INGEST` pipe needing a **notification integration** (in both cases the integration needs a companion script, not the entity); requires integrations (storage, notification, API, external access, catalog, security); asks for semantic views, shares, or network policies; mentions any object type not in the primitives list above; OR existing files contain `ATTACH PRE_HOOK` / `POST_HOOK` |
 | `../reference/primitives/data_quality.md` | Requests data quality checks, expectations, or monitoring; mentions null checks, uniqueness, freshness, or row counts; wants to attach metrics to tables, views, or dynamic tables; asks about DATA_METRIC_SCHEDULE or system DMFs; needs custom data metric functions |
 
 Place all definition files in `sources/definitions/`. Recommended file grouping:

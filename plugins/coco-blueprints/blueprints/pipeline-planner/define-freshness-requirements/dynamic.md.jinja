@@ -1,0 +1,31 @@
+## Freshness Requirement
+
+You need: **{{ data_freshness_requirement }}** freshness
+
+{%- if data_freshness_requirement == 'Continuous' %}
+
+### Technologies Eliminated
+
+Continuous requirements eliminate technologies that operate on batch/scheduled cadences:
+- ~~dbt (both variants)~~ — batch-only execution model
+- ~~Stored Procedures~~ — require explicit invocation
+
+### Technologies Remaining
+- **Streams & Tasks** — processes changes as they arrive (~5s scheduling overhead)
+- **Snowpark** — can be triggered by streams for low-latency processing
+- **Dynamic Tables** — can achieve 15-30s latency for simple operations (complex queries on foundation tables may take longer)
+{%- elif data_freshness_requirement == 'Near Real-time' %}
+
+### All Technologies Remain Viable
+
+Near real-time (1-15 minute delay) is achievable with all technologies:
+- Dynamic Tables with short target lag
+- Streams & Tasks with frequent scheduling
+- Snowpark with triggered execution
+- dbt with frequent scheduling (though less common)
+{%- elif data_freshness_requirement == 'Batch' %}
+
+### All Technologies Remain Viable
+
+Batch freshness (hourly or less frequent) is the most flexible requirement — all technologies handle this well. The decision will depend on your logic type, trigger model, and constraints.
+{%- endif %}

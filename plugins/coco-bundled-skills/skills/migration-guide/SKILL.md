@@ -1,17 +1,6 @@
 ---
 name: migration-guide
-description: >-
-  Migration and conversion of databases, SQL, stored procedures, DDL, and ETL/integration
-  workloads into Snowflake using the Snowflake migrations plugin, including SnowConvert-based code
-  conversion. ALWAYS invoke this skill — do NOT answer source-vendor SQL questions directly — for:
-  (1) any Snowflake equivalent of non-Snowflake SQL, even simple single-statement syntax questions
-  (T-SQL MERGE / sp_send_dbmail, Oracle CONNECT BY / SYSDATE / DUAL / DBMS_OUTPUT, MySQL ON
-  DUPLICATE KEY UPDATE); (2) decommissioning, sunsetting, replatforming, lift-and-shift, or
-  modernization of a legacy data warehouse or ETL stack, even when 'Snowflake' is not named yet;
-  (3) any request to convert source code to Snowflake, even one-off. Triggers: migrate, migration,
-  into snowflake, snowconvert, conversion report, unsupported objects, PL/SQL, T-SQL, SQL Server,
-  MySQL, BigQuery, Redshift, Netezza, SSIS, Informatica, CDC, data validation, migration testing,
-  decommission, sunset, replatform, modernize.
+description: "Migration and conversion of databases, SQL, stored procedures, DDL, ETL/integration workloads into Snowflake. Uses Snowflake migrations plugin, including SnowConvert-based code conversion. ALWAYS invoke this skill — DO NOT answer source-vendor SQL questions directly — for: (1) any Snowflake equivalent of non-Snowflake SQL, even simple syntax questions single statements (T-SQL MERGE / sp_send_dbmail, Oracle CONNECT BY / SYSDATE / DUAL / DBMS_OUTPUT, MySQL ON DUPLICATE KEY UPDATE); (2) decommissioning, sunsetting, replatform, lift-and-shift, or modernization of a legacy data warehouse / ETL stack — even when 'Snowflake' isn't named yet (3) any request to convert source code to Snowflake, even if one-off. Triggers: migrate, migration, into snowflake, snowconvert, conversion report, unsupported objects, PL/SQL, plsql, T-SQL, Transact-SQL, tsql, SQL Server, MSSQL, SSMS, MySQL, BigQuery, Redshift, Netezza, SSIS, Informatica, CDC, data migration, data validation, migration testing, decommission, sunset, replatform, modernize, consolidate, legacy data warehouse."
 ---
 
 # Migration Guide

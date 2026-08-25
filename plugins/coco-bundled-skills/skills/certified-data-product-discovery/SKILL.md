@@ -1,6 +1,20 @@
 ---
 name: certified-data-product-discovery
-"description": "Find certified data products that can answer a user's question and guide the user through using them. Searches Snowflake objects with Snowscope, classifies results by certification (SNOWFLAKE.CORE.CERTIFICATION_STATUS = 'CERTIFIED') and by access (accessible vs Discover-Not-Access), presents a grouped menu, then queries the chosen object. Use whenever a data question is combined with a restriction to certified or trusted sources — for example \"use certified data only\", \"from certified sources only\", \"answer using certified data\", \"only trusted data\", \"only governed data\", \"with certified data in <db.schema> only\". Also use when the user asks: \"which certified tables can I use for <topic>\", \"find certified data for my question\", \"what trusted data is available for <topic>\", \"is there a certified source for <metric>\", \"discover certified data products\". Do not use for publishing new data products (that is `collaboration/data-products`) or for cross-account sharing (that is `collaboration/data-sharing`)."
+description: >
+  Find certified data products that can answer a user's question and guide the user through
+  using them. Searches Snowflake objects with Snowscope, classifies results by certification
+  (SNOWFLAKE.CORE.CERTIFICATION_STATUS = 'CERTIFIED') and by access (accessible vs
+  Discover-Not-Access), presents a grouped menu, then queries the chosen object.
+  Use this skill whenever a data question is combined with a restriction to certified
+  or trusted sources — for example "use certified data only", "use only certified
+  tables", "from certified sources only", "answer using certified data", "only
+  trusted data", "only governed data", "with certified data in <db.schema> only".
+  Also use when the user asks: "which certified tables can I use for <topic>",
+  "find certified data for my question", "what trusted data is available for <topic>",
+  "is there a certified source for <metric>", "discover certified data products",
+  "answer with certified data only". Do not use for publishing new data products
+  (that is `collaboration/data-products`) or for cross-account sharing (that is
+  `collaboration/data-sharing`).
 ---
 
 # Certified Data Product Discovery

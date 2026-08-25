@@ -1,0 +1,16 @@
+## Transformation Intent
+
+{%- if downstream_consumers is defined and downstream_consumers | length > 0 %}
+Based on your source data and downstream consumers ({{ downstream_consumers }}),
+you described your intent as:
+{%- else %}
+You described your transformation intent as:
+{%- endif %}
+
+> {{ transformation_intent }}
+
+### Source Context
+
+- **Source Reference:** {{ source_seed_reference }}
+- **Technology:** {{ selected_transform_technology }}
+- **Freshness:** {{ data_freshness_requirement | default('not specified') }}

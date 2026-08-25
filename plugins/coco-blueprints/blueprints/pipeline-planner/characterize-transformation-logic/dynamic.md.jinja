@@ -1,0 +1,39 @@
+## Transformation Logic
+
+You're writing: **{{ transformation_logic_type }}**
+
+{%- if transformation_logic_type == 'SQL' %}
+
+SQL is compatible with the widest range of technologies:
+- Dynamic Tables (declarative SQL)
+- Streams & Tasks (SQL in task bodies)
+- Stored Procedures (SQL with control flow)
+- dbt (Jinja-templated SQL)
+
+The trigger model and constraints will narrow this further.
+{%- elif transformation_logic_type == 'dbt' %}
+
+You've selected dbt — Jinja-templated SQL with testing, lineage, and packages.
+
+**dbt Variant:** {{ dbt_variant }}
+
+{%- if dbt_variant == 'dbt Projects on Snowflake' %}
+Native dbt runs entirely within Snowflake, orchestrated by Tasks. Can materialize Dynamic Tables as part of the DAG.
+{%- elif dbt_variant == 'dbt Core (External)' %}
+External dbt runs outside Snowflake (dbt Cloud, Airflow, CLI). Always externally orchestrated.
+{%- endif %}
+{%- elif transformation_logic_type == 'Python or Scala' %}
+
+Python/Scala requires **Snowpark** — the only technology supporting DataFrame operations, ML features, and API calls within Snowflake.
+
+Other technologies are eliminated for this logic type:
+- ~~Dynamic Tables~~ — SQL-only
+- ~~dbt~~ — SQL/Jinja only
+{%- elif transformation_logic_type == 'Procedural' %}
+
+Procedural logic (loops, retries, error handling) narrows options to:
+- **Stored Procedures** — native procedural support
+- **Snowpark** — Python with full control flow
+
+Dynamic Tables are eliminated (declarative SQL only).
+{%- endif %}

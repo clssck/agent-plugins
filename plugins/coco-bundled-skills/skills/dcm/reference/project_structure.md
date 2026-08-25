@@ -268,8 +268,8 @@ A single DCM project manages a set of related Snowflake objects deployed togethe
 | `default_target`          | Yes              | Default target when CLI omits it      |
 | `templating`              | No (recommended) | Environment-specific variables        |
 | `sources/definitions/`    | Yes              | SQL files with DEFINE statements      |
-| `pre_deploy.sql`          | No               | Imperative SQL run before plan (integrations, network policies) |
-| `post_deploy.sql`         | No               | Imperative SQL run after deploy (streams, alerts, external stages) |
+| `pre_deploy.sql`          | No               | Imperative SQL run before plan (integrations, including storage integrations for external stages; network policies) |
+| `post_deploy.sql`         | No               | Imperative SQL run after deploy (semantic views) |
 | `post_deployment_grants.sql` | No            | Grants that DCM cannot apply          |
 
 **The simplest valid project**:

@@ -68,11 +68,12 @@ CALL SYSTEM$GET_GLOSSARY_SUMMARY();
 ## The plan in one screen
 
 ```
-Step 1  SCAN      SHOW + DESC SEMANTIC VIEW → per-field candidates + lineage   (read-only)
-Step 2  RESOLVE   per field: column-lineage → table-lineage → domain_map        (read-only)
-Step 3  DRIFT     match each candidate to ontology via resolution ladder        (read-only)
-Step 4  PROPOSE   DRAFT nodes / associations / derives relationships            (no approve)
-Step 5  RECONCILE steward approves per finding; re-run drift until BLOCKER = 0   (writes)
+Step 1   SCAN      SHOW + DESC SEMANTIC VIEW → per-field candidates + lineage   (read-only)
+Step 2   RESOLVE   per field: column-lineage → table-lineage → domain_map        (read-only)
+Step 2b  DEDUP     granularity filter + near-duplicate consolidation             (steward gate)
+Step 3   DRIFT     match each candidate to ontology via resolution ladder        (read-only)
+Step 4   PROPOSE   DRAFT nodes / associations / derives relationships            (no approve)
+Step 5   RECONCILE steward approves per finding; re-run drift until BLOCKER = 0  (writes)
 ```
 
 | Mode | Trigger | Outcome |
@@ -179,6 +180,53 @@ domains — never auto-merged.
 
 ---
 
+## Step 2b — Granularity filter and near-duplicate consolidation
+
+Run before Step 3. This step reduces node explosion when many SVs share the same underlying columns.
+
+### Granularity filter
+
+**Hard skip** (drop and log count): candidates whose normalized name ends with `_id`, `_key`, `_uuid`, `_at`, `_time`, or `_flag` — these are pure identifier and timestamp patterns with no standalone business meaning.
+
+**Soft flag** (ask steward before dropping): candidates whose normalized name ends with `_date`. Date-named fields such as `ship_date`, `close_date`, or `invoice_date` may be meaningful business concepts. For each such candidate surface: "Is `<name>` a meaningful business concept, or just a technical timestamp field? (keep / drop)". Keep if the steward does not respond — default to keep.
+
+Override: if the steward says "include all fields", skip both tiers entirely and proceed with all candidates.
+
+### Near-duplicate detection (same base columns)
+
+After filtering:
+
+1. Group candidates by their **normalized `base_columns` set** — the exact set of column FQNs (lowercased) that the field's expression references.
+2. Within each group: if 2 or more candidates share the same `base_columns`, they are potential near-duplicates. Groups with only 1 member are **not flagged** — proceed to Step 3 for single-member groups.
+3. Within each group, compare formula expressions after stripping whitespace and column aliases. If formulas are identical or differ only by a scalar multiplier / currency suffix (e.g. `SUM(amount)` vs `SUM(amount_usd)`), treat the group as **near-duplicate**.
+4. Surface each near-duplicate group to the steward **before proceeding to Step 3**:
+
+```
+Near-duplicates detected — same base column(s):
+
+  Group 1 — backed by FINANCE.PUBLIC.ORDERS (columns: gross_amount_usd)
+
+  #  Name                  SV                    Formula
+  1  gross_revenue_usd     FINANCE_METRICS_SV    SUM(gross_amount_usd)
+  2  gross_revenue         SALES_METRICS_SV      SUM(gross_amount_usd)
+  3  gross_amount_total    LEGACY_FINANCE_SV     SUM(gross_amount_usd)
+
+  These look like the same concept expressed differently across SVs.
+    merge → create 1 canonical node; all SV variants noted in description; all 3 SVs bound
+    keep separate → create 3 distinct nodes (proceed to Step 3 as normal)
+```
+
+**On merge:** collapse the group into one candidate:
+- Name: use the shortest / most canonical name in the group (ask steward if unclear)
+- Description: include a sentence listing the SV-specific variant names (e.g. "Also known as `gross_revenue_usd` in FINANCE_METRICS_SV and `gross_amount_total` in LEGACY_FINANCE_SV")
+- All SVs in the group will be bound to this single node in Step 4
+
+**On keep separate:** proceed to Step 3 with all candidates; the `CROSS_SV_CONFLICT` finding type handles expression conflicts at that stage.
+
+If no near-duplicate groups are found, skip the steward prompt and proceed directly to Step 3.
+
+---
+
 ## Step 3 — Drift (the core; read-only)
 
 **Preferred path (script):**
@@ -242,18 +290,24 @@ CALL SYSTEM$DRAFT_GLOSSARY_TERM('{
   "description":"Revenue after discounts and refunds.",
   "formula":"SUM(gross_revenue_amount)-SUM(discount_amount)-SUM(refund_amount)"
 }');
-CALL SYSTEM$APPROVE_GLOSSARY_TERM('Net Revenue');                       -- must precede the asset draft
+-- See SV_GLOSSARY_MAPPING_CONTRACT.md §Write ordering for termId extraction pattern.
+CALL SYSTEM$APPROVE_GLOSSARY_TERM('<termId from draft response>');
 
+-- FQN format '<domain>.<term>' requires an account-level feature to be enabled by Snowflake.
+-- If that feature is off, FQN falls through to a bare-name lookup and 'Finance.Net Revenue'
+-- resolves as a term literally named 'Finance.Net Revenue' (which doesn't exist → error).
+-- Confirm the feature is on before using FQN syntax; otherwise use termId from the draft response.
 -- Bind SV metric (fqn + dimensionName = logical field name)
-CALL SYSTEM$DRAFT_GLOSSARY_ASSET('Net Revenue',
+CALL SYSTEM$DRAFT_GLOSSARY_ASSET('Finance.Net Revenue',
   '{"refType":"SEMANTIC_VIEW","fqn":"MY_DB.MY_SCHEMA.FINANCE_METRICS_SV","dimensionName":"net_revenue"}',
   'RELATED_SEMANTIC_VIEW');
-CALL SYSTEM$APPROVE_GLOSSARY_ASSET('Net Revenue',
+CALL SYSTEM$APPROVE_GLOSSARY_ASSET('Finance.Net Revenue',
   '{"refType":"SEMANTIC_VIEW","fqn":"MY_DB.MY_SCHEMA.FINANCE_METRICS_SV","dimensionName":"net_revenue"}');
 
 -- Derivation (full vocabulary in ../../reference/RELATIONSHIP_TYPES.md)
-CALL SYSTEM$DRAFT_GLOSSARY_RELATIONSHIP('Gross Revenue','Adjusted Gross','DERIVES', NULL);
-CALL SYSTEM$APPROVE_GLOSSARY_RELATIONSHIP('Gross Revenue','Adjusted Gross','DERIVES');
+-- Always use FQN '<domain>.<term>'; auto-fill label for standard types (never pass NULL)
+CALL SYSTEM$DRAFT_GLOSSARY_RELATIONSHIP('Finance.Gross Revenue', 'Finance.Adjusted Gross', 'DERIVES', 'derives');
+CALL SYSTEM$APPROVE_GLOSSARY_RELATIONSHIP('Finance.Gross Revenue', 'Finance.Adjusted Gross', 'DERIVES');
 ```
 
 For a **`GLOSSARY_UNBOUND`** finding the node is already approved, so the sequence is just the
@@ -273,9 +327,11 @@ running any sequence. On approval, run each finding's `proposedCalls` **in order
 ```sql
 -- Run the finding's ordered sequence (draft+approve term, then draft+approve its binding):
 CALL SYSTEM$DRAFT_GLOSSARY_TERM('{"name":"Net Revenue","domainName":"Finance","itemKind":"METRIC","description":"..."}');
-CALL SYSTEM$APPROVE_GLOSSARY_TERM('Net Revenue');
-CALL SYSTEM$DRAFT_GLOSSARY_ASSET('Net Revenue', '{"refType":"SEMANTIC_VIEW","fqn":"...FINANCE_METRICS_SV","dimensionName":"net_revenue"}', 'RELATED_SEMANTIC_VIEW');
-CALL SYSTEM$APPROVE_GLOSSARY_ASSET('Net Revenue', '{"refType":"SEMANTIC_VIEW","fqn":"...FINANCE_METRICS_SV","dimensionName":"net_revenue"}');
+-- See SV_GLOSSARY_MAPPING_CONTRACT.md §Write ordering for termId extraction pattern.
+CALL SYSTEM$APPROVE_GLOSSARY_TERM('<termId from draft response>');
+-- FQN syntax requires an account-level feature enabled by Snowflake; fall back to termId if not confirmed on.
+CALL SYSTEM$DRAFT_GLOSSARY_ASSET('Finance.Net Revenue', '{"refType":"SEMANTIC_VIEW","fqn":"...FINANCE_METRICS_SV","dimensionName":"net_revenue"}', 'RELATED_SEMANTIC_VIEW');
+CALL SYSTEM$APPROVE_GLOSSARY_ASSET('Finance.Net Revenue', '{"refType":"SEMANTIC_VIEW","fqn":"...FINANCE_METRICS_SV","dimensionName":"net_revenue"}');
 ```
 
 `APPROVE_ALL_GLOSSARY_{TERMS,ASSETS,RELATIONSHIPS}` exist for batch approval, but because assets

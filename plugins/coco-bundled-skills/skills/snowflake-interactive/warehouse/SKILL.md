@@ -33,6 +33,7 @@ What warehouse operation do you need?
 5. **Suspend** - Suspend running warehouse
 6. **Status** - Check warehouse state
 7. **Set Fallback** - Configure a fallback warehouse for timeout handling
+8. **Configure Auto-Suspend** - Set auto-suspend to reduce idle costs
 ```
 
 **Route based on selection:**
@@ -43,6 +44,7 @@ What warehouse operation do you need?
 - Option 5 → [Suspend Warehouse](#suspend-warehouse)
 - Option 6 → [Check Status](#check-warehouse-status)
 - Option 7 → [Set Fallback Warehouse](#set-fallback-warehouse)
+- Option 8 → [Configure Auto-Suspend](#configure-auto-suspend)
 
 ---
 
@@ -273,13 +275,14 @@ SHOW WAREHOUSES;
 ## Key Notes
 
 ### Warehouse Behavior
-- Interactive warehouses are **always running by design** (no auto-suspend)
 - Created in **SUSPENDED state** - must RESUME after CREATE
-- Cannot auto-scale (MIN_CLUSTER_COUNT must equal MAX_CLUSTER_COUNT)
+- Supports auto-suspend — configure via `ALTER WAREHOUSE ... SET AUTO_SUSPEND = <seconds>`
+- Supports auto-scale — MIN_CLUSTER_COUNT and MAX_CLUSTER_COUNT can differ
 - **Can only query interactive tables** - cannot query standard tables
 
 ### Cost Considerations
-- Manually suspend during off-hours to save costs
+- Configure `AUTO_SUSPEND` to reduce idle costs automatically (e.g., `SET AUTO_SUSPEND = 86400` for 24 hours)
+- Or manually suspend during off-hours to save costs
 - Consider smaller size and scale up if needed
 - Consolidate related tables in same warehouse
 
@@ -350,12 +353,66 @@ SET FALLBACK_WAREHOUSE = batch_fallback_wh;
 
 ---
 
+## Configure Auto-Suspend
+
+### When to Use
+
+Configure auto-suspend to automatically stop the warehouse during idle periods and reduce credits consumed overnight or on weekends.
+
+### Step 2: Gather Requirements
+
+**Ask** user for:
+- Warehouse name
+- Idle timeout in seconds (how long before suspending — e.g., 86400 = 24 hours minimum), or NULL to disable auto-suspend
+
+### Step 3: Generate ALTER Statements
+
+**If user provides a value below 86400:** Inform the user that the minimum is 86400 seconds (24 hours) and that Snowflake will silently use 86400 regardless. Confirm they want to proceed before generating SQL.
+
+**If user wants to disable auto-suspend:** Use NULL instead of a number:
+```sql
+ALTER WAREHOUSE {{warehouse_name}} SET AUTO_SUSPEND = NULL;
+```
+
+**If user provides a valid value (>= 86400):** Generate the standard ALTER statements:
+
+```sql
+-- Suspend warehouse automatically after {{seconds}} seconds of inactivity
+ALTER WAREHOUSE {{warehouse_name}} SET AUTO_SUSPEND = {{seconds}};
+
+-- Auto-resume when a query is submitted (recommended alongside auto-suspend)
+ALTER WAREHOUSE {{warehouse_name}} SET AUTO_RESUME = TRUE;
+```
+
+**Valid values for AUTO_SUSPEND (minimum is 86400 — 24 hours):**
+- `86400` — 24 hours (minimum allowed)
+- `172800` — 48 hours
+- `NULL` — disable auto-suspend
+
+**Note:** Set `AUTO_RESUME = TRUE` so the warehouse restarts automatically when a query arrives. Without it, users will get errors on a suspended warehouse.
+
+**⚠️ MANDATORY STOPPING POINT**: Present ALTER statements for approval.
+
+### Step 4: Execute and Verify
+
+1. **Execute** the approved ALTER statements
+2. **Verify** configuration:
+   ```sql
+   SHOW WAREHOUSES LIKE '{{warehouse_name}}';
+   ```
+   Check the `auto_suspend` and `auto_resume` columns in the output.
+
+**Output:** Auto-suspend configured
+
+---
+
 ## Stopping Points Summary
 
 1. ✋ Before CREATE warehouse
 2. ✋ Before ADD/DROP tables
 3. ✋ Before SUSPEND (affects availability)
 4. ✋ Before SET FALLBACK_WAREHOUSE
+5. ✋ Before SET AUTO_SUSPEND
 
 **Resume rule:** Only proceed after explicit user approval.
 

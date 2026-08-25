@@ -1,17 +1,69 @@
 ---
 name: marketplace-search
 description: >-
-  Search the Snowflake Marketplace (public, internal, or both) for datasets, data shares, Native
-  Apps, and Connected Apps. **MANDATORY:** call `skill(command="marketplace-search")` before any
-  marketplace search or `cortex search marketplace` command, once per distinct marketplace need.
-  Fire when the user wants to find or obtain a third-party or internal data product, app,
-  connector, or share: data categories ('weather data', 'ESG data'), connectors and MCP servers,
-  availability asks ('is there a connector for X'), intra-org listings, or the word 'external'. A
-  bare brand, vendor, fund, or product token is enough ('Tomorrow.io', 'DV360', 'Maximo'); prefer
-  over-firing. An empty `cortex search object` result is NOT evidence — search the marketplace
-  before saying data is unavailable. Not for: a listing named exactly (use
-  get-marketplace-listing-details), Snowflake docs (use cortex search docs), value/ID lookups,
-  integration how-tos, person names, or a resolved data need.
+  Search the Snowflake Marketplace (public, internal, or both) for
+  datasets, data shares, Native Apps, and Connected Apps.
+
+  **MANDATORY.** Call `skill(command="marketplace-search")` before any
+  marketplace search — even if you already know the query or loaded this
+  skill earlier. If you are about to type `cortex search marketplace`, you
+  must have called skill() first: going straight to bash skips the
+  query-construction and presentation rules and is a defect. Re-invoke once
+  per distinct marketplace need, not for the search you are already running.
+
+  Use when the user wants to find, use, or obtain a third-party or internal
+  data product, app, connector, or data share: bare brand names, data
+  categories ("weather data", "ESG and sustainability data", "where can I find
+  email data"), risk,
+  compliance and firmographic profiles ("best source of AML risk data"),
+  connectors and apps ("Salesforce connector", "managed MCP servers", "MCP
+  servers in Snowflake"),
+  availability asks ("is there a connector for X"), marketplace exploration
+  ("most downloaded listing"), alternate-source and best-source asks,
+  catalog-shaped asks that name a vendor, and intra-org listings ("internal
+  listings for HR data", "what is my org publishing for this topic"). The
+  word "external" in a query (e.g. "external job-boards") is enough by
+  itself. Prefer over-firing over
+  missing a marketplace opportunity.
+
+  **Bare tokens.** A bare recognizable product, vendor, fund, or brand name
+  alone is enough — "Tomorrow.io", "Fishbowl", "DV360", "Citadel", "Maximo"
+  — including single lowercase words, fragments, and catalog-shaped framings
+  like "what's the snowflake database for salesforce cases?" or "find me a
+  table about X". Invoke in the same turn; do not wait to see whether the
+  internal catalog has it. If you cannot tell whether a token names a
+  company or product, assume it does and search. The only exclusion is a
+  token that reads as a person's given + family name ("give details for
+  daniel spark") or an opaque identifier with no brand reading — a
+  data-domain word next to a vendor ("Person data from Maximo") is not a
+  person name.
+
+  **A catalog miss is not an answer.** `cortex search object` returning
+  nothing is not evidence the data is unavailable. Before you say "I don't
+  have that data", "no objects found", or "you'll need to bring your own
+  data", search the marketplace. An active Snowflake connection is not a
+  reason to treat an ask as catalog-only. When a query names a third-party
+  brand, product, or external source, run both searches in the same turn.
+
+  **Mid-conversation.** If the user is about to build against an external
+  source, search the marketplace first — once per data need. This applies
+  even if they named an external source or connector, since the same data is
+  frequently available as a listing; surrounding workflow or sandbox context
+  does not cancel the signal. Once that topic has been searched, a source
+  chosen, or they are iterating on integration code, do not re-pitch
+  unprompted. Always fire on an explicit search request, and re-fire when
+  they ask for more options or pivot to a new data topic.
+
+  Do not use for: a listing referenced by global name or exact title (use
+  get-marketplace-listing-details); formatting results already in hand;
+  Snowflake product docs or how-tos (use cortex search docs); specific-value
+  or identifier lookups ("what is the [metric/ID] for [entity]", "what is
+  the SM ID for…"); named-mechanism integration how-tos ("how to use MCP to
+  connect to Salesforce"); educational deep-dives; org-specific business
+  conventions such as a fiscal month calendar or internal cost centres
+  (unless a vendor is named, e.g. Workday); or a data need already resolved
+  earlier in the conversation. Industry-standard code sets and public
+  reference data — CPT, NAICS, postcode-to-lat/long — do fire.
 ---
 
 # Skill: marketplace-search

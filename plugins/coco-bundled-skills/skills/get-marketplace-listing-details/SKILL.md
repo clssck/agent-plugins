@@ -1,6 +1,22 @@
 ---
 name: get-marketplace-listing-details
-"description": "Present a focused, recommendation-first write-up of ONE Snowflake Marketplace listing (data share, native app, connected app, private/targeted, or request-only): why it fits the user's need, how it's delivered, how they get access, and how its data/capabilities solve the problem. Invoke whenever the user asks you to describe, summarize, write up, explain, review, or give a recommendation on a single listing referenced by title or global name — e.g. \"tell me about GZ2FQZ711TU\", \"what's in the Consumer Pricing listing\", \"should I get this listing\". ALWAYS invoke it even when the listing metadata is already in the conversation or the user pasted the SYSTEM$BULK_GET_LISTINGS or data-dictionary payload: this skill governs how to SHAPE and present that data, so pre-supplied data does NOT make it optional — a raw metadata dump or generic overview is the wrong output. Do NOT use for marketplace search results spanning multiple listings — use `marketplace-listing-formatting` instead."
+description: >-
+  Present a focused, recommendation-first write-up of ONE Snowflake Marketplace
+  listing (data share, native app, connected app, private/targeted, or
+  request-only): why it fits the user's need, how it's delivered, how they get
+  access, and how its data/capabilities solve the problem. Invoke this skill
+  whenever the user asks you to describe, summarize, write up, explain, review,
+  or give a recommendation on a single listing referenced by title or global
+  name — e.g. "tell me about GZ2FQZ711TU", "give me a detailed write-up of this
+  listing", "what's in the Consumer Pricing listing", "who's behind it / what do
+  they offer", "should I get this listing". ALWAYS invoke it even when the
+  listing metadata is already in the conversation or the user says they "already
+  pulled the details" and pasted the SYSTEM$BULK_GET_LISTINGS or data-dictionary
+  payload: this skill governs how to SHAPE and present that data into the
+  required recommendation format, not just how to retrieve it, so pre-supplied
+  data does NOT make it optional — a raw metadata dump or a generic overview is
+  the wrong output. Do NOT use it for marketplace search results spanning
+  multiple listings — use `marketplace-listing-formatting` instead.
 ---
 
 # Skill: get-marketplace-listing-details

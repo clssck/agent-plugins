@@ -19,6 +19,7 @@ This script:
 
 import argparse
 import ast
+import builtins
 import csv
 import json
 import logging
@@ -75,6 +76,37 @@ def load_safe_apis(json_path: Path | None = None) -> set[str]:
     except (json.JSONDecodeError, KeyError) as exc:
         logger.warning("Failed to parse safe-API allowlist %s: %s — all APIs will be queried", json_path, exc)
         return set()
+
+
+def load_kb_anchor_leaves(kb_path: Path | None = None) -> set[str]:
+    """
+    Bare method/function names the trigger KB has a rule for.
+
+    ``groupBy``, ``join``, ``dropDuplicates``, etc. are marked "fully
+    supported" in safe_apis.json but have a real, sometimes high-severity
+    divergence documented in kb_rules.json. Used by ``reconcile_safe_apis``
+    to keep those APIs off the safe-list fast path. Returns an empty set if
+    the KB file is missing or fails to parse.
+    """
+    try:
+        kb = TriggerKB.load(kb_path or (DATA_DIR / "kb_rules.json"))
+        return kb.anchor_leaf_names()
+    except (OSError, ValueError, KeyError) as exc:
+        logger.warning("Failed to load KB anchors for safe-list reconciliation: %s", exc)
+        return set()
+
+
+def reconcile_safe_apis(safe_apis: set[str], kb_anchor_leaves: set[str]) -> set[str]:
+    """
+    Drop any API from the safe list that also has a KB divergence rule.
+
+    Called once at load time so every downstream user of the safe list
+    (is_block_safe and its callers) gets the corrected set for free, with
+    no change to their own signatures.
+    """
+    if not kb_anchor_leaves:
+        return safe_apis
+    return {api for api in safe_apis if api.lower() not in kb_anchor_leaves}
 
 
 def is_block_safe(block_functions: list[str], safe_apis: set[str]) -> bool:
@@ -2885,9 +2917,11 @@ class PySparkExtractor(ast.NodeVisitor):
 
         source = self.get_source(node)
 
-        # Check if it involves PySpark operations (spark/session object or any known method)
+        # Use the dotted-call pattern (".method(") like visit_Expr, not a bare
+        # substring check. A bare check false-positives on short CSV method
+        # names (e.g. "e" from pyspark.sql.functions.e matches almost anything).
         has_spark = "spark" in source.lower() or "session" in source.lower()
-        has_pyspark_method = any(method in source for method in self.pyspark_methods)
+        has_pyspark_method = any(f".{method}(" in source for method in self.pyspark_methods)
 
         if has_spark or has_pyspark_method:
             self.blocks.append(
@@ -2989,6 +3023,114 @@ class PySparkExtractor(ast.NodeVisitor):
         self.generic_visit(node)
 
 
+# ---- Fallback sweep for calls invisible to the Spark-aware visitors ------- #
+# visit_Expr/visit_Assign only recognize statements that look like PySpark
+# (a "spark"/"session" reference, or a known dotted PySpark method). A call to
+# something else -- AWS Glue's glueContext.write_dynamic_frame.from_options(),
+# Azure Synapse's mssparkutils.fs.mount(), or any other vendor SDK -- matches
+# neither check and is invisible today, no matter what kind of statement it's
+# in. Instead of adding a visit_X per statement type, we sweep every Call node
+# once and anchor each uncovered one to its enclosing statement/expression.
+
+
+def _build_parent_map(tree: ast.AST) -> dict[ast.AST, ast.AST]:
+    """Return ``{child: parent}`` for every node in ``tree``."""
+    parent_map: dict[ast.AST, ast.AST] = {}
+    for parent in ast.walk(tree):
+        for child in ast.iter_child_nodes(parent):
+            parent_map[child] = parent
+    return parent_map
+
+
+def _fallback_anchor_node(node: ast.AST, parent_map: dict[ast.AST, ast.AST]) -> ast.AST | None:
+    """Find the node that should anchor a fallback block for the ``Call`` at
+    ``node``: the nearest enclosing statement, or -- if the call is in an
+    if/while's test, a for's iterable, or a with's context expression -- that
+    smaller sub-expression instead of the whole statement (so we don't
+    re-scan the statement's body, which already has its own blocks).
+    """
+    cur: ast.AST | None = node
+    prev: ast.AST | None = None
+    while cur is not None:
+        if isinstance(cur, ast.stmt):
+            if isinstance(cur, (ast.If, ast.While)) and prev is cur.test:
+                return prev
+            if isinstance(cur, (ast.For, ast.AsyncFor)) and prev is cur.iter:
+                return prev
+            if isinstance(cur, (ast.With, ast.AsyncWith)) and isinstance(prev, ast.withitem):
+                # Call's parent is the withitem wrapper here, not the With
+                # statement itself -- unwrap it to get the context_expr.
+                return prev.context_expr
+            return cur
+        prev, cur = cur, parent_map.get(cur)
+    return None
+
+
+def _collect_fallback_call_blocks(
+    tree: ast.AST,
+    source_lines: list[str],
+    existing_blocks: list["CodeBlock"],
+    extract_functions_fn,
+) -> list["CodeBlock"]:
+    """Find Call nodes not covered by any existing block and emit one
+    fallback_call block per anchor (see _fallback_anchor_node).
+
+    Multiple calls sharing an anchor (e.g. f(g(x)), or two calls in one
+    ``if`` test) collapse into a single block via seen_anchor_ranges.
+    """
+    covered_ranges = [(b.line_start, b.line_end) for b in existing_blocks]
+
+    def _is_covered(lineno: int) -> bool:
+        return any(start <= lineno <= end for start, end in covered_ranges)
+
+    full_source = "\n".join(source_lines)
+    parent_map = _build_parent_map(tree)
+    seen_anchor_ranges: set[tuple[int, int]] = set()
+    fallback_blocks: list[CodeBlock] = []
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        if _is_covered(node.lineno):
+            continue
+
+        anchor = _fallback_anchor_node(node, parent_map)
+        if anchor is None:
+            continue
+
+        anchor_start = anchor.lineno
+        anchor_end = getattr(anchor, "end_lineno", anchor_start)
+        if (anchor_start, anchor_end) in seen_anchor_ranges:
+            continue
+        if _is_covered(anchor_start):
+            continue
+        seen_anchor_ranges.add((anchor_start, anchor_end))
+
+        if isinstance(anchor, ast.stmt):
+            # A full statement is valid Python on its own -- take its lines.
+            code = "\n".join(source_lines[anchor_start - 1 : anchor_end])
+        else:
+            # A sub-expression anchor (test/iter/context_expr). Slicing the
+            # whole line would include the "if ...:" wrapper with no body,
+            # which isn't valid Python and would trip up detect()'s parser.
+            # Extract just the expression's own text instead.
+            code = ast.get_source_segment(full_source, anchor) or "\n".join(
+                source_lines[anchor_start - 1 : anchor_end]
+            )
+
+        fallback_blocks.append(
+            CodeBlock(
+                code=code,
+                line_start=anchor_start,
+                line_end=anchor_end,
+                block_type="fallback_call",
+                functions=extract_functions_fn(code),
+            )
+        )
+
+    return fallback_blocks
+
+
 # Known leading magic directives that can precede Python cell source.
 # Includes Databricks cell-language markers (%python/%scala/%sql/%md/%sh/
 # %fs/%run/%pyspark/%r) and common IPython line magics. Any line matching
@@ -3057,10 +3199,14 @@ def extract_code_blocks_from_source(
 
     extractor = PySparkExtractor(source_lines, pyspark_methods)
     extractor.visit(tree)
+    fallback_blocks = _collect_fallback_call_blocks(
+        tree, source_lines, extractor.blocks, extractor.extract_functions
+    )
+    all_blocks = extractor.blocks + fallback_blocks
     if cell_id is not None:
-        for block in extractor.blocks:
+        for block in all_blocks:
             block.cell_id = cell_id
-    return extractor.blocks
+    return all_blocks
 
 
 def extract_code_blocks(
@@ -3724,6 +3870,111 @@ class AnalyzerConfig:
     safe_apis: set[str] | None = None
     recipe_edits_all: dict[str, list[dict]] | None = None
     source_root: Path | None = None
+    surface_unknown_apis: bool = True
+
+
+_STDLIB_MODULE_NAMES: frozenset[str] = getattr(sys, "stdlib_module_names", frozenset())
+_BUILTIN_NAMES: frozenset[str] = frozenset(vars(builtins))
+_RECEIVER_RE = re.compile(r'\b([A-Za-z_]\w*)\.[A-Za-z_]\w*\s*\(')
+
+
+def _build_covered_api_names(
+    api_compat: dict,
+    safe_apis: set[str] | None,
+    kb_rules: list[dict],
+) -> frozenset[str]:
+    """Leaf method/function names already watched by the 4 detection sources."""
+    names: set[str] = set()
+    for api_name in api_compat:
+        names.add(api_name.split(".")[-1].lower())
+    for pattern in (safe_apis or ()):
+        names.add(pattern.lower())
+    for rule in kb_rules:
+        for api in (rule.get("api") or []):
+            names.add(api.split(".")[-1].lower())
+    for collection in (
+        RDD_EXCLUSIVE_METHODS, RDD_METHODS, RDD_NO_EQUIVALENT,
+        DELTA_LAKE_PATTERNS, HADOOP_PATTERNS,
+        UNSUPPORTED_IMPORTS, UNSUPPORTED_ECOSYSTEM_IMPORTS,
+    ):
+        for key in collection:
+            names.add(key.split(".")[-1].lower())
+    return frozenset(names)
+
+
+def _build_file_import_map(source: str) -> dict[str, str]:
+    """``{local_alias: top_level_module}`` for all imports in ``tree``."""
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return {}
+    result: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                local = alias.asname or alias.name.split(".")[0]
+                result[local] = alias.name.split(".")[0]
+        elif isinstance(node, ast.ImportFrom):
+            top = (node.module or "").split(".")[0]
+            for alias in node.names:
+                result[alias.asname or alias.name] = top
+    return result
+
+
+def _collect_unknown_api_rows(
+    file_path: Path,
+    blocks: list,
+    covered: frozenset[str],
+    source: str,
+) -> list[dict]:
+    import_map = _build_file_import_map(source)
+    per_module: dict[str, dict] = {}
+    seen_names: set[str] = set()
+
+    for block in blocks:
+        for name in block.functions:
+            lname = name.lower()
+            if lname in covered or lname in seen_names:
+                continue
+            seen_names.add(lname)
+            module = import_map.get(name) or import_map.get(lname)
+            if not module or module in _STDLIB_MODULE_NAMES or module in _BUILTIN_NAMES:
+                continue
+            entry = per_module.setdefault(module, {
+                "api_names": [],
+                "rep_lines": f"{block.line_start}-{block.line_end}",
+                "rep_code": block.code[:200],
+            })
+            entry["api_names"].append(name)
+
+        for m in _RECEIVER_RE.finditer(block.code):
+            alias = m.group(1)
+            module = import_map.get(alias)
+            if not module or module in _STDLIB_MODULE_NAMES or module in _BUILTIN_NAMES:
+                continue
+            if module not in per_module:
+                per_module[module] = {
+                    "api_names": [],
+                    "rep_lines": f"{block.line_start}-{block.line_end}",
+                    "rep_code": block.code[:200],
+                }
+            if alias not in per_module[module]["api_names"]:
+                per_module[module]["api_names"].append(alias)
+
+    return [
+        {
+            "file": str(file_path),
+            "lines": data["rep_lines"],
+            "code": data["rep_code"],
+            "kind": "needs_classification",
+            "detected_by": "unknown_surface_scan",
+            "import_module": module,
+            "api_names": data["api_names"],
+            "confidence": "UNADJUDICATED",
+            "adjudicated": False,
+        }
+        for module, data in per_module.items()
+    ]
 
 
 def _block_is_fully_decidable(item: dict) -> bool:
@@ -3834,7 +4085,7 @@ def _build_deferred_result(file_path: Path, item: dict) -> dict:
 
     Unlike ``_build_decidable_result`` this does NOT apply the risk threshold —
     the whole point is that the analyzer is no longer the arbiter, so every
-    surviving trigger match is passed through for the Phase 1.1 adjudicator and
+    surviving trigger match is passed through for the Phase 1.1b adjudicator and
     Phase-2 fixer to judge. The raw candidate matches are attached as
     ``deferred_candidates`` so they have the same KB context (rule_id / anchor /
     root_cause / EWI) the analyzer LLM
@@ -3990,7 +4241,7 @@ def _collect_file_llm_inputs(
     )
     early_results.extend(decidable_results)
 
-    return early_results, blocks_to_analyze, file_recipe_edits
+    return early_results, blocks, file_recipe_edits
 
 
 
@@ -4157,22 +4408,26 @@ def analyze_files(
     Phase 1 (block extraction + preliminary scoring) runs per file — it is cheap
     (offline trigger KB / pre-warmed RAG cache). Fully-decidable triggers are
     emitted directly; every uncertain / recipe-touched block is emitted as a
-    ``needs_adjudication`` finding for the Phase 1.1 adjudicator + Phase-2 fixer.
+    ``needs_adjudication`` finding for the Phase 1.1b adjudicator + Phase-2 fixer.
     The analyzer makes NO ``CORTEX.COMPLETE`` calls.
     """
+    kb_rules = scos_rag.kb.rules if isinstance(scos_rag, SCOSTriggerRAG) else []
+    covered_api_names = (
+        _build_covered_api_names(api_compat, config.safe_apis, kb_rules)
+        if config.surface_unknown_apis
+        else None
+    )
+
     all_results: list[dict] = []
     for file_path in files:
         logger.info(f"  📄 {file_path.name}")
-        early_results, _blocks, file_recipe_edits = _collect_file_llm_inputs(
+        early_results, file_blocks, file_recipe_edits = _collect_file_llm_inputs(
             scos_rag,
             api_compat,
             pyspark_methods,
             file_path,
             config,
         )
-        # ``_collect_file_llm_inputs`` already routed every flagged block to a
-        # finished finding (decidable or deferred) in ``early_results``; there is
-        # no LLM verdict to merge, so ``_blocks`` is always empty.
         all_results.extend(
             _finalize_file_results(
                 file_path,
@@ -4183,6 +4438,13 @@ def analyze_files(
                 config,
             )
         )
+        if covered_api_names is not None and file_blocks:
+            all_results.extend(
+                _collect_unknown_api_rows(
+                    file_path, file_blocks, covered_api_names,
+                    _read_file_source_cached(file_path) or "",
+                )
+            )
     return all_results
 
 
@@ -4325,7 +4587,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "Accepted for orchestrator compatibility and IGNORED — "
             "defer-adjudication is the only mode. The analyzer never calls "
             "SNOWFLAKE.CORTEX.COMPLETE; non-decidable (and recipe-touched) blocks "
-            "are emitted as `needs_adjudication` for the Phase 1.1 adjudicator + "
+            "are emitted as `needs_adjudication` for the Phase 1.1b adjudicator + "
             "Phase-2 fixer."
         ),
     )
@@ -4439,6 +4701,10 @@ def main(argv: list[str] | None = None):
 
     # SNOW-3347480: Load safe-API allowlist
     safe_apis = load_safe_apis()
+
+    # Drop any API that also has a KB divergence rule (e.g. groupBy, join) —
+    # see reconcile_safe_apis.
+    safe_apis = reconcile_safe_apis(safe_apis, load_kb_anchor_leaves())
 
     # Connect to Snowflake (for the RAG backend only — the analyzer makes NO
     # CORTEX.COMPLETE calls, so there is no LLM preflight).

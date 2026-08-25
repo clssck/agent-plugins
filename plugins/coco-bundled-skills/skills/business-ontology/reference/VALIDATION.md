@@ -52,6 +52,10 @@ Choose `<spot_check_term>` as the first term approved during Phase 2.
 
 ## Phase 3 validation (Generate)
 
+Skip this section if no Semantic View FQN was provided in Phase 3 — binding is optional. Note the omission in the full-workflow summary.
+
+If a Semantic View was bound:
+
 ```sql
 -- Confirm ontology ↔ SV binding for the primary term
 CALL SYSTEM$GET_GLOSSARY_TERM_ASSETS('<primary_term>', 'SEMANTIC_VIEW');
@@ -63,14 +67,13 @@ DESC SEMANTIC VIEW <semantic_view_fqn>;
 Then ask the steward for one natural-language question and route it through Cortex Analyst
 (`$semantic-view debug` or `snowflake_multi_cortex_analyst`) to confirm end-to-end queryability.
 
-**Acceptance criteria:**
+**Acceptance criteria (only when an SV was provided):**
 - `RELATED_SEMANTIC_VIEW` association exists for each bound term
 - `DESC SEMANTIC VIEW` returns without error
 - Cortex Analyst responds with valid SQL (no `AMBIGUOUS_TABLE` / `TABLE_NOT_FOUND` warnings)
 - Ontology node definition and SV metric expression are aligned (compare via Phase 3 Step 4)
 
-**On misalignment:** route to `$semantic_studio semantic_view` or `$semantic-view creation`
-to update the SV. Never auto-overwrite either side — see `NOT_IMPLEMENTED_YET.md` Gap #4.
+**On misalignment:** route to `$semantic_studio semantic_view` to update the SV. Never auto-overwrite either side — see `NOT_IMPLEMENTED_YET.md` Gap #4.
 
 ---
 
@@ -83,9 +86,9 @@ workflow_complete:
   domains:               <list>
   terms_active:          <count>
   asset_associations:    <count>
-  semantic_views_bound:  <count>
-  analyst_queries_run:   <count>
-  drift_blockers:        0       # must be 0 to mark complete
+  semantic_views_bound:  <count>   # 0 is acceptable if no SV was provided in Phase 3
+  analyst_queries_run:   <count>   # 0 is acceptable if no SV was provided in Phase 3
+  drift_blockers:        0         # must be 0 to mark complete
 ```
 
 If `drift_blockers > 0`, route to `$business-ontology sv-ingest reconcile` before marking
@@ -100,5 +103,5 @@ the workflow complete. Do not render `workflow_complete` with a non-zero blocker
 | Feature gate fires mid-workflow | Stop, surface gate message, do not resume until enabled |
 | Phase produces 0 approved items | Warn, re-run phase step — do not silently skip |
 | Partial approval (some termIds failed) | Report partial counts; offer to retry failed items |
-| SV creation fails | Route to `$semantic-view creation` or `$semantic_studio`; do not mark Phase 3 complete |
+| No SV bound in Phase 3 | Note in summary (`semantic_views_bound: 0`); user can build an SV via `$semantic-view` or `$semantic_studio` and return to bind it |
 | Cortex Analyst returns ambiguity | Present the ambiguity to the steward; route to `$semantic-view debug` |

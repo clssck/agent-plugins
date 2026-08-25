@@ -426,21 +426,25 @@ If neither heuristic finds anything: `Scope looks clean — no obvious staging o
 
    **Save-time access check:** before the save calls, run the access check per `../reference/ACCESS_PREFLIGHT.md` — re-run the visibility preflight (steps 1–3) if scope databases changed since §7, and run the final check on exact resolvable sources (step 5; wildcard/pattern rules, BI/external sources, and ontology are skipped there). Surface any gap once with the grant remediation from that file, then continue — a warning, not a blocker.
 
-2. **Before running any save calls**, output exactly this line — do not improvise a different progress message:
+2. **Confirm description:** follow the full contract in `../reference/DESCRIPTION.md` — generate the description, show the confirm block, and wait for the builder's reply. If the builder accepts, set `description_synced_version` in the in-memory manifest to the `version_id` being minted before saving. If the builder skips, leave `description_synced_version` absent. This gate runs while the builder is still interactive, before any save calls.
+
+3. **Before running any save calls**, output exactly this line — do not improvise a different progress message:
 
    ```
    Saving Cortex Sense scoping instructions for <domain>…
    ```
 
-3. **Save the manifest:** Assemble the manifest as YAML in-memory. Pipe it through `scripts/persist_state.py merge` (deduplicates `additional_instructions`, validates). Then run two SQL calls per `../reference/STORAGE.md` "Saving — two calls in sequence":
+4. **Save the manifest:** Assemble the manifest as YAML in-memory. Pipe it through `scripts/persist_state.py merge` (deduplicates `additional_instructions`, validates). Then run two SQL calls per `../reference/STORAGE.md` "Saving — two calls in sequence":
    - **create-context** → registers the domain context.
-   - **put-stage-file** (path: `scope.yaml`, content: JSON-escaped manifest YAML, overwrite: true) → writes the manifest to the internal stage.
+   - **put-stage-file** (path: `scope.yaml`, content: JSON-escaped manifest YAML, overwrite: true) → writes the manifest to the internal stage. `description_synced_version` is included here if the builder accepted a description in step 2.
 
-4. Treat "already exists" on `create-context` as success. On any other error, render the one-line warning from `../reference/STORAGE.md` and stop.
+5. Treat "already exists" on `create-context` as success. On any other error, render the one-line warning from `../reference/STORAGE.md` and stop.
 
-5. **Trigger a reprocess:** call `force-reprocess` per `../reference/STORAGE.md` "Force-reprocessing a context". This is non-blocking — if it fails, continue to step 6 without surfacing the error to the builder.
+6. **Trigger a reprocess:** call `force-reprocess` per `../reference/STORAGE.md` "Force-reprocessing a context". This is non-blocking — if it fails, continue to step 7 without surfacing the error to the builder.
 
-6. Render the confirm block **verbatim** from `../reference/SUMMARY_FORMAT.md` §"On confirm", substituting only `<domain>` (the domain name). The block is the canonical copy — do not rewrite or reorder its bullets here.
+7. **Run `ALTER CORTEX SENSE`:** if the builder accepted a description in step 2, run the `ALTER` per `../reference/DESCRIPTION.md` "Applying it". Non-blocking — if it fails, handle per the response-handling table in that file and continue to step 8.
+
+8. Render the confirm block **verbatim** from `../reference/SUMMARY_FORMAT.md` §"On confirm", substituting only `<domain>` (the domain name). The block is the canonical copy — do not rewrite or reorder its bullets here.
 
 **Do not** offer "save as draft", "share for review", or "activate now". The builder confirmed once; the build runs.
 

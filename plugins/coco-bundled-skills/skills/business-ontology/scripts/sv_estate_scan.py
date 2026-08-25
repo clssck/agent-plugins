@@ -22,6 +22,7 @@ from sv_common import (
     load_domain_map,
     resolve_domain,
     run_snow,
+    run_snow_batch,
 )
 
 # object_kind values from DESC SEMANTIC VIEW (confirmed in ExecDescribe.java)
@@ -56,6 +57,7 @@ class SemanticViewRecord:
     dimensions: list[SvField] = field(default_factory=list)
     facts: list[SvField] = field(default_factory=list)
     base_tables: list[str] = field(default_factory=list)
+    verified_queries: list[dict[str, str]] = field(default_factory=list)
 
 
 def parse_desc(fqn: str, location_domain: str, rows: list[dict[str, Any]]) -> SemanticViewRecord:
@@ -101,6 +103,20 @@ def parse_desc(fqn: str, location_domain: str, rows: list[dict[str, Any]]) -> Se
         val = row.get("property_value")
         if kind is None and prop == "COMMENT" and obj is None:
             rec.comment = val
+            continue
+        # Extract VQRs from the CA extension blob
+        if kind == "EXTENSION" and obj == "CA" and prop == "VALUE" and val:
+            try:
+                ext = json.loads(val)
+                if not isinstance(ext, dict):
+                    continue
+                for vq in ext.get("verified_queries", []):
+                    rec.verified_queries.append({
+                        "name": vq.get("name", ""),
+                        "question": vq.get("question", ""),
+                    })
+            except (json.JSONDecodeError, TypeError):
+                pass
             continue
         if kind in FIELD_KINDS or kind == "TABLE":
             if (kind, obj, parent) != (cur_kind, cur_name, cur_parent):
@@ -201,21 +217,32 @@ def main() -> int:
 
     col_cache: dict[str, list[str]] = {}
     records: list[dict[str, Any]] = []
+
+    # Batch DESCRIBE calls for speed: 10 per subprocess invocation
+    DESC_BATCH_SIZE = 10
+    sv_items = []
     for i, row in enumerate(inventory):
         if args.limit and i >= args.limit:
             break
         fqn = f"{row['database_name']}.{row['schema_name']}.{row['name']}"
         location_domain = resolve_domain(row["database_name"], row["schema_name"], row["name"], domain_map)
-        desc_rows = run_snow(args.connection, f"DESC SEMANTIC VIEW {fqn}", warehouse=args.warehouse, role=args.role)
-        rec = parse_desc(fqn, location_domain, desc_rows)
-        if not args.no_lineage:
-            enrich_lineage(rec, args.connection, args.warehouse, col_cache, args.role)
-        candidates = []
-        for f in rec.metrics + rec.dimensions + (rec.facts if args.include_facts else []):
-            payload = candidate_payload(f, rec, args.include_facts)
-            if payload:
-                candidates.append(payload)
-        records.append({**asdict(rec), "candidates": candidates})
+        sv_items.append((fqn, location_domain))
+
+    for batch_start in range(0, len(sv_items), DESC_BATCH_SIZE):
+        batch = sv_items[batch_start:batch_start + DESC_BATCH_SIZE]
+        sqls = [f"DESC SEMANTIC VIEW {fqn}" for fqn, _ in batch]
+        batch_results = run_snow_batch(args.connection, sqls, warehouse=args.warehouse, role=args.role)
+
+        for (fqn, location_domain), desc_rows in zip(batch, batch_results):
+            rec = parse_desc(fqn, location_domain, desc_rows)
+            if not args.no_lineage:
+                enrich_lineage(rec, args.connection, args.warehouse, col_cache, args.role)
+            candidates = []
+            for f in rec.metrics + rec.dimensions + (rec.facts if args.include_facts else []):
+                payload = candidate_payload(f, rec, args.include_facts)
+                if payload:
+                    candidates.append(payload)
+            records.append({**asdict(rec), "candidates": candidates})
 
     out = {
         "semantic_views": records,

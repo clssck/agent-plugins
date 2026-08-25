@@ -136,6 +136,8 @@ Before writing or modifying definitions, **load the relevant references**:
 - **Views**: Load `../reference/primitives/views.md`
 - **Dynamic tables**: Load `../reference/primitives/dynamic_tables.md`
 - **Tasks**: Load `../reference/primitives/tasks.md`
+- **Streams (CDC)**: Load `../reference/primitives/streams.md`
+- **Pipes (Snowpipe ingestion)**: Load `../reference/primitives/pipes.md`
 - **Stages**: Load `../reference/primitives/stages.md`
 - **Warehouses**: Load `../reference/primitives/warehouses.md`
 - **Roles/grants**: Load `../reference/primitives/roles_and_grants.md`
@@ -146,7 +148,7 @@ Before writing or modifying definitions, **load the relevant references**:
 | Reference | Load when... |
 |-----------|-------------|
 | `../reference/primitives/jinja_templating.md` | Existing project uses Jinja templates; changes involve templated names or variables; adding multi-environment support; adding loops, conditionals, or macros |
-| `../reference/primitives/unsupported_objects.md` | Adding external stages, streams, alerts, file formats, or integrations; existing files contain `ATTACH PRE_HOOK` / `POST_HOOK`; any object type not supported by DEFINE |
+| `../reference/primitives/unsupported_objects.md` | Adding integrations (the storage integration behind a private external stage, the notification integration behind an AUTO_INGEST pipe, or any other); existing files contain `ATTACH PRE_HOOK` / `POST_HOOK`; any object type not supported by DEFINE |
 | `../reference/primitives/data_quality.md` | Adding or modifying data quality expectations; attaching DMFs to tables/views/DTs; changing DATA_METRIC_SCHEDULE on objects; creating custom data metric functions |
 
 Load only the references relevant to the objects being modified.
@@ -397,15 +399,16 @@ When user wants to import existing Snowflake objects into the DCM project:
    **⚠️ CHECKPOINT**: Present categorization analysis to user and get approval before proceeding.
 
 3. **Convert supported objects (CREATE to DEFINE)**:
-   - **Internal stages**: `CREATE STAGE` → `DEFINE STAGE`
+   - **Stages (internal and external)**: `CREATE STAGE` → `DEFINE STAGE`
    - **Tables/Views/Warehouses**: `CREATE` → `DEFINE`
-   - **External stages**: Place in `post_deploy.sql` (not supported by DEFINE)
+   - **External stage credentials**: replace inline `CREDENTIALS = (...)` with
+     `STORAGE_INTEGRATION` — never copy secrets into a definition file
    - **Grants**: Handle per analysis in step 2 (don't blindly convert)
 
 4. **Add to project definition files**:
    - Supported objects (DEFINE) → appropriate .sql files (tables.sql, infrastructure.sql, etc.)
-   - Internal stages → infrastructure.sql or stages.sql
-   - External stages → `post_deploy.sql`
+   - Stages (internal and external) → infrastructure.sql or stages.sql
+   - Storage integrations → `pre_deploy.sql`
    - Supported grants → access.sql
    - Unsupported grants → post_deployment_grants.sql (manual execution)
 

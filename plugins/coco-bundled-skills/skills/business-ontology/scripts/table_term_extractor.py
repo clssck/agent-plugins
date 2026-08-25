@@ -113,11 +113,12 @@ def _validate_identifier(value: str, label: str) -> None:
 # Snowflake query helpers
 # ---------------------------------------------------------------------------
 
-def _run_sql(connection: str | None, sql: str) -> list[dict[str, Any]]:
+def _run_sql(connection: str | None, sql: str, warehouse: str | None = None) -> list[dict[str, Any]]:
     # Uses `snow sql` rather than the `cortex` CLI because these scripts run
     # outside the agent session (invoked by the steward directly), where only
     # the Snowflake CLI is guaranteed to be available.
-    cmd = ["snow", "sql", "--format", "json", "-q", sql]
+    full_sql = f"USE WAREHOUSE {warehouse};\n{sql}" if warehouse else sql
+    cmd = ["snow", "sql", "--format", "json", "-q", full_sql]
     if connection:
         cmd += ["--connection", connection]
     result = subprocess.run(cmd, capture_output=True, text=True)
@@ -127,6 +128,9 @@ def _run_sql(connection: str | None, sql: str) -> list[dict[str, Any]]:
         rows = json.loads(result.stdout)
     except json.JSONDecodeError as exc:
         raise RuntimeError(f"Could not parse snow sql output: {exc}") from exc
+    # Multi-statement response: [[stmt1_rows], [stmt2_rows], ...] — take the last non-empty result
+    if rows and isinstance(rows[0], list):
+        rows = next((r for r in reversed(rows) if r and isinstance(r[0], dict)), rows[-1])
     return rows if isinstance(rows, list) else []
 
 
@@ -134,6 +138,7 @@ def _fetch_tables(
     connection: str | None,
     database: str,
     schema: str,
+    warehouse: str | None = None,
 ) -> list[dict[str, Any]]:
     sql = f"""
 SELECT TABLE_NAME, COMMENT
@@ -144,13 +149,14 @@ WHERE TABLE_SCHEMA = '{schema.upper()}'
   AND COMMENT != ''
 ORDER BY TABLE_NAME
 """
-    return _run_sql(connection, sql.strip())
+    return _run_sql(connection, sql.strip(), warehouse=warehouse)
 
 
 def _fetch_columns(
     connection: str | None,
     database: str,
     schema: str,
+    warehouse: str | None = None,
 ) -> list[dict[str, Any]]:
     sql = f"""
 SELECT TABLE_NAME, COLUMN_NAME, COMMENT
@@ -160,7 +166,7 @@ WHERE TABLE_SCHEMA = '{schema.upper()}'
   AND COMMENT != ''
 ORDER BY TABLE_NAME, ORDINAL_POSITION
 """
-    return _run_sql(connection, sql.strip())
+    return _run_sql(connection, sql.strip(), warehouse=warehouse)
 
 
 # ---------------------------------------------------------------------------
@@ -273,11 +279,18 @@ def main() -> None:
         default=None,
         help="YAML file mapping DB.SCHEMA (or SCHEMA) to domain name",
     )
+    parser.add_argument(
+        "--warehouse",
+        default=None,
+        help="Warehouse to USE before running queries",
+    )
     args = parser.parse_args()
 
     try:
         _validate_identifier(args.database, "database")
         _validate_identifier(args.schema, "schema")
+        if args.warehouse:
+            _validate_identifier(args.warehouse, "warehouse")
     except ValueError as exc:
         print(json.dumps({"error": str(exc)}), file=sys.stderr)
         sys.exit(1)
@@ -285,7 +298,7 @@ def main() -> None:
     domain_map = _load_domain_map(args.domain_map)
 
     try:
-        table_rows = _fetch_tables(args.connection, args.database, args.schema)
+        table_rows = _fetch_tables(args.connection, args.database, args.schema, args.warehouse)
     except RuntimeError as exc:
         print(json.dumps({"error": str(exc)}), file=sys.stderr)
         sys.exit(1)
@@ -294,7 +307,7 @@ def main() -> None:
 
     if args.include_columns:
         try:
-            col_rows = _fetch_columns(args.connection, args.database, args.schema)
+            col_rows = _fetch_columns(args.connection, args.database, args.schema, args.warehouse)
         except RuntimeError as exc:
             print(json.dumps({"error": str(exc)}), file=sys.stderr)
             sys.exit(1)

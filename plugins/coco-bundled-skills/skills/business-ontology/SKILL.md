@@ -26,6 +26,7 @@ The Business Ontology is where builders define canonical business nodes, describ
 | **discover relationships** | "find more relationships", "dig deeper", "what relationships are missing", "complete the graph", "find missing edges" | `reference/RELATIONSHIP_DISCOVERY.md` |
 | **extract (tables)** | "extract terms from our tables", "discover glossary from schema", "scan INFORMATION_SCHEMA for terms", "what business concepts are in \<schema\>?" | `workflow/import/SKILL.md` Path C (via `scripts/table_term_extractor.py`) |
 | **extract (dbt)** | "import from dbt", "parse dbt manifest", "extract glossary from dbt manifest", or user provides a `manifest.json` path | `workflow/import/SKILL.md` Path D (via `scripts/dbt_manifest_parser.py`) |
+| **extract (SVs)** | "extract from semantic views", "scan SVs for concepts", "import from SVs", "what business concepts are in our semantic views?" | `workflow/import/SKILL.md` Path H (via `scripts/sv_concept_extractor.py` + `scripts/batch_import.py`) |
 | **promote** | "promote this to the ontology", "promote Cortex Sense context to glossary", "add my Cortex Sense concepts to the glossary" | `workflow/import/SKILL.md` Path E (cortex-sense promotion) |
 | **delete** | "delete domain", "remove domain", "delete term", "delete relationship", "clean up domain", "delete all terms in X" | `workflow/delete/SKILL.md` |
 | **rename** | "rename domain", "rename X to Y", "move domain to new name" | `workflow/delete/SKILL.md §Rename domain` |
@@ -62,7 +63,9 @@ business-ontology/
 │   ├── table_term_extractor.py      # scan INFORMATION_SCHEMA comments → node candidates (bridge until Cortex Sense backend)
 │   ├── dbt_manifest_parser.py       # parse dbt manifest.json → node candidates (bridge until Cortex Sense backend)
 │   ├── sv_common.py                 # sv-ingest: snow/JSON helpers, lineage extraction
-│   ├── sv_estate_scan.py            # sv-ingest: SHOW/DESC scan → candidates + lineage
+│   ├── sv_estate_scan.py            # sv-ingest: SHOW/DESC scan → candidates + lineage + VQRs
+│   ├── sv_concept_extractor.py      # Path H: SV estate → scored, deduped business concepts (cross-SV dedup, noise filter, VQR scoring)
+│   ├── batch_import.py              # fast batched import: draft + approve + associate in batches of 50
 │   └── sv_drift_report.py           # sv-ingest: resolution ladder → steward-ready findings
 └── reference/
     ├── API_CONTRACT.md                    # index → load READ or CRUD sub-file as needed

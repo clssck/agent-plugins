@@ -54,11 +54,12 @@ None of these can be self-served during Private Preview. Reach out to your Snowf
 
 ```
 cortex-sense/
-├── SKILL.md                    # router — seven intents (list / setup / test / query / refine / eval / agent)
+├── SKILL.md                    # router — eight intents (list / setup / test / query / refine / eval / feedback / agent)
 ├── setup/SKILL.md              # name → scan → draft → confirm → save
 ├── test/SKILL.md               # spot-check the active context
 ├── query/SKILL.md              # cross-context search
 ├── refine/SKILL.md             # corrections, expansions, updates
+├── feedback/SKILL.md           # record one correction to an answer (work in progress)
 ├── eval/SKILL.md               # generate / run / diff eval sets
 ├── agent/SKILL.md              # built context → CoWork agent (or add Cortex Sense to an existing agent)
 ├── reference/                  # contracts loaded on demand by sub-skills

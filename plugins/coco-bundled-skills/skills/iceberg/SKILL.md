@@ -1,16 +1,6 @@
 ---
 name: iceberg
-description: >-
-  REQUIRED entry point for ALL Iceberg table work in Snowflake: creating and altering Iceberg
-  tables (Snowflake-managed storage by default), catalog integrations, catalog-linked databases
-  (CLD, auto-discover/sync tables), external volumes, auto-refresh problems (stale data, refresh
-  stuck, delta direct), Horizon IRC setup and diagnostics (PAT authentication), Snowflake
-  Intelligence, and converting externally managed tables to Snowflake-managed (take ownership). Do
-  NOT work with Iceberg manually — invoke this skill first. Triggers: iceberg, apache iceberg,
-  REST catalog, AWS Glue and glue IRC, S3 Tables, Lake Formation, Unity Catalog, Databricks,
-  Polaris/Open Catalog, OneLake, Microsoft Fabric lakehouse, BigLake/BigQuery metastore, workload
-  identity federation, token-exchange or bearer-token catalog integration, SAP BDC, Delta Sharing,
-  external volume, storage access on S3/Azure Blob/GCS, ALLOW_WRITES.
+description: "Use for **ALL** Iceberg table requests in Snowflake. This is the **REQUIRED** entry point for creating Iceberg tables (Snowflake-managed storage by default), catalog integrations, catalog-linked databases, external volumes, auto-refresh issues, Horizon IRC diagnostics, Snowflake Intelligence, and converting externally managed tables to Snowflake-managed. DO NOT work with Iceberg manually - invoke this skill first. Triggers: iceberg, iceberg table, apache iceberg, create iceberg table, alter iceberg table, snowflake-managed iceberg, snowflake managed storage, internal storage iceberg, catalog integration, REST catalog, glue, AWS glue, glue IRC, s3 tables, lake formation, unity catalog, databricks, polaris, opencatalog, onelake, microsoft fabric, fabric, fabric lakehouse, onelake REST, biglake, biglake metastore, bigquery metastore, google cloud iceberg, gcp iceberg, lakehouse iceberg rest catalog, workload identity federation, token exchange catalog integration, SAP, SAP BDC, SAP Business Data Cloud, delta sharing, databricks delta sharing, query delta sharing tables, bearer token catalog integration, connect to delta sharing server, CLD, catalog-linked database, auto-discover tables, sync tables, external volume, storage access, S3, Azure blob, GCS, ALLOW_WRITES, storage permissions, auto-refresh, stale data, refresh stuck, delta direct, snowflake intelligence, horizon IRC, horizon IRC setup, horizon REST catalog, PAT authentication horizon, convert to managed, take ownership of iceberg table, externally managed to managed."
 ---
 
 # Iceberg

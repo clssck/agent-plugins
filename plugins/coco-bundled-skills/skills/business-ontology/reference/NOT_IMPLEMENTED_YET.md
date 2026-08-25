@@ -148,7 +148,7 @@ Honest accounting of where **production Business Ontology APIs** end and where t
 - **Intent.** Relationship functions resolve term names within the target domain only.
 - **Today state.** `DRAFT_GLOSSARY_RELATIONSHIP('<name>', ...)` resolves term names globally. If the same term name exists in multiple domains, the API may silently pick the wrong one.
 - **Workaround (enforced by this skill).** Use FQN format (`<domain>.<term>`) as the **primary** resolution strategy — the API correctly scopes resolution to the named domain. Fall back to term ID via `GET_GLOSSARY_TERM_LIST` only when the term name itself contains a literal dot. Surface name ambiguity to the steward when FQN is ambiguous. See `../workflow/import/SKILL.md §Resolution and approval rules`.
-- **FQN dependency.** FQN resolution requires `ENABLE_GLOSSARY_TERM_FQN` to be on. When off, the full `"domain.term"` string is treated as a bare name → "term not found" (not a gate error). If FQN returns an unexpected "not found", fall back to term ID.
+- **FQN dependency.** FQN resolution requires an account-level feature enabled by Snowflake. When off, the full `"domain.term"` string is treated as a bare name → "term not found" (not a gate error). If FQN returns an unexpected "not found", fall back to term ID.
 - **Owner / ticket.** Business Ontology backend.
 - **Impact.** Silent data corruption — relationship points to the wrong domain's term. FQN workaround mitigates this in practice.
 - **Recommended fix.** `domainName` parameter on `DRAFT_GLOSSARY_RELATIONSHIP` for explicit domain-scoped resolution without requiring the full FQN string.

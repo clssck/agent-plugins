@@ -123,7 +123,7 @@ def transform(
     # Filter out analyzer noise BEFORE any downstream aggregation. Every
     # number derived from ``findings`` (per-file ``issues``, code-churn
     # category, ``changes_needed``, severity counts, executive summary) sees the
-    # filtered list. Two classes get dropped:
+    # filtered list. Three classes get dropped:
     #
     # 1. **Analyzer self-vetoes** — ``final_risk == 0.0`` AND
     #    ``confidence == "HIGH"``. The analyzer matched a pattern
@@ -139,6 +139,13 @@ def transform(
     #    Spark API compatibility finding, and counting it inflates the
     #    per-file ``issues`` count and ``changes_needed`` with
     #    findings that have nothing to do with Spark compatibility.
+    #
+    # 3. **Adjudicator-dismissed** — ``resolution == "safe"``. Phase 1.1
+    #    already decided this ``needs_adjudication`` row is a false positive
+    #    (e.g. ``numpy.array()`` colliding with a ``pyspark`` ``array()`` KB
+    #    anchor). Dismiss doesn't change ``kind`` — only confirm does — so
+    #    this has to be checked on its own, or it renders identically to a
+    #    confirmed issue.
     def _keep(f: dict) -> bool:
         risk = float(f.get("final_risk", 0.0))
         _raw_conf = f.get("confidence") or ""
@@ -148,6 +155,10 @@ def transform(
         code = (f.get("code") or "").upper()
         category = (f.get("category") or f.get("snowpark_connect_category") or "")
         if code in ("SPRKCNTPY0099", "SPRKCNTSCL0099") or category == "Partial Migration":
+            return False
+        _raw_res = f.get("resolution") or ""
+        resolution = (str(_raw_res) if not isinstance(_raw_res, str) else _raw_res).upper()
+        if resolution == "SAFE":
             return False
         return True
 

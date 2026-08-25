@@ -1,6 +1,6 @@
 ---
 name: business-ontology-workflow
-description: "End-to-end Business Ontology workflow: define governed nodes, enrich with Cortex Sense and multiple extraction sources, generate Semantic Views, and consume via Cortex Analyst. Orchestrates $business-ontology, $cortex-sense, $semantic-view, and $semantic_studio in a 3-phase sequence. Use when: rolling out governed business semantics, connecting the ontology to Semantic View Autopilot, or onboarding stewards to the full define → enrich → generate path. Triggers: business ontology workflow, glossary to semantic view, define enrich generate, governed semantics workflow, glossary cortex sense integration."
+description: "End-to-end Business Ontology workflow: define governed nodes, enrich with Cortex Sense and multiple extraction sources, bind approved nodes to existing Semantic Views, and consume via Cortex Analyst. Orchestrates $business-ontology, $cortex-sense, and $semantic_studio in a 3-phase sequence. Use when: rolling out governed business semantics, linking the ontology to existing Semantic Views, or onboarding stewards to the full define → enrich → generate path. Triggers: business ontology workflow, glossary to semantic view, define enrich generate, governed semantics workflow, glossary cortex sense integration."
 parent_skill: business-ontology
 ---
 
@@ -37,14 +37,16 @@ On **pause**: stop and retain `workflow_inputs` in context. On **skip**: jump to
 | **Bootstrap** (optional, reverse entry) | Seed ontology + bindings from existing Semantic Views | `$business-ontology sv-ingest` |
 | **Define** | Domains, nodes, relationships | `$business-ontology create`, `$business-ontology import` |
 | **Enrich** | AI-proposed nodes and asset links | `$cortex-sense`, `$business-ontology import` |
-| **Generate** | Semantic Views + Analyst consumption | `$semantic-view creation`, `$semantic-view debug`, `$semantic_studio semantic_view` |
+| **Generate** | Bind nodes to existing Semantic Views + Analyst consumption | `$semantic-view debug`, `$semantic_studio semantic_view` |
 
 **Two directions, one workflow.** Define → Enrich → Generate is the **forward** path
-(ontology → Semantic View). **Phase 0 Bootstrap** is the **reverse** path (Semantic View →
+(ontology → Semantic View binding). **Phase 0 Bootstrap** is the **reverse** path (Semantic View →
 ontology) for accounts that already have SVs; it seeds the ontology, then rejoins Enrich/Generate.
 Both use the same steward draft→approve gate.
 
-**Skill disambiguation:** Use `$semantic-view` for Autopilot creation and Cortex Analyst debug. Use `$semantic_studio semantic_view` for inline SV editing in Studio after bindings exist. (`semantic_studio` uses underscore — this is the registered skill name, not a typo.)
+> **Semantic View creation is out of scope for this workflow.** Phase 3 binds approved nodes to an *existing* SV and validates via Cortex Analyst. To create a new Semantic View, use `$semantic-view` or `$semantic_studio` separately — then return here to bind it.
+
+**Skill disambiguation:** Use `$semantic-view debug` for Cortex Analyst validation. Use `$semantic_studio semantic_view` for inline SV editing in Studio after bindings exist. (`semantic_studio` uses underscore — this is the registered skill name, not a typo.)
 
 Known production gaps (simulated workarounds, missing batch APIs): `../reference/NOT_IMPLEMENTED_YET.md`.
 
@@ -63,8 +65,8 @@ Install the orchestrated skills:
 ```bash
 cortex code skills install --skill business-ontology
 cortex code skills install --skill cortex-sense
-cortex code skills install --skill semantic-view
 cortex code skills install --skill semantic_studio
+cortex code skills install --skill semantic-view  # optional — required for $semantic-view debug during Phase 3 validation
 ```
 
 Ontology SQL signatures live in `../reference/API_CONTRACT.md`.
@@ -94,8 +96,8 @@ workflow_inputs:
   import_source:           # optional — stage path for bulk import (Path A/B)
   extraction_sources:      # optional — list from EXTRACTION_SOURCES.md (C, D, E, F)
   cortex_sense_manifest:   # optional — stage path for Cortex Sense promotion (Path E)
-  semantic_view_fqn:       # required for generate, e.g. MY_DB.MY_SCHEMA.MY_SV
-  source_tables:           # optional — tables for Semantic View creation
+  semantic_view_fqn:       # optional — provide if an SV already exists (e.g. MY_DB.MY_SCHEMA.MY_SV); skip if none yet
+  source_tables:           # not used (SV creation is out of scope for this workflow); retained for future use
 ```
 
 Confirm with the user before phase 1:

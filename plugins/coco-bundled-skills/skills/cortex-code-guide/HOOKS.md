@@ -13,6 +13,7 @@ Hooks run custom code at specific points during Cortex Code execution to validat
 | `PermissionRequest` | When permission needed | Custom approval logic |
 | `UserPromptSubmit` | User submits prompt | Validate, transform, or block prompts |
 | `Stop` | Agent stops | Verify completion, add context |
+| `SubagentStart` | Subagent starts or resumes | Inject child-specific context |
 | `SubagentStop` | Subagent stops | Handle subagent results |
 | `Notification` | On notifications | Custom notification handling |
 | `SessionStart` | Session begins | Initialize context, load data |
@@ -62,7 +63,8 @@ Hooks run custom code at specific points during Cortex Code execution to validat
 | `snowflake_.*` | All Snowflake tools |
 | `mcp__github__.*` | All GitHub MCP tools |
 
-For non-tool events (`SessionStart`, `Stop`, etc.), omit the matcher field.
+`SubagentStart` and `SubagentStop` matchers filter on `agent_type`.
+For other non-matcher events (`Stop`, `SessionEnd`, etc.), omit the matcher field.
 
 ---
 
@@ -71,10 +73,18 @@ For non-tool events (`SessionStart`, `Stop`, etc.), omit the matcher field.
 **Common fields** in all events:
 - `session_id`, `transcript_path`, `cwd`, `permission_mode`, `hook_event_name`
 
-**Tool events** add: `tool_name`, `tool_input`, `tool_use_id`  
-**PostToolUse** adds: `tool_response`  
-**SessionStart** adds: `source` ("startup" | "resume" | "clear" | "compact")  
-**SessionEnd** adds: `reason` ("clear" | "logout" | "prompt_input_exit" | "other")
+- **Tool events** add: `tool_name`, `tool_input`, `tool_use_id`
+- **PostToolUse** adds: `tool_response`
+- **SessionStart** adds: `source` ("startup" | "resume" | "clear" | "compact")
+- **SessionEnd** adds: `reason` ("clear" | "logout" | "prompt_input_exit" | "other")
+- **SubagentStart** adds: `agent_id`, `agent_type`, parent lineage,
+  `agent_transcript_path`, and `source` ("startup" | "resume")
+- **SubagentStop** adds the same identity and lineage fields plus
+  `stop_hook_active` and `last_assistant_message`
+
+At `SubagentStart`, `agent_transcript_path` is the path where the child
+transcript will be stored, but the file may not exist until the first turn is
+persisted.
 
 ---
 
@@ -106,6 +116,8 @@ For non-tool events (`SessionStart`, `Stop`, etc.), omit the matcher field.
 ```
 
 For Stop/SubagentStop, use `"continue": false` with `"stopReason"` to prevent stopping.
+`SubagentStart` cannot cancel the child spawn; exit 2 or `decision: "block"` is
+ignored. Return `additionalContext` to inject context into the child instead.
 
 ---
 

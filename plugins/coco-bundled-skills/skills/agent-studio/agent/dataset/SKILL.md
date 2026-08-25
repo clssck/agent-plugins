@@ -221,10 +221,10 @@ When the `eval` skill returns control, surface a short summary to the user:
 
 | Symptom | What to do |
 |---------|------------|
-| `Insufficient privileges to operate on dataset` | `GRANT CREATE DATASET ON SCHEMA <schema> TO ROLE <role>;` |
-| `Insufficient privileges on database` | `GRANT DATABASE ROLE SNOWFLAKE.CORTEX_USER TO ROLE <role>;` |
-| `Insufficient privileges on agent` | `GRANT MONITOR ON AGENT <db>.<schema>.<agent> TO ROLE <role>;` |
-| `Insufficient privileges on usage` | `GRANT USAGE ON AGENT <db>.<schema>.<agent> TO ROLE <role>;` |
+| `Insufficient privileges to operate on dataset` | **→ Route to `../permission/SKILL.md`** |
+| `Insufficient privileges on database` | **→ Route to `../permission/SKILL.md`** |
+| `Insufficient privileges on agent` | **→ Route to `../permission/SKILL.md`** |
+| `Insufficient privileges on usage` | **→ Route to `../permission/SKILL.md`** |
 | `GROUND_TRUTH` type mismatch | Column must be `VARIANT` (not `OBJECT` or `VARCHAR`). Build values with `TO_VARIANT(OBJECT_CONSTRUCT(...))`, `OBJECT_CONSTRUCT(...)::VARIANT`, or `PARSE_JSON()` — not bare `OBJECT_CONSTRUCT()`. |
 | `SQL compilation error` inserting with function calls in `VALUES` | Use `INSERT ... SELECT ... FROM VALUES` with the construction in the **SELECT** list |
 | Dataset not found after registration | Confirm database/schema; `SHOW DATASETS IN SCHEMA <DB>.<SCHEMA>;` |

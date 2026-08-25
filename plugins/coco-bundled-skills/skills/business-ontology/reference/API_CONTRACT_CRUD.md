@@ -83,7 +83,7 @@ All functions accepting `termIdOrName` support three formats. **Use in this prio
 
 1. **FQN (`<domain_name>.<term_name>`)** — preferred for any call where the domain is known. Unambiguous even when the same term name exists in multiple domains.
 
-   > ⚠️ FQN resolution requires `ENABLE_GLOSSARY_TERM_FQN` to be on. When off, the full `"domain.term"` string is treated as a bare name → "term not found" (not a gate error). Fall back to term ID if FQN returns an unexpected "not found".
+   > ⚠️ FQN resolution requires an account-level feature enabled by Snowflake. When off, the full `"domain.term"` string is treated as a bare name → "term not found" (not a gate error). Fall back to term ID if FQN returns an unexpected "not found".
 
    ```sql
    -- Example: term "Net Sales" in domain "Yum! - Finance - Sales and Transactions v2"

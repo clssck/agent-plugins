@@ -57,7 +57,7 @@ Get a single approval. If `pre_deploy.sql` exists, proceed to run it before Step
 snow sql -f pre_deploy.sql -c <connection> --role ACCOUNTADMIN
 ```
 
-⚠️ Objects in `pre_deploy.sql` often require elevated roles (ACCOUNTADMIN for integrations, SECURITYADMIN for network policies). Warn the user about role requirements.
+⚠️ Objects in `pre_deploy.sql` often require elevated roles (ACCOUNTADMIN for integrations — including the storage integrations that external stages reference, SECURITYADMIN for network policies). Warn the user about role requirements.
 
 ### Step 1: Verify Analyze Passed
 
@@ -234,7 +234,7 @@ snow sql -f post_deploy.sql -c <connection>
 
 ⚠️ If the script requires a specific role (e.g., objects referencing integrations created by ACCOUNTADMIN), add `--role <ROLE>` or ensure the script includes `USE ROLE` statements.
 
-This creates objects that depend on DEFINE'd entities (streams, alerts, file formats, external stages). These scripts are safe to re-run if they use `CREATE IF NOT EXISTS` or `CREATE OR REPLACE`.
+This creates objects that depend on DEFINE'd entities (for example semantic views). These scripts are safe to re-run if they use `CREATE IF NOT EXISTS` or `CREATE OR REPLACE`.
 
 ### Step 8.2: Apply Unsupported Grants (If Any)
 

@@ -1,0 +1,60 @@
+-- ============================================================================
+-- TECHNOLOGY SELECTION SUMMARY
+-- ============================================================================
+-- Blueprint: Data Transformation Technology Selector
+-- ============================================================================
+--
+-- SELECTED TECHNOLOGY: {{ selected_transform_technology }}
+--
+-- REQUIREMENTS:
+--   Freshness:    {{ data_freshness_requirement }}
+--   Logic:        {{ transformation_logic_type }}{% if transformation_logic_type == 'dbt' %} ({{ dbt_variant }}){% endif %}
+
+--   Trigger:      {{ pipeline_trigger_model }}
+--   Source:       {{ source_data_location }}
+--   Preference:   {{ technology_preference }}
+--
+-- CONSUMERS:
+{%- for consumer in downstream_consumers %}
+--   - {{ consumer }}
+{%- endfor %}
+--
+-- CONSTRAINTS:
+{%- for constraint in pipeline_constraints %}
+--   - {{ constraint }}
+{%- endfor %}
+--
+-- ============================================================================
+-- NEXT STEPS:
+-- ============================================================================
+{%- if selected_transform_technology == 'Dynamic Tables' %}
+-- 1. Design your target table SQL (SELECT statement)
+-- 2. CREATE DYNAMIC TABLE with appropriate TARGET_LAG
+-- 3. Monitor refresh history via DYNAMIC_TABLE_REFRESH_HISTORY
+{%- elif selected_transform_technology == 'Streams & Tasks' %}
+-- 1. CREATE STREAM on your source table(s)
+-- 2. CREATE TASK with stream-driven trigger (WHEN SYSTEM$STREAM_HAS_DATA)
+-- 3. Write MERGE/INSERT logic in the task body
+{%- elif selected_transform_technology == 'Snowpark' %}
+-- 1. Create a Snowpark session and connect to your data
+-- 2. Write DataFrame transformations in Python/Scala
+-- 3. Deploy as a Stored Procedure or scheduled task
+{%- elif selected_transform_technology == 'dbt Projects on Snowflake' %}
+-- 1. Initialize dbt project with `dbt init`
+-- 2. Define models, tests, and documentation
+-- 3. Deploy with `snow dbt deploy` and execute with Tasks
+{%- elif selected_transform_technology == 'dbt Core (External)' %}
+-- 1. Initialize dbt project with `dbt init`
+-- 2. Configure connection in profiles.yml
+-- 3. Orchestrate with dbt Cloud, Airflow, or CI/CD
+{%- elif selected_transform_technology == 'dbt + Dynamic Tables' %}
+-- 1. Initialize dbt project
+-- 2. Set materialization to 'dynamic_table' for auto-refresh models
+-- 3. Configure target_lag per model
+-- 4. Deploy — Snowflake handles refresh automatically
+{%- elif selected_transform_technology == 'Stored Procedures' %}
+-- 1. CREATE PROCEDURE with your transformation logic
+-- 2. Schedule with CREATE TASK or call from external orchestrator
+-- 3. Implement error handling and logging
+{%- endif %}
+-- ============================================================================

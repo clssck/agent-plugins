@@ -1,17 +1,7 @@
 ---
 name: guardrails-guide
-description: >-
-  Guides CoCo /guardrails and Restricted Session Scope (RSS). Use for any request to create,
-  apply, activate, store, or remove a scope; block roles for the agent (e.g. 'block
-  securityadmin'); make a session read-only via RSS; deactivate or disable RSS mid-session while
-  preserving session state (variables, temp tables); named scopes, session scope,
-  RESTRICTED_SESSION_SCOPE, USER$<USERNAME>.RSS, 'restrict what the agent can do', 'limit agent
-  SQL', 'set up RSS', 'guardrails not working'. Also use for ANY SQL error mentioning 'Restricted
-  session scope' (e.g. 'Insufficient privileges to operate on schema. Restricted session scope:'):
-  do NOT suggest role switches or GRANT statements — read the active scope via SYS_CONTEXT and
-  guide the user to activate a scope holding the required privilege via /guardrails. Always use
-  this skill before doing anything else for such requests. Do NOT search external docs or run
-  `cortex search docs` for RSS syntax or DDL; all syntax is in this skill's DDL reference section.
+description: >
+  Guides through CoCo /guardrails and Restricted Session Scope (RSS). Use for ANY request involving: creating a scope, creating an RSS scope, blocking roles for the agent, making the session read-only via RSS, applying a session restriction, storing a scope to the session, removing RSS from a session, deactivating RSS, turning off guardrails, disabling RSS mid-session, preserving session state when removing RSS, 'block securityadmin', 'sql read-only scope', 'restrict what the agent can do', 'limit agent SQL', 'create USER$<USERNAME>.RSS', 'apply scope', 'activate scope', 'how do I use guardrails', 'set up RSS', 'create RSS object', 'named scopes', 'restrict roles for the agent', 'guardrails not working', 'RSS help', 'session scope', 'RESTRICTED_SESSION_SCOPE', 'remove RSS', 'keep session variables', 'keep temp tables after removing RSS'. ALSO use for ANY SQL error whose message contains 'Restricted session scope' — e.g. 'Insufficient privileges to operate on schema. Restricted session scope:'. When this error appears, do NOT suggest role switches or GRANT statements; instead read the active scope via SYS_CONTEXT and guide the user to activate a scope with the required privilege via /guardrails. When a user says "create a scope that blocks X" or "apply read-only to session" or "store scope to session" — always use this skill before doing anything else. Do NOT search external docs for RSS syntax — all syntax is embedded in this skill. Do NOT run `cortex search docs` for RSS or DDL questions; always use the DDL reference section in this skill instead.
 ---
 
 ## Opening context

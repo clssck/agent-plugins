@@ -1,6 +1,6 @@
 ---
 name: business-ontology-workflow-phase-3-generate
-description: "Phase 3 (Generate) of the Business Ontology workflow — Semantic View generation from approved ontology nodes, Cortex Analyst consumption, and ontology↔SV alignment. Routes to $semantic-view and $semantic_studio. Parent: business-ontology workflow."
+description: "Phase 3 (Generate) of the Business Ontology workflow — bind approved ontology nodes to existing Semantic Views, validate via Cortex Analyst, and track ontology↔SV alignment. Routes to $semantic_studio. Parent: business-ontology workflow."
 parent_skill: business-ontology-workflow
 ---
 
@@ -35,22 +35,21 @@ FROM TABLE(
 WHERE term:itemKind::STRING = 'METRIC';
 ```
 
-## Step 2 — Create Semantic View
+## Step 2 — Bind to an existing Semantic View
 
-Route to `$semantic-view creation`:
+**Check `workflow_inputs.semantic_view_fqn` first.** If it was provided at workflow start, use it directly — do **not** ask the steward again.
 
-```yaml
-view_name: <semantic_view_fqn>
-source_objects: <source_tables>
-prompt: |
-  Generate a Semantic View for domain <primary_domain>.
-  Ground metrics on these canonical Business Ontology definitions:
-  <paste metric names, definitions, and formulas from Step 1>
+Only prompt if `workflow_inputs.semantic_view_fqn` is absent or empty:
+
+```
+Do you have an existing Semantic View to bind these nodes to?
+  yes — provide the FQN (MY_DB.MY_SCHEMA.MY_SV)
+  no  — skip binding for now (you can use $semantic-view or $semantic_studio to create one and return later)
 ```
 
-Include approved metric names, definitions, and formulas from Step 1 in the creation prompt so Autopilot aligns with steward-approved meaning.
+If **no** (or if no FQN was provided): skip the association calls below. Note the omission in the Step 5 summary and proceed to Step 3.
 
-After publish, bind ontology nodes to the Semantic View via catalog associations.
+If **yes**: bind ontology nodes to the Semantic View via catalog associations.
 
 **⚠️ MANDATORY CHECKPOINT:** Present the proposed node ↔ SV metric binding list. Wait for steward confirmation before approving associations.
 
@@ -97,7 +96,7 @@ CALL SYSTEM$GET_GLOSSARY_TERM('<termName>');
 DESC SEMANTIC VIEW <semantic_view_fqn>;
 ```
 
-Compare definition and formula text. If they diverge, route the engineer to `$semantic_studio semantic_view` edit or `$semantic-view creation` to update the implementation. Never auto-overwrite ontology or Semantic View content.
+Compare definition and formula text. If they diverge, route the engineer to `$semantic_studio semantic_view` to update the SV. Never auto-overwrite ontology or Semantic View content.
 
 ## Step 5 — Validate and return summary
 
@@ -106,20 +105,19 @@ returning the summary. Only mark `workflow_status: complete` when all validation
 
 **Self-check before emitting the summary:**
 
-- [ ] At least 1 `RELATED_SEMANTIC_VIEW` association approved and confirmed via `GET_GLOSSARY_TERM_ASSETS`
-- [ ] `DESC SEMANTIC VIEW` returns without error
-- [ ] Cortex Analyst question ran and returned valid SQL
-- [ ] Ontology node definition and SV metric expression aligned (Step 4 check)
+- [ ] If an SV was provided: at least 1 `RELATED_SEMANTIC_VIEW` association approved and confirmed via `GET_GLOSSARY_TERM_ASSETS`
+- [ ] If an SV was provided: `DESC SEMANTIC VIEW` returns without error
+- [ ] If an SV was provided: Cortex Analyst question ran and returned valid SQL
+- [ ] If an SV was provided: ontology node definition and SV metric expression aligned (Step 4 check)
 
 If any criterion fails, note it explicitly in the summary and recommend the corrective route.
 
 ```yaml
 phase_3_complete:
-  semantic_views_created: <count>
-  glossary_sv_bindings: <count>
-  analyst_queries_run: <count>
-  validation_passed: true        # false if any criterion above failed
-  workflow_status: complete      # "needs-attention" if validation_passed: false
+  glossary_sv_bindings: <count>       # 0 if no SV was provided — acceptable
+  analyst_queries_run: <count>        # 0 if no SV was provided — acceptable
+  validation_passed: true             # false if any criterion above failed
+  workflow_status: complete           # "needs-attention" if validation_passed: false
 ```
 
 After emitting this, render the full-workflow summary from

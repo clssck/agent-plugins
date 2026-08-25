@@ -1,0 +1,11 @@
+## Your Selection
+
+You selected: **{{ work_context }}**
+
+{%- if work_context == 'Extend Existing' %}
+
+You're extending an existing pipeline. Next, describe what you're working on so we can provide targeted recommendations.
+{%- elif work_context == 'Build New' %}
+
+You're building a new transformation pipeline. We'll ask a few questions about your requirements to recommend the best technology.
+{%- endif %}

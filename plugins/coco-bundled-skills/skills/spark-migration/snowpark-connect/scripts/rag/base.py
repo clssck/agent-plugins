@@ -27,6 +27,8 @@ class SCOSSearchResult:
     root_cause: str | None = None
     additional_notes: str | None = None
     test_name: str | None = None
+    # Fired token (e.g. "ceil") from exact-match backends; empty otherwise.
+    matched_token: str = ""
     # True when the match is statically decidable: the firing condition is
     # structurally certain (an unconditionally-unsupported API, a signature
     # kwarg violation, or an attribute gateway like ``.rdd``), so a real call

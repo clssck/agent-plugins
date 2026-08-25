@@ -1,0 +1,10 @@
+## Consumers: {{ downstream_consumers }}
+
+Your output will serve: **{{ downstream_consumers }}**
+
+{%- if 'BI Dashboards' in downstream_consumers %}
+Plan will optimize for BI access patterns (pre-aggregated, wide tables, clear naming).
+{%- endif %}
+{%- if 'Data Science' in downstream_consumers or 'ML' in downstream_consumers %}
+Plan will include feature-friendly grain and column structure.
+{%- endif %}

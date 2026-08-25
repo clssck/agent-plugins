@@ -96,32 +96,76 @@ Rules:
 
 ### Candidate table (import Step 4)
 
-One row per candidate. Truncate descriptions to ~80 characters. Mark update candidates with `(upd)` in the `#` column.
+One row per candidate. Truncate descriptions to ~80 characters. Use state badge in the `#` column and a `Conf` column for confidence.
 
 ```
- #       Name               Domain       Kind      Description (truncated ~80 chars)
- 1       Purchase Order     Purchasing   TERM      "A Purchase Order is a commercial document..."
- 2       Supplier Invoice   Purchasing   TERM      "A Supplier Invoice is issued by a vendor..."
- 3(upd)  Vendor Code        Purchasing   TERM      "Supplier identifier used in procurement..."
+ #        Name               Domain       Kind    Conf  Graph
+ 1        Purchase Order     Purchasing   TERM    ▲     → Supplier Invoice (DERIVES) · TABLE: ANALYTICS.PUBLIC.PO
+ 2        Net Revenue        Finance      METRIC  ●     ← Gross Revenue (DERIVES) · TABLE: FINANCE.PUBLIC.REVENUE · grain: day, agg: SUM
+ 3[upd]   Vendor Code        Purchasing   TERM    ▲     (no new edges)
+ 4[merge] Active Users       Growth       METRIC  ●     also exists in Marketing domain — steward decision needed
+ 5        Customer           Core         ENTITY  ▼     (no edges yet) ← low confidence; will default to draft
 ```
 
-- `(upd)` = update to an existing ACTIVE concept (detected during dedup, Step 2B)
-- No suffix = genuinely new concept
+State badges in `#` column:
+- `[upd]` = update to an existing ACTIVE concept (Step 2B)
+- `[merge]` = cross-domain homonym; steward must choose reuse or scoped variant
+- No badge = genuinely `new` concept
 
-When the reviewer selects `edit #N` or `one by one` reaches an `(upd)` row, show the **edit diff card** instead of the standard item card.
+Confidence badges in `Conf` column:
+- `▲` = high
+- `●` = medium
+- `▼` = low (defaults to draft unless steward explicitly approves)
+
+**Graph column:** compact inline summary of known relationships and associations for this candidate, pre-populated from `relationship_candidates` and `association_candidates` resolved in Step 3b. Format:
+- `→ <Target> (<TYPE>)` — this node is the source/input
+- `← <Source> (<TYPE>)` — this node is the target/output
+- `TABLE: <FQN>` or `VIEW: <FQN>` — asset association
+- For METRIC: append `· grain: <grain>, agg: <aggregationFn>` when set
+- `(no edges yet)` when no relationships or associations are resolved for this candidate
+
+For METRIC candidates: show `grain` and `aggregationFn` in the Graph column to help stewards distinguish metrics with the same name but different semantic grain.
+
+When the reviewer selects `edit #N` or `one by one` reaches an `[upd]` row, show the **edit diff card** instead of the standard item card. For `[merge]` rows, show a cross-domain comparison card.
 
 ### Session report (import Step 6)
 
-```
-Import complete — <source> → <domain>
-  ✓  N  made active
-  ~  N  edited and made active
-  ~  N  left as drafts
-  ✗  N  skipped
-  !  N  failed
+**Default output — business summary (always shown):**
 
-Failed:
-  "Discount Policy" — domain 'Finance' not found (create it first).
+```
+Import complete — <source> → <domain(s)>
+
+  Nodes
+    ✓  N  made active     (new concepts live in the ontology)
+    ~  N  updated         (existing concepts enriched)
+    ~  N  left as drafts  (N low-confidence or steward-deferred)
+    ✗  N  skipped
+    !  N  failed
+    ↺  N  reused          (already existed — no duplicate created)
+
+  Relationships   <R> created
+  Associations    <A> created
+
+  Domains touched:  Finance, Purchasing, Core
+```
+
+If any items failed:
+```
+  Failures:
+    "Discount Policy" — domain 'Finance' not found (create it first).
+```
+
+**Evidence detail — shown only on request (`show evidence` or `show detail`):**
+
+`#N` refers to the **original candidate row number assigned in Step 4** — this number is stable and does not change as candidates are approved, drafted, or skipped. Use it consistently to reference candidates across the session.
+
+```
+Evidence detail:
+
+  #1  Purchase Order      confidence: ▲ high    source: procurement_glossary.md §2
+  #2  Net Revenue         confidence: ● medium  source: metrics.csv row 14  (no formula found)
+  #5  Discount Rate       confidence: ▼ low     source: inferred from "rate applied to orders"
+      → Drafted (low confidence); approve via UI or re-import with formula
 ```
 
 ### Multi-session resume header

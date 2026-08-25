@@ -23,7 +23,9 @@ Create a new application that runs on Snowflake. Copy a self-contained starter t
 
 3. **Read the template's `README.md`.** It is the authoritative guide for what the template provides and how to modify its code. You'll follow it in Step 3.
 
-4. **Generate the `snowflake.yml` deployment manifest.** Do this early so missing values surface before you start implementing. Do not set `identifier.name`, `artifacts`, or `app.yml` fields yet — that happens in Step 3. If it fails for any reason other than missing values (auth, network, tooling error), surface the full error and stop.
+4. **Generate the deployment manifest.** Do this early so missing values surface before you start implementing. Don't configure app fields yet — that happens in Step 3. If it fails for any reason other than missing values (auth, network, tooling error), surface the full error and stop.
+
+   The CLI decides the layout, so let it: templates ship a build-only `app.yml`, which stops the setup command from writing anything at all. Move that file aside first, run setup, then note **which file the CLI produced** — `snowflake.yml` (deployment config there, `app.yml` build-only) or an `app.yml` with `version: 2` (everything in one file). Merge the template's build phases back into the result. The full sequence, including the key mapping, is in [`@../references/manifests.md`](../references/manifests.md) → "Generating a manifest in a scaffolded project". Carry the layout you end up with through the rest of these steps.
 
 ---
 
@@ -45,17 +47,17 @@ For non-trivial decisions, confirm with the user before proceeding.
 
 **Read the project's `README.md` and follow it** to modify the scaffolded project in one pass and fully implement everything the user asked for, including installing any dependencies you add.
 
-After the app is implemented, configure the deployment manifests (platform-level, same for every template): set the allowed `snowflake.yml` fields (`identifier.name`, `artifacts`) and the `app.yml` `profile` block. Omit the `meta` field in `snowflake.yml` entirely (remove it if present).
+After the app is implemented, configure the deployment manifest (platform-level, same for every template). Set the app name (`identifier.name` in `snowflake.yml`, `name` in an `app.yml` v2), the `artifacts` list if the layout has one, and the app's display metadata:
 
-The `profile` block structure in `app.yml`:
 ```yaml
-profile:
-  label: "Human-Readable App Name"
-  description: "One sentence describing what the app does."
-  icon: "./icon.png"
+label: "Human-Readable App Name"
+description: "One sentence describing what the app does."
+icon: "public/icon.svg"
 ```
 
-Replace `icon.png` with a custom icon specific to this app — do not leave the template's default icon.
+**Where those three keys go depends on the layout from Step 1**: nested under `profile:` in a build-only `app.yml`, or **top-level** (siblings of `install:` / `run:`) in an `app.yml` with `version: 2`, which has no `profile:` block at all. Putting them in the wrong place is silent — the app deploys with no label, description, or icon. [`@../references/manifests.md`](../references/manifests.md) has the rest of the per-layout fields, including the `snowflake.yml` `meta` field, which the current CLI omits and you should not reintroduce.
+
+Replace the template's default icon with a custom icon specific to this app — do not leave the template's default in place.
 
 Finally, **rewrite the project's `README.md`** so it reads like the README for *this* app, not the starter template. The template README was your build guide; once the app is implemented it should describe what this specific app does, its data sources, and how to run and deploy it. Remove template/scaffolding boilerplate that no longer applies.
 
@@ -73,5 +75,5 @@ Then ask: **"Would you like to run it locally first, or go straight to deploy?"*
 ## Output
 
 - A fully implemented app in the project root
-- Pre-configured `snowflake.yml` ready for deployment
-- `app.yml` profile metadata configured (`label`, `description`, `icon`)
+- A pre-configured deployment manifest ready for deployment — either `snowflake.yml` plus a build-only `app.yml`, or a single `app.yml` with `version: 2`, whichever the CLI generated
+- App metadata configured (`label`, `description`, `icon`) in the right place for that layout

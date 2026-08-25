@@ -1,12 +1,12 @@
 ---
 name: agent-studio-agent
-description: "Route Cortex Agent requests to create, edit, test, download, upload, publish, connect to CoWork, dataset, evaluate, or monitor workflows. Use for ALL agent lifecycle operations: create agent, new agent, build agent, make agent, set up agent, edit agent, modify agent, update agent, change agent, add tool to agent, remove tool, change instructions, change model, test agent, try agent, ask agent, send question to agent, chat with agent, verify agent, download agent, export agent, save agent locally, pull agent, upload agent, save agent, deploy agent, push agent, publish agent, make agent version live, connect to CoWork, add to Snowflake Intelligence, make agent visible in CoWork, intelligence source, generate CoWork URL, deploy to Intelligence, I want users to chat with my agent in CoWork, create eval dataset, evaluation dataset, curate dataset, ground truth data, add questions to dataset, production queries for eval, evaluate agent, run evaluation, benchmark agent, measure agent performance, answer correctness, logical consistency, run metrics, assess agent quality, check eval status, monitor eval, eval results, eval scores, how did my eval do, show eval run, view evaluation results. Always invoke this skill when the user mentions any Cortex Agent operation — even if the request seems simple."
+description: "Route Cortex Agent requests to create, edit, test, download, upload, publish, connect to CoWork, dataset, evaluate, optimize, or monitor workflows. Use for ALL agent lifecycle operations: create agent, new agent, build agent, make agent, set up agent, edit agent, modify agent, update agent, change agent, add tool to agent, remove tool, change instructions, change model, test agent, try agent, ask agent, send question to agent, chat with agent, verify agent, download agent, export agent, save agent locally, pull agent, upload agent, save agent, deploy agent, push agent, publish agent, make agent version live, connect to CoWork, add to Snowflake Intelligence, make agent visible in CoWork, intelligence source, generate CoWork URL, deploy to Intelligence, I want users to chat with my agent in CoWork, create eval dataset, evaluation dataset, curate dataset, ground truth data, add questions to dataset, production queries for eval, evaluate agent, run evaluation, benchmark agent, measure agent performance, answer correctness, logical consistency, run metrics, assess agent quality, optimize agent, improve agent accuracy, prepare agent for production, generalize agent instructions, agent overfitting, check eval status, monitor eval, eval results, eval scores, how did my eval do, show eval run, view evaluation results. Always invoke this skill when the user mentions any Cortex Agent operation — even if the request seems simple."
 parent_skill: agent-studio
 ---
 
 # Cortex Agent Router
 
-Route agent-related requests to the correct sub-skill. Ten operations: **Create, Edit, Test, Download, Upload, Connect to CoWork, Dataset, Eval, Audit, Monitor**.
+Route agent-related requests to the correct sub-skill. Eleven operations: **Create, Edit, Test, Download, Upload, Connect to CoWork, Dataset, Eval, Audit, Monitor, Optimize**.
 
 ## Tool Usage
 
@@ -64,6 +64,7 @@ All agent spec operations go through the `cortex agent-studio` CLI subcommands (
 | **Eval** agent | evaluate, benchmark, run evaluation, run metrics, measure accuracy, answer correctness, logical consistency, run eval against dataset | `eval/SKILL.md` | `eval-write` → `eval-deploy` |
 | **Audit** agent | audit agent, review agent setup, score my agent, is my agent good, agent health check, how good are my agent's tools | `audit/SKILL.md` | `agent-read` → `DESCRIBE SEMANTIC VIEW` for each SV tool → present quality scores + spec issues |
 | **Monitor** eval run | check eval status, monitor eval, eval results, eval scores, how did my eval do, show eval run, view evaluation results, eval run status | `monitor/SKILL.md` | `GET_AI_OBSERVABILITY_EVENTS` with eval_root span → per-metric summary + drill-down |
+| **Optimize** agent | optimize agent, improve agent accuracy, prepare agent for production, systematically improve instructions, generalize instructions, detect overfitting, agent is not accurate enough | `optimize/SKILL.md` | dataset → native eval → instruction edits → overfitting pass → re-eval. Not semantic-view agentic optimization |
 
 ## Disambiguation
 
@@ -87,7 +88,9 @@ All agent spec operations go through the `cortex agent-studio` CLI subcommands (
 | "generate CoWork URL for my agent" | **Connect to CoWork** | URL construction for sharing |
 | "I want users to chat with my agent in CoWork" | **Connect to CoWork** | End-user access via CoWork UI |
 | "audit my agent" / "score my agent tools" / "is my agent configured well?" | **Audit** | Quality and configuration review |
-| "assess my agent's quality against a dataset" / "how accurate is my agent?" | **Eval** | Formal metric-based evaluation requires a dataset |
+| "assess my agent's quality against a dataset" / "how accurate is my agent?" | **Eval** | One-shot metric run — no improvement loop |
+| "optimize my agent" / "improve my agent's accuracy" / "make this agent production-ready" | **Optimize** | Evaluate → improve instructions → generalize. Distinct from a single eval |
+| "optimize my semantic view" / "run agentic optimization" | **Not this router** | Load `../semantic-view/agentic_optimization/SKILL.md` via the parent agent-studio router |
 | "check eval status" / "how did my eval do" / "show eval results" | **Monitor** | Inspecting results of an already-launched eval run |
 | "what were my eval scores" / "view evaluation metrics" | **Monitor** | Reading back eval scores — not launching a new eval |
 | Unclear intent | **Ask user** | Present the options and let them choose |
@@ -98,3 +101,7 @@ All agent spec operations go through the `cortex agent-studio` CLI subcommands (
 2. Load the appropriate sub-skill
 3. Follow that sub-skill's workflow exactly — do not mix methods across sub-skills
 4. For **Create** intents: `creation/SKILL.md` ALWAYS writes a template first (no deploy to Snowflake) and then hands off to `edit/SKILL.md` — even when the user provided full details in the original request. Never deploy to Snowflake directly from the creation skill.
+
+## Permission Error Handling (applies to dataset, eval, and optimize sub-skills)
+
+If any `cortex agent-studio` subcommand or SQL query fails with an error related to privileges, permissions, access control, "not authorized", "does not exist or not authorized", "doesn't have", or inability to access objects during the **dataset**, **eval**, or **optimize** workflow → immediately load `permission/SKILL.md`. Do not suggest GRANT statements, offer role switches, try workarounds, or attempt direct SQL.

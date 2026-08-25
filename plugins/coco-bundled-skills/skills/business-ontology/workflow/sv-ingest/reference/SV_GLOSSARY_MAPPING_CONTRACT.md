@@ -91,7 +91,13 @@ Derivation (metric built on governed columns):
 
 ```sql
 CALL SYSTEM$DRAFT_GLOSSARY_TERM('{"name":"Adjusted Gross","domainName":"Finance","itemKind":"METRIC","description":"...","formula":"SUM(gross_revenue_amount)*0.9"}');
-CALL SYSTEM$DRAFT_GLOSSARY_RELATIONSHIP('Gross Revenue','Adjusted Gross','DERIVES', NULL);  -- full vocabulary in ../../../reference/RELATIONSHIP_TYPES.md
+-- Draft response is JSON. Extract termId: PARSE_JSON(<response>):termId::STRING
+-- Example response: {"termId": "abc-123-...", "status": "DRAFT", "name": "Adjusted Gross", ...}
+CALL SYSTEM$APPROVE_GLOSSARY_TERM('<termId from draft response>');
+-- DRAFT_GLOSSARY_RELATIONSHIP requires 4 positional args: sourceFQN, targetFQN, type, label.
+-- The label argument is REQUIRED — always auto-fill for standard types; NULL is not accepted.
+-- Full vocabulary in ../../../reference/RELATIONSHIP_TYPES.md
+CALL SYSTEM$DRAFT_GLOSSARY_RELATIONSHIP('Finance.Gross Revenue', 'Finance.Adjusted Gross', 'DERIVES', 'derives');
 ```
 
 Batch approve (after steward review):
@@ -117,14 +123,19 @@ A term must be **APPROVED before** an asset or relationship can be drafted again
 
 ```sql
 CALL SYSTEM$DRAFT_GLOSSARY_TERM('{...}');
-CALL SYSTEM$APPROVE_GLOSSARY_TERM('<term>');          -- prerequisite for the calls below
-CALL SYSTEM$DRAFT_GLOSSARY_ASSET('<term>', '<ref>', 'RELATED_SEMANTIC_VIEW');
-CALL SYSTEM$APPROVE_GLOSSARY_ASSET('<term>', '<ref>');
-CALL SYSTEM$DRAFT_GLOSSARY_RELATIONSHIP('<src>','<term>','DERIVES', NULL);
-CALL SYSTEM$APPROVE_GLOSSARY_RELATIONSHIP('<src>','<term>','DERIVES');
+-- termId extraction: the draft response is JSON — extract via PARSE_JSON(<response>):termId::STRING
+-- Example response shape: {"termId": "abc-123-...", "status": "DRAFT", "name": "...", ...}
+-- Use termId for APPROVE. Use FQN '<domain>.<term>' for ASSET and RELATIONSHIP calls.
+-- ⚠ FQN syntax requires an account-level feature enabled by Snowflake.
+--   Without it, '<domain>.<term>' resolves as a bare name (dots included) and fails with "term not found".
+--   If you cannot confirm the feature is on, use the termId from draft responses for all calls.
+CALL SYSTEM$APPROVE_GLOSSARY_TERM('<termId from draft response>');
+CALL SYSTEM$DRAFT_GLOSSARY_ASSET('<domain>.<term>', '<ref>', 'RELATED_SEMANTIC_VIEW');
+CALL SYSTEM$APPROVE_GLOSSARY_ASSET('<domain>.<term>', '<ref>');
+-- DRAFT_GLOSSARY_RELATIONSHIP label arg is REQUIRED — never pass NULL; auto-fill for standard types.
+CALL SYSTEM$DRAFT_GLOSSARY_RELATIONSHIP('<domain>.<src>','<domain>.<term>','DERIVES','derives');
+CALL SYSTEM$APPROVE_GLOSSARY_RELATIONSHIP('<domain>.<src>','<domain>.<term>','DERIVES');
 ```
-
-`DRAFT_GLOSSARY_RELATIONSHIP` accepts the 3-arg form (label omitted) or 4-arg with a label/NULL.
 
 ## Idempotency
 

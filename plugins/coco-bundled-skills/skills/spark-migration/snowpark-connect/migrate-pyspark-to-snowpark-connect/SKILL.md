@@ -320,7 +320,7 @@ depend on for baselines.
 | File | Role |
 |------|------|
 | `agents/analyzer.md` | Phase 1 analysis procedure |
-| `agents/adjudicator.md` | Phase 1.1 adjudication |
+| `agents/adjudicator.md` | Phase 1.1b adjudication |
 | `agents/reporter.md` | Phase 1.2 (Section A) + Phase 4 report rendering |
 | `agents/data_edge_resolver.md` | Phase 1.3 data-edge enrichment |
 | `agents/fixer.md` | Phase 2 code fixing (incl. targeted re-fix mode) |
