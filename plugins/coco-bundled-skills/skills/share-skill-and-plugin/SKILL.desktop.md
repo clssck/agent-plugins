@@ -39,7 +39,7 @@ manifest parsing, CREATE `TYPE`, upload layout, and type guards.
 4. Re-share / unshare via FQN or `snow://skill_catalog/...` → `DESCRIBE`
    `type` column is authoritative (`skill` or `plugin`).
 5. Both markers present, or neither → ⚠️ **one disambiguation picker**
-   ([share_interactive_prompts.md](../references/share_interactive_prompts.md)
+   (the labels defined under
    § **Artifact type**).
 
 Carry `<artifact_noun>` = "skill" or "plugin" for user-facing copy.
@@ -94,14 +94,14 @@ DESCRIBE WORKSPACE USER$<CURRENT_USER()>.PUBLIC."DEFAULT$";
 
 Skill workspace hints: `…/versions/live/.snowflake/cortex/skills/<folder>/` or
 `…/.snowflake/si/skills/<folder>/`. See
-[workspaces/personal-skills-sync/SKILL.md](../../workspaces/personal-skills-sync/SKILL.md).
+[workspaces/personal-skills-sync/SKILL.md](../snowflake-workspace/SKILL.md).
 
 **Unshare** (`1→4→5`) uses SQL only — no upload.
 
 ## Interactive prompts
 
 Every fixed-choice stop uses `ask_user_question` with locked labels in
-[share_interactive_prompts.md](../references/share_interactive_prompts.md).
+the labels defined under.
 
 Audience state (both artifact types): `<share_choice>` (1/2/3),
 `<share_roles>`, `<discoverable_value>`.

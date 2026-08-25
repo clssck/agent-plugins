@@ -695,8 +695,6 @@ Import and call functions directly. All functions receive `workload_path` as the
 - `update_summary_end(workload_path, total_ewis, auto_resolved_ewis, not_auto_resolved_ewis, total_files_fixed, total_not_auto_resolved_files, compilation_errors_fixed)` — Complete summary
 - `get_fix_summary(workload_path, fix_id)` — Get summary record
 
-See [references/DATABASE_SCHEMA.md](./references/DATABASE_SCHEMA.md) for full database documentation.
-
 ## Output
 - Modified `.py`, `.ipynb`, and `.scala` files in the SMA output directory (on `sma/migration-process` branch) with EWIs resolved **and verified to compile/execute correctly**
 - Git commit with all changes on `sma/migration-process` branch

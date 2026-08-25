@@ -176,7 +176,7 @@ Complete reference of all DVP skills, organized by category.
 - **Inputs:** SMA migrated source code
 - **Outputs:** Modified Python files (.py) with stage syntax
 - **Depends on:** None (operates on source code directly)
-- **Details:** [docs/data-validator/stage-conversion.md](data-validator/stage-conversion.md)
+- **Details:** Planned; no bundled detail document yet.
 
 ---
 
@@ -255,9 +255,9 @@ Complete reference of all DVP skills, organized by category.
 > **Migrates Databricks notebooks to Snowflake Workspace notebooks (.ipynb).**
 
 - **Category:** migration
-- **Status:** **Implemented** -- See [`snowflake-notebook-migration/SKILL.md`](../../snowflake-notebook-migration/SKILL.md)
+- **Status:** **Implemented** -- See [`snowflake-notebook-migration/SKILL.md`](../../../snowflake-notebook-migration/SKILL.md)
 - **Responsibility:** Converts Databricks notebooks (`.ipynb` and Databricks-format `.py`/`.scala` files) to Snowflake Workspace notebooks. Preserves original code, only fixes incompatible patterns (magic commands, `dbutils`, `display()`, `_sqldf`, `%run` references). Supports dual-mode operation: standalone (GitHub URL or local directory) and orchestrated (invoked by `spark-migration` orchestrator at Step 10 with `<output>`, `conversion_type`, and branch context). In orchestrated mode, converts notebooks in-place within `<output>/Output/` and commits via `sma_api.git_commit()`. Conversion type determines the setup cell: `scos` uses Snowpark Connect (PySpark kept as-is); `snowpark_api` uses `get_active_session()`.
 - **Inputs:** Databricks notebooks (standalone: GitHub URL or local path; orchestrated: `<output>/Output/` notebooks detected by orchestrator scan)
 - **Outputs:** Converted Snowflake Workspace `.ipynb` notebooks (standalone: new files; orchestrated: in-place modifications)
 - **Depends on:** `snowflake-notebooks` skill (loaded for output formatting: nbformat 4.5, SQL cell structure, Jinja templating, upload workflow)
-- **Details:** See [`snowflake-notebook-migration/SKILL.md`](../../snowflake-notebook-migration/SKILL.md) and [`snowflake-notebook-migration/Diagram.md`](../../snowflake-notebook-migration/Diagram.md)
+- **Details:** See [`snowflake-notebook-migration/SKILL.md`](../../../snowflake-notebook-migration/SKILL.md) and [`snowflake-notebook-migration/Diagram.md`](../../../snowflake-notebook-migration/Diagram.md)

@@ -190,7 +190,7 @@ CALL snowflake.trust_center.set_configuration('NOTIFICATION', '<CONFIGURATION_JS
 
 #### Prerequisites — Creating and Granting the Integration
 
-For the underlying CREATE NOTIFICATION INTEGRATION syntax (webhook, AWS SNS, Azure Event Grid, etc.), load and follow [integrations/create-notification-integration/SKILL.md](../../../integrations/create-notification-integration/SKILL.md).
+For the underlying CREATE NOTIFICATION INTEGRATION syntax (webhook, AWS SNS, Azure Event Grid, etc.), load and follow [integrations/create-notification-integration/SKILL.md](../../integrations/create-notification-integration/SKILL.md).
 
 **⚠️ Trust Center default for `TYPE = WEBHOOK`.** Use the linked skill for syntax, parameter names, and access-control rules, but **always propose the Trust-Center default `WEBHOOK_BODY_TEMPLATE` shown below as the initial value** — do **not** use the linked skill's generic PagerDuty/Slack/Teams body templates (which wrap `SNOWFLAKE_WEBHOOK_MESSAGE` in quotes as a string). The Trust Center emits findings as a **structured JSON object**, so `SNOWFLAKE_WEBHOOK_MESSAGE` must appear **without surrounding quotes** in order to be injected as a nested object rather than a stringified blob.
 

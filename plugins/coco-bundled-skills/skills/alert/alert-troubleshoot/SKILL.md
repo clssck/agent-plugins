@@ -301,7 +301,7 @@ After the panels, render a **Top Anomalies** prose block (1–3 bullets) summari
 
 1. *If a lightweight product fingerprint matched* (Step 3.5 Panel 5 rendered): lead with the routing recommendation. Use this template verbatim:
 
-   > "This alert appears to be monitoring **`<product>`**. The next, recommended step is to load that product's troubleshoot skill — [`<relative/path/to/product/SKILL.md>`](relative/path/to/product/SKILL.md) — and pass it the context I've gathered. Proceed with delegation, or do you want to dig into a different angle first?"
+   > "This alert appears to be monitoring **`<product>`**. The next, recommended step is to load that product's troubleshoot skill — `<relative/path/to/product/SKILL.md>` — and pass it the context I've gathered. Proceed with delegation, or do you want to dig into a different angle first?"
 
    The downstream skill links live in [Step 5](#step-5-delegate-to-the-product-troubleshoot-skill); pick the matched product's row and put the markdown link inline. **Do NOT offer a menu of investigation directions before the delegation question** — that bypasses the whole point of routing.
 
@@ -358,13 +358,13 @@ Apply the layered scoring algorithm in [`references/product-detection.md`](refer
 >
 > Runner-up: `<runner-up name>` (`<runner-up score>`).
 >
-> Recommended: load [`<relative path to product SKILL.md>`](relative/path/to/product/SKILL.md) (Step 5 will pass the context mapping defined in [`references/product-troubleshoot-routing.md`](references/product-troubleshoot-routing.md)). Proceed?"
+> Recommended: load `<relative path to product SKILL.md>` (Step 5 will pass the context mapping defined in [`references/product-troubleshoot-routing.md`](references/product-troubleshoot-routing.md)). Proceed?"
 
 Concrete example for Dynamic Tables:
 
 > "Detected **Dynamic Tables** (score 200): Method 1 `PRODUCT_CATEGORY=DYNAMIC_TABLES` (+120), Method 2 telemetry signature `snow.executable.type='DYNAMIC_TABLE'` (+50), Method 4 `SHOW DYNAMIC TABLES` matched (+30). Runner-up: Tasks (0).
 >
-> Recommended: load [`../../../data-engineering/dynamic-tables/troubleshoot/SKILL.md`](../../../data-engineering/dynamic-tables/troubleshoot/SKILL.md). Proceed?"
+> Recommended: load [`../../../data-engineering/dynamic-tables/troubleshoot/SKILL.md`](../../dynamic-tables/troubleshoot/SKILL.md). Proceed?"
 
 Drift / disagreement handling: surface explicitly when Method 3 matched as "drifted" (not exact), or when Method 1 tag metadata contradicts Method 2/3 SQL-shape evidence — these signal potential post-create alert edits or stale/manual tagging.
 

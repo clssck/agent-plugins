@@ -32,11 +32,11 @@ If the product is listed as deferred, route to Step 7 generic fallback instead o
 
 ## Delegation Prompt Template
 
-> "Loading [`<relative path>`](relative/path/to/product/SKILL.md). I'll pass it: `<input 1>`, `<input 2>`, .... Proceed, or want to inspect the context first?"
+> "Loading `<relative path>`. I'll pass it: `<input 1>`, `<input 2>`, .... Proceed, or want to inspect the context first?"
 
 Concrete example:
 
-> "Loading [`../../../../data-engineering/openflow-observability/SKILL.md`](../../../../data-engineering/openflow-observability/SKILL.md). I'll pass it: `event_table` = `<3-part name>`, `runtime_name` = `runtime-slack-prod`, `connector_type` = `OPENFLOW_SLACK`, `error_message` = `<truncated message>`, `time_window` = `<incident_time> +/- 5 min`. Proceed, or want to inspect the context first?"
+> "Loading [`../../../../data-engineering/openflow-observability/SKILL.md`](../../../openflow-observability/SKILL.md). I'll pass it: `event_table` = `<3-part name>`, `runtime_name` = `runtime-slack-prod`, `connector_type` = `OPENFLOW_SLACK`, `error_message` = `<truncated message>`, `time_window` = `<incident_time> +/- 5 min`. Proceed, or want to inspect the context first?"
 
 ---
 
@@ -44,7 +44,7 @@ Concrete example:
 
 ### Dynamic Tables
 
-**Load** [`../../../../data-engineering/dynamic-tables/troubleshoot/SKILL.md`](../../../../data-engineering/dynamic-tables/troubleshoot/SKILL.md).
+**Load** [`../../../../data-engineering/dynamic-tables/troubleshoot/SKILL.md`](../../../dynamic-tables/troubleshoot/SKILL.md).
 
 Pass the following context:
 
@@ -57,7 +57,7 @@ Pass the following context:
 
 ### Openflow
 
-**Load** [`../../../../data-engineering/openflow-observability/SKILL.md`](../../../../data-engineering/openflow-observability/SKILL.md).
+**Load** [`../../../../data-engineering/openflow-observability/SKILL.md`](../../../openflow-observability/SKILL.md).
 
 Pass the following context (mapped to `openflow-observability` inputs):
 
@@ -72,7 +72,7 @@ Pass the following context (mapped to `openflow-observability` inputs):
 
 ### Tasks
 
-**Load** [`../../../../data-engineering/snowflake-tasks/SKILL.md`](../../../../data-engineering/snowflake-tasks/SKILL.md).
+**Load** [`../../../../data-engineering/snowflake-tasks/SKILL.md`](../../../snowflake-tasks/SKILL.md).
 
 Pass the following context:
 
@@ -85,7 +85,7 @@ Pass the following context:
 
 ### Data Quality
 
-**Load** [`../../../../data-governance/data-quality/SKILL.md`](../../../../data-governance/data-quality/SKILL.md).
+**Load** [`../../../../data-governance/data-quality/SKILL.md`](../../../data-quality/SKILL.md).
 
 Pass the following context:
 
@@ -102,9 +102,9 @@ Pass the following context:
 
 | Detected Product | Action for Now |
 |------------------|----------------|
-| Iceberg | Run parent skill Step 7. Cite the relevant Iceberg sub-area skill ([`auto-refresh`](../../../../data-engineering/iceberg/auto-refresh/SKILL.md), [`external-volume`](../../../../data-engineering/iceberg/external-volume/SKILL.md), [`catalog-integration`](../../../../data-engineering/iceberg/catalog-integration), [`catalog-linked-database`](../../../../data-engineering/iceberg/catalog-linked-database/SKILL.md)) based on failure signature. |
+| Iceberg | Run parent skill Step 7. Cite the relevant Iceberg sub-area skill ([`auto-refresh`](../../../iceberg/auto-refresh/SKILL.md), [`external-volume`](../../../iceberg/external-volume/SKILL.md), [`catalog-integration`](../../../iceberg/catalog-integration), [`catalog-linked-database`](../../../iceberg/catalog-linked-database/SKILL.md)) based on failure signature. |
 | Snowpipe | Run parent skill Step 7. No dedicated skill exists; cite the alert `COMMENT` runbook if present (parent skill Step 6). |
-| Error Tables | Run parent skill Step 7. Cite [`../../../../data-engineering/error-tables-ops/SKILL.md`](../../../../data-engineering/error-tables-ops/SKILL.md). |
+| Error Tables | Run parent skill Step 7. Cite [`../../../../data-engineering/error-tables-ops/SKILL.md`](../../../error-tables-ops/SKILL.md). |
 | Snowpark / UDF / SP | Run parent skill Step 7. Cite [`../../../event-table/references/snowpark.md`](../../../event-table/references/snowpark.md). |
 
 When new product troubleshoot skills land (or when Snowpipe/Iceberg alert templates ship), promote them from deferred to active here and update [`product-detection.md`](product-detection.md).

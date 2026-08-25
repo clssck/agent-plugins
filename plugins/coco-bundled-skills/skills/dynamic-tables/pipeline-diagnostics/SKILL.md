@@ -66,7 +66,7 @@ Example: In a diamond topology where one upstream fails and another is skipped, 
 
 **Goal:** Locate the event table and verify tracing is enabled.
 
-1. **Find event table** — load [observability-external/event-table/event-table-get-setup/SKILL.md](../../../observability-external/event-table/event-table-get-setup/SKILL.md) and follow its Step 1 workflow to discover which event table is active for the DT's database. This handles account-level defaults vs. database-level overrides.
+1. **Find event table** — load [observability-external/event-table/event-table-get-setup/SKILL.md](../../event-table/event-table-get-setup/SKILL.md) and follow its Step 1 workflow to discover which event table is active for the DT's database. This handles account-level defaults vs. database-level overrides.
 
    **⚠️ STOPPING POINT**: If no event table is found, ask the user for the event table name.
 

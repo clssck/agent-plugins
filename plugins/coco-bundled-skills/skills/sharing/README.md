@@ -43,10 +43,10 @@ Q2 presents all four cross-account options simultaneously as a single neutral qu
 | Construct | Target Skill | When |
 |-----------|-------------|------|
 | RBAC only | _(handled inline — emits GRANT DDL directly)_ | Same account |
-| Secure Data Sharing | [collaboration/data-sharing/SKILL.md](../collaboration/data-sharing/SKILL.md) | Cross-account, Q2 = A |
-| Data Clean Rooms | [data-cleanrooms/data-cleanrooms/SKILL.md](../data-cleanrooms/data-cleanrooms/SKILL.md) | Cross-account, Q2 = B |
-| Native Apps | [apps/native/SKILL.md](../apps/native/SKILL.md) | Cross-account, Q2 = D |
-| Declarative Sharing | [apps/declarative/SKILL.md](../apps/declarative/SKILL.md) | Cross-account, Q2 = C |
+| Secure Data Sharing | [collaboration/data-sharing/SKILL.md](../data-sharing/SKILL.md) | Cross-account, Q2 = A |
+| Data Clean Rooms | [data-cleanrooms/data-cleanrooms/SKILL.md](../data-cleanrooms/SKILL.md) | Cross-account, Q2 = B |
+| Native Apps | [apps/native/SKILL.md](../native-app-provider/SKILL.md) | Cross-account, Q2 = D |
+| Declarative Sharing | [apps/declarative/SKILL.md](../declarative-sharing/SKILL.md) | Cross-account, Q2 = C |
 
 ## Design Principles
 

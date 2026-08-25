@@ -226,7 +226,7 @@ ALTER USER <user_name> SET RSA_PUBLIC_KEY='<formatted_public_key>';
 }
 ```
 
-**Note**: These settings are required for interactive tables. See [references/kafka-quickstart.md](kafka-quickstart.md) for complete config.
+**Note**: These settings are required for interactive tables; no separate Kafka quickstart is bundled.
 
 ### Monitoring Streaming Ingestion
 

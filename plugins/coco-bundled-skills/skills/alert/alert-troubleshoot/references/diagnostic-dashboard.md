@@ -171,10 +171,10 @@ Required when Step 3.5's **lightweight product fingerprint** (Method 1 tag metad
 
 | Matched product | Where Panel 5 sources its queries + thresholds |
 |-----------------|------------------------------------------------|
-| Dynamic Tables | [`../../../../data-engineering/dynamic-tables/troubleshoot/SKILL.md`](../../../../data-engineering/dynamic-tables/troubleshoot/SKILL.md) and [`references/dt-state.md`](../../../../data-engineering/dynamic-tables/references/dt-state.md) |
-| Openflow | [`../../../../data-engineering/openflow-observability/references/core-queries-resource.md`](../../../../data-engineering/openflow-observability/references/core-queries-resource.md) (CPU, memory, restarts, connectors) and [`core-queries.md`](../../../../data-engineering/openflow-observability/references/core-queries.md) (recent error logs) |
-| Tasks | [`../../../../data-engineering/snowflake-tasks/SKILL.md`](../../../../data-engineering/snowflake-tasks/SKILL.md) ("Querying Task Run History") |
-| Data Quality | [`../../../../data-governance/data-quality/SKILL.md`](../../../../data-governance/data-quality/SKILL.md) |
+| Dynamic Tables | [`../../../../data-engineering/dynamic-tables/troubleshoot/SKILL.md`](../../../dynamic-tables/troubleshoot/SKILL.md) and [`references/dt-state.md`](../../../dynamic-tables/references/dt-state.md) |
+| Openflow | [`../../../../data-engineering/openflow-observability/references/core-queries-resource.md`](../../../openflow-observability/references/core-queries-resource.md) (CPU, memory, restarts, connectors) and [`core-queries.md`](../../../openflow-observability/references/core-queries.md) (recent error logs) |
+| Tasks | [`../../../../data-engineering/snowflake-tasks/SKILL.md`](../../../snowflake-tasks/SKILL.md) ("Querying Task Run History") |
+| Data Quality | [`../../../../data-governance/data-quality/SKILL.md`](../../../data-quality/SKILL.md) |
 
 Load the matched product skill's queries reference, run a small subset (the discovery-sequence queries — usually 4–6 queries scoped to the alert's `{database}.{schema}.{object_name}`), and present the results as a checklist using *that skill's* thresholds. The alert troubleshoot skill does **not** re-define product thresholds — drift between the two would be silent and harmful.
 

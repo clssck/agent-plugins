@@ -57,7 +57,7 @@ cortex skill catalog publish <artifact_dir>
        continue.
      - Cancel leaves it alone so the other process can finish.
   3. Call `ask_user_question` per
-     [share_interactive_prompts.md](../references/share_interactive_prompts.md)
+     the labels defined under
      § **Live version conflict** (locked labels).
   4. If the user chooses **Abort live version and continue sharing**:
      - Re-run the **same** `cortex skill catalog publish` invocation with
@@ -85,7 +85,7 @@ When `<artifact_type> = plugin`:
 #### Collect share options first *(Option A only, before running the command)*
 
 Before invoking the CLI, call `ask_user_question` per
-[share_interactive_prompts.md](../references/share_interactive_prompts.md)
+the labels defined under
 § **Locked audience labels**. If the user picks **To a specific ROLE…**,
 ask once in chat for comma-separated role names; split on commas, trim,
 uppercase for quoting.
@@ -387,7 +387,7 @@ Let `<current_description>` come from:
 
 Show the current description in chat (use `[none]` if empty), then call
 `ask_user_question` per
-[share_interactive_prompts.md](../references/share_interactive_prompts.md)
+the labels defined under
 § **Catalog description**. If the user picks **Replace** or **Add**, ask
 once in chat for the new or append text. **Do not** present keep / replace /
 add / skip as a markdown bullet list.
@@ -421,7 +421,7 @@ Show `<id>`, `<fqn>`, the composed `<comment>` (or "[none]"), and
 `<comment_action>` (one of `set-on-create` / `skip-comment` /
 `update` / `skip`) in chat. Also note first-time create vs re-share update.
 Call `ask_user_question` per
-[share_interactive_prompts.md](../references/share_interactive_prompts.md)
+the labels defined under
 § **Publish confirm** before any CREATE / ALTER / file upload. If the user
 chooses **Edit description first**, revise `<comment>` and re-run this stop;
 if they choose **Cancel**, stop without creating, altering, or uploading.
@@ -481,7 +481,7 @@ Branch by intent and `<artifact_type>`:
   > this name was shared previously. Derive the URI as
   > `snow://skill_catalog/<DB>.<SCHEMA>.<EXTENSION_NAME>/`, show it in
   > chat, and call `ask_user_question` per
-  > [share_interactive_prompts.md](../references/share_interactive_prompts.md)
+  > the labels defined under
   > § **Reshare combined stop** (use `<artifact_noun>` wording). Ask for role
   > names in chat if the **To a specific ROLE…** label is picked.
   >
@@ -529,7 +529,7 @@ If `ADD LIVE VERSION` fails with `099106` / "already a live version" /
 "already has an uncommitted live version", treat it like Option A’s
 live-version conflict: explain the same way, then call
 `ask_user_question` per
-[share_interactive_prompts.md](../references/share_interactive_prompts.md)
+the labels defined under
 § **Live version conflict**. On **Abort…**, run
 `ALTER CORTEX EXTENSION <id> ABORT;` once, then retry
 `ADD LIVE VERSION` **once** with a fresh `<live_alias>`. If that retry

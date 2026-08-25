@@ -43,7 +43,7 @@ Dispatch on the reason from Step 1:
 
 ### Step 3 — Give the guidance for that case (directly; no DDL, no hand-off)
 
-Deliver the guidance below **directly to the customer**. Do **not** hand off to another sub-skill as the primary response, and do **not** compose, propose, or run any `CREATE OR ALTER` / `CREATE OR REPLACE` in this version. For concrete rewrite recipes, reuse [../../dynamic-tables/references/incremental-operators.md](../../dynamic-tables/references/incremental-operators.md) and [../../dynamic-tables/references/supported-queries.md](../../dynamic-tables/references/supported-queries.md) rather than reproducing them.
+Deliver the guidance below **directly to the customer**. Do **not** hand off to another sub-skill as the primary response, and do **not** compose, propose, or run any `CREATE OR ALTER` / `CREATE OR REPLACE` in this version. For concrete rewrite recipes, reuse [../../dynamic-tables/references/incremental-operators.md](../../../dynamic-tables/references/incremental-operators.md) and [../../dynamic-tables/references/supported-queries.md](../../../dynamic-tables/references/supported-queries.md) rather than reproducing them.
 
 ## The two cases
 

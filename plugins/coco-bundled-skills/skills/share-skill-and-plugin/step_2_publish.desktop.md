@@ -252,7 +252,7 @@ Let `<current_description>` come from:
 
 Show the current description in chat (use `[none]` if empty), then call
 `ask_user_question` per
-[share_interactive_prompts.md](../references/share_interactive_prompts.md)
+the labels defined under
 § **Catalog description**. If the user picks **Replace** or **Add**, ask
 once in chat for the new or append text. **Do not** present keep / replace /
 add / skip as a markdown bullet list.
@@ -286,7 +286,7 @@ Show `<id>`, `<fqn>`, the composed `<comment>` (or "[none]"), and
 `<comment_action>` (one of `set-on-create` / `skip-comment` /
 `update` / `skip`) in chat. Also note first-time create vs re-share update.
 Call `ask_user_question` per
-[share_interactive_prompts.md](../references/share_interactive_prompts.md)
+the labels defined under
 § **Publish confirm** before any CREATE / ALTER / file upload. If the user
 chooses **Edit description first**, revise `<comment>` and re-run this stop;
 if they choose **Cancel**, stop without creating, altering, or uploading.
@@ -346,7 +346,7 @@ Branch by intent and `<artifact_type>`:
   > this name was shared previously. Derive the URI as
   > `snow://skill_catalog/<DB>.<SCHEMA>.<EXTENSION_NAME>/`, show it in
   > chat, and call `ask_user_question` per
-  > [share_interactive_prompts.md](../references/share_interactive_prompts.md)
+  > the labels defined under
   > § **Reshare combined stop** (use `<artifact_noun>` wording). Ask for role
   > names in chat if the **To a specific ROLE…** label is picked.
   >

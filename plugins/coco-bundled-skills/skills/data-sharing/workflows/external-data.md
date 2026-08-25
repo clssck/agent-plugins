@@ -74,7 +74,7 @@ Branch based on the user's data residency choice from Step 1.
 
 ### Path A — Keep Data in Cloud Storage (Iceberg)
 
-> **Load** [`data-engineering/iceberg/SKILL.md`](../../../data-engineering/iceberg/SKILL.md)
+> **Load** [`data-engineering/iceberg/SKILL.md`](../../iceberg/SKILL.md)
 >
 > That skill handles the full Iceberg setup — external volume, catalog integration (Snowflake-managed, AWS Glue, Databricks Unity Catalog, or Polaris/OpenCatalog), and Iceberg table creation.
 >
@@ -85,7 +85,7 @@ Branch based on the user's data residency choice from Step 1.
 
 ### Path B — Move Data into Snowflake (Openflow)
 
-> **Load** [`data-engineering/openflow/SKILL.md`](../../../data-engineering/openflow/SKILL.md)
+> **Load** [`data-engineering/openflow/SKILL.md`](../../openflow/SKILL.md)
 >
 > Follow its workflow to deploy a connector and replicate the data into Snowflake tables.
 >
@@ -124,7 +124,7 @@ Common Iceberg share errors:
 | `External volume not found` | Volume not yet created or wrong name | Run `SHOW EXTERNAL VOLUMES` and verify |
 | `Catalog integration not found` | Integration missing or wrong region | Run `SHOW INTEGRATIONS` and verify catalog integration exists |
 
-For Openflow connector issues (data not arriving, connector errors), return to [`data-engineering/openflow/SKILL.md`](../../../data-engineering/openflow/SKILL.md).
+For Openflow connector issues (data not arriving, connector errors), return to [`data-engineering/openflow/SKILL.md`](../../openflow/SKILL.md).
 
 ---
 

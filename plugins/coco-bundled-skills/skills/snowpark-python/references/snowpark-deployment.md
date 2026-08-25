@@ -134,7 +134,7 @@ This block is included by default in `snow init` templates. If the user provides
 
 **If validation passes:** Continue to Step 3
 
-**If validation fails:** Apply the Handler Contract rules above to fix violations. Load [ops-troubleshoot.md](ops-troubleshoot.md) for additional error resolution
+**If validation fails:** Apply the Handler Contract rules above, then use the troubleshooting table below for additional error resolution.
 
 ### Step 3: Choose Deployment Method
 

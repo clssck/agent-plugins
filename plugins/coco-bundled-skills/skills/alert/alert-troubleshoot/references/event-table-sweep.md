@@ -195,7 +195,7 @@ If all four queries return zero rows in `[-5min, +5min]`:
            DATEADD('minute', -15, '{incident_time}'::TIMESTAMP_NTZ)
        AND DATEADD('minute',   5, '{incident_time}'::TIMESTAMP_NTZ);
    ```
-4. If the event table has data but none for the alert's scope, surface this in the findings — the alert may be misconfigured (wrong database/schema in its condition) or the monitored object may not be emitting telemetry (LOG_LEVEL too restrictive — see [`../../../../data-engineering/dynamic-tables/dt-alerting/SKILL.md`](../../../../data-engineering/dynamic-tables/dt-alerting/SKILL.md) Step 2 for the LOG_LEVEL setup).
+4. If the event table has data but none for the alert's scope, surface this in the findings — the alert may be misconfigured (wrong database/schema in its condition) or the monitored object may not be emitting telemetry (LOG_LEVEL too restrictive — see [`../../../../data-engineering/dynamic-tables/dt-alerting/SKILL.md`](../../../dynamic-tables/dt-alerting/SKILL.md) Step 2 for the LOG_LEVEL setup).
 
 ---
 

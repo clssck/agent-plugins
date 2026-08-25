@@ -46,7 +46,7 @@ copy). **Detection order:**
    **and** a dot-prefixed dir with `plugin.json`), or neither marker and no
    explicit word → ⚠️ **MANDATORY STOPPING POINT** — call
    `ask_user_question` per
-   [share_interactive_prompts.md](../references/share_interactive_prompts.md)
+   the labels defined under
    § **Artifact type** (one picker: skill vs plugin). Set `<artifact_type>`
    from the pick.
 
@@ -142,7 +142,7 @@ Auto-detect by probing for the extension's existence:
      reshare confirmation + share options stop.
    - **More than one** entry in `<extension_matches>` → ⚠️ **MANDATORY
      STOPPING POINT** — list each match in chat, then call
-     `ask_user_question` per [share_interactive_prompts.md](../references/share_interactive_prompts.md)
+     `ask_user_question` per the labels defined under
      § **Multiple schema matches** (one option per FQN + Cancel). Set
      `<DB>` / `<SCHEMA>` from the pick, then see §3 below.
    - **Zero** entries in `<extension_matches>` and **all** candidates return
@@ -348,7 +348,7 @@ If they match, continue as **re-share** and complete §3.
 
 ⚠️ **MANDATORY STOPPING POINT** — show the existing FQN and catalog URI in
 chat, then call `ask_user_question` per
-[share_interactive_prompts.md](../references/share_interactive_prompts.md)
+the labels defined under
 § **Reshare combined stop** (use "Different skill/plugin…" label with
 **`<artifact_noun>`**). **Do not** paste the option list as markdown.
 
@@ -391,7 +391,7 @@ ask nothing.
 
 After `DESCRIBE CORTEX EXTENSION` succeeds (§ SQL) and § **Re-share: renamed
 artifact?** kept re-share intent, call `ask_user_question` per
-[share_interactive_prompts.md](../references/share_interactive_prompts.md)
+the labels defined under
 § **Explicit reshare mode (A / B)**.
 
 - **Content-only — keep current share options** → `share-resync` (step 3
@@ -472,7 +472,7 @@ as “missing”; re-asking for the same target is wrong.
 **Always run** after intent, target, artifact type, and (for re-share) §3
 choices are resolved — and **before** loading the next step. Show the gathered
 details using
-[share_interactive_prompts.md](../references/share_interactive_prompts.md)
+the labels defined under
 § **Pre-flight summary** (use the template matching `<artifact_type>`). Then
 call `ask_user_question` § **Confirm gathered details**. Do **not** proceed to
 step 2 or step 4 until the user picks **Yes, proceed**.
