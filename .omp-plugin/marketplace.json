@@ -158,12 +158,12 @@
     },
     {
       "name": "lavish-axi",
-      "version": "0.1.1788427020",
+      "version": "0.1.1788458060",
       "source": {
         "source": "github",
         "repo": "kunchenguid/lavish-axi",
         "ref": "main",
-        "sha": "19a0800809c469d7924daf5cee1d80dbbef3175f"
+        "sha": "5b871af347444feda1d3002952ec5fc179248629"
       },
       "description": "HTML is the new markdown. Lavish is the new editor for your HTML artifacts.",
       "author": {
@@ -183,12 +183,12 @@
     },
     {
       "name": "document-skills",
-      "version": "1.0.1788287438",
+      "version": "1.0.1788453433",
       "source": {
         "source": "github",
         "repo": "anthropics/skills",
         "ref": "main",
-        "sha": "53048666b05b4799081517d00e09e0a2dd688678"
+        "sha": "41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f"
       },
       "skills": [
         "./skills/xlsx",
@@ -204,12 +204,12 @@
     },
     {
       "name": "example-skills",
-      "version": "1.0.1788287438",
+      "version": "1.0.1788453433",
       "source": {
         "source": "github",
         "repo": "anthropics/skills",
         "ref": "main",
-        "sha": "53048666b05b4799081517d00e09e0a2dd688678"
+        "sha": "41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f"
       },
       "skills": [
         "./skills/algorithmic-art",
@@ -233,12 +233,12 @@
     },
     {
       "name": "claude-api",
-      "version": "1.0.1788287438",
+      "version": "1.0.1788453433",
       "source": {
         "source": "github",
         "repo": "anthropics/skills",
         "ref": "main",
-        "sha": "53048666b05b4799081517d00e09e0a2dd688678"
+        "sha": "41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f"
       },
       "skills": [
         "./skills/claude-api"
@@ -251,12 +251,12 @@
     },
     {
       "name": "academy-guide",
-      "version": "1.0.1788287438",
+      "version": "1.0.1788453433",
       "source": {
         "source": "github",
         "repo": "anthropics/skills",
         "ref": "main",
-        "sha": "53048666b05b4799081517d00e09e0a2dd688678"
+        "sha": "41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f"
       },
       "skills": [
         "./skills/academy-guide"
@@ -269,12 +269,12 @@
     },
     {
       "name": "discernment-nudge",
-      "version": "1.0.1788287438",
+      "version": "1.0.1788453433",
       "source": {
         "source": "github",
         "repo": "anthropics/skills",
         "ref": "main",
-        "sha": "53048666b05b4799081517d00e09e0a2dd688678"
+        "sha": "41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f"
       },
       "skills": [
         "./skills/discernment-nudge"
@@ -1112,12 +1112,12 @@
     },
     {
       "name": "snowflake-labs-coco-skills",
-      "version": "1.0.1787838625",
+      "version": "1.0.1788472565",
       "source": {
         "source": "github",
         "repo": "Snowflake-Labs/coco-skills",
         "ref": "main",
-        "sha": "de7ae178ee229a82719a829176a59288b5127cfa"
+        "sha": "28b549f48da9994307081a9d4d2f16379f5a9c16"
       },
       "description": "This is a curated collection of Agent Skills for Cortex Code (\"CoCo\") — Snowflake's CLI for building with AI.",
       "author": {
