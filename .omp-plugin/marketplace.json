@@ -133,12 +133,12 @@
     },
     {
       "name": "improve",
-      "version": "1.0.1781504319",
+      "version": "1.0.1789212568",
       "source": {
         "source": "github",
         "repo": "shadcn/improve",
         "ref": "main",
-        "sha": "03369ee6d7cafbfcecc4346539b05b3dc0a603bb"
+        "sha": "cac56e1ebd3c279aa9153616cfeac7b174ab90f9"
       },
       "description": "Point it at a codebase and it figures out what's worth doing — bugs, perf, tech debt, what to build next — then writes plans any agent can execute. It can hand the work to a cheaper model and review the result. It never edits your code.",
       "author": {
