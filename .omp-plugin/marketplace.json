@@ -158,12 +158,12 @@
     },
     {
       "name": "lavish-axi",
-      "version": "0.1.1789890025",
+      "version": "0.1.1789954204",
       "source": {
         "source": "github",
         "repo": "kunchenguid/lavish-axi",
         "ref": "main",
-        "sha": "37f1983fcb16e690f5271e0f7dfd92e1354d20d1"
+        "sha": "b4e82c63563cc9b4feaf947db53ec44902d10fb8"
       },
       "description": "HTML is the new markdown. Lavish is the new editor for your HTML artifacts.",
       "author": {
