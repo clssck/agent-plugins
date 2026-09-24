@@ -117,12 +117,12 @@
     },
     {
       "name": "emilkowalski-skills",
-      "version": "1.0.1789487530",
+      "version": "1.0.1790205507",
       "source": {
         "source": "github",
         "repo": "emilkowalski/skills",
         "ref": "main",
-        "sha": "85e8e2363b713506e1d5b6e07a0eb2da66be1bc3"
+        "sha": "d16ebe60d09a5ba2afcb7054ede9d0a10c9f6128"
       },
       "description": "Skills for Designers and Engineers.",
       "author": {
@@ -287,13 +287,13 @@
     },
     {
       "name": "hf-cli",
-      "version": "1.0.1789640840",
+      "version": "1.0.1790243393",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/huggingface/skills.git",
         "path": "skills/hf-cli",
         "ref": "main",
-        "sha": "abc20ae526d8b4c0e4dff89f904adce28a4a0eb6"
+        "sha": "0e9e9eb7c0799928673f0a80e6318372b1284f8e"
       },
       "skills": "./",
       "description": "Execute Hugging Face Hub operations using the hf CLI. Install additional Hugging Face skills, discover agent resources, download models/datasets, upload files, manage repos, and run cloud compute jobs.",
