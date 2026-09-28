@@ -607,9 +607,11 @@ for (const plugin of plugins.filter(plugin => nameCounts.get(plugin.name) > 1)) 
   usedNames.add(candidate);
 }
 
-const readmeRows = await Promise.all(
-  skillRecords.map(async record => ({ ...record, lastCommit: await lastCommitForSkill(record) })),
-);
+// Sequential: a parallel burst of per-path commit queries trips GitHub's secondary rate limit.
+const readmeRows = [];
+for (const record of skillRecords) {
+  readmeRows.push({ ...record, lastCommit: await lastCommitForSkill(record) });
+}
 readmeRows.sort((left, right) => {
   if (left.name !== right.name) return left.name < right.name ? -1 : 1;
   return left.plugin.name < right.plugin.name ? -1 : left.plugin.name > right.plugin.name ? 1 : 0;
