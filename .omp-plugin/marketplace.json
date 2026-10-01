@@ -183,13 +183,13 @@
     },
     {
       "name": "hf-cli",
-      "version": "1.0.1790251332",
+      "version": "1.0.1790857999",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/huggingface/skills.git",
         "path": "skills/hf-cli",
         "ref": "main",
-        "sha": "80f9fa530e46f4ae642fcb9e1725bad0e1979395"
+        "sha": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b"
       },
       "skills": "./",
       "description": "Execute Hugging Face Hub operations using the hf CLI. Install additional Hugging Face skills, discover agent resources, download models/datasets, upload files, manage repos, and run cloud compute jobs.",
