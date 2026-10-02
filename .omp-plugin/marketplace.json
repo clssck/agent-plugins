@@ -117,12 +117,12 @@
     },
     {
       "name": "emilkowalski-skills",
-      "version": "1.0.1790205507",
+      "version": "1.0.1790937811",
       "source": {
         "source": "github",
         "repo": "emilkowalski/skills",
         "ref": "main",
-        "sha": "d16ebe60d09a5ba2afcb7054ede9d0a10c9f6128"
+        "sha": "e8a175de22ae1e49370fc144c1f3bb9aeedf988d"
       },
       "description": "Skills for Designers and Engineers.",
       "author": {
