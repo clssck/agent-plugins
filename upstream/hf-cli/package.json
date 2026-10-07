@@ -1,9 +1,0 @@
-{
-  "name": "hf-cli",
-  "version": "0.0.0-gca0325b",
-  "private": true,
-  "description": "Execute Hugging Face Hub operations using the hf CLI: discover resources, download models/datasets, upload files, manage repos, and run cloud compute jobs.",
-  "homepage": "https://github.com/huggingface/skills/tree/ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
-  "repository": "https://github.com/huggingface/skills",
-  "omp": {}
-}

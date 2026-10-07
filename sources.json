@@ -33,31 +33,11 @@
       }
     },
     {
-      "name": "hf-cli",
-      "repo": "huggingface/skills",
-      "ref": "main",
-      "sha": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
-      "description": "Execute Hugging Face Hub operations using the hf CLI: discover resources, download models/datasets, upload files, manage repos, and run cloud compute jobs.",
-      "include": {
-        "skills/hf-cli": "skills/hf-cli"
-      }
-    },
-    {
       "name": "gsap-skills",
       "repo": "greensock/gsap-skills",
       "ref": "main",
       "sha": "aed9cfd3277740755f6bfc1155c7aa645403b760",
       "description": "Official GSAP skills covering tweens, timelines, ScrollTrigger, plugins, utilities, React hooks, and performance.",
-      "include": {
-        "skills": "skills"
-      }
-    },
-    {
-      "name": "obsidian",
-      "repo": "kepano/obsidian-skills",
-      "ref": "main",
-      "sha": "3ccff5338ea700537839b21900aa5358a0402c98",
-      "description": "Skills for Obsidian.",
       "include": {
         "skills": "skills"
       }
