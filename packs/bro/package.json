@@ -1,0 +1,18 @@
+{
+  "name": "bro",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Restate the assistant's previous response in plain, concise language.",
+  "license": "MIT",
+  "author": {
+    "name": "clssck"
+  },
+  "homepage": "https://github.com/clssck/agent-plugins/tree/main/packs/bro",
+  "repository": "https://github.com/clssck/agent-plugins",
+  "keywords": [
+    "writing",
+    "clarity",
+    "plain-language"
+  ],
+  "omp": {}
+}

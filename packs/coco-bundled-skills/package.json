@@ -1,0 +1,19 @@
+{
+  "name": "coco-bundled-skills",
+  "version": "1.1.69",
+  "private": true,
+  "description": "Snowflake Cortex Code (CoCo) bundled skills, redistributed with written permission from Snowflake.",
+  "license": "LicenseRef-Snowflake-CoCo-Permission",
+  "author": {
+    "name": "Snowflake Inc."
+  },
+  "homepage": "https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code",
+  "repository": "https://github.com/clssck/agent-plugins",
+  "keywords": [
+    "coco",
+    "cortex-code",
+    "snowflake",
+    "skills"
+  ],
+  "omp": {}
+}

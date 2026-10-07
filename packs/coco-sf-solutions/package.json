@@ -1,0 +1,19 @@
+{
+  "name": "coco-sf-solutions",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Snowflake industry solution accelerator skills bundled with Snowflake Cortex Code (CoCo).",
+  "license": "LicenseRef-CoCo-Bundled-Plugin-Permission",
+  "author": {
+    "name": "Snowflake Inc."
+  },
+  "homepage": "https://github.com/Snowflake-Labs",
+  "repository": "https://github.com/clssck/agent-plugins",
+  "keywords": [
+    "coco",
+    "snowflake",
+    "solutions",
+    "accelerators"
+  ],
+  "omp": {}
+}

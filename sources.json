@@ -1,27 +1,76 @@
 {
-  "marketplace": {
-    "name": "agent-plugins",
-    "owner": {
-      "name": "clssck"
-    },
-    "description": "Agent Plugins packages, linked straight from their makers"
-  },
   "repository": "clssck/agent-plugins",
-  "localPlugins": [
-    "plugins/bro",
-    "plugins/coco-airflow",
-    "plugins/coco-blueprints",
-    "plugins/coco-bundled-skills",
-    "plugins/coco-databricks",
-    "plugins/coco-sf-solutions"
-  ],
-  "repositories": [
-    "https://github.com/emilkowalski/skills",
-    "https://github.com/shadcn/improve",
-    "https://github.com/kunchenguid/lavish-axi",
-    "https://github.com/huggingface/skills",
-    "https://github.com/greensock/gsap-skills",
-    "https://github.com/kepano/obsidian-skills",
-    "https://github.com/Snowflake-Labs/coco-skills"
+  "description": "OMP extension packs: my own rules, agents, and skills, plus upstream skill repos pinned to exact commits.",
+  "upstreams": [
+    {
+      "name": "emilkowalski-skills",
+      "repo": "emilkowalski/skills",
+      "ref": "main",
+      "sha": "e8a175de22ae1e49370fc144c1f3bb9aeedf988d",
+      "description": "Skills for Designers and Engineers.",
+      "include": {
+        "skills": "skills"
+      }
+    },
+    {
+      "name": "improve",
+      "repo": "shadcn/improve",
+      "ref": "main",
+      "sha": "cac56e1ebd3c279aa9153616cfeac7b174ab90f9",
+      "description": "Point it at a codebase and it figures out what's worth doing — bugs, perf, tech debt, what to build next — then writes plans any agent can execute. It never edits your code.",
+      "include": {
+        "skills": "skills"
+      }
+    },
+    {
+      "name": "lavish-axi",
+      "repo": "kunchenguid/lavish-axi",
+      "ref": "main",
+      "sha": "8039751b60f5e3aadaf5fc0ee90864d6e667d70a",
+      "description": "HTML is the new markdown. Lavish is the new editor for your HTML artifacts.",
+      "include": {
+        "skills": "skills"
+      }
+    },
+    {
+      "name": "hf-cli",
+      "repo": "huggingface/skills",
+      "ref": "main",
+      "sha": "ca0325bb20b2d0a1b2efa893670c4c72f79e707b",
+      "description": "Execute Hugging Face Hub operations using the hf CLI: discover resources, download models/datasets, upload files, manage repos, and run cloud compute jobs.",
+      "include": {
+        "skills/hf-cli": "skills/hf-cli"
+      }
+    },
+    {
+      "name": "gsap-skills",
+      "repo": "greensock/gsap-skills",
+      "ref": "main",
+      "sha": "aed9cfd3277740755f6bfc1155c7aa645403b760",
+      "description": "Official GSAP skills covering tweens, timelines, ScrollTrigger, plugins, utilities, React hooks, and performance.",
+      "include": {
+        "skills": "skills"
+      }
+    },
+    {
+      "name": "obsidian",
+      "repo": "kepano/obsidian-skills",
+      "ref": "main",
+      "sha": "3ccff5338ea700537839b21900aa5358a0402c98",
+      "description": "Skills for Obsidian.",
+      "include": {
+        "skills": "skills"
+      }
+    },
+    {
+      "name": "snowflake-labs-coco-skills",
+      "repo": "Snowflake-Labs/coco-skills",
+      "ref": "main",
+      "sha": "28b549f48da9994307081a9d4d2f16379f5a9c16",
+      "description": "Curated Agent Skills for Cortex Code (CoCo), Snowflake's CLI for building with AI.",
+      "include": {
+        "skills": "skills"
+      }
+    }
   ]
 }

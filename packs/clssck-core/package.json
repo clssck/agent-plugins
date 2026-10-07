@@ -1,0 +1,13 @@
+{
+  "name": "clssck-core",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal OMP rules and task agents.",
+  "license": "MIT",
+  "author": {
+    "name": "clssck"
+  },
+  "homepage": "https://github.com/clssck/agent-plugins/tree/main/packs/clssck-core",
+  "repository": "https://github.com/clssck/agent-plugins",
+  "omp": {}
+}

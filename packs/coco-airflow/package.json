@@ -1,0 +1,21 @@
+{
+  "name": "coco-airflow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Astronomer data-engineering and Airflow skills bundled with Snowflake Cortex Code (CoCo).",
+  "license": "LicenseRef-CoCo-Bundled-Plugin-Permission",
+  "author": {
+    "name": "Astronomer",
+    "email": "support@astronomer.io",
+    "url": "https://github.com/astronomer/agents"
+  },
+  "homepage": "https://github.com/astronomer/agents",
+  "repository": "https://github.com/clssck/agent-plugins",
+  "keywords": [
+    "airflow",
+    "astronomer",
+    "coco",
+    "data-engineering"
+  ],
+  "omp": {}
+}
