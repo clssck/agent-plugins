@@ -186,7 +186,9 @@ const lines = [
   "| Skill | Pack | Repository | Last updated |",
   "| --- | --- | --- | --- |",
   ...rows.map(row => {
-    const skillUrl = `https://github.com/${row.repo}/blob/${row.sha}/${row.skillPath}`;
+    // Authored-pack rows link at their own last commit, not HEAD, so a bot commit doesn't rewrite them.
+    const revision = row.repo === sources.repository ? (row.lastCommit?.sha ?? row.sha) : row.sha;
+    const skillUrl = `https://github.com/${row.repo}/blob/${revision}/${row.skillPath}`;
     const updated = row.lastCommit
       ? `[${formatUtc(row.lastCommit.date)}](https://github.com/${row.repo}/commit/${row.lastCommit.sha})`
       : "not committed yet";
