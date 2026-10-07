@@ -12,7 +12,7 @@ Check an answer file for completeness against blueprint requirements and validat
 ## Usage
 
 ```
-/blueprints:validate <answer-file> --blueprint <blueprint-name>
+/blueprints-validate <answer-file> --blueprint <blueprint-name>
 ```
 
 ## Arguments

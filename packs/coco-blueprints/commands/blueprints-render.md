@@ -12,7 +12,7 @@ Generate SQL/Terraform/Documentation/PDF from an answer file. This command wraps
 ## Usage
 
 ```
-/blueprints:render <answer-file> --blueprint <blueprint-name> [options]
+/blueprints-render <answer-file> --blueprint <blueprint-name> [options]
 ```
 
 ## Arguments
@@ -92,7 +92,7 @@ Summary:
   Steps rendered: 18/22
   Steps skipped: 4 (missing variables)
 
-Tip: Run '/blueprints:validate <answer-file> --blueprint <blueprint>' to see missing variables.
+Tip: Run '/blueprints-validate <answer-file> --blueprint <blueprint>' to see missing variables.
 ```
 
 ## Error Handling
@@ -106,13 +106,13 @@ Tip: Run '/blueprints:validate <answer-file> --blueprint <blueprint>' to see mis
 
 ```bash
 # Render SQL, docs, and PDF with default project
-/blueprints:render answers.yaml --blueprint platform-foundation-setup
+/blueprints-render answers.yaml --blueprint platform-foundation-setup
 
 # Render to a specific project
-/blueprints:render answers.yaml --blueprint data-product-setup --project acme-corp --lang sql
+/blueprints-render answers.yaml --blueprint data-product-setup --project acme-corp --lang sql
 
 # Render only IaC (skip documentation and PDF)
-/blueprints:render answers.yaml --blueprint account-creation --skip-guidance
+/blueprints-render answers.yaml --blueprint account-creation --skip-guidance
 ```
 
 Now execute the render_journey.py script with the specified arguments.

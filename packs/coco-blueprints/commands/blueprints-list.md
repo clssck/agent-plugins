@@ -12,7 +12,7 @@ List all available blueprints with their metadata.
 ## Usage
 
 ```
-/blueprints:list
+/blueprints-list
 ```
 
 ## Instructions

@@ -66,7 +66,7 @@ cortex
 3. **Launch the Blueprint Builder:**
 
 ```bash
-/blueprints:build platform-foundation-setup
+/blueprints-build platform-foundation-setup
 ```
 
 ### How it works:
@@ -96,48 +96,48 @@ The following commands are available when using Cortex Code in this repository:
 
 | Command | Description |
 |---------|-------------|
-| `/blueprints:list` | List available blueprints with metadata |
-| `/blueprints:describe <name>` | Show blueprint details including task/step tree |
-| `/blueprints:build <name>` | Start the interactive blueprint building process |
-| `/blueprints:validate <file> --blueprint <name>` | Check answer file completeness |
-| `/blueprints:render <file> --blueprint <name>` | Generate SQL/Terraform/Documentation from answers |
+| `/blueprints-list` | List available blueprints with metadata |
+| `/blueprints-describe <name>` | Show blueprint details including task/step tree |
+| `/blueprints-build <name>` | Start the interactive blueprint building process |
+| `/blueprints-validate <file> --blueprint <name>` | Check answer file completeness |
+| `/blueprints-render <file> --blueprint <name>` | Generate SQL/Terraform/Documentation from answers |
 
 ### Project Management
 
 | Command | Description |
 |---------|-------------|
-| `/blueprints:projects-list` | List existing projects |
-| `/blueprints:projects-create <name>` | Create a new project directory structure |
-| `/blueprints:projects-describe <name>` | Show project status (answers, outputs, history) |
+| `/blueprints-projects-list` | List existing projects |
+| `/blueprints-projects-create <name>` | Create a new project directory structure |
+| `/blueprints-projects-describe <name>` | Show project status (answers, outputs, history) |
 
 ### Answer File Operations
 
 | Command | Description |
 |---------|-------------|
-| `/blueprints:answers-init <name>` | Generate a skeleton answer file with all questions |
-| `/blueprints:answers-validate <file>` | Check for missing/invalid values |
-| `/blueprints:answers-diff <file1> <file2>` | Compare two answer files |
+| `/blueprints-answers-init <name>` | Generate a skeleton answer file with all questions |
+| `/blueprints-answers-validate <file>` | Check for missing/invalid values |
+| `/blueprints-answers-diff <file1> <file2>` | Compare two answer files |
 
 ### Example Workflow
 
 ```bash
 # 1. List available blueprints
-/blueprints:list
+/blueprints-list
 
 # 2. Create a project for your work
-/blueprints:projects-create my-company
+/blueprints-projects-create my-company
 
 # 3. Start building interactively
-/blueprints:build platform-foundation-setup --project my-company
+/blueprints-build platform-foundation-setup --project my-company
 
 # 4. Or generate a skeleton and fill manually
-/blueprints:answers-init platform-foundation-setup --project my-company
+/blueprints-answers-init platform-foundation-setup --project my-company
 
 # 5. Validate your answers
-/blueprints:validate answers.yaml --blueprint platform-foundation-setup
+/blueprints-validate answers.yaml --blueprint platform-foundation-setup
 
 # 6. Generate SQL output
-/blueprints:render answers.yaml --blueprint platform-foundation-setup --project my-company
+/blueprints-render answers.yaml --blueprint platform-foundation-setup --project my-company
 ```
 
 ## Skills
