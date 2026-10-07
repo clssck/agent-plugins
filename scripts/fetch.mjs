@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Materialize every upstream pack from sources.json into upstream/<name>/ at its pinned commit.
-// Packs already at their pin are left untouched, so `omp plugin link` symlinks stay valid.
+// Copy every upstream pack from sources.json into upstream/<name>/ at its pinned commit.
+// The workflow runs this and commits upstream/; packs already at their pin are left untouched.
 
 import { spawn } from "node:child_process";
 import { cp, mkdir, mkdtemp, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";

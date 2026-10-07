@@ -1,4 +1,4 @@
-name: Sync upstream pins
+name: Sync upstream skills
 
 on:
   schedule:
@@ -26,18 +26,18 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/sync.mjs
 
-      - name: Verify every pinned upstream builds
+      - name: Download upstream skills at the pinned commits
         run: node scripts/fetch.mjs
 
       - name: Publish
         run: |
-          if git diff --quiet -- sources.json README.md; then
-            echo "Pins and README are current."
+          git add -A -- sources.json README.md upstream
+          if git diff --cached --quiet; then
+            echo "Upstream skills, pins, and README are current."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add sources.json README.md
-          git commit -m "Update upstream pins"
+          git commit -m "Update upstream skills"
           git push

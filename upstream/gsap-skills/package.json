@@ -1,0 +1,9 @@
+{
+  "name": "gsap-skills",
+  "version": "0.0.0-gaed9cfd",
+  "private": true,
+  "description": "Official GSAP skills covering tweens, timelines, ScrollTrigger, plugins, utilities, React hooks, and performance.",
+  "homepage": "https://github.com/greensock/gsap-skills/tree/aed9cfd3277740755f6bfc1155c7aa645403b760",
+  "repository": "https://github.com/greensock/gsap-skills",
+  "omp": {}
+}

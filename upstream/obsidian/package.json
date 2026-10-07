@@ -1,0 +1,9 @@
+{
+  "name": "obsidian",
+  "version": "0.0.0-g3ccff53",
+  "private": true,
+  "description": "Skills for Obsidian.",
+  "homepage": "https://github.com/kepano/obsidian-skills/tree/3ccff5338ea700537839b21900aa5358a0402c98",
+  "repository": "https://github.com/kepano/obsidian-skills",
+  "omp": {}
+}

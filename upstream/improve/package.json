@@ -1,0 +1,9 @@
+{
+  "name": "improve",
+  "version": "0.0.0-gcac56e1",
+  "private": true,
+  "description": "Point it at a codebase and it figures out what's worth doing — bugs, perf, tech debt, what to build next — then writes plans any agent can execute. It never edits your code.",
+  "homepage": "https://github.com/shadcn/improve/tree/cac56e1ebd3c279aa9153616cfeac7b174ab90f9",
+  "repository": "https://github.com/shadcn/improve",
+  "omp": {}
+}

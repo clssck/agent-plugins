@@ -1,0 +1,9 @@
+{
+  "name": "snowflake-labs-coco-skills",
+  "version": "0.0.0-g28b549f",
+  "private": true,
+  "description": "Curated Agent Skills for Cortex Code (CoCo), Snowflake's CLI for building with AI.",
+  "homepage": "https://github.com/Snowflake-Labs/coco-skills/tree/28b549f48da9994307081a9d4d2f16379f5a9c16",
+  "repository": "https://github.com/Snowflake-Labs/coco-skills",
+  "omp": {}
+}
