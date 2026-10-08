@@ -1,6 +1,6 @@
 {
   "repository": "clssck/agent-plugins",
-  "description": "OMP extension packs: my own rules, agents, and skills, plus upstream skill repos pinned to exact commits.",
+  "description": "OMP extension packs: my own rules, agents, and skills, plus skills from other repositories, refreshed daily.",
   "upstreams": [
     {
       "name": "emilkowalski-skills",

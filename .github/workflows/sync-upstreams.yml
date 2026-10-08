@@ -1,4 +1,4 @@
-name: Sync upstream skills
+name: Sync
 
 on:
   schedule:
@@ -6,10 +6,14 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ["packs/**", "sources.json", "scripts/**"]
+    paths:
+      - "packs/**"
+      - "sources.json"
+      - "scripts/**"
+      - ".github/workflows/sync-upstreams.yml"
 
 concurrency:
-  group: sync-upstream-pins
+  group: sync
   cancel-in-progress: true
 
 permissions:
@@ -20,23 +24,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history: README "Last updated" for authored packs comes from `git log`.
+          fetch-depth: 0
 
-      - name: Re-pin upstreams and regenerate README
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Pin, fetch, check, and regenerate README
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node scripts/sync.mjs
+        run: bun scripts/sync.ts
 
-      - name: Download upstream skills at the pinned commits
-        run: node scripts/fetch.mjs
-
-      - name: Publish
+      - name: Commit changes
         run: |
           git add -A -- sources.json README.md upstream
           if git diff --cached --quiet; then
-            echo "Upstream skills, pins, and README are current."
+            echo "Already up to date."
             exit 0
           fi
-
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Update upstream skills"
