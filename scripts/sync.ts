@@ -56,17 +56,25 @@ const LICENSE_FILE = /^(licen[cs]e|copying|notice)(\.|$)/i;
 
 const token = process.env.GITHUB_TOKEN;
 
-async function github<T>(endpoint: string): Promise<T> {
-	const response = await fetch(`https://api.github.com${endpoint}`, {
-		headers: {
-			Accept: "application/vnd.github+json",
-			"X-GitHub-Api-Version": "2022-11-28",
-			"User-Agent": "clssck-agent-plugins",
-			...(token ? { Authorization: `Bearer ${token}` } : {}),
-		},
+/** One GraphQL request; callers batch many lookups into it with aliases. */
+async function graphql<T>(query: string): Promise<T> {
+	if (!token) throw new Error("GITHUB_TOKEN is required: GitHub's GraphQL API has no anonymous access");
+	const response = await fetch("https://api.github.com/graphql", {
+		method: "POST",
+		headers: { Authorization: `Bearer ${token}`, "User-Agent": "clssck-agent-plugins" },
+		body: JSON.stringify({ query }),
 	});
-	if (!response.ok) throw new Error(`GitHub ${response.status} for ${endpoint}: ${await response.text()}`);
-	return (await response.json()) as T;
+	const body = (await response.json()) as { data?: T; errors?: Array<{ message: string }> };
+	if (!response.ok || body.errors?.length || !body.data) {
+		throw new Error(`GitHub GraphQL ${response.status}: ${body.errors?.map(error => error.message).join("; ")}`);
+	}
+	return body.data;
+}
+
+/** GraphQL `repository(...)` selector; JSON string literals are valid GraphQL strings. */
+function repositoryField(repo: string): string {
+	const [owner, name] = repo.split("/");
+	return `repository(owner: ${JSON.stringify(owner)}, name: ${JSON.stringify(name)})`;
 }
 
 async function readJson<T>(file: string): Promise<T | undefined> {
@@ -102,12 +110,17 @@ function frontmatter(content: string): Record<string, unknown> | undefined {
 // ---------------------------------------------------------------------------
 
 async function pin(sources: Sources): Promise<void> {
-	for (const upstream of sources.upstreams) {
-		const head = await github<{ sha: string }>(`/repos/${upstream.repo}/commits/${encodeURIComponent(upstream.ref)}`);
-		if (head.sha === upstream.sha) continue;
-		console.log(`pin    ${upstream.name}: ${upstream.sha.slice(0, 7)} -> ${head.sha.slice(0, 7)}`);
-		upstream.sha = head.sha;
-	}
+	const fields = sources.upstreams.map(
+		(upstream, i) => `u${i}: ${repositoryField(upstream.repo)} { object(expression: ${JSON.stringify(upstream.ref)}) { oid } }`,
+	);
+	const heads = await graphql<Record<string, { object: { oid: string } | null } | null>>(`query { ${fields.join("\n")} }`);
+	sources.upstreams.forEach((upstream, i) => {
+		const head = heads[`u${i}`]?.object?.oid;
+		if (!head) throw new Error(`${upstream.name}: ${upstream.repo} has no ref "${upstream.ref}"`);
+		if (head === upstream.sha) return;
+		console.log(`pin    ${upstream.name}: ${upstream.sha.slice(0, 7)} -> ${head.slice(0, 7)}`);
+		upstream.sha = head;
+	});
 	await Bun.write(SOURCES_PATH, `${JSON.stringify(sources, null, 2)}\n`);
 }
 
@@ -119,7 +132,7 @@ async function extractTarball(repo: string, sha: string, destination: string): P
 	const response = await fetch(`https://codeload.github.com/${repo}/tar.gz/${sha}`);
 	if (!response.ok) throw new Error(`Download failed for ${repo}@${sha}: HTTP ${response.status}`);
 	const tar = Bun.spawn(["tar", "-xzf", "-", "-C", destination, "--strip-components=1"], {
-		stdin: await response.arrayBuffer(),
+		stdin: response,
 		stderr: "pipe",
 	});
 	if ((await tar.exited) !== 0) throw new Error(`tar failed for ${repo}@${sha}: ${await new Response(tar.stderr).text()}`);
@@ -284,18 +297,46 @@ async function check(sources: Sources): Promise<Pack[]> {
 // 4. readme
 // ---------------------------------------------------------------------------
 
-function localLastCommit(file: string): Commit | undefined {
-	const result = Bun.spawnSync(["git", "log", "-1", "--format=%H %cI", "--", file], { cwd: ROOT });
-	const [sha, date] = result.stdout.toString().trim().split(" ");
-	return sha && date ? { sha, date } : undefined;
+/** Newest commit touching each directory under packs/, from one pass over history (newest first). */
+function localLastCommits(): Map<string, Commit> {
+	const log = Bun.spawnSync(["git", "log", "--format=%x00%H %cI", "--name-only", "--", "packs"], { cwd: ROOT });
+	const latest = new Map<string, Commit>();
+	for (const block of log.stdout.toString().split("\0").slice(1)) {
+		const [header, ...files] = block.trim().split("\n");
+		const [sha, date] = header.split(" ");
+		for (const file of files) {
+			// Ancestors of an already-dated directory were dated by the same, newer commit.
+			for (let dir = path.posix.dirname(file); dir !== "." && !latest.has(dir); dir = path.posix.dirname(dir)) {
+				latest.set(dir, { sha, date });
+			}
+		}
+	}
+	return latest;
 }
 
-async function upstreamLastCommit(repo: string, sha: string, dir: string): Promise<Commit | undefined> {
-	const query = new URLSearchParams({ sha, path: dir, per_page: "1" });
-	const [commit] = await github<Array<{ sha: string; commit: { committer: { date: string } } }>>(
-		`/repos/${repo}/commits?${query}`,
-	);
-	return commit && { sha: commit.sha, date: commit.commit.committer.date };
+/** Newest commit touching each upstream skill at its pin, keyed by `<pack>/<skill dir>`, in one request. */
+async function upstreamLastCommits(packs: Pack[]): Promise<Map<string, Commit>> {
+	const lookups: Array<{ key: string; alias: string }> = [];
+	const fields = packs.flatMap((pack, p) => {
+		if (!pack.upstream || pack.skills.length === 0) return [];
+		const upstream = pack.upstream;
+		const histories = pack.skills.map((skill, s) => {
+			const dir = path.posix.dirname(skill.file);
+			lookups.push({ key: `${pack.name}/${dir}`, alias: `${p}.${s}` });
+			return `s${s}: history(first: 1, path: ${JSON.stringify(upstreamPath(upstream, dir))}) { nodes { oid committedDate } }`;
+		});
+		return [`p${p}: ${repositoryField(upstream.repo)} { object(oid: ${JSON.stringify(upstream.sha)}) { ... on Commit { ${histories.join(" ")} } } }`];
+	});
+	if (fields.length === 0) return new Map();
+	type History = { nodes: Array<{ oid: string; committedDate: string }> };
+	const data = await graphql<Record<string, { object: Record<string, History> | null } | null>>(`query { ${fields.join("\n")} }`);
+	const commits = new Map<string, Commit>();
+	for (const { key, alias } of lookups) {
+		const [p, s] = alias.split(".");
+		const node = data[`p${p}`]?.object?.[`s${s}`]?.nodes[0];
+		if (node) commits.set(key, { sha: node.oid, date: node.committedDate });
+	}
+	return commits;
 }
 
 /** Map a path inside an upstream pack back to its path in the upstream repository. */
@@ -314,8 +355,9 @@ function describeContents(pack: Pack): string {
 }
 
 async function renderReadme(sources: Sources, packs: Pack[]): Promise<string> {
+	const localCommits = localLastCommits();
+	const upstreamCommits = await upstreamLastCommits(packs);
 	const rows: string[] = [];
-	// Sequential: a burst of parallel commit queries trips GitHub's secondary rate limit.
 	for (const pack of packs) {
 		for (const skill of pack.skills) {
 			const dir = path.posix.dirname(skill.file);
@@ -325,11 +367,11 @@ async function renderReadme(sources: Sources, packs: Pack[]): Promise<string> {
 			if (pack.upstream) {
 				const source = upstreamPath(pack.upstream, dir);
 				repo = pack.upstream.repo;
-				commit = await upstreamLastCommit(repo, pack.upstream.sha, source);
+				commit = upstreamCommits.get(`${pack.name}/${dir}`);
 				skillUrl = `https://github.com/${repo}/blob/${pack.upstream.sha}/${source}/SKILL.md`;
 			} else {
 				repo = sources.repository;
-				commit = localLastCommit(path.posix.join(pack.dir, dir));
+				commit = localCommits.get(path.posix.join(pack.dir, dir));
 				// Link at the skill's own last commit so unrelated commits don't rewrite the row.
 				skillUrl = `https://github.com/${repo}/blob/${commit?.sha ?? "main"}/${pack.dir}/${skill.file}`;
 			}
