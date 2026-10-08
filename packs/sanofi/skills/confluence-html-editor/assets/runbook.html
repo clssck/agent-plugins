@@ -1,0 +1,86 @@
+<p>
+  <strong>Status:</strong> <span data-type="status" data-color="purple">Runbook</span>
+  | <strong>Owner:</strong> Team
+  | <strong>Reviewed:</strong> <time datetime="YYYY-MM-DD">YYYY-MM-DD</time>
+  | <strong>Audience:</strong> Operators
+</p>
+
+<div data-type="panel-warning">
+  <p><strong>Use with care:</strong> Replace this with the operational risk, approval requirement, or safety boundary before anyone executes the procedure.</p>
+</div>
+
+<h2>Purpose</h2>
+<p>Replace this with the exact situation this runbook handles and the expected end state.</p>
+
+<h2>Prerequisites</h2>
+<table>
+  <thead>
+    <tr>
+      <th><p>Requirement</p></th>
+      <th><p>Status</p></th>
+      <th><p>How to verify</p></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><p>Access confirmed</p></td>
+      <td><p><span data-type="status" data-color="yellow">Check</span></p></td>
+      <td><p>Replace with system, role, or approval evidence.</p></td>
+    </tr>
+    <tr>
+      <td><p>Rollback path known</p></td>
+      <td><p><span data-type="status" data-color="blue">Ready</span></p></td>
+      <td><p>Read the rollback section before starting.</p></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Procedure</h2>
+<ol>
+  <li>Announce the operation and confirm the current owner.</li>
+  <li>Capture the current state using the command or dashboard in the evidence section.</li>
+  <li>Perform the smallest safe action that moves the system toward the target state.</li>
+  <li>Run the validation checks below before continuing.</li>
+</ol>
+
+<h2>Validation</h2>
+<table>
+  <thead>
+    <tr>
+      <th><p>Check</p></th>
+      <th><p>Expected result</p></th>
+      <th><p>Status</p></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><p>Health check</p></td>
+      <td><p>Service or workflow returns to normal.</p></td>
+      <td><p><span data-type="status" data-color="neutral">Todo</span></p></td>
+    </tr>
+    <tr>
+      <td><p>Evidence captured</p></td>
+      <td><p>Logs, screenshots, or query results are linked.</p></td>
+      <td><p><span data-type="status" data-color="neutral">Todo</span></p></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Operator Checklist</h2>
+<ul data-type="task-list">
+  <li data-type="task-item"><input type="checkbox"> Preconditions checked.</li>
+  <li data-type="task-item"><input type="checkbox"> Procedure completed.</li>
+  <li data-type="task-item"><input type="checkbox"> Validation passed.</li>
+  <li data-type="task-item"><input type="checkbox"> Stakeholders notified.</li>
+</ul>
+
+<details>
+  <summary>Rollback</summary>
+  <p>Replace this with the rollback decision point, exact rollback action, validation, and escalation owner.</p>
+</details>
+
+<details>
+  <summary>Command reference</summary>
+  <pre><code class="language-shell"># Replace with safe read-only checks first
+command --check</code></pre>
+</details>

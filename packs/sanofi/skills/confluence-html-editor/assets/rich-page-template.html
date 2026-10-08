@@ -1,0 +1,121 @@
+<p>
+  <strong>Status:</strong> <span data-type="status" data-color="blue">Draft</span>
+  | <strong>Owner:</strong> Team
+  | <strong>Updated:</strong> <time datetime="YYYY-MM-DD">YYYY-MM-DD</time>
+  | <strong>Audience:</strong> Operators, reviewers, and decision makers
+</p>
+
+<div data-type="panel-info">
+  <p><strong>Purpose:</strong> Replace this with the one-sentence reason the page exists and the decision or action it should support.</p>
+</div>
+
+<h2>Executive Snapshot</h2>
+<table>
+  <thead>
+    <tr>
+      <th><p>Area</p></th>
+      <th><p>Status</p></th>
+      <th><p>Evidence</p></th>
+      <th><p>Next action</p></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><p>Scope</p></td>
+      <td><p><span data-type="status" data-color="green">Clear</span></p></td>
+      <td><p>Inputs and constraints are listed below.</p></td>
+      <td><p>Confirm no missing stakeholder or system boundary.</p></td>
+    </tr>
+    <tr>
+      <td><p>Quality</p></td>
+      <td><p><span data-type="status" data-color="yellow">Review</span></p></td>
+      <td><p>Validation evidence is attached or linked.</p></td>
+      <td><p>Resolve open review notes.</p></td>
+    </tr>
+  </tbody>
+</table>
+
+<section data-type="layout-two-equal">
+  <div data-type="column">
+    <h3>Current State</h3>
+    <ul>
+      <li>Replace with the current workflow, pain point, or baseline.</li>
+      <li>Keep each bullet short enough to scan.</li>
+    </ul>
+  </div>
+  <div data-type="column">
+    <h3>Target State</h3>
+    <ul>
+      <li>Replace with the desired workflow, behavior, or outcome.</li>
+      <li>State measurable acceptance criteria where possible.</li>
+    </ul>
+  </div>
+</section>
+
+<h2>Decisions</h2>
+<ul data-type="decision-list">
+  <li data-type="decision-item" data-state="DECIDED">Record the main confirmed decision here.</li>
+  <li data-type="decision-item" data-state="UNDECIDED">Record any unresolved decision here.</li>
+</ul>
+
+<h2>Evidence Matrix</h2>
+<table>
+  <thead>
+    <tr>
+      <th><p>Claim</p></th>
+      <th><p>Check</p></th>
+      <th><p>Result</p></th>
+      <th><p>Artifact</p></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><p>HTML body survives Confluence round trip</p></td>
+      <td><p>Fetch HTML after draft update</p></td>
+      <td><p><span data-type="status" data-color="green">Pass</span></p></td>
+      <td><p><a href="https://example.com" data-card-appearance="inline">Evidence link</a></p></td>
+    </tr>
+    <tr>
+      <td><p>Native components are preserved</p></td>
+      <td><p>Fetch ADF after draft update</p></td>
+      <td><p><span data-type="status" data-color="yellow">Review</span></p></td>
+      <td><p>Attach or link validation output.</p></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Flow</h2>
+<pre><code class="language-mermaid">flowchart LR
+  Input --&gt; Draft
+  Draft --&gt; Verify
+  Verify --&gt; Publish</code></pre>
+
+<h2>Follow-Up</h2>
+<ul data-type="task-list">
+  <li data-type="task-item"><input type="checkbox"> Assign final owner.</li>
+  <li data-type="task-item"><input type="checkbox"> Attach evidence artifacts.</li>
+  <li data-type="task-item"><input type="checkbox"> Confirm publish readiness.</li>
+</ul>
+
+<details>
+  <summary>Validation commands</summary>
+  <pre><code class="language-shell">python3 skill://confluence-html-editor/scripts/check_confluence_html.py proposed.html --original fetched.html --title "Page title"</code></pre>
+</details>
+
+<h2>Related Content</h2>
+<table>
+  <thead>
+    <tr>
+      <th><p>Link</p></th>
+      <th><p>Why it matters</p></th>
+      <th><p>Owner or freshness</p></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><p><a href="https://example.com">Related artifact</a></p></td>
+      <td><p>Replace with the reason a reader should open it.</p></td>
+      <td><p>Team, reviewed YYYY-MM-DD</p></td>
+    </tr>
+  </tbody>
+</table>
