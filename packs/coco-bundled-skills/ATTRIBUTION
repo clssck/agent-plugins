@@ -50,7 +50,6 @@ Included top-level skills:
 - lineage
 - machine-learning
 - manage-authentication-policy
-- manage-zerocopy-sapbdc
 - marketplace-search
 - migration-guide
 - native-app-consumer
@@ -74,7 +73,6 @@ Included top-level skills:
 - snowflake-tasks
 - snowpark-python (source: snowpark)
 - snowpipe-streaming
-- spark-migration
 - sql-author
 - storage-lifecycle-policy
 - team-workflow
@@ -85,9 +83,11 @@ Included top-level skills:
 
 Nested skills, references, scripts, assets, and fixtures remain attributed to their enclosing top-level CoCo skill. The generated repository catalog lists every included SKILL.md by name.
 
+Removed from this pack: `manage-zerocopy-sapbdc` and `spark-migration`. Both are maintained in Snowflake-Labs/coco-skills and ship with this repository's `snowflake-labs-coco-skills` pack; the link notes below that refer to their files describe the original import.
+
 Portability deviations from the CoCo source payload:
 
-The Agent Plugins package flattens CoCo skill groups into `skills/<public-name>/`. To keep every bundled relative Markdown link usable, the import changes link syntax only: existing targets are remapped to their packaged relative path; targets omitted from the CoCo payload are de-linked while preserving their visible label and surrounding instruction text. No instruction text is otherwise rewritten.
+This pack flattens CoCo skill groups into `skills/<public-name>/`. To keep every bundled relative Markdown link usable, the import changes link syntax only: existing targets are remapped to their packaged relative path; targets omitted from the CoCo payload are de-linked while preserving their visible label and surrounding instruction text. No instruction text is otherwise rewritten.
 
 Link accounting: 132 transformed occurrences (98 remapped, 34 de-linked).
 

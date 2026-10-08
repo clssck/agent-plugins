@@ -1,7 +1,0 @@
-configurations/
-config.json
-uv.lock
-
-# Generated migration/validation conversion outputs — never commit
-*_scos/
-Conversion-SCOS-*/
