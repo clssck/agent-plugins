@@ -9,30 +9,30 @@ Every directory in `packs/` (written here) and `upstream/` (copied from other re
 ## Install
 
 ```bash
-git clone https://github.com/clssck/agent-plugins ~/Projects/agent-plugins
-cd ~/Projects/agent-plugins
-omp plugin link packs/clssck-core      # link each pack you want
-omp plugin link upstream/emilkowalski-skills
+omp plugin install github:clssck/agent-plugins   # omp keeps its own copy of this repo
+AP=~/.omp/plugins/node_modules/agent-plugins
+omp plugin link $AP/packs/clssck-core              # link each pack you want
+omp plugin link $AP/upstream/emilkowalski-skills
 ```
 
-Links point at the clone, so `git pull` updates everything. `omp plugin disable <name>` / `enable <name>` toggles a pack, `omp plugin uninstall <name>` removes it, and `/extensions` toggles individual skills, rules, and agents.
+`omp plugin upgrade agent-plugins` pulls the latest commit; linked packs follow automatically because they point into omp's copy. `omp plugin disable <name>` / `enable <name>` toggles a pack, `omp plugin uninstall <name>` removes it, and `/extensions` toggles individual skills, rules, and agents.
 
 ## Packs
 
 | Pack | Link | Source | Contents |
 | --- | --- | --- | --- |
-| `bro` | `omp plugin link packs/bro` | this repo | 1 skill |
-| `clssck-core` | `omp plugin link packs/clssck-core` | this repo | 12 rules, 2 agents |
-| `coco-airflow` | `omp plugin link packs/coco-airflow` | this repo | 18 skills |
-| `coco-blueprints` | `omp plugin link packs/coco-blueprints` | this repo | 3 skills, 12 commands |
-| `coco-bundled-skills` | `omp plugin link packs/coco-bundled-skills` | this repo | 74 skills |
-| `coco-databricks` | `omp plugin link packs/coco-databricks` | this repo | 12 skills |
-| `coco-sf-solutions` | `omp plugin link packs/coco-sf-solutions` | this repo | 1 skill |
-| `emilkowalski-skills` | `omp plugin link upstream/emilkowalski-skills` | [emilkowalski/skills@e8a175d](https://github.com/emilkowalski/skills/tree/e8a175de22ae1e49370fc144c1f3bb9aeedf988d) | 14 skills |
-| `gsap-skills` | `omp plugin link upstream/gsap-skills` | [greensock/gsap-skills@aed9cfd](https://github.com/greensock/gsap-skills/tree/aed9cfd3277740755f6bfc1155c7aa645403b760) | 8 skills |
-| `improve` | `omp plugin link upstream/improve` | [shadcn/improve@cac56e1](https://github.com/shadcn/improve/tree/cac56e1ebd3c279aa9153616cfeac7b174ab90f9) | 1 skill |
-| `lavish-axi` | `omp plugin link upstream/lavish-axi` | [kunchenguid/lavish-axi@8039751](https://github.com/kunchenguid/lavish-axi/tree/8039751b60f5e3aadaf5fc0ee90864d6e667d70a) | 1 skill |
-| `snowflake-labs-coco-skills` | `omp plugin link upstream/snowflake-labs-coco-skills` | [Snowflake-Labs/coco-skills@28b549f](https://github.com/Snowflake-Labs/coco-skills/tree/28b549f48da9994307081a9d4d2f16379f5a9c16) | 18 skills |
+| `bro` | `omp plugin link $AP/packs/bro` | this repo | 1 skill |
+| `clssck-core` | `omp plugin link $AP/packs/clssck-core` | this repo | 12 rules, 2 agents |
+| `coco-airflow` | `omp plugin link $AP/packs/coco-airflow` | this repo | 18 skills |
+| `coco-blueprints` | `omp plugin link $AP/packs/coco-blueprints` | this repo | 3 skills, 12 commands |
+| `coco-bundled-skills` | `omp plugin link $AP/packs/coco-bundled-skills` | this repo | 74 skills |
+| `coco-databricks` | `omp plugin link $AP/packs/coco-databricks` | this repo | 12 skills |
+| `coco-sf-solutions` | `omp plugin link $AP/packs/coco-sf-solutions` | this repo | 1 skill |
+| `emilkowalski-skills` | `omp plugin link $AP/upstream/emilkowalski-skills` | [emilkowalski/skills@e8a175d](https://github.com/emilkowalski/skills/tree/e8a175de22ae1e49370fc144c1f3bb9aeedf988d) | 14 skills |
+| `gsap-skills` | `omp plugin link $AP/upstream/gsap-skills` | [greensock/gsap-skills@aed9cfd](https://github.com/greensock/gsap-skills/tree/aed9cfd3277740755f6bfc1155c7aa645403b760) | 8 skills |
+| `improve` | `omp plugin link $AP/upstream/improve` | [shadcn/improve@cac56e1](https://github.com/shadcn/improve/tree/cac56e1ebd3c279aa9153616cfeac7b174ab90f9) | 1 skill |
+| `lavish-axi` | `omp plugin link $AP/upstream/lavish-axi` | [kunchenguid/lavish-axi@8039751](https://github.com/kunchenguid/lavish-axi/tree/8039751b60f5e3aadaf5fc0ee90864d6e667d70a) | 1 skill |
+| `snowflake-labs-coco-skills` | `omp plugin link $AP/upstream/snowflake-labs-coco-skills` | [Snowflake-Labs/coco-skills@28b549f](https://github.com/Snowflake-Labs/coco-skills/tree/28b549f48da9994307081a9d4d2f16379f5a9c16) | 18 skills |
 
 ## Skills
 

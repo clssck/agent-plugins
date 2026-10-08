@@ -396,13 +396,13 @@ async function renderReadme(sources: Sources, packs: Pack[]): Promise<string> {
 		"## Install",
 		"",
 		"```bash",
-		"git clone https://github.com/clssck/agent-plugins ~/Projects/agent-plugins",
-		"cd ~/Projects/agent-plugins",
-		"omp plugin link packs/clssck-core      # link each pack you want",
-		"omp plugin link upstream/emilkowalski-skills",
+		"omp plugin install github:clssck/agent-plugins   # omp keeps its own copy of this repo",
+		"AP=~/.omp/plugins/node_modules/agent-plugins",
+		"omp plugin link $AP/packs/clssck-core              # link each pack you want",
+		"omp plugin link $AP/upstream/emilkowalski-skills",
 		"```",
 		"",
-		"Links point at the clone, so `git pull` updates everything. `omp plugin disable <name>` / `enable <name>` toggles a pack, `omp plugin uninstall <name>` removes it, and `/extensions` toggles individual skills, rules, and agents.",
+		"`omp plugin upgrade agent-plugins` pulls the latest commit; linked packs follow automatically because they point into omp's copy. `omp plugin disable <name>` / `enable <name>` toggles a pack, `omp plugin uninstall <name>` removes it, and `/extensions` toggles individual skills, rules, and agents.",
 		"",
 		"## Packs",
 		"",
@@ -412,7 +412,7 @@ async function renderReadme(sources: Sources, packs: Pack[]): Promise<string> {
 			const source = pack.upstream
 				? `[${pack.upstream.repo}@${pack.upstream.sha.slice(0, 7)}](https://github.com/${pack.upstream.repo}/tree/${pack.upstream.sha})`
 				: "this repo";
-			return `| \`${pack.name}\` | \`omp plugin link ${pack.dir}\` | ${source} | ${describeContents(pack)} |`;
+			return `| \`${pack.name}\` | \`omp plugin link $AP/${pack.dir}\` | ${source} | ${describeContents(pack)} |`;
 		}),
 		"",
 		"## Skills",

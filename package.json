@@ -1,0 +1,9 @@
+{
+  "name": "agent-plugins",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OMP extension packs. Install with `omp plugin install github:clssck/agent-plugins`, then link the packs you want.",
+  "license": "MIT",
+  "repository": "https://github.com/clssck/agent-plugins",
+  "omp": {}
+}
