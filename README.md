@@ -22,7 +22,7 @@ omp plugin link $AP/upstream/emilkowalski-skills
 | Pack | Link | Source | Contents |
 | --- | --- | --- | --- |
 | `bro` | `omp plugin link $AP/packs/bro` | this repo | 1 skill |
-| `clssck-core` | `omp plugin link $AP/packs/clssck-core` | this repo | 1 skill, 16 rules, 2 agents |
+| `clssck-core` | `omp plugin link $AP/packs/clssck-core` | this repo | 1 skill, 13 rules, 2 agents |
 | `coco-airflow` | `omp plugin link $AP/packs/coco-airflow` | this repo | 18 skills |
 | `coco-blueprints` | `omp plugin link $AP/packs/coco-blueprints` | this repo | 3 skills, 12 commands |
 | `coco-bundled-skills` | `omp plugin link $AP/packs/coco-bundled-skills` | this repo | 74 skills |
@@ -31,7 +31,7 @@ omp plugin link $AP/upstream/emilkowalski-skills
 | `emilkowalski-skills` | `omp plugin link $AP/upstream/emilkowalski-skills` | [emilkowalski/skills@e8a175d](https://github.com/emilkowalski/skills/tree/e8a175de22ae1e49370fc144c1f3bb9aeedf988d) | 14 skills |
 | `gsap-skills` | `omp plugin link $AP/upstream/gsap-skills` | [greensock/gsap-skills@aed9cfd](https://github.com/greensock/gsap-skills/tree/aed9cfd3277740755f6bfc1155c7aa645403b760) | 8 skills |
 | `improve` | `omp plugin link $AP/upstream/improve` | [shadcn/improve@cac56e1](https://github.com/shadcn/improve/tree/cac56e1ebd3c279aa9153616cfeac7b174ab90f9) | 1 skill |
-| `lavish-axi` | `omp plugin link $AP/upstream/lavish-axi` | [kunchenguid/lavish-axi@57d9a2b](https://github.com/kunchenguid/lavish-axi/tree/57d9a2bc8cdfcfda0f21bde5a5b615965999dbd5) | 1 skill |
+| `lavish-axi` | `omp plugin link $AP/upstream/lavish-axi` | [kunchenguid/lavish-axi@fb12e17](https://github.com/kunchenguid/lavish-axi/tree/fb12e17da12297b582092a80995cbd7498ee706f) | 1 skill |
 | `sanofi` | `omp plugin link $AP/packs/sanofi` | this repo | 12 skills |
 | `snowflake-labs-coco-skills` | `omp plugin link $AP/upstream/snowflake-labs-coco-skills` | [Snowflake-Labs/coco-skills@28b549f](https://github.com/Snowflake-Labs/coco-skills/tree/28b549f48da9994307081a9d4d2f16379f5a9c16) | 18 skills |
 
@@ -134,7 +134,7 @@ omp plugin link $AP/upstream/emilkowalski-skills
 | [integrations](https://github.com/clssck/agent-plugins/blob/2f5fa8216c5b4c7268181df3ba906ac59b083dd1/packs/coco-bundled-skills/skills/integrations/SKILL.md) | `coco-bundled-skills` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-07 20:52 UTC](https://github.com/clssck/agent-plugins/commit/2f5fa8216c5b4c7268181df3ba906ac59b083dd1) |
 | [internal-marketplace-org-listing](https://github.com/clssck/agent-plugins/blob/2f5fa8216c5b4c7268181df3ba906ac59b083dd1/packs/coco-bundled-skills/skills/internal-marketplace-org-listing/SKILL.md) | `coco-bundled-skills` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-07 20:52 UTC](https://github.com/clssck/agent-plugins/commit/2f5fa8216c5b4c7268181df3ba906ac59b083dd1) |
 | [key-and-secret-management](https://github.com/clssck/agent-plugins/blob/2f5fa8216c5b4c7268181df3ba906ac59b083dd1/packs/coco-bundled-skills/skills/key-and-secret-management/SKILL.md) | `coco-bundled-skills` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-07 20:52 UTC](https://github.com/clssck/agent-plugins/commit/2f5fa8216c5b4c7268181df3ba906ac59b083dd1) |
-| [lavish](https://github.com/kunchenguid/lavish-axi/blob/57d9a2bc8cdfcfda0f21bde5a5b615965999dbd5/skills/lavish/SKILL.md) | `lavish-axi` | [kunchenguid/lavish-axi](https://github.com/kunchenguid/lavish-axi) | [2026-09-29 20:49 UTC](https://github.com/kunchenguid/lavish-axi/commit/ae66e1ad082b192930f19800ad56d4d322f577e4) |
+| [lavish](https://github.com/kunchenguid/lavish-axi/blob/fb12e17da12297b582092a80995cbd7498ee706f/skills/lavish/SKILL.md) | `lavish-axi` | [kunchenguid/lavish-axi](https://github.com/kunchenguid/lavish-axi) | [2026-09-29 20:49 UTC](https://github.com/kunchenguid/lavish-axi/commit/ae66e1ad082b192930f19800ad56d4d322f577e4) |
 | [lineage](https://github.com/clssck/agent-plugins/blob/2f5fa8216c5b4c7268181df3ba906ac59b083dd1/packs/coco-bundled-skills/skills/lineage/SKILL.md) | `coco-bundled-skills` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-07 20:52 UTC](https://github.com/clssck/agent-plugins/commit/2f5fa8216c5b4c7268181df3ba906ac59b083dd1) |
 | [machine-learning](https://github.com/clssck/agent-plugins/blob/2f5fa8216c5b4c7268181df3ba906ac59b083dd1/packs/coco-bundled-skills/skills/machine-learning/SKILL.md) | `coco-bundled-skills` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-07 20:52 UTC](https://github.com/clssck/agent-plugins/commit/2f5fa8216c5b4c7268181df3ba906ac59b083dd1) |
 | [manage-authentication-policy](https://github.com/clssck/agent-plugins/blob/2f5fa8216c5b4c7268181df3ba906ac59b083dd1/packs/coco-bundled-skills/skills/manage-authentication-policy/SKILL.md) | `coco-bundled-skills` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-07 20:52 UTC](https://github.com/clssck/agent-plugins/commit/2f5fa8216c5b4c7268181df3ba906ac59b083dd1) |

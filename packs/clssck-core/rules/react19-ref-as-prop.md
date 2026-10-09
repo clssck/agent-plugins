@@ -9,7 +9,7 @@ scope:
 interruptMode: never
 ---
 
-**Check the React version in `package.json` before writing `forwardRef` or `<Ctx.Provider>`.**
+**React only; ignore this in Solid, Preact, or Vue JSX.** Check the React version in `package.json` before writing `forwardRef` or `<Ctx.Provider>`.
 
 - **React 19 or later, with no React 18 support needed:**
   - Receive `ref` as a regular prop: `function Input({ ref, ...props }: ComponentPropsWithRef<'input'>)`.
