@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Regression tests for review_confluence_publish.py."""
 
 from __future__ import annotations

@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Review local changes, commits, branches, or PRs against the Sanofi Accelerator baseline, with security/performance checklists and a five-axis written report. Use when asked for a code review, a Sanofi conventions check, or a human-readable review report. Not for generic bug hunts (/review) or vulnerability scans (/security).
+description: Review local changes, commits, branches, or PRs against the Sanofi Accelerator baseline, with security/performance checklists, dependency and lockfile checks, and a written report. Use for a code review, Sanofi conventions check, or dependency-bump review. Not for generic bug hunts (/review), vulnerability scans (/security), or Terraform.
 ---
 
 # Code Review
@@ -22,14 +22,15 @@ Inside `/review` or as a `reviewer` subagent: add Sanofi baseline findings in th
 
 ## Read-Only Rule
 
-- NEVER modify the working tree, index, branches, or dependencies.
-- NEVER run `npm audit fix`, `git stash`/`checkout`/`reset`/`commit`, formatters with write flags, or migrations.
-- MAY run read-only evidence commands: `git diff`, `npm audit --json`, tests, typecheck.
+- NEVER modify tracked files, the index, branches, or lockfiles. NEVER install or upgrade dependencies.
+- NEVER run `npm audit fix`, `npm install`, `uv lock`, `uv sync`, `uv add`, `pip-audit --fix`, `git stash`/`checkout`/`reset`/`commit`, formatters with write flags, or migrations.
+- MAY run read-only evidence commands: `git diff`, audits in [security-checklist.md](references/security-checklist.md#dependency-security), tests, typecheck.
+- uv projects: `uv run --locked --no-sync <cmd>` uses the existing `.venv` and fails instead of rewriting `uv.lock`. No `.venv`? Say tests were not run.
 - Fix requested separately? Treat it as a new task after the review.
 
 ## Select the Diff
 
-Pick the mode from the request; ask when ambiguous. Commands below are identical in bash, zsh, and PowerShell.
+Pick the mode from the request; ask when ambiguous.
 
 |Mode|Request shape|Commands|
 |---|---|---|
@@ -56,7 +57,7 @@ Base resolution, first hit wins:
 2. **Project context**: `read` nearest `AGENTS.md` and convention files it names. Project rules override generic and baseline rules. None found? Note it in the report.
 3. **Baseline**: stack matches (React, TanStack, Drizzle, Tailwind, Sanofi Elements)? Apply [sanofi-baseline.md](references/sanofi-baseline.md). Backend/infra only: its TypeScript, Git, and Security sections.
 4. **Tests first**: read changed tests before implementation; they state intent.
-5. **Five axes**: walk each changed file through the table below. Read the enclosing function or file, not only the hunk. Generated code MAY be scanned; lockfiles NEVER skipped (see Dependency Review).
+5. **Five axes**: walk each changed file through the table below. Read the enclosing function or file, not only the hunk. Generated code MAY be scanned; lockfiles follow Dependency Review.
 6. **Classify**: label every finding with a severity.
 7. **Report**: standalone → [review-report.template.md](assets/review-report.template.md); omit empty sections.
 
@@ -90,19 +91,19 @@ Security axis covers review-time checks. Suspected exploitable flaw? Recommend `
 
 ## Dependency Review
 
-Triggers: any diff touching a manifest (`package.json`), lockfile (`package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`), `.npmrc`, `pnpm-workspace.yaml`, or a workflow `uses:` ref. NEVER skip a lockfile as generated noise; supply-chain attacks land there.
+Triggers: any diff touching a manifest (`package.json`, `pyproject.toml`, `requirements*.txt`), lockfile (`package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `uv.lock`, `poetry.lock`), install policy (`.npmrc`, `pnpm-workspace.yaml`, `[tool.uv]`, `uv.toml`), or a workflow `uses:` ref. NEVER skip a lockfile as generated noise; supply-chain attacks land there.
 
 New dependency? Answer each before approving:
 
 - Existing stack or stdlib already solves it?
-- Authentic: package exists, repo link matches, no more popular near-identical name (typosquat). Agent-suggested names MUST be checked: `npm view <pkg> name repository time.created`.
+- Authentic: package exists, repo link matches, no more popular near-identical name (typosquat). Agent-suggested names MUST be checked: `npm view <pkg> name repository time.created`; PyPI: `read` `https://pypi.org/pypi/<pkg>/json`.
 - Maintained: release and commits within 12 months; more than one maintainer preferred.
-- Install scripts (`preinstall`/`install`/`postinstall`)? `npm view <pkg>@<ver> scripts`; each needs a reason.
+- Install-time code? npm: `npm view <pkg>@<ver> scripts` (`preinstall`/`install`/`postinstall`). Python: `uv.lock` entry with `sdist` but no `wheels` runs its build backend at install. Each needs a reason.
 - Bundle/install size and new transitive dependencies acceptable?
-- Known vulnerabilities: `npm audit --json` (pnpm: `pnpm audit --json`)?
+- Known vulnerabilities: run the audit commands in [security-checklist.md](references/security-checklist.md#dependency-security).
 - License compatible with the project?
 
-Lockfile and config red flags (integrity drift, new git/tarball sources, weakened install-script or release-age guards): [security-checklist.md](references/security-checklist.md#lockfile-and-config-red-flags). Important by default; Critical when the signal suggests compromise.
+Lockfile and install-policy changes: walk [security-checklist.md](references/security-checklist.md#lockfile-and-config-red-flags) line by line. Important by default; Critical when the signal suggests compromise.
 
 ## Review Conduct
 

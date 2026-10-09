@@ -4,9 +4,9 @@ Sanofi's incident severity classification. Based on **customer impact**,
 not engineering effort or internal inconvenience.
 
 Use the **highest** applicable severity. When in doubt, escalate up
-(SEV3 → SEV2, SEV2 → SEV1), not down. It is always acceptable to
-reclassify downward after the facts settle; under-classifying in the
-moment delays the right level of response.
+(SEV3 → SEV2, SEV2 → SEV1), not down. Reclassifying downward after the
+facts settle is acceptable only with a recorded reason; under-classifying
+in the moment delays the right level of response.
 
 ## SEV1 — Critical
 
@@ -102,6 +102,12 @@ exists. Detected by monitoring or reported by a small number of users.
 - The same pattern has caused multiple SEV3s (recurrence signal).
 - A near-miss — would have been SEV2 but for luck (timing, traffic level).
 - A new failure mode not seen before (learning signal).
+- Humans or customers detected it instead of monitoring (monitoring
+  failure).
+- On-call intervention was needed (rollback, traffic reroute).
+- A stakeholder requests one.
+
+The last three triggers follow the Google SRE book's postmortem criteria.
 
 **Examples**:
 

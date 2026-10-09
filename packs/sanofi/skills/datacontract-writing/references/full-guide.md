@@ -136,7 +136,7 @@ UUID generation:
 
 | Shell | Command |
 |-------|---------|
-| bash/zsh | `uuidgen` or `python3 -c "import uuid;print(uuid.uuid4())"` |
+| bash/zsh | `uuidgen` or `uv run --no-project python -c "import uuid; print(uuid.uuid4())"` |
 | PowerShell | `[guid]::NewGuid().ToString()` |
 
 ## Anti-Patterns
@@ -161,5 +161,4 @@ UUID generation:
 | Multiple tables in one DDL | One schema object per `CREATE TABLE`/`CREATE VIEW`, same contract |
 | Unmapped type | Keep `physicalType` verbatim; omit `logicalType`; flag |
 | Validator says `Unevaluated properties are not allowed` for `enum`, `synonyms`, `context`, `map`, `vector` | Contract declares `v3.1.0`; remove the field, or switch to `apiVersion: v3.2.0` only if the user agrees ([delta](odcs-template.md#v320-delta)) |
-| `datacontract lint` rejects an `id` the validator accepted | CLI bundles an older v3.1.0 schema; use `[A-Za-z0-9_-]` ids |
-| Imported draft has `id: my-data-contract`, `v3.2.0`, `my_host` | Reconcile per [datacontract-cli.md](datacontract-cli.md) |
+| Imported draft has `id: my-data-contract`, `v3.2.0`, `my_host`; or `datacontract lint` rejects an `id` the validator accepted | Reconcile per [datacontract-cli.md](datacontract-cli.md) |

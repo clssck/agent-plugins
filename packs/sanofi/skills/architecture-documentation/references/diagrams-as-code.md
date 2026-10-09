@@ -47,7 +47,7 @@ Good: `Rel(api, db, "Reads orders from", "SQL/TCP")`, plus a legend table direct
 
 ## Structurizr
 
-The tooling consolidated in 2025-2026. Structurizr Lite, Structurizr CLI, on-premises and the cloud service are end of life. All commands now ship in one `structurizr/structurizr` image (or `structurizr.war`, Java 21): `local` replaces Lite, `server` replaces on-premises, and `export`/`push`/`pull`/`validate`/`inspect` replace the CLI.
+Structurizr vNext consolidated the tooling: Structurizr Lite, Structurizr CLI, on-premises and the cloud service are end of life. All commands now ship in one `structurizr/structurizr` image (or `structurizr.war`, Java 21): `local` replaces Lite, `server` replaces on-premises, and `export`/`push`/`pull`/`validate`/`inspect` replace the CLI.
 
 Bad: `docker run structurizr/cli export ...` or `docker run structurizr/lite`.
 Good: `docker run --rm -v "$PWD:/usr/local/structurizr" structurizr/structurizr validate -workspace workspace.dsl`.
@@ -60,7 +60,7 @@ Good: `docker run --rm -v "$PWD:/usr/local/structurizr" structurizr/structurizr 
 
 - Drop the documented `-it` flag in non-interactive `bash` runs. Docker rejects `-t` without a TTY.
 - `inspect` exits with the violation count. A nonzero exit is findings, not a crash.
-- Export formats: `plantuml`, `plantuml/c4plantuml`, `mermaid`, `static`, `json`. `png`/`svg` need the `-playwright` image tag. Exports do not support every shape or feature.
+- Export formats: `plantuml`, `plantuml/c4plantuml`, `mermaid`, `static`, `json`. `png`/`svg` need a Playwright build: the `<version>-playwright` image tag or the `-playwright` `.war`. Exports do not support every shape or feature.
 - Mermaid exports need `securityLevel: "loose"` in the Mermaid config.
 - `local` writes manual layout to `workspace.json` next to `workspace.dsl`. NEVER delete or regenerate `workspace.json` when editing the DSL, or the layout is lost. NEVER rename `workspace.dsl`, because `local` looks for that name. Apply the [versioning-guide.md](versioning-guide.md) identifier to exports and the changelog.
 - Implied relationships are on by default. A container-level relationship implies the system-level one, so NEVER add duplicate explicit L1 relationships. Respect any `!impliedRelationships` setting already in the file.

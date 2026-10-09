@@ -1,5 +1,12 @@
-#!/usr/bin/env python3
-"""Audit fetched Confluence HTML and ADF before editing."""
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
+"""Audit fetched Confluence HTML and ADF before editing.
+
+Usage: uv run audit_confluence_page.py --html fetched.html --adf fetched-adf.json --title "Page title"
+"""
 
 from __future__ import annotations
 

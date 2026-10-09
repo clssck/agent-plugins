@@ -1,11 +1,11 @@
 ---
 name: sanofi-airflow
-description: Sanofi MWAA Airflow conventions - parse-time safety, sanofi-airflow-utils config/secrets, failure alerting, access roles, CI/S3 sync, dbt via dbt_run.sh/DbtClient. Use when creating, reviewing, fixing, deploying, or troubleshooting DAGs in a Sanofi orchestration repo. Not for generic Airflow (coco-airflow) or dbt models/SQL (dbt).
+description: Sanofi MWAA Airflow conventions - parse-time safety, sanofi-airflow-utils config/secrets, failure alerts, access roles, CI/S3 sync, Airflow 3 migration, dbt via dbt_run.sh/DbtClient. Use when creating, reviewing, deploying, or troubleshooting DAGs in a Sanofi orchestration repo. Not for generic Airflow (coco-airflow), dbt models/SQL (dbt), or generic CI/CD (cicd-engineering).
 ---
 
 # Sanofi Airflow
 
-Sanofi conventions for DAGs on AWS MWAA: shared central environment and dedicated tenants. Platform facts only; generic review and security analysis stay with `/review` and `/security`. Run those on the diff, then apply this skill for Sanofi-specific defects.
+Sanofi conventions for DAGs on AWS MWAA: shared central environment and dedicated tenants. Platform facts only; generic review stays with the code-review skill. Run it on the diff, then apply this skill for Sanofi-specific defects.
 
 ## Core Rules
 
@@ -23,28 +23,41 @@ Sanofi conventions for DAGs on AWS MWAA: shared central environment and dedicate
 
 | Task | `read` |
 |---|---|
-| Platform model, repo layout, naming, DAG config, TaskFlow, config/secrets, Datasets/Assets, sensors, alerting, access control, CI/CD, troubleshooting, Airflow 3 migration, anti-patterns | [general-airflow-guide.md](references/general-airflow-guide.md) |
+| Platform model, repo layout, naming, DAG config, TaskFlow, config/secrets, Datasets/Assets, sensors, alerting, access control, CI/CD, troubleshooting, Airflow 3 migration | [general-airflow-guide.md](references/general-airflow-guide.md) |
 | Running dbt from a DAG: `BashOperator` + `dbt_run.sh` or typed `DbtClient`, logs/artifacts, backfills, run vars | [orchestrating-dbt.md](references/orchestrating-dbt.md) |
 
 - dbt models, SQL, YAML, tests → use the dbt skill.
 - Multi-area change order: parse safety + DAG config → task logic → orchestration wiring → alerting/access/tags → deploy and run commands.
 - Read only the reference the task needs.
 
+## Local Environment
+
+MWAA installs `requirements.txt` with `pip3` plus an Airflow constraints file. Mirror it locally with uv; NEVER `pip install` into system or Homebrew Python.
+
+```bash
+uv venv --python 3.12   # MWAA 2.11 and 3.x run Python 3.12
+uv pip install "apache-airflow==<version>" -r requirements.txt \
+  -c "https://raw.githubusercontent.com/apache/airflow/constraints-<version>/constraints-3.12.txt"
+uv run --no-project airflow dags list-import-errors
+```
+
+- Repo already on poetry, pip-tools, or `uv.lock`: keep its tooling (`uv run` for uv projects). Recommend uv only for new work.
+- Run one-off CLIs without installing: `uvx ruff@latest ...`, `uvx pre-commit run --all-files`.
+
 ## Validation Ladder
 
 Smallest step that proves the change. Steps 1-3 are static or import-only; step 4 executes task code.
 
-1. **Import and parse time** (always first): `python -c "import <dag_module>"`.
-   - Parse budget under ~30s; hard `dagbag_import_timeout` is 180s.
-   - POSIX: `time python -c "import <dag_module>"`.
-   - PowerShell: `Measure-Command { python -c "import <dag_module>" }`.
+1. **Import and parse time** (always first): `uv run --no-project python -c "import <dag_module>"` in the local env.
+   - Parse budget under ~30s; hard `dagbag_import_timeout` on the shared platform is 180s (Airflow default 30s).
+   - POSIX: prefix `time`. PowerShell: `Measure-Command { uv run --no-project python -c "import <dag_module>" }`.
 2. **Project-wide import errors**: `airflow dags list-import-errors`, `airflow dags list` on local/containerized Airflow; for MWAA parity use `aws/amazon-mwaa-docker-images` at the target version (`./run.sh`, PowerShell `.\run.ps1`). CI: load every DAG through `DagBag` (or the Sanofi `airflow-validate` action) with dummy Variables (`AIRFLOW_VAR_<KEY>` env vars).
 3. **Structure, dependencies, cycles**: `airflow tasks list <dag_id>`, `airflow dags show <dag_id>`.
 4. **Execution** (runs task code and side effects; warehouse writes, API calls, secret reads):
    - `airflow tasks test <dag_id> <task_id> <date>`: one task, ignores dependencies, records no state.
    - `airflow dags test <dag_id> <date>`: full DAG run in one process.
    - MUST use local/containerized Airflow with DEV connections only. NEVER shared MWAA or PROD credentials.
-5. **Lint/type**: `ruff`, `pylint`, `pyright`, `pre-commit` when the repo configures them. Any DAG targeting 3.x: `ruff check <dags_dir> --select AIR3` (ruff ≥ 0.13.1; AIR301/AIR302 are breaking). Preview parse checks: `ruff check <dags_dir> --preview --select AIR003,AIR304` (`Variable.get()` outside a task, runtime-changing DAG args).
+5. **Lint/type**: run the repo's configured `ruff`, `pylint`, `pyright`, `pre-commit`. Any DAG targeting 3.x: `uvx ruff@latest check <dags_dir> --select AIR3` (ruff ≥ 0.13.1; AIR301/AIR302 are breaking). Preview parse checks: `uvx ruff@latest check <dags_dir> --preview --select AIR003,AIR304` (`Variable.get()` outside a task, runtime-changing DAG args).
 6. **dbt side**: validate with the dbt skill (`dbt parse`/`dbt compile`); confirm `--select` resolves with `dbt ls` before wiring into a DAG.
 
 No local Airflow? State the exact command and the missing prerequisite. NEVER discover parse errors by deploying.
@@ -63,13 +76,13 @@ Pattern and code: [general-airflow-guide.md](references/general-airflow-guide.md
 | Bad (2.x habit on a 3.x tenant) | Good |
 |---|---|
 | Bare cron/preset `schedule="@daily"` with tasks or dbt vars reading `data_interval_start/end` | 3.x default `CronTriggerTimetable` gives a zero-width interval (start == end). Use `CronDataIntervalTimetable` or `CronTriggerTimetable(..., interval=...)` explicitly |
-| `context["data_interval_start"]` / `context["logical_date"]` in an Asset-triggered or API-triggered DAG | Those runs have `logical_date=None` and no interval; the keys raise `KeyError`. Use `context.get(...)` with a fallback, or pass the window via params |
+| `context["data_interval_start"]` / `context["logical_date"]` in an Asset-triggered or API-triggered DAG | Those runs have `logical_date=None` and no interval; the keys raise `KeyError`. Check `dag_run.logical_date` / `context.get(...)` and fall back, or pass the window via params |
 | `execution_date`, `prev_ds`, `next_ds`, `yesterday_ds`, `conf` in context or Jinja | `logical_date`, `data_interval_*`, `dag_run`, DAG `params` |
 | `ti.xcom_pull(key=...)` without `task_ids` | Pass `task_ids=`; 3.x pulls only from the current task by default |
 | SQLAlchemy session / ORM models on the metadata DB inside a task | Task SDK (`airflow.sdk.Variable`, `Connection`) or the REST API (`/api/v2`) |
 | `SubDagOperator`, `sla`, `sla_miss_callback` | TaskGroups; Deadline Alerts (3.1+) |
 
-Mapping, config renames, and MWAA migration rules: [general-airflow-guide.md](references/general-airflow-guide.md) (Airflow 3 Migration).
+Import map, config renames, removed features, and MWAA migration rules: [general-airflow-guide.md](references/general-airflow-guide.md) (Airflow 3 Migration).
 
 ## Checklist
 

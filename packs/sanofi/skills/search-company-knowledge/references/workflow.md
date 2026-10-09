@@ -46,7 +46,6 @@ Gotchas:
 | "in Confluence", "in our docs", wants documentation | CQL |
 | "tickets", "issues", "bugs", history, status | JQL |
 | Unknown system | Rovo `search` |
-| Rovo returns mostly the wrong system | Targeted query on the other one |
 
 ## Source Quality
 

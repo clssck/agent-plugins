@@ -1,9 +1,15 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
 """Check Confluence HTML body fragments before publishing.
 
 This is a lightweight dry-run gate for the confluence-html-editor skill. It
 uses only the Python standard library and intentionally validates body
 fragments, not full HTML documents.
+
+Usage: uv run check_confluence_html.py proposed.html --original fetched.html --title "Page title"
 """
 
 from __future__ import annotations

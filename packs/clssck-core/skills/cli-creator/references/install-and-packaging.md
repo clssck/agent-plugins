@@ -73,17 +73,20 @@ bun build ./src/cli.ts --compile --minify --sourcemap \
 
 ## Python
 
-Declare the command in `pyproject.toml`:
+Scaffold with `uv init --package <tool-name>`: it creates `src/<package>/`, a `[build-system]` (`uv_build`), and a `[project.scripts]` entry. Commit `uv.lock` (`uv lock`; `uv sync --locked` in CI).
 
 ```toml
 [project.scripts]
-<tool-name> = "<package>.cli:main"
+<tool-name> = "<package>:main"
 ```
 
-- Install with `uv tool install --editable .`: the tool gets an isolated environment and source edits apply without a reinstall.
-- NEVER `pip install` into system or Homebrew Python; interpreters marked `EXTERNALLY-MANAGED` (PEP 668) make pip refuse, and `--break-system-packages` is the risky override. Use `uv tool install` or a virtualenv.
+- Install with `uv tool install --editable .`: the tool gets an isolated environment and source edits apply without a reinstall. After changing `[project.scripts]`, re-run with `--reinstall`.
+- Check the install with `uv tool dir --bin` (the executable directory), as in the table above.
+- Run once without installing: `uvx --from <path-or-package> <tool-name>`.
+- NEVER `pip install` or `pipx install` into system or Homebrew Python; interpreters marked `EXTERNALLY-MANAGED` (PEP 668) make pip refuse, and `--break-system-packages` is the risky override. Use `uv tool install`.
 - `uv tool install` will not overwrite an executable it did not install (e.g. one from `pipx`). Treat that as a name collision: rename the tool or ask. Use `--force` only after the user agrees to replace the existing binary.
 - `uv tool update-shell` adds the tool bin directory to shell config; ask first.
+- Distribution beyond this machine: `uv build` writes the sdist and wheel to `dist/`; `uv publish` uploads them. Publish only when the user asks. Prefer PyPI trusted publishing from CI; otherwise `UV_PUBLISH_TOKEN`. Private index: `[[tool.uv.index]]` with `publish-url`, then `uv publish --index <name>`.
 - Single-file tool with few dependencies: PEP 723 inline metadata plus an executable file. POSIX shebang:
 
 ```python
@@ -94,7 +97,7 @@ Declare the command in `pyproject.toml`:
 # ///
 ```
 
-On Windows use a `.cmd` or `.ps1` wrapper that runs `uv run --script <path>\<tool-name>.py` instead of the shebang.
+On Windows use a `.cmd` or `.ps1` wrapper that runs `uv run --script <path>\<tool-name>.py` instead of the shebang. To put the single file on PATH, symlink or copy it into the approved PATH directory.
 
 ## Sources
 
@@ -106,5 +109,7 @@ On Windows use a `.cmd` or `.ps1` wrapper that runs `uv run --script <path>\<too
 - pnpm `setup`: https://pnpm.io/cli/setup
 - Bun single-file executables: https://bun.com/docs/bundler/executables
 - uv tools concept (isolation, executable directory, overwrite rules): https://docs.astral.sh/uv/concepts/tools/
+- uv project creation (`uv init --package`, `[project.scripts]`): https://docs.astral.sh/uv/concepts/projects/init/
+- uv build and publish (trusted publishing, `--index`): https://docs.astral.sh/uv/guides/package/
 - uv scripts guide (inline metadata, `uv run --script` shebang): https://docs.astral.sh/uv/guides/scripts/
 - PyPA, Externally Managed Environments (PEP 668): https://packaging.python.org/en/latest/specifications/externally-managed-environments/

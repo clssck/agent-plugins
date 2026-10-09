@@ -97,16 +97,16 @@ For persons (no technology):
         <mxCell id="4" value="&lt;b&gt;{User Role}&lt;/b&gt;&lt;br&gt;[Person]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;{Description}&lt;/font&gt;" style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#0047BB;fontColor=#ffffff;strokeColor=none;arcSize=10;" vertex="1" parent="1">
           <mxGeometry x="480" y="40" width="200" height="140" as="geometry"/>
         </mxCell>
-        <mxCell id="5" value="&lt;b&gt;{Web SPA}&lt;/b&gt;&lt;br&gt;[Container: React / TypeScript, runs in browser]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Client-side UI that runs&lt;br&gt;in the user's browser&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#4B9CD3;fontColor=#ffffff;strokeColor=none;arcSize=10;" vertex="1" parent="1">
+        <mxCell id="5" value="&lt;b&gt;{Web SPA}&lt;/b&gt;&lt;br&gt;[Container: React / TypeScript, runs in browser]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Client-side UI that runs&lt;br&gt;in the user's browser&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#4B9CD3;fontColor=#000000;strokeColor=none;arcSize=10;" vertex="1" parent="1">
           <mxGeometry x="160" y="240" width="280" height="140" as="geometry"/>
         </mxCell>
-        <mxCell id="6" value="&lt;b&gt;{API Service}&lt;/b&gt;&lt;br&gt;[Container: Fastify / TypeScript]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Handles business logic and&lt;br&gt;API endpoints&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#4B9CD3;fontColor=#ffffff;strokeColor=none;arcSize=10;" vertex="1" parent="1">
+        <mxCell id="6" value="&lt;b&gt;{API Service}&lt;/b&gt;&lt;br&gt;[Container: Fastify / TypeScript]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Handles business logic and&lt;br&gt;API endpoints&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#4B9CD3;fontColor=#000000;strokeColor=none;arcSize=10;" vertex="1" parent="1">
           <mxGeometry x="560" y="240" width="280" height="140" as="geometry"/>
         </mxCell>
-        <mxCell id="7" value="&lt;b&gt;{Database}&lt;/b&gt;&lt;br&gt;[Container: PostgreSQL]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Stores user data and&lt;br&gt;application state&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#4B9CD3;fontColor=#ffffff;strokeColor=none;size=15;boundedLbl=1;" vertex="1" parent="1">
+        <mxCell id="7" value="&lt;b&gt;{Database}&lt;/b&gt;&lt;br&gt;[Container: PostgreSQL]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Stores user data and&lt;br&gt;application state&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#4B9CD3;fontColor=#000000;strokeColor=none;size=15;boundedLbl=1;" vertex="1" parent="1">
           <mxGeometry x="360" y="480" width="200" height="160" as="geometry"/>
         </mxCell>
-        <mxCell id="8" value="&lt;b&gt;{Message Queue}&lt;/b&gt;&lt;br&gt;[Container: SQS]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Decouples async&lt;br&gt;processing&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#4B9CD3;fontColor=#ffffff;strokeColor=none;arcSize=10;" vertex="1" parent="1">
+        <mxCell id="8" value="&lt;b&gt;{Message Queue}&lt;/b&gt;&lt;br&gt;[Container: SQS]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Decouples async&lt;br&gt;processing&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#4B9CD3;fontColor=#000000;strokeColor=none;arcSize=10;" vertex="1" parent="1">
           <mxGeometry x="700" y="480" width="200" height="140" as="geometry"/>
         </mxCell>
         <mxCell id="9" value="Uses&lt;br&gt;[HTTPS]" style="endArrow=blockThin;endFill=1;html=1;fontSize=11;fontColor=#707070;strokeColor=#707070;" edge="1" parent="1" source="4" target="5">
@@ -153,16 +153,16 @@ For persons (no technology):
         <mxCell id="3" value="{Container Name}" style="rounded=1;dashed=1;dashPattern=8 8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=14;fillColor=none;strokeColor=#888888;fontColor=#444444;arcSize=5;" vertex="1" parent="1">
           <mxGeometry x="120" y="80" width="920" height="620" as="geometry"/>
         </mxCell>
-        <mxCell id="4" value="&lt;b&gt;{Controller}&lt;/b&gt;&lt;br&gt;[Component: Fastify Routes]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Handles HTTP requests&lt;br&gt;and input validation&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#00A3E0;fontColor=#ffffff;strokeColor=none;arcSize=10;" vertex="1" parent="1">
+        <mxCell id="4" value="&lt;b&gt;{Controller}&lt;/b&gt;&lt;br&gt;[Component: Fastify Routes]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Handles HTTP requests&lt;br&gt;and input validation&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#00A3E0;fontColor=#000000;strokeColor=none;arcSize=10;" vertex="1" parent="1">
           <mxGeometry x="400" y="120" width="280" height="120" as="geometry"/>
         </mxCell>
-        <mxCell id="5" value="&lt;b&gt;{Service}&lt;/b&gt;&lt;br&gt;[Component: TypeScript]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Implements business logic&lt;br&gt;and orchestration&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#00A3E0;fontColor=#ffffff;strokeColor=none;arcSize=10;" vertex="1" parent="1">
+        <mxCell id="5" value="&lt;b&gt;{Service}&lt;/b&gt;&lt;br&gt;[Component: TypeScript]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Implements business logic&lt;br&gt;and orchestration&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#00A3E0;fontColor=#000000;strokeColor=none;arcSize=10;" vertex="1" parent="1">
           <mxGeometry x="400" y="300" width="280" height="120" as="geometry"/>
         </mxCell>
-        <mxCell id="6" value="&lt;b&gt;{Repository}&lt;/b&gt;&lt;br&gt;[Component: Drizzle ORM]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Data access layer for&lt;br&gt;database operations&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#00A3E0;fontColor=#ffffff;strokeColor=none;arcSize=10;" vertex="1" parent="1">
+        <mxCell id="6" value="&lt;b&gt;{Repository}&lt;/b&gt;&lt;br&gt;[Component: Drizzle ORM]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Data access layer for&lt;br&gt;database operations&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#00A3E0;fontColor=#000000;strokeColor=none;arcSize=10;" vertex="1" parent="1">
           <mxGeometry x="400" y="480" width="280" height="120" as="geometry"/>
         </mxCell>
-        <mxCell id="7" value="&lt;b&gt;{Auth Middleware}&lt;/b&gt;&lt;br&gt;[Component: JWT / OIDC]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Validates tokens and&lt;br&gt;enforces access control&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#00A3E0;fontColor=#ffffff;strokeColor=none;arcSize=10;" vertex="1" parent="1">
+        <mxCell id="7" value="&lt;b&gt;{Auth Middleware}&lt;/b&gt;&lt;br&gt;[Component: JWT / OIDC]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Validates tokens and&lt;br&gt;enforces access control&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#00A3E0;fontColor=#000000;strokeColor=none;arcSize=10;" vertex="1" parent="1">
           <mxGeometry x="160" y="200" width="200" height="120" as="geometry"/>
         </mxCell>
         <mxCell id="8" value="Delegates to" style="endArrow=blockThin;endFill=1;html=1;fontSize=11;fontColor=#707070;strokeColor=#707070;" edge="1" parent="1" source="4" target="5">
@@ -174,7 +174,7 @@ For persons (no technology):
         <mxCell id="10" value="Validates requests via" style="endArrow=blockThin;endFill=1;html=1;fontSize=11;fontColor=#707070;strokeColor=#707070;" edge="1" parent="1" source="4" target="7">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="11" value="&lt;b&gt;{Database}&lt;/b&gt;&lt;br&gt;[Container: PostgreSQL]" style="shape=cylinder3;whiteSpace=wrap;html=1;align=center;fontSize=12;fillColor=#4B9CD3;fontColor=#ffffff;strokeColor=none;size=15;boundedLbl=1;" vertex="1" parent="1">
+        <mxCell id="11" value="&lt;b&gt;{Database}&lt;/b&gt;&lt;br&gt;[Container: PostgreSQL]" style="shape=cylinder3;whiteSpace=wrap;html=1;align=center;fontSize=12;fillColor=#4B9CD3;fontColor=#000000;strokeColor=none;size=15;boundedLbl=1;" vertex="1" parent="1">
           <mxGeometry x="440" y="660" width="200" height="100" as="geometry"/>
         </mxCell>
         <mxCell id="12" value="Reads/writes data [SQL]" style="endArrow=blockThin;endFill=1;html=1;fontSize=11;fontColor=#707070;strokeColor=#707070;" edge="1" parent="1" source="6" target="11">
@@ -215,16 +215,16 @@ For persons (no technology):
         <mxCell id="5" value="ECS Cluster" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=12;fillColor=#FFFFFF;strokeColor=#888888;fontColor=#666666;" vertex="1" parent="1">
           <mxGeometry x="160" y="170" width="360" height="200" as="geometry"/>
         </mxCell>
-        <mxCell id="6" value="&lt;b&gt;{API Service}&lt;/b&gt;&lt;br&gt;[Container: Fastify]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;x2 tasks&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=12;fillColor=#4B9CD3;fontColor=#ffffff;strokeColor=none;arcSize=10;" vertex="1" parent="1">
+        <mxCell id="6" value="&lt;b&gt;{API Service}&lt;/b&gt;&lt;br&gt;[Container: Fastify]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;x2 tasks&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=12;fillColor=#4B9CD3;fontColor=#000000;strokeColor=none;arcSize=10;" vertex="1" parent="1">
           <mxGeometry x="200" y="220" width="260" height="100" as="geometry"/>
         </mxCell>
-        <mxCell id="7" value="&lt;b&gt;RDS PostgreSQL&lt;/b&gt;&lt;br&gt;[Container: PostgreSQL 16]&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Multi-AZ, encrypted at rest&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;align=center;fontSize=12;fillColor=#4B9CD3;fontColor=#ffffff;strokeColor=none;size=15;boundedLbl=1;" vertex="1" parent="1">
+        <mxCell id="7" value="&lt;b&gt;RDS PostgreSQL&lt;/b&gt;&lt;br&gt;[Container: PostgreSQL 16]&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Multi-AZ, encrypted at rest&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;align=center;fontSize=12;fillColor=#4B9CD3;fontColor=#000000;strokeColor=none;size=15;boundedLbl=1;" vertex="1" parent="1">
           <mxGeometry x="200" y="450" width="260" height="140" as="geometry"/>
         </mxCell>
         <mxCell id="8" value="&lt;b&gt;ALB&lt;/b&gt;&lt;br&gt;[Infrastructure: Application Load Balancer]" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=12;fillColor=#FFFFFF;strokeColor=#888888;fontColor=#000000;" vertex="1" parent="1">
           <mxGeometry x="620" y="220" width="280" height="80" as="geometry"/>
         </mxCell>
-        <mxCell id="9" value="&lt;b&gt;Lambda&lt;/b&gt;&lt;br&gt;[Container: Node.js 20]&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Event processor&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=12;fillColor=#4B9CD3;fontColor=#ffffff;strokeColor=none;arcSize=10;" vertex="1" parent="1">
+        <mxCell id="9" value="&lt;b&gt;Lambda&lt;/b&gt;&lt;br&gt;[Container: Node.js 24]&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Event processor&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=12;fillColor=#4B9CD3;fontColor=#000000;strokeColor=none;arcSize=10;" vertex="1" parent="1">
           <mxGeometry x="650" y="380" width="220" height="100" as="geometry"/>
         </mxCell>
         <mxCell id="10" value="Routes traffic to [HTTPS]" style="endArrow=blockThin;endFill=1;html=1;fontSize=11;fontColor=#707070;strokeColor=#707070;" edge="1" parent="1" source="8" target="6">
@@ -259,13 +259,13 @@ For persons (no technology):
         <mxCell id="3" value="&lt;b&gt;{User}&lt;/b&gt;&lt;br&gt;[Person]" style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#0047BB;fontColor=#ffffff;strokeColor=none;" vertex="1" parent="1">
           <mxGeometry x="60" y="200" width="140" height="140" as="geometry"/>
         </mxCell>
-        <mxCell id="4" value="&lt;b&gt;{Web App}&lt;/b&gt;&lt;br&gt;[Container: React]" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#4B9CD3;fontColor=#ffffff;strokeColor=none;arcSize=10;" vertex="1" parent="1">
+        <mxCell id="4" value="&lt;b&gt;{Web App}&lt;/b&gt;&lt;br&gt;[Container: React]" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#4B9CD3;fontColor=#000000;strokeColor=none;arcSize=10;" vertex="1" parent="1">
           <mxGeometry x="300" y="220" width="200" height="100" as="geometry"/>
         </mxCell>
-        <mxCell id="5" value="&lt;b&gt;{API}&lt;/b&gt;&lt;br&gt;[Container: Fastify]" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#4B9CD3;fontColor=#ffffff;strokeColor=none;arcSize=10;" vertex="1" parent="1">
+        <mxCell id="5" value="&lt;b&gt;{API}&lt;/b&gt;&lt;br&gt;[Container: Fastify]" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#4B9CD3;fontColor=#000000;strokeColor=none;arcSize=10;" vertex="1" parent="1">
           <mxGeometry x="600" y="220" width="200" height="100" as="geometry"/>
         </mxCell>
-        <mxCell id="6" value="&lt;b&gt;{Database}&lt;/b&gt;&lt;br&gt;[Container: PostgreSQL]" style="shape=cylinder3;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#4B9CD3;fontColor=#ffffff;strokeColor=none;size=15;boundedLbl=1;" vertex="1" parent="1">
+        <mxCell id="6" value="&lt;b&gt;{Database}&lt;/b&gt;&lt;br&gt;[Container: PostgreSQL]" style="shape=cylinder3;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#4B9CD3;fontColor=#000000;strokeColor=none;size=15;boundedLbl=1;" vertex="1" parent="1">
           <mxGeometry x="900" y="210" width="160" height="120" as="geometry"/>
         </mxCell>
         <mxCell id="7" value="1. Submits form" style="endArrow=blockThin;endFill=1;html=1;fontSize=11;fontColor=#707070;strokeColor=#707070;" edge="1" parent="1" source="3" target="4">
@@ -345,3 +345,4 @@ For diagrams requiring a detailed legend:
 | Boundary Border | #888888 | 136, 136, 136 | System boundary, deployment nodes |
 | Boundary Text | #444444 | 68, 68, 68 | Boundary box labels |
 | Legend Background | #F5F5F5 | 245, 245, 245 | Legend box fill |
+| Text on Container/Component fills | #000000 | 0, 0, 0 | White text on #4B9CD3 (3.0:1) and #00A3E0 (2.9:1) fails 4.5:1 contrast; black gives 7.0:1 and 7.3:1 |

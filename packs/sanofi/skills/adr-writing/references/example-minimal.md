@@ -58,11 +58,11 @@ Managed MongoDB with flexible document schema and built-in horizontal scaling.
 
 ## Architecture Manifesto Alignment
 
-| # | Principle          | Alignment | Notes                                                       |
-| - | ------------------ | --------- | ----------------------------------------------------------- |
-| 2 | Simplicity         | Aligned   | Single DB engine, no new operational tooling                |
-| 3 | Technical Debt     | Aligned   | Avoids introducing a second database with duplicated ops    |
-| 8 | Performance        | Aligned   | 6ms p95 read latency verified under production-like load    |
+| # | Principle                  | Alignment | Notes                                                    |
+| - | -------------------------- | --------- | -------------------------------------------------------- |
+| 2 | Simplicity                 | Aligned   | Single DB engine, no new operational tooling             |
+| 3 | Technical Debt             | Aligned   | Avoids introducing a second database with duplicated ops |
+| 8 | Performance and Monitoring | Aligned   | 6ms p95 read latency verified under production-like load |
 
 ## Links
 

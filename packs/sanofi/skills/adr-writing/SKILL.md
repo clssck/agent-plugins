@@ -1,37 +1,37 @@
 ---
 name: adr-writing
-description: Write or review Sanofi-style MADR Architecture Decision Records (naming, template, manifesto alignment, evidence checks). Use when documenting, evaluating, or fact-checking an architecture decision, or reviewing an existing ADR. Not for generic docs, RFCs, design docs, or code review (use /review).
+description: Write or review Sanofi MADR Architecture Decision Records - numbering, template, manifesto alignment, option evidence, cost annex. Use when recording an architecture decision, drafting an ADR from Jira/Confluence, or reviewing or fact-checking an ADR. Not for C4/architecture docs (architecture-documentation), Confluence publishing (confluence-html-editor), or code review.
 ---
 
 # Architecture Decision Records
 
-Write and review ADRs in a Sanofi variant of [MADR](https://adr.github.io/madr/). The template keeps the MADR 2.x Positive/Negative Consequences layout (MADR 3+ merged them into one `Consequences` list) and adds mandatory Architecture Manifesto Alignment. Complements `/review`: that reviews patches, this owns ADR structure and decision evidence.
+Write and review ADRs in a Sanofi variant of [MADR](https://adr.github.io/madr/): the MADR 2.x Positive/Negative Consequences layout (MADR 3.0.0 merged them into one `Consequences` list) plus mandatory Architecture Manifesto Alignment.
 
 ## Layout
 
-- ADRs live in `docs/adr/`; create it if missing.
+- ADRs live in `docs/adr/`; create it if missing. `glob` `docs/adr/ADR-*.md` before numbering.
 - File name: `ADR-NNN-slug.md`, three-digit number, kebab-case slug. Reviews: `ADR-NNN-slug-review.md`.
 - Number = highest existing + 1. NEVER fill gaps.
 - Qualify ambiguous titles: `use-postgresql-for-user-profiles`, not `use-postgresql`.
-- Read 1-2 existing ADRs first; match header style, section order, table alignment. With none, use [adr.template.md](assets/adr.template.md) as-is.
+- `read` 1-2 existing ADRs; match header style, section order, table alignment. None: use [adr.template.md](assets/adr.template.md).
 
 ## Modes
 
 | Mode | Trigger | Procedure |
 |---|---|---|
 | Write | Record a decision | [write-workflow.md](references/write-workflow.md) |
-| Review | Evaluate an existing ADR | [review-workflow.md](references/review-workflow.md), [review-checklist.md](references/review-checklist.md) |
+| Review | Evaluate or fact-check an existing ADR | [review-workflow.md](references/review-workflow.md), [review-checklist.md](references/review-checklist.md) |
 
 - NEVER self-review an ADR written in the same conversation; shared context removes independence.
 - Jira/Confluence sources, comment threads, tiny links: [atlassian-integration.md](references/atlassian-integration.md).
 - Pricing, Cost Annex, Confluence charts: [cost-analysis.md](references/cost-analysis.md).
 - Depth and style: [example-minimal.md](references/example-minimal.md) (2 options, no optional sections), [example-comprehensive.md](references/example-comprehensive.md) (Cost Annex, Options Ruled Out, Drivers).
-- To publish an ADR to Confluence, use the confluence-html-editor skill.
+- Publishing an ADR to Confluence: confluence-html-editor skill.
 
 ## Writing Rules
 
 - Date = today, `YYYY-MM-DD`.
-- Status defaults to `accepted` ONLY when the decision is made. Undecided: status `proposed`, no chosen option invented; see [write-workflow.md](references/write-workflow.md).
+- Status `accepted` ONLY when the decision is made. Undecided: `proposed`, no invented choice; see [write-workflow.md](references/write-workflow.md).
 - Problem statement: 2-3 sentences, a question, with constraints or metrics.
 - Add technical specificity ("PostgreSQL with JSONB"); stay close to user facts.
 - NEVER invent performance numbers, costs, benchmarks, or options. Ask.
@@ -51,7 +51,7 @@ Write and review ADRs in a Sanofi variant of [MADR](https://adr.github.io/madr/)
 1. Ask what alternatives were considered, even briefly.
 2. Named alternative → full option with pros/cons.
 3. None exist (policy mandates it) → state the constraint in Context, record one chosen option.
-4. Add an Options Ruled Out entry ONLY for an alternative that was actually evaluated, with its source.
+4. Add an Options Ruled Out entry ONLY for an alternative actually evaluated, with its source.
 5. NEVER refuse; constraint-driven decisions still need records.
 6. NEVER fabricate a rejected alternative to reach two options.
 
@@ -74,19 +74,14 @@ Write and review ADRs in a Sanofi variant of [MADR](https://adr.github.io/madr/)
 | Duplicate numbers | Scan all files; renumber only the new ADR |
 | Confluence/Jira unavailable | Record refs as Links; ask user to paste content |
 
-## MADR 4 Differences
+## Upstream MADR 4
 
-Upstream MADR 4.0.0 (2024-09) differs from the Sanofi template. Keep the Sanofi layout; adopt these ideas only when the user asks or an existing ADR already uses them:
+[MADR 4.0.0](https://github.com/adr/madr/blob/4.0.0/template/adr-template.md) (2024-09-17) differs from the Sanofi template. Keep the Sanofi layout; NEVER reorder or convert existing ADRs.
 
-- Upstream front matter is optional YAML: `status`, `date` (last updated), `decision-makers`, `consulted`, `informed`. Sanofi keeps the inline `Status`/`Deciders`/`Date` bullets.
-- Upstream adds an optional `Confirmation` section: how compliance is verified (review, test, fitness function). It is a good addition for decisions that can be checked mechanically.
-- Upstream status values: `proposed | rejected | accepted | deprecated | superseded by ADR-NNNN`. Sanofi's list matches. When superseding, update the old ADR's status and link both ways.
-- Upstream puts Considered Options before Decision Outcome; Sanofi puts Decision Outcome first. Do not reorder existing ADRs.
-
-## Sources
-
-- [MADR: Markdown Architectural Decision Records](https://adr.github.io/madr/)
-- [MADR 4.0.0 template](https://github.com/adr/madr/blob/4.0.0/template/adr-template.md)
+- Front matter: optional YAML `status`, `date`, `decision-makers`, `consulted`, `informed`. Sanofi keeps inline `Status`/`Deciders`/`Date` bullets.
+- Status values: `proposed | rejected | accepted | deprecated | superseded by ADR-0123`; Sanofi matches. Superseding: update the old ADR's status, link both ways.
+- Optional `### Confirmation` under Decision Outcome: how compliance is checked (review, test, fitness function). MAY add when compliance is mechanically checkable.
+- Section order: upstream puts Considered Options before Decision Outcome; Sanofi puts Decision Outcome first.
 
 ## Checklist
 

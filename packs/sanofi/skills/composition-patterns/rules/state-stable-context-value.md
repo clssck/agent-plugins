@@ -15,7 +15,8 @@ nothing it reads changed.
 
 First check whether React Compiler is on: `babel-plugin-react-compiler` in
 `package.json`, `reactCompiler` in `next.config.*`, or an Expo SDK 54+ app
-(compiler on by default for new apps).
+(apps from `create-expo-app` start with it enabled; confirm
+`experiments.reactCompiler` in `app.json`).
 
 **Incorrect (no compiler, new value every render):**
 

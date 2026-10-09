@@ -29,10 +29,7 @@ Prefer a polished operational page over decorative density. A strong Confluence 
 ## Design Defaults
 
 - Make operational documentation scannable: short sections, summary tables, status lozenges, callout panels, and checklists.
-- Use status lozenges as visual state markers only, not as containers for long identifiers. Prefer short labels in the lozenge and keep full technical status names in normal table text if they matter.
-- Use panels for warnings, prerequisites, decisions, and success criteria.
-- Use tables for comparisons, command references, migration matrices, and ownership.
-- Use task lists only for actual checklist items.
-- Use expanders for long reference details that should not dominate the page.
-- Avoid decorative layout. Confluence pages should stay useful after export, search indexing, and page history diffs.
-- Keep edits audit-friendly: preserve source content where possible, make page history messages meaningful, and summarize material deletions or restructuring in the final response.
+- Use status lozenges as state markers only; keep full technical status names in normal table text.
+- Use panels for warnings, prerequisites, decisions, and success criteria; tables for comparisons, command references, migration matrices, and ownership.
+- Avoid decorative layout; pages must stay useful after export, search indexing, and page history diffs.
+- Keep edits audit-friendly: preserve source content where possible, write meaningful version messages, and summarize material deletions or restructuring in the final response.

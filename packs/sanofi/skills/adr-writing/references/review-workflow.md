@@ -5,14 +5,10 @@
 Obtain the ADR content from the source provided by the user:
 
 - **Confluence URL**: Resolve the page (including tiny URLs) and fetch content via Atlassian/Confluence tools.
-  Also fetch all inline and footer comments and their reply threads.
-- **Local file path**: Read the file directly.
+  Also fetch inline comments, footer comments, and reply threads. If comment tools are
+  unavailable, note that comment review was skipped.
+- **Local file path**: `read` the file.
 - **Jira ticket**: Fetch the ticket and look for linked Confluence pages containing the ADR.
-
-If the user provides a Confluence URL, also fetch comments:
-
-Use the available Confluence comment tools to fetch inline comments, footer
-comments, and reply threads. If unavailable, note that comment review was skipped.
 
 ## R2. Run the MADR Review Checklist
 
@@ -20,10 +16,9 @@ Evaluate the ADR against [review-checklist.md](review-checklist.md) (including S
 Architecture Manifesto Alignment). Verdicts: Pass, Fail, Partial, N/A. Mark optional checks
 N/A when the ADR validly omits the section; a documented single mandated option is not a Fail on S7/S8/S10.
 
-For the manifesto check, fetch the Architecture Manifesto page:
-
-Fetch the Architecture Manifesto page through Atlassian/Confluence tools when
-available; otherwise use the embedded principle list and flag the source gap.
+For the manifesto check, fetch the Architecture Manifesto page through Atlassian/Confluence
+tools when available; otherwise use the embedded principle list in
+[adr.template.md](../assets/adr.template.md) and flag the source gap.
 
 Compare the ADR's decision and consequences against the 10 manifesto principles. Flag
 any principle where the decision creates tension (e.g., a decision that increases cost

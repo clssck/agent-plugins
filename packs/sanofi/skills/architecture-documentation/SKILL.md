@@ -1,6 +1,6 @@
 ---
 name: architecture-documentation
-description: Create or update C4 models, architecture narratives, diagrams, and versioned architecture artifacts from a codebase using Sanofi modeling conventions. Use when documenting system context, containers, components, or deployment, or versioning architecture changes. Not for ADRs (adr-writing), API specs, code comments, or Confluence publishing (confluence-html-editor).
+description: Create or update C4 models (context, container, component, deployment, landscape), architecture narratives, diagrams-as-code (Structurizr, C4-PlantUML, Mermaid C4), and versioned artifacts from a codebase with Sanofi conventions. Use when documenting or versioning system architecture. Not for ADRs (adr-writing), API specs, or Confluence publishing (confluence-html-editor).
 ---
 
 # Architecture Documentation
@@ -17,13 +17,13 @@ C4 modeling, content, and versioning for architecture documentation. Artifact-ne
 
 ## Workflow
 
-1. Establish the user-facing system boundary and audience BEFORE inferring from teams, repos, or deployment config.
-2. Inspect the smallest code and infrastructure scope that answers the C4 question; widen only on evidence. Use `glob` and `grep`; NEVER shell `rg`/`find`.
+1. Establish the user-facing system boundary and audience BEFORE inferring from teams, repos, or deployment config. Use `ask` when either is unclear.
+2. Inspect the smallest code and infrastructure scope that answers the C4 question; widen only on evidence. Use `glob` and `grep`; NEVER shell `rg`/`find`. Patterns: [codebase-analysis-patterns.md](references/codebase-analysis-patterns.md).
 3. Classify systems, containers, components, externals by runtime responsibility and relationships.
 4. Produce model narrative, relationship labels, requested diagram content. If the repository holds C4 as code (Structurizr DSL, C4-PlantUML, Mermaid C4), detect it with `glob`/`grep` and edit that format in place; see [diagrams-as-code.md](references/diagrams-as-code.md).
 5. Apply version and change-history convention to the logical artifact.
-6. Hand live Confluence work to confluence-html-editor with prepared content and target-page context.
-7. Run [c4-notation-checklist.md](references/c4-notation-checklist.md) before presenting.
+6. Run [c4-notation-checklist.md](references/c4-notation-checklist.md) before presenting or handing off.
+7. Hand live Confluence work to confluence-html-editor with prepared content and target-page context.
 
 ## C4 Abstractions
 
@@ -71,8 +71,7 @@ Match requested scope and audience. L1 and L2 suffice for most teams; do not add
 | [large-system-workflow.md](references/large-system-workflow.md) | Many containers or multiple repos; huge codebases |
 | [diagram-selection.md](references/diagram-selection.md) | Picking views per audience |
 | [diagrams-as-code.md](references/diagrams-as-code.md) | Editing or choosing Structurizr DSL, C4-PlantUML, Mermaid C4; current Structurizr tooling |
-| [confluence-page-templates.md](references/confluence-page-templates.md) | Preparing page content per level |
-| [page-hierarchy.md](references/page-hierarchy.md) | Organizing a multi-page set |
+| [confluence-page-templates.md](references/confluence-page-templates.md) | Preparing page content per level; organizing a multi-page set |
 | [versioning-guide.md](references/versioning-guide.md) | Versions, changelog, Jira links |
 | [c4-notation-checklist.md](references/c4-notation-checklist.md) | Pre-publish validation |
 | [drawio-c4-templates.md](references/drawio-c4-templates.md) | ONLY when an existing Draw.io source must stay compatible |

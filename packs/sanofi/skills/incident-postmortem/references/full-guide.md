@@ -12,9 +12,6 @@ deadlines.
 - **Timeline before theories**: reconstruct what happened in chronological
   order before trying to explain why. Speculation anchored on a wrong fact
   is worse than no theory.
-- **Every action item has an owner and a deadline**. Un-owned actions rot.
-- **SEV1 and SEV2 must be documented within 5 business days** of incident
-  closure — while memory is fresh and remediation is still being scheduled.
 - **Lessons > documents**. A post-mortem that produces no durable change
   (runbook update, monitor added, code fix, process change) has failed.
 
@@ -28,14 +25,8 @@ The post-mortem's job here is to **confirm the live classification was
 correct, or deliberately reclassify** now that the settled facts
 (actual user impact, duration, data/compliance blast radius) are known.
 
-See [severity-levels.md](severity-levels.md) for
-full definitions and examples. Summary:
-
-| Severity | Impact                                                                                       | Response SLA                                      | Post-mortem required?                                |
-| -------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------- | ---------------------------------------------------- |
-| **SEV1** | Critical — major customer-facing outage, data loss, regulatory/security breach, revenue loss | Immediate (on-call paged, war room within 15 min) | **Yes — within 5 business days**                     |
-| **SEV2** | High — significant degradation, partial outage, key feature broken for many users            | On-call response within 30 min                    | **Yes — within 5 business days**                     |
-| **SEV3** | Moderate — minor degradation, workaround exists, small user subset affected                  | Same business day                                 | Optional (strongly recommended if recurring pattern) |
+Severity definitions, response SLAs, and the decision flow are in
+[severity-levels.md](severity-levels.md).
 
 Check the live severity against the measured impact:
 
@@ -110,7 +101,7 @@ Anti-pattern (bad — contains interpretation and blame):
 
 Key timestamps to always capture:
 
-- **Detection** — when did someone (or something) first notice?
+- **Detection** — when did an alert fire or a report first reach responders?
 - **Acknowledgement** — when was the incident declared / on-call paged?
 - **Mitigation** — when was customer impact stopped (even if root cause
   wasn't yet known)?
@@ -125,12 +116,15 @@ Impact often starts before responders know; keep Start separate from Detection.
 
 Always write the two endpoint events beside each duration. "MTTR" is used
 for repair, recover/restore, respond, and resolve, so a bare "MTTR" is
-ambiguous. TTR above is not DORA's "failed deployment recovery time",
-which covers only recovery from a deployment that fails and needs
+ambiguous. Averages of a few incident durations are not evidence of
+improvement: Google's analysis of incident metrics found MTTx statistics
+poorly suited to decisions or trend analysis, so report this incident's
+durations only. TTR above is not DORA's "failed deployment recovery
+time", which covers only recovery from a deployment that fails and needs
 immediate intervention; do not use the two interchangeably. Start the
-timeline before the trigger and work forward, not
-backward from resolution (hindsight bias); include information the team
-did not have at the time that you wish they had.
+timeline before the trigger and work forward, not backward from
+resolution (hindsight bias); include information the team did not have
+at the time that you wish they had.
 
 ### 4. Quantify impact
 
@@ -289,19 +283,7 @@ date**, not the authoring date.
 
 ### 9. Review and publish
 
-Before sharing:
-
-- Reread the document with the [blameless language](blameless-language.md)
-  rules in mind — rewrite any sentence that names a person as a cause.
-- Confirm every action item has owner + deadline + tracking link.
-- For SEV1/SEV2, confirm you are within the **5 business days** window
-  from incident closure. If the deadline has slipped, add that slip as an
-  action item (process gap) and note it in the document.
-- Circulate to responders and the IC's manager for review before wider
-  publication.
-
-For SEV1 incidents, the final document is also shared with the
-engineering leadership channel.
+Reread the document against [blameless-language.md](blameless-language.md) and run the Review Gate and Checklist in SKILL.md before circulating.
 
 ## Anti-Patterns
 
@@ -348,12 +330,6 @@ legacy_cart_v1.json`). Owner: @alice. Deadline: 2026-05-14. ENG-1234.
 (Root cause identified later at 15:42.)
 ```
 
-### SEV classification drift
-
-Do not classify down to avoid the post-mortem requirement. If customer
-impact was real and material, it is SEV2 (or higher) regardless of
-whether writing it up is inconvenient.
-
 ### Single-cause narratives
 
 Outages are almost always multi-causal. A post-mortem with exactly one
@@ -375,54 +351,6 @@ Root cause: orders-api has no fallback for the managed queue; the provider
 stayed within our expected availability, but we built no resilience
 for it. (Category: Dependency.)
 ```
-
-### Bare "MTTR"
-
-"MTTR" is used for mean time to repair, recover/restore, respond, and
-resolve; they have different start and end events. Always write the two
-events ("14:07 impact start → 15:36 impact stopped"). Averages of a few
-incident durations are not evidence of improvement because incident
-durations are heavily skewed; Google's report on incident metrics shows
-MTTx statistics are poorly suited to decisions or trend analysis. Report
-this incident's durations; leave trend claims to analysis over many
-incidents using distributions.
-
-## References
-
-Loaded on demand:
-
-- **Template**: [post-mortem-template.md](post-mortem-template.md)
-  — full worked example; copy and fill.
-- **Severity levels**: [severity-levels.md](severity-levels.md)
-  — SEV1/2/3 definitions with Sanofi examples.
-- **Blameless language**: [blameless-language.md](blameless-language.md)
-  — do/don't phrasings for common traps.
-- Google SRE Book — [Postmortem Culture: Learning from Failure](https://sre.google/sre-book/postmortem-culture/).
-
-## Self-review
-
-Before declaring the post-mortem done, verify:
-
-- [ ] Severity confirmed or revised (SEV1/SEV2/SEV3) with justification;
-      live vs final severity recorded if they differ
-- [ ] Incident ID recorded (tracker-sourced, or INC-YYYY-MMDD-NNN fallback)
-- [ ] Incident Commander named
-- [ ] Timeline in UTC, with detection / acknowledgement / mitigation /
-      resolution timestamps
-- [ ] Impact quantified (users, duration, revenue/data/compliance)
-- [ ] Root cause captured with 5 Whys **and** contributing factors list;
-      root-cause category named (see Root-cause categories)
-- [ ] "What went well", "What went wrong", and "Where we got lucky"
-      sections filled
-- [ ] Every action item has owner (named person), deadline
-      (absolute date), tracking link, priority, and type
-- [ ] Document uses blameless language throughout (no individual blame)
-- [ ] For SEV1/SEV2: published within 5 business days of incident
-      closure (or slip is tracked as an action item)
-- [ ] Every duration states its start and end events; no bare "MTTR"
-- [ ] Root cause is not "human error" or a bare vendor fault
-- [ ] Action items are actionable, specific, bounded, with at least one
-      `detect` and one `prevent`/`mitigate`
 
 ## Sources
 

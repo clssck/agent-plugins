@@ -80,11 +80,8 @@ on that explicit window (instead of, or alongside, a `max()` watermark) to make 
 idempotent and any date range replayable — see the dbt skill's incremental guidance.
 Build the `--vars` string inside a task or via `DbtClient`, never at module level.
 
-On Airflow 3.x a bare cron/preset `schedule` uses `CronTriggerTimetable`, so
-`data_interval_start == data_interval_end`, and asset-/API-triggered runs have no data
-interval at all (`logical_date=None`). Either schedule with `CronDataIntervalTimetable`
-or compute the window explicitly, and fall back when the keys are absent, before
-passing them as dbt vars (see Airflow 3 Migration in the general guide).
+On Airflow 3.x, bare-cron schedules and asset-/API-triggered runs break these window vars:
+apply Airflow 3 Traps (SKILL.md) before passing the window to dbt.
 
 ## Execution Patterns
 
@@ -124,7 +121,7 @@ every selected resource that allows it). A resource config `full_refresh: false`
 precedence over the `--full-refresh` flag, so protected persistent layers are NOT
 rebuilt by the flag; a rebuild of such a model requires deliberately changing that config
 (see the dbt skill) — NEVER assume the flag overrides it. `full_refresh: true` rebuilds
-even without the flag, and snapshots ignore both. A common pattern is a dedicated
+even without the flag. A common pattern is a dedicated
 backfill DAG that takes `{model/selector, start_date, end_date, run_tests}` and runs dbt
 over that window. Seed a new incremental table with one full refresh, then run
 incrementally; keep `--full-refresh` available for periodic rebuilds of unprotected

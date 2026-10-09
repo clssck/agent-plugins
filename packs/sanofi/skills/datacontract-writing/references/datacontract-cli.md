@@ -8,11 +8,11 @@ Verified against datacontract-cli 1.2.4 (2026-10-06). Run `datacontract --versio
 
 | Need | Command (bash, zsh, PowerShell) |
 |------|---------------------------------|
-| Lint/diff only | `uvx --from datacontract-cli datacontract --version` |
-| Snowflake import/test | `uv tool install --python python3.11 --upgrade "datacontract-cli[snowflake]"` |
-| Without uv | In a virtualenv: `python -m pip install "datacontract-cli[snowflake]"` (NEVER the system Python) |
+| Run once (lint, diff, DDL/dbt import) | `uvx --from datacontract-cli datacontract lint FILE` |
+| Run once with Snowflake import/test | `uvx --from "datacontract-cli[snowflake]" datacontract import snowflake ...` |
+| Install for repeated use | `uv tool install "datacontract-cli[snowflake]"`, then plain `datacontract ...` |
 
-Missing `uv` and `pip`? Report the CLI check as not run; NEVER claim it passed.
+The command tables below show plain `datacontract`; prefix `uvx --from "datacontract-cli[snowflake]"` unless the tool is installed. NEVER `pip install` it. No `uv`? Report the CLI check as not run; NEVER claim it passed.
 
 ## Commands for This Skill
 

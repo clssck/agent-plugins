@@ -15,6 +15,7 @@ new-page title or content-planning context.
 
 ## Table of Contents
 
+- [Page Hierarchy](#page-hierarchy)
 - [Architecture Overview Landing Page](#architecture-overview-landing-page)
 - [L1 System Context Page](#l1-system-context-page)
 - [L2 Container Page](#l2-container-page)
@@ -23,6 +24,22 @@ new-page title or content-planning context.
 - [Master Architecture Change Log Page](#master-architecture-change-log-page)
 - [Diagram Artifact Placement](#diagram-artifact-placement)
 - [Callout Content](#callout-content)
+
+---
+
+## Page Hierarchy
+
+```text
+{Confluence Space} /
+  System Design /
+    {System Name} Architecture Overview     <- Landing page with links to all levels
+    +-- System Context (L1)                 <- L1 diagram + description + changelog
+    +-- Container Diagram (L2)              <- L2 diagram + description + changelog
+    +-- Component: API Service (L3)         <- L3 per container (only if valuable)
+    +-- Deployment: Production (Supp.)      <- Deployment diagram per environment
+    +-- Dynamic: Order Processing (Supp.)   <- Dynamic diagrams (sparingly)
+    +-- Architecture Change Log             <- Master changelog across all levels
+```
 
 ---
 
@@ -205,13 +222,6 @@ separately runnable/deployable unit.</p>
 <p>{Describe the major containers, their roles, and how they communicate. Mention key
 technology choices and their justifications.}</p>
 
-<blockquote>
-  <p><strong>Browser SPA scope</strong></p>
-  <p>Model the client-side SPA as a container. Add an API, asset host, or other
-  server-side runtime only when it is a distinct in-scope responsibility; show an
-  external API as an external system.</p>
-</blockquote>
-
 <h2>Key Elements</h2>
 <table>
   <thead>
@@ -260,12 +270,6 @@ technology choices and their justifications.}</p>
     <tr><td><strong>Technology Stack</strong></td><td>{Detailed technology}</td></tr>
   </tbody>
 </table>
-
-<blockquote>
-  <p><strong>Component diagrams are optional</strong></p>
-  <p>Create an L3 view only when it adds genuine value for an architecturally complex
-  container. Simple CRUD services typically do not need one.</p>
-</blockquote>
 
 <h2>Diagram</h2>
 <p><em>Diagram artifact: {system-name}-L3-{container}-v{X.Y.Z}. Preserve an existing

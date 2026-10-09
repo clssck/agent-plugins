@@ -261,7 +261,7 @@ These checks ensure all C4 levels tell a coherent story.
 - [ ] Integration patterns identified (sync/async)
 - [ ] SPA client, API, and asset-host responsibilities are classified from actual
       in-scope runtimes rather than a fixed container rule
-- [ ] Cloud services modeled as containers (not external)
+- [ ] In-scope cloud services modeled as containers; services merely consumed shown as external
 - [ ] Consistent with context diagram (same system, same external systems)
 - [ ] Protocol labels on all relationships
 - [ ] The view remains readable; split by business area or create a supplementary view

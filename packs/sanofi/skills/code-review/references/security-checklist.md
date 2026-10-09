@@ -35,23 +35,13 @@ Run first; the per-area checklists below then apply to what changed (OWASP Secur
 - [ ] `.gitignore` covers `.env`, `.env.local`, `*.pem`, `*.key`
 - [ ] `.env.example` holds placeholders only
 
-Search changed content with the omp `grep` tool (case-insensitive `password|secret|api[_-]?key|token|BEGIN .*PRIVATE KEY`) over the changed files. Searching the diff text itself:
+Search changed files with the omp `grep` tool (case-insensitive `password|secret|api[_-]?key|token|BEGIN .*PRIVATE KEY`). Removed lines are not in the working tree: read `git diff` output for those.
 
-```bash
-# bash / zsh
-git diff --cached -U0 | grep -iE 'password|secret|api[_-]?key|token'
-```
-
-```powershell
-# PowerShell (Select-String is case-insensitive by default)
-git diff --cached -U0 | Select-String -Pattern 'password|secret|api[_-]?key|token'
-```
-
-Staged diff only; repeat without `--cached` for unstaged changes. A hit is a lead, not a finding: confirm it is a real value.
+A hit is a lead, not a finding: confirm it is a real value.
 
 ## Authentication
 
-- [ ] Passwords hashed with argon2id, scrypt, or bcrypt (≥12 rounds)
+- [ ] Passwords hashed with argon2id (preferred) or scrypt; bcrypt only for legacy systems (work factor ≥10, 72-byte input limit)
 - [ ] Session cookies: `httpOnly`, `secure`, `sameSite: 'lax'` or stricter
 - [ ] Session expiry configured
 - [ ] Login rate limited
@@ -127,19 +117,30 @@ cors({ origin: '*', credentials: true })
 
 ## Dependency Security
 
-Read-only evidence commands; identical in bash, zsh, and PowerShell:
+Read-only evidence commands. omp `bash` runs a POSIX shell.
 
 ```bash
+# npm
 npm audit --json
 npm audit --audit-level=critical
 npm outdated
+
+# Python, uv project with uv.lock (preview command; `--frozen` never rewrites the lock)
+uv audit --frozen --preview-features audit-command
+uv audit --locked --preview-features audit-command
+
+# Python, requirements.txt project (all pinned)
+uvx pip-audit -r requirements.txt --disable-pip --no-deps
 ```
 
-- NEVER run `npm audit fix`, `npm update`, or `npx npm-check-updates -u` during review; they change the tree.
+- NEVER run `npm audit fix`, `npm update`, `npx npm-check-updates -u`, `uv lock --upgrade`, `uv add`, `uv sync`, or `pip-audit --fix` during review; they change the tree.
 - Report vulnerable package, advisory, and fixed version; recommend the upgrade as a finding.
 - pnpm/yarn projects: `pnpm audit --json` / `yarn npm audit --json`.
 - `npm audit` needs a lockfile; `--no-package-lock` re-resolves the tree and results vary per run. `--audit-level` only changes the exit code, not the report.
 - `npm audit signatures` (read-only) verifies registry signatures and provenance attestations of installed packages; use the latest npm CLI.
+- `uv audit` is a preview command (OSV-backed): exits 1 when it finds vulnerabilities, JSON via `--output-format json`, and the schema may change. It audits `uv.lock`; without `--frozen` or `--locked` it may update the lock first. Not in the installed uv? Fall back to `uvx pip-audit`.
+- `pip-audit --locked` reads `pylock.toml`, not `uv.lock`; use `uv audit` for uv projects.
+- Pinned requirements without hashes (`--no-deps`) are weaker evidence than a locked resolution; say so in the report.
 - An advisory hit proves nothing about packages with no advisory yet. Known-bad lists lag malicious publishes; judge new or bumped packages with the signals in [SKILL.md](../SKILL.md#dependency-review).
 - New dependency added? Also apply the dependency questions in [SKILL.md](../SKILL.md#dependency-review).
 
@@ -151,18 +152,19 @@ Read lockfile and install-policy diffs line by line; reviewers skip them and att
 |---|---|
 |Lockfile entry changed with no matching `package.json` change|Possible injected or substituted package|
 |Same `name@version` with a different `integrity` hash, or a new `resolved` host/URL|Tampered tarball or registry substitution|
-|New `git+ssh://`, `github:`, or `https://…tgz` dependency sources|Bypasses registry controls; mutable refs. pnpm `blockExoticSubdeps` (default `true`) blocks these for transitive deps; npm `allow-git=none\|root` limits git deps|
-|New `preinstall`/`install`/`postinstall` on a dependency|Execution vector of the 2025 Shai-Hulud npm worm; pnpm and npm now gate install scripts by allowlist|
+|New `git+ssh://`, `github:`, or `https://…tgz` dependency sources|Bypasses registry controls; mutable refs. pnpm `blockExoticSubdeps` (default `true`) blocks these for transitive deps; npm `allow-git` (default `none` since npm 12) limits git deps|
+|New `preinstall`/`install`/`postinstall` on a dependency|Install scripts carried the 2025 Shai-Hulud npm worms (postinstall in September, preinstall in the November 2.0 wave). pnpm (`allowBuilds`) and npm 12 (`allowScripts`) gate them by allowlist|
 |`ignore-scripts=true` removed, `dangerouslyAllowAllBuilds: true` (pnpm), `dangerously-allow-all-scripts` (npm), or broad `allowBuilds`/`allowScripts` entries|Disables the install-script gate. Prefer explicit per-package allow entries|
-|`strictDepBuilds: false` (pnpm)|Unreviewed build scripts stop failing the install|
-|`minimumReleaseAge: 0`, removed, or widened `minimumReleaseAgeExclude` (pnpm); `min-release-age` removed (npm)|Drops the cooldown that lets malicious versions get detected and pulled. Units differ: pnpm minutes (default `1440`), npm days|
+|`strictDepBuilds: false` (pnpm); `strict-allow-scripts` unset (npm)|Unreviewed build scripts stop failing the install|
+|`minimumReleaseAge: 0`, removed, or widened `minimumReleaseAgeExclude` (pnpm); `min-release-age` removed (npm); `exclude-newer` removed or widened (uv)|Drops the cooldown that lets malicious versions get detected and pulled. Units differ: pnpm minutes (default `1440` since pnpm 11), npm days (default unset), uv timestamp or duration such as `1 week`|
 |`trustPolicy: no-downgrade` removed or `trustPolicyExclude` grown (pnpm)|Re-allows packages whose publish trust (trusted publisher, provenance) decreased|
 |`trustLockfile: true` (pnpm)|Skips re-verification of lockfile entries; a poisoned lockfile from an outside contributor slips through|
-|New `registry=` or scoped registry, or `strict-ssl=false`|Dependency-confusion or MITM path; internal scopes MUST resolve to the internal registry|
+|New `registry=` or scoped registry, `strict-ssl=false`; uv: new `[[tool.uv.index]]`, `index-strategy` moved off `first-index`, or `allow-insecure-host`|Dependency-confusion or MITM path; internal scopes MUST resolve to the internal registry. uv's `first-index` default stops at the first index that has the package|
+|`uv.lock` entry with a new `source = { git = … }` or `{ url = … }`, or a changed `hash` for the same version|Bypasses index controls; tampered artifact|
 |Workflow `uses: owner/action@v1` (tag or branch) instead of a full-length commit SHA|Tags are mutable; a SHA is the only immutable pin. Verify the SHA belongs to the action repo, not a fork|
-|Floating ranges (`latest`, `*`) or CI switched from `npm ci` / `--frozen-lockfile` to a resolving install|Unreviewed versions reach production|
+|Floating ranges (`latest`, `*`) or CI switched from `npm ci` / `--frozen-lockfile` / `uv sync --locked` to a resolving install|Unreviewed versions reach production|
 
-- pnpm settings live in `pnpm-workspace.yaml`; `.npmrc` is read only for auth and registry settings, so a pnpm policy added to `.npmrc` is silently inert.
+- pnpm policy settings belong in `pnpm-workspace.yaml`; pnpm's docs describe `.npmrc` as the home for auth and registry settings. A pnpm policy added only to `.npmrc` may not take effect: ask the author to confirm.
 - A changed policy file without a stated reason → ask the author; an unexplained weakening is Important at minimum.
 
 ## Error Handling
@@ -231,9 +233,13 @@ Ranks and IDs verified against the 2025 list (page updated 2025-12-15); re-check
 - 2025 CWE Top 25 Most Dangerous Software Weaknesses, <https://cwe.mitre.org/top25/archive/2025/2025_cwe_top25.html>
 - OWASP Secure Code Review Cheat Sheet, <https://cheatsheetseries.owasp.org/cheatsheets/Secure_Code_Review_Cheat_Sheet.html>
 - Google eng-practices, What to look for in a code review, <https://google.github.io/eng-practices/review/reviewer/looking-for.html>
-- npm Docs, `npm audit`, <https://docs.npmjs.com/cli/v11/commands/npm-audit>
-- npm Docs, config (`min-release-age`, `allow-git`, `allow-scripts`, `strict-allow-scripts`, `ignore-scripts`), <https://docs.npmjs.com/cli/v11/using-npm/config>
+- npm Docs, `npm audit`, <https://docs.npmjs.com/cli/commands/npm-audit>
+- npm Docs, config (`min-release-age`, `allow-git`, `allow-scripts`, `strict-allow-scripts`, `ignore-scripts`), <https://docs.npmjs.com/cli/using-npm/config>
+- Astral, Vulnerability and malware checks in uv (`uv audit`), <https://astral.sh/blog/uv-audit>; uv CLI reference, <https://docs.astral.sh/uv/reference/cli/#uv-audit>
+- uv settings (`index-strategy`, `exclude-newer`, `allow-insecure-host`), <https://docs.astral.sh/uv/reference/settings/>
+- OWASP Password Storage Cheat Sheet, <https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html>
 - pnpm, Mitigating supply chain attacks, <https://pnpm.io/supply-chain-security>
+- Field Effect, Shai-Hulud 2.0 preinstall variant, <https://fieldeffect.com/blog/new-shai-hulud-variant-uses-preinstall-script-for-credential-theft>; CISA alert, <https://www.cisa.gov/news-events/alerts/2025/09/23/widespread-supply-chain-compromise-impacting-npm-ecosystem>
 - pnpm, Dependency Resolution Settings (`minimumReleaseAge`, `trustPolicy`, `trustLockfile`, `blockExoticSubdeps`), <https://pnpm.io/settings/dependency-resolution>
 - pnpm, Build settings (`allowBuilds`, `strictDepBuilds`, `dangerouslyAllowAllBuilds`), <https://pnpm.io/settings/build>
 - OpenSSF, Concise Guide for Evaluating Open Source Software, <https://best.openssf.org/Concise-Guide-for-Evaluating-Open-Source-Software>

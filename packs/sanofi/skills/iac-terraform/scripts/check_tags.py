@@ -1,9 +1,13 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
 """Check Sanofi mandatory tags on every taggable resource in a Terraform plan.
 
 Usage:
     terraform show -json tfplan > plan.json
-    python3 check_tags.py plan.json          # or: ... | python3 check_tags.py -
+    uv run check_tags.py plan.json          # or: ... | uv run check_tags.py -
 
 Evaluates effective tags (`tags_all`, falling back to `tags`), so module and
 provider `default_tags` propagation is honoured. Exit codes: 0 = compliant,

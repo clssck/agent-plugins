@@ -1,6 +1,6 @@
 ---
 name: incident-postmortem
-description: Produce Sanofi blameless post-mortems for production incidents (severity, UTC timeline, impact, root cause, contributing factors, owned actions). Use when writing an incident report, RCA, outage writeup, or SEV1/SEV2 follow-up. Not for live response or paging, minor bug triage, sprint retrospectives, or security scanning (/security).
+description: Write or review Sanofi blameless post-mortems for production incidents (severity, UTC timeline, impact, root cause, contributing factors, owned actions). Use when writing a post-mortem, post-incident review (PIR), incident report, RCA, or outage writeup. Not for live response or paging, bug triage, sprint retrospectives, or security scanning (/security).
 ---
 
 # Incident Post-Mortem
@@ -9,16 +9,18 @@ Blameless, evidence-backed post-mortems for production incidents. Output: one Ma
 
 ## Workflow
 
-1. Gather facts: dates, impact, affected users/systems, detection path, mitigation, recovery, evidence links.
+1. Gather facts: dates, impact, affected users/systems, detection path, mitigation, recovery, evidence links. Use `read`/`grep`/`glob` on chat exports, alert history, deploy logs; `ask` for anything not in evidence.
 2. Confirm severity against [severity-levels.md](references/severity-levels.md); record live and final severity.
 3. Build the UTC timeline forward from before the trigger (avoids hindsight bias); link a source per entry; separate fact from inference.
 4. Run root-cause analysis: 5 Whys plus ALL contributing factors (rules below).
 5. Capture what went well, what went wrong, where we got lucky.
 6. Define action items (required fields below).
-7. Write using [post-mortem-template.md](references/post-mortem-template.md).
+7. `write` the document from [post-mortem-template.md](references/post-mortem-template.md).
 8. Run the review gate.
 
-Full process, prompts, anti-patterns: [full-guide.md](references/full-guide.md).
+Reviewing an existing post-mortem: run the Checklist and the blameless self-check; report each gap with its section.
+
+Process detail, prompts, anti-patterns: [full-guide.md](references/full-guide.md).
 
 ## Timestamps
 
@@ -26,7 +28,7 @@ Full process, prompts, anti-patterns: [full-guide.md](references/full-guide.md).
 |---|---|
 | Trigger | Deploy or change that started it; record separately |
 | Start | First customer impact (often before anyone knew) |
-| Detection | Someone or something first noticed |
+| Detection | Alert fired or report reached responders |
 | Acknowledgement | Incident declared / responder engaged |
 | Mitigation | Customer impact stopped |
 | Resolution | Underlying issue fixed |
@@ -34,13 +36,13 @@ Full process, prompts, anti-patterns: [full-guide.md](references/full-guide.md).
 TTD = Detection − Start. TTA = Acknowledgement − Detection. TTM = Mitigation − Detection. TTR = Resolution − Start. Header, summary, impact, and timeline MUST agree.
 
 - MUST state both endpoints next to every duration. NEVER write a bare "MTTR": it means repair, recovery, respond, or resolve depending on the source.
-- NEVER claim a reliability trend from one incident or from MTTx averages over a few incidents; durations are heavily skewed. Report this incident's durations only.
+- NEVER claim a reliability trend from one incident or from MTTx averages over a few incidents. Report this incident's durations only.
 
 ## Severity
 
 - SEV1/SEV2: post-mortem REQUIRED within 5 business days of incident closure.
-- SEV3: optional; recommended for recurrence, near-miss, new failure mode, detection by humans or customers instead of monitoring, on-call intervention (rollback, traffic reroute), or a stakeholder request.
-- Check every SEV1 criterion independently: data loss/exposure, security breach, regulatory-reporting failure, core outage, revenue path broken.
+- SEV3: optional; recommend one when a trigger in [severity-levels.md](references/severity-levels.md#sev3--moderate) applies.
+- Check every SEV1 criterion independently; security or compliance impact makes any size SEV1.
 - NEVER classify down to dodge the deadline.
 
 ## Root Cause
@@ -74,7 +76,7 @@ Every item MUST have:
 | Make sure engineers check the schema before deploying. | Add CI pre-merge check that parses schema changes. |
 | Train the team on rollbacks. | Write and test the `orders-api` rollback runbook. |
 
-- Actions that depend on people "being careful" or training alone are rejected; change the system.
+- REJECT actions that depend on people "being careful" or on training alone; change the system.
 - Record actions considered but not pursued, with the reason.
 - Optional tracker skeleton: [action-items-header.md](assets/action-items-header.md).
 
@@ -89,14 +91,16 @@ Every item MUST have:
 ## Review Gate
 
 - Complete only when no action item is `UNASSIGNED` and each has owner, deadline, tracking link.
-- SEV1/SEV2 inside the 5-day window, or the slip recorded as a process action item.
+- SEV1/SEV2 inside the 5-day window, or the slip recorded as a `process` action item.
 - Circulate to responders and the IC's manager; SEV1 also goes to the engineering leadership channel.
 
 ## Checklist
 
-- Live and final severity recorded; Incident ID present.
+- Live and final severity recorded; Incident ID and IC present.
 - Timeline UTC with detection, acknowledgement, mitigation, resolution; each entry sourced.
+- Impact quantified (users, requests, duration, revenue/data/compliance) or marked `unknown`.
 - Every duration states its endpoints; metrics consistent across header, summary, impact, timeline.
-- Root cause has 5 Whys, contributing factors, and is not "human error" or a bare vendor fault.
+- Root cause has 5 Whys, contributing factors, a category, and is not "human error" or a bare vendor fault.
+- Went well / went wrong / got lucky filled.
 - Action items actionable, specific, bounded; at least one `detect` and one `prevent`/`mitigate`.
 - Blameless wording; action items complete or Draft.

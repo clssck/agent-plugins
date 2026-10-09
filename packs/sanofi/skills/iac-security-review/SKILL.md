@@ -1,13 +1,13 @@
 ---
 name: iac-security-review
-description: AWS IaC security control matrix for Terraform, CDK, SST, CloudFormation, and Pulumi, plus Sanofi tag and module policy. Use when auditing infrastructure code for exposure, IAM, encryption, network, logging, or secrets. Not for app or CI/CD review (use /security, security-reviewer) or authoring Terraform (iac-terraform).
+description: AWS IaC security review with a control matrix for Terraform, CDK, SST, CloudFormation, and Pulumi, plus Sanofi tag and module policy. Use when auditing infrastructure code for public exposure, IAM, encryption, network, logging, or secrets. Not for authoring Terraform (iac-terraform), CI/CD workflows (cicd-engineering), or app code (code-review, /security).
 ---
 
 # IaC Security Review
 
 Static, read-only review of AWS infrastructure code. Produces an evidence-graded report.
 
-Complements omp built-ins: `/security` and `security-reviewer` run generic vulnerability discovery; this skill supplies the IaC resource-control matrix and Sanofi policy. Run both when scope is a full security audit; use `/review` for diff review.
+Complements omp built-ins: `/security` and `security-reviewer` run generic vulnerability discovery; this skill supplies the IaC resource-control matrix and Sanofi policy. Run both for a full security audit; use `/review` or code-review for diffs.
 
 ## References
 
@@ -15,7 +15,7 @@ Complements omp built-ins: `/security` and `security-reviewer` run generic vulne
 |------|----------|
 | [security-controls.md](references/security-controls.md) | Control IDs, per-framework checks, severity rules |
 | [aws-defaults.md](references/aws-defaults.md) | Current AWS defaults and sources; check before flagging absent properties |
-| [scanners.md](references/scanners.md) | Optional Checkov/Trivy/KICS cross-check, safe invocation, suppression comments, March 2026 supply-chain warning |
+| [scanners.md](references/scanners.md) | Optional Checkov/Trivy/KICS cross-check, uv install, safe invocation, suppressions, 2026 supply-chain warnings |
 | [report.template.md](assets/report.template.md) | Report structure |
 
 ## Guardrails
@@ -41,7 +41,7 @@ Use omp tools; no shell needed.
 | Terraform | `glob` `**/*.tf`, skip `.terraform/` |
 | CDK | `glob` `**/cdk.json`; `grep` `aws-cdk-lib` in `package.json` |
 | SST | `glob` `**/sst.config.{ts,js}` |
-| CloudFormation | `grep -l` `^Resources:` or `"Resources"` plus `Type: AWS::` or `"Type": "AWS::"` in `*.yaml`, `*.yml`, `*.json`, `*.template`. `AWSTemplateFormatVersion` is optional |
+| CloudFormation | `grep` `^Resources:` or `"Resources"` plus `Type: AWS::` or `"Type": "AWS::"` in `*.{yaml,yml,json,template}`. `AWSTemplateFormatVersion` is optional |
 | Pulumi | `glob` `**/Pulumi.yaml`; resources via `aws.` imports |
 
 - Identify environments from directories, workspaces, stack names, tfvars.
@@ -52,11 +52,11 @@ Use omp tools; no shell needed.
 
 ### 2. Inventory
 
-`grep` resource declarations; `read` the files. Per resource record type, name, file:line, internet-facing, intended public (docs, comments, naming), and relationships (CloudFront → API → Lambda). Terraform: also record the AWS provider constraint (`required_providers`, `.terraform.lock.hcl`): provider 6.0 changed defaults (for example Redshift `encrypted`, `publicly_accessible`).
+`grep` resource declarations; `read` the files. Per resource record type, name, file:line, internet-facing, intended public (docs, comments, naming), and relationships (CloudFront → API → Lambda). Terraform: also record the AWS provider constraint (`required_providers`, `.terraform.lock.hcl`); defaults differ between provider 5.x and 6.x ([aws-defaults.md](references/aws-defaults.md)).
 
 ### 3. Analysis
 
-For each resource, apply [security-controls.md](references/security-controls.md). Before flagging an absent property, check [aws-defaults.md](references/aws-defaults.md). Per finding record control ID, severity, status (Confirmed / Needs confirmation), confidence, evidence, exposure analysis, remediation. `grep` for scanner suppressions (`checkov:skip`, `trivy:ignore`, `kics-scan`) and judge each suppressed control. An installed scanner MAY cross-check the result: [scanners.md](references/scanners.md).
+For each resource, apply [security-controls.md](references/security-controls.md). Before flagging an absent property, check [aws-defaults.md](references/aws-defaults.md). Per finding record control ID, severity, status (Confirmed / Needs confirmation), confidence, evidence, exposure analysis, remediation. `grep` for scanner suppressions (`checkov:skip`, `trivy:ignore`, `kics-scan`) and judge each suppressed control. A scanner MAY cross-check the result: [scanners.md](references/scanners.md).
 
 Large repos: delegate per directory with `task`; merge findings centrally.
 
@@ -92,6 +92,6 @@ Report: audits/iac-security-review-YYYY-MM-DD.md
 - No Critical without reachability + impact evidence.
 - Absent-property findings checked against aws-defaults.md.
 - Sanofi section applied only for Sanofi repos.
-- Scanner hits re-graded, not copied; scanner only run if already installed.
+- Scanner hits re-graded, not copied; scanner already installed or install approved by the user.
 - Skipped controls listed with reasons.
 - No IaC file modified.

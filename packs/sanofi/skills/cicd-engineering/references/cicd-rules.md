@@ -269,8 +269,8 @@ Three pieces make the gate real. Full workflow in [pipeline-templates.md](pipeli
 
 **Lockfiles (`package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `uv.lock`,
 `Pipfile.lock`, `poetry.lock`) MUST be committed** to guarantee deterministic builds.
-CI MUST use deterministic install commands (`npm ci`, `pipenv sync`, `uv sync --frozen`,
-`bundle install --deployment`) and MUST fail if the lockfile is missing or out of sync.
+CI MUST use deterministic install commands (`npm ci`, `pipenv sync`, `uv sync --locked`,
+`bundle install --deployment`) and MUST fail if the lockfile is missing or out of sync (`--frozen` installs from a stale `uv.lock` without failing; use `--locked`).
 
 Lockfile updates flow through PRs so dependency changes are reviewed. Dependabot or
 Renovate SHOULD automate these PRs.
@@ -300,8 +300,9 @@ GitHub Dependabot) via the standard reusable workflows. Minimal inline examples:
 # Node.js — lightweight gate
 - run: npm audit --audit-level=high
 
-# Python
-- run: pip-audit --strict
+# Python (uv project: export the lock, audit the pinned set)
+- run: uv export --locked --no-emit-project --format requirements.txt -o requirements-audit.txt
+- run: uvx pip-audit@2.10.1 --strict --disable-pip -r requirements-audit.txt
 ```
 
 Dependabot or Renovate SHOULD be enabled to open PRs for vulnerable packages
@@ -341,7 +342,7 @@ are required input for SLSA provenance, vulnerability response, and license audi
 SBOM tooling:
 
 - Node.js: `@cyclonedx/cyclonedx-npm`
-- Python: `cyclonedx-py`, `pip-audit --format cyclonedx`
+- Python: `uv export --locked --format cyclonedx1.5 -o sbom.cdx.json` (experimental in uv 0.12; prints a preview warning), `cyclonedx-py`, `pip-audit --format cyclonedx`
 - Container: Syft (`anchore/sbom-action`)
 
 SBOMs SHOULD be signed together with the release artifact (see §3.5).
@@ -599,7 +600,7 @@ When reviewing `.github/workflows/*.yml`:
 
 **Supply chain**
 
-- [ ] Lockfile present and enforced (`npm ci` / `uv sync --frozen` / etc.)
+- [ ] Lockfile present and enforced (`npm ci` / `uv sync --locked` / etc.)
 - [ ] Dependency audit job (CodeGuard SCA, `npm audit`, `pip-audit`)
 - [ ] SAST job (CodeGuard preferred, SonarCloud or CodeQL acceptable)
 - [ ] SBOM generated for production-bound artifacts

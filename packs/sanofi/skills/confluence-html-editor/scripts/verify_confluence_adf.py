@@ -1,10 +1,16 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
 """Verify Confluence ADF for native rich-page nodes.
 
 Feed this script the JSON returned by the Atlassian MCP page read tool with the
 ADF content format, including MCP text-content wrappers. It intentionally does
 not call Confluence itself; fetch ADF with the active Atlassian tool, save it,
 then run this verifier.
+
+Usage: uv run verify_confluence_adf.py fetched-adf.json --expect panels,statuses,layouts,tasks,decisions,inline_cards,dates
 """
 
 from __future__ import annotations

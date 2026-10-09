@@ -16,13 +16,13 @@ Copy-paste GitHub Actions workflows for Sanofi repositories. Every template uses
 
 ## Action pins
 
-Verified 2026-10-08 against each action's latest GitHub release; annotated tags dereferenced to the commit. All JavaScript actions below declare `runs.using: node24` (Node 20 was removed from Actions runners on 2026-09-23: <https://github.blog/changelog/2026-09-23-node-20-is-no-longer-available-in-github-actions/>).
+Verified 2026-10-09 against each action's latest GitHub release; annotated tags dereferenced to the commit. All JavaScript actions below declare `runs.using: node24` (Node 20 was removed from Actions runners on 2026-09-23: <https://github.blog/changelog/2026-09-23-node-20-is-no-longer-available-in-github-actions/>).
 
 | Action | Version | Commit SHA |
 | --- | --- | --- |
 | `actions/checkout` | v7.0.1 | `3d3c42e5aac5ba805825da76410c181273ba90b1` |
 | `actions/setup-node` | v7.1.0 | `949feb2413d6458794dcd2491c4babbbce0c15c1` |
-| `actions/setup-python` | v7.0.0 | `5fda3b95a4ea91299a34e894583c3862153e4b97` |
+| `astral-sh/setup-uv` | v10.2.0 | `c18668ad3cf93ea998bef934396af7bb5c839dc7` |
 | `actions/upload-artifact` | v7.0.2 | `cf430e030ddbb5b0abf93d22962f4752f3646cd9` |
 | `actions/download-artifact` | v8.0.2 | `9000827ccba6bdab643e8b6fd33ac0654aef8333` |
 | `actions/cache` | v6.1.0 | `55cc8345863c7cc4c66a329aec7e433d2d1c52a9` |
@@ -50,7 +50,8 @@ NEVER use `gh api repos/OWNER/REPO/git/ref/tags/TAG --jq .object.sha` alone: for
 ## Prerequisites
 
 - **Allowlist**: confirm each action/version is permitted by the Sanofi org allowlist. Allowlist pins a tag? Use that exact tag instead of the SHA.
-- **ARC runner image**: runner release `2.329.0` or later, the minimum GitHub requires to register a runner (Node 24 needs v2.328.0 or later), and each new release within 30 days. Container jobs need Docker/BuildKit. Sonar scan action v8 needs `unzip`, `curl` or `wget`, `gpg`, `dirmngr` on `PATH`. Confirm with the platform team; NEVER assume fleet versions. Runner enforcement: [security-hardening.md §5](security-hardening.md#5-self-hosted-runner-risks).
+- **ARC runner image**: runner release `2.329.0` or later (the registration minimum), and each new release within 30 days. Container jobs need Docker/BuildKit. Sonar scan action v8 verifies its scanner signature by default, so `gpg` and `dirmngr` MUST be on `PATH`. Confirm with the platform team; NEVER assume fleet versions. Runner enforcement: [security-hardening.md §5](security-hardening.md#5-self-hosted-runner-risks).
+- **Python jobs**: `setup-uv` downloads uv, and `uv sync` downloads the `.python-version` interpreter when the image lacks it; confirm runner egress. Private package index: `[[tool.uv.index]]` in `pyproject.toml` or `UV_DEFAULT_INDEX`.
 - **Environments** `dev`, `test`, `prod`: each holds `AWS_ACCOUNT_ID` and `JFROG_TOKEN` (Terraform repos). `prod` has required reviewers and a `main`-only deployment branch rule.
 - **Repository/org secrets**: `SONAR_TOKEN`; CodeGuard `CHECKMARX_*` secrets.
 - **Branch protection**: require the `Build Complete` check. It fails unless every quality, audit, and Sonar job succeeded.
@@ -204,6 +205,10 @@ Containerized service? Add the [container build caller](#container-build--push-t
 
 ## Python CI
 
+Assumes a uv project: `pyproject.toml` with the dev tools in `[dependency-groups] dev`, a committed `uv.lock`, and `.python-version`. `uv sync --locked` fails when the lockfile is stale, and `uv run` uses the synced `.venv`. `setup-uv` is not GitHub-published: use the allowlist's registered tag if it requires one. `enable-cache: true` is explicit because the default `auto` skips self-hosted runners.
+
+Repo on `requirements-dev.txt`? Do not migrate it silently. Replace `uv sync --locked` with `uv venv` + `uv pip install -r requirements-dev.txt` (`uv run` then uses `.venv`), and the audit steps with `uvx pip-audit@2.10.1 --strict -r requirements.txt`. Recommend `uv init` / `uv add` for new work.
+
 ```yaml
 name: "CI"
 run-name: ${{ github.workflow }} - ${{ github.ref_name }}
@@ -225,13 +230,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          python-version-file: ".python-version"
-          cache: "pip"
-      - run: pip install -r requirements-dev.txt
-      - run: black --check .
-      - run: isort --check-only .
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run black --check .
+      - run: uv run isort --check-only .
 
   lint:
     name: Lint
@@ -240,12 +244,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          python-version-file: ".python-version"
-          cache: "pip"
-      - run: pip install -r requirements-dev.txt
-      - run: ruff check .
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run ruff check .
 
   typecheck:
     name: Type Check
@@ -254,12 +257,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          python-version-file: ".python-version"
-          cache: "pip"
-      - run: pip install -r requirements-dev.txt
-      - run: mypy src/
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run mypy src/
 
   test:
     name: Unit Tests
@@ -268,13 +270,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          python-version-file: ".python-version"
-          cache: "pip"
-      - run: pip install -r requirements-dev.txt
+          enable-cache: true
+      - run: uv sync --locked
       - name: Run tests with coverage (Cobertura XML for Sonar)
-        run: pytest --cov=src --cov-report=xml:coverage.xml --cov-fail-under=80
+        run: uv run pytest --cov=src --cov-report=xml:coverage.xml --cov-fail-under=80
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
@@ -289,12 +290,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          python-version-file: ".python-version"
-          cache: "pip"
-      - run: pip install pip-audit
-      - run: pip-audit --strict -r requirements.txt
+          enable-cache: true
+      - name: Export locked dependencies
+        run: uv export --locked --no-emit-project --format requirements.txt -o requirements-audit.txt
+      - name: Audit locked dependencies
+        run: uvx pip-audit@2.10.1 --strict --disable-pip -r requirements-audit.txt
 
   sonarcloud:
     name: SonarCloud

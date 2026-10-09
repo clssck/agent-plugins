@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Regression tests for extract_confluence_fetch.py."""
 
 from __future__ import annotations

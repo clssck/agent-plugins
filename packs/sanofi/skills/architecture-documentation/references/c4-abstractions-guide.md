@@ -255,7 +255,7 @@ domain logic).
 | Bidirectional arrows | C4 uses unidirectional relationships | Two separate arrows if communication goes both ways |
 | Person interacting with database directly | Users interact with applications, not databases | Route through the application container |
 | Modeling tools/frameworks as elements | Frameworks are technology choices, not architectural units | Annotate as [Technology] label or comment on the element that uses them |
-| Modeling each Lambda as a container | Multiple Lambdas behind one API Gateway are one service | Consolidate into one container (see Serverless Consolidation Pattern) |
+| Modeling each Lambda as a container | Multiple Lambdas behind one API Gateway are one service | Consolidate into one container (see [Serverless Consolidation Pattern](codebase-analysis-patterns.md#serverless-consolidation-pattern)) |
 | Treating every managed service as a container or as external | Classification follows scope and responsibility, not provisioning | Apply the managed-cloud-service rule; your Lambda action groups are containers either way |
 
 ---

@@ -143,10 +143,11 @@ align for this incident to occur:
 
 ## What Went Well
 
-- Rollback was clean and fully mitigated impact within 4 minutes of
-  deploy.
+- Rollback was clean: error rate returned to baseline 4 minutes after the
+  rollback went live (15:32 → 15:36).
 - @bob's decision at 15:12 to stop waiting for the forward fix and roll
-  back was the right call; TTM would have been 25+ min longer otherwise.
+  back was the right call; the forward fix went live at 15:47, so
+  waiting would have extended impact by about 11 minutes.
 - Support and oncall communication in Slack was tight; no confusion
   about who owned what.
 - No data corruption; failed checkouts failed cleanly.

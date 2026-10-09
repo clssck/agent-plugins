@@ -18,7 +18,7 @@ This surface changes quickly. Before implementing, verify command syntax, suppor
 versions, commands, and flags against current first-party sources:
 
 - [Manage dbt Projects with Snowflake CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli/data-pipelines/dbt-projects)
-- [`snow dbt` command reference](https://docs.snowflake.com/en/developer-guide/snowflake-cli/command-reference/dbt-commands)
+- [`snow dbt` command reference](https://docs.snowflake.com/en/developer-guide/snowflake-cli/command-reference/dbt-commands/overview)
 - [`EXECUTE DBT PROJECT`](https://docs.snowflake.com/en/sql-reference/sql/execute-dbt-project)
 - [Supported dbt commands and flags](https://docs.snowflake.com/en/user-guide/data-engineering/dbt-projects-on-snowflake-supported-commands)
 - [Snowflake-Labs `dbt_semantic_view`](https://github.com/Snowflake-Labs/dbt_semantic_view)

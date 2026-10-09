@@ -233,14 +233,13 @@ new ApolloClient({ uri })       -> Queries data from GraphQL API [HTTP/GraphQL]
 httpClient.post('/orders')       -> Creates orders via API [HTTP/REST]
 ```
 
-**What to search for:**
+**What to search for** (`grep` tool, `path: "src"`):
 ```
 # Node.js / TypeScript
-grep -r "fetch\|axios\|http\.get\|http\.post\|got\(" src/
-grep -r "new ApolloClient\|gql\`" src/
+fetch\(|axios|http\.(get|post)|got\(|new ApolloClient|gql`
 
 # Python
-grep -r "requests\.get\|requests\.post\|httpx\.\|aiohttp\." src/
+requests\.(get|post)|httpx\.|aiohttp\.
 ```
 
 ### Database Queries
@@ -255,10 +254,10 @@ dynamoClient.send(new PutItemCommand) -> Stores data [AWS SDK] in DynamoDB conta
 mongoose.connect(MONGO_URI)      -> Reads/writes data [MongoDB Wire/TCP] to MongoDB
 ```
 
-**What to search for:**
+**What to search for** (`grep` tool, `path: "src"`):
 ```
-grep -r "new Pool\|PrismaClient\|drizzle\|mongoose\|DynamoDB\|DocumentClient" src/
-grep -r "createConnection\|getRepository\|DataSource" src/  # TypeORM
+new Pool|PrismaClient|drizzle|mongoose|DynamoDB|DocumentClient
+createConnection|getRepository|DataSource    # TypeORM
 ```
 
 ### Message Queues

@@ -221,25 +221,21 @@ Source-text greps miss unquoted HCL keys, match variable declarations, and skip 
 ```bash
 terraform plan -out=tfplan
 terraform show -json tfplan > plan.json
-python3 skill://iac-terraform/scripts/check_tags.py plan.json
+uv run "$(realpath skill://iac-terraform/scripts/check_tags.py)" plan.json
 ```
 
-PowerShell runs the same three lines unchanged. The script walks `resource_changes`, reads `tags_all` (falling back to `tags`), and fails on missing/empty tags, wrong case, bad prefixes, and mismatched `CE_Environment`. Tags unknown until apply print as warnings (`--strict` fails them). Exit codes: 0 compliant, 1 violations, 2 unreadable input.
+Run these in the omp `bash` tool; `realpath` resolves `skill://` there, and the script needs no installed dependencies. The script walks `resource_changes`, reads `tags_all` (falling back to `tags`), and fails on missing/empty tags, wrong case, bad prefixes, and mismatched `CE_Environment`. Tags unknown until apply print as warnings (`--strict` fails them). Exit codes: 0 compliant, 1 violations, 2 unreadable input.
 
-In CI, copy the script into the repository and run it after the plan step; the workflow template is in the `cicd-engineering` skill.
+In CI, copy the script into the repository and run `uv run check_tags.py plan.json` after the plan step; the workflow template is in the `cicd-engineering` skill.
 
 ## Common mistakes
 
 | Bad | Good |
 | --- | --- |
-| Only `CE_*` tags in a module call | `tags = local.tags` (all 10) |
 | `CE_Environment = var.environment` | `local.ce_environment_map[var.environment]` |
 | `env = "development"`, `CE_Environment = "Dev"` | `env = "dev"`, `CE_Environment = "DEV"` |
 | `cost_center = "12345"` | `cost_center = "apm-1234567"` |
-| `CE_Application_ID = var.cost_center` | Separate `application_id` variable |
-| `variable "version"` | `variable "app_version"` |
 | Module call with no `tags` | `tags = local.tags` |
-| Putting a tag on an ASG only via `default_tags` | `tag` blocks with `propagate_at_launch` |
 | `ignore_tags` covering `cost_center` or `CE_*` | Leave mandatory keys managed by Terraform |
 
 ## Sources

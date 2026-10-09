@@ -1,6 +1,6 @@
 ---
 name: composition-patterns
-description: React component API composition rules — compound components, lifted state, context interfaces, stable context values, explicit variants, children over render props, asChild/render parts, React 19 refs, context and Actions. Use when refactoring components with many boolean props, building component libraries or context providers, or reviewing component architecture.
+description: "React component API composition: compound components, lifted state, context interfaces, stable provider values, explicit variants, children vs render props, asChild/render parts, React 19 refs and Actions. Use when refactoring boolean-prop-heavy components, designing component libraries or context providers, or reviewing React component APIs. Not for general PR review."
 ---
 
 # React Composition Patterns
@@ -24,6 +24,14 @@ Load the rule file before applying it; each holds Incorrect/Correct examples.
 |3|Patterns|MEDIUM|[patterns-polymorphic-parts](rules/patterns-polymorphic-parts.md)|`asChild`/`render` contract; dot-notation parts in Server Components|
 |4|React 19|MEDIUM|[react19-no-forwardref](rules/react19-no-forwardref.md)|`ref` as prop; ref cleanup; `useContext` vs `use`; Actions in providers; codemods|
 
+## Workflow
+
+1. `read` `package.json`: React version, primitive library (`radix-ui` or `@base-ui/react`), React Compiler signals.
+2. `grep` target components for boolean mode props (`is*`, `show*`), `render*` props, `forwardRef`, `.Provider`.
+3. Load the matching rule files above; apply the Decision Rules below.
+4. React 19-only codebase? Run the codemods in [react19-no-forwardref](rules/react19-no-forwardref.md) via `bash`; review the diff.
+5. Run the project's typecheck and tests via `bash`; walk the Checklist.
+
 ## Decision Rules
 
 - Boolean prop selects structure? Replace with a variant component or children.
@@ -43,7 +51,8 @@ Load the rule file before applying it; each holds Incorrect/Correct examples.
 - Context shape: `{ state, actions, meta }`; type `meta.inputRef` as `RefObject<T | null>`.
 - Read context through one guarded `useComposer()`-style hook returning a non-null value.
 - General examples use `useContext` and `<Context.Provider>`; React 19 shorthand appears only in the `react19-` rule.
-- Examples use a messaging composer; adapt names, keep structure.
+- Examples build provider values inline for brevity; memoize per [state-stable-context-value](rules/state-stable-context-value.md) when the compiler is off.
+- Examples use a messaging composer with React Native primitives (`TextInput`, `onPress`); adapt names and DOM equivalents, keep structure.
 
 ## References
 

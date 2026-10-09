@@ -11,7 +11,8 @@ Check current Snowflake documentation before changing runtime or deployment synt
 | App code runs on | `QUERY_WAREHOUSE` (the code warehouse; switch with `session.use_warehouse(...)` for heavy queries) | Compute pool node; `QUERY_WAREHOUSE` runs queries only |
 | Python | 3.9, 3.10, 3.11 | 3.11 only |
 | Streamlit | 1.22+, limited selection from the Snowflake Conda channel | 1.50+, any PyPI version including `streamlit-nightly` |
-| Dependency file | `environment.yml`; pin with `=`, ranges with `*` | `pyproject.toml` or `requirements.txt`; pin with `==`; extra packages or version specifiers need an external access integration (EAI) to reach the index |
+| Package manager | conda, Snowflake Anaconda channel only | uv, from an attached artifact repository or an EAI-reachable index |
+| Dependency file | `environment.yml`; pin with `=`, ranges with `*` | `pyproject.toml` (recommended) or `requirements.txt`; pin with `==`, ranges with `<`, `<=`, `>=`, `>` |
 | Entrypoint (`MAIN_FILE`) | Filename at the source root only | Root or subdirectory path |
 | Streamlit server | One temporary server per viewer session | One persistent server shared by all viewers |
 | Caching | Single session only | `st.cache_data`/`st.cache_resource` shared across all viewers unless `scope="session"` |
@@ -20,16 +21,17 @@ Check current Snowflake documentation before changing runtime or deployment synt
 | `IMPORTS`, `ROOT_LOCATION` | Supported (`ROOT_LOCATION` is legacy) | Rejected |
 | Execution rights | Owner's rights, restricted like owner's-rights stored procedures | Owner's rights by default; restricted caller's rights (Preview) |
 | Lifetime | Sleep timer (`[snowflake.sleep]` in `config.toml`) | Suspends after three days without viewers; subject to the SPCS maintenance window |
-| Message size | 32 MB per Streamlit message (`MessageSizeError`) | 200 MB default, `server.maxMessageSize` |
+| Message size | 32 MB per Streamlit message (`MessageSizeError`) | 200 MB default, configurable |
 | Components v2 | Not supported | Supported |
 | Regions | All | Not in government or China regions |
 
 A migration between the two is an architecture and deployment change, not a dependency-only edit.
 When the user requests one, follow Snowflake's migration checklist: convert `ROOT_LOCATION` apps to
 `FROM`; move to Streamlit 1.50+ and Python 3.11; grant the owner role `USAGE` on the compute pool
-and on any EAI; replace `environment.yml` with `pyproject.toml` or `requirements.txt` (Conda and PyPI
-package names can differ); replace `get_active_session()` and `_snowflake` calls; review imported
-code for shared global state, since one server handles every viewer; then run
+and on the artifact repository or EAI; replace `environment.yml` with `pyproject.toml` or
+`requirements.txt` (Conda and PyPI package names can differ, e.g. `opencv` vs `opencv-python`);
+replace `get_active_session()` and `_snowflake` calls; review imported code for shared global
+state, since one server handles every viewer; then run
 `ALTER STREAMLIT ... SET RUNTIME_NAME = ... COMPUTE_POOL = ...`.
 
 ## Runtime default changed in the 2026_06 bundle
@@ -41,12 +43,13 @@ including `CREATE OR REPLACE` in a redeploy script, follows the new default. Gov
 China regions, and Native App Streamlits keep the warehouse default.
 
 A warehouse-designed script that omits `RUNTIME_NAME` therefore either fails or silently changes
-runtime. A container runtime reads dependencies from `pyproject.toml` or `requirements.txt`, not
-`environment.yml`, and breaks wherever the app calls `get_active_session()` or `_snowflake`.
+runtime: the container runtime ignores `environment.yml` and breaks wherever the app calls
+`get_active_session()` or `_snowflake`.
 
 | Error | Cause | Fix that keeps the warehouse runtime |
 |---|---|---|
 | `STREAMLIT_NO_IMPORTS_CONTAINER_RUNTIME` | `IMPORTS` present | Add `RUNTIME_NAME = 'SYSTEM$WAREHOUSE_RUNTIME'` |
+| `STREAMLIT_NO_EXECUTION_MODE_CONTAINER_RUNTIME` | `EXECUTE AS` present | Same |
 | `STREAMLIT_COMPUTE_POOL_NOT_SET` | No pool and no account default | Same |
 | `STREAMLIT_VALIDATION_FAILURE_NO_USAGE_ON_COMPUTE_POOL` | Owner role lacks `USAGE` on the pool | Same |
 | `STREAMLIT_COMPUTE_POOL_NO_AUTO_RESUME` | Pool has `AUTO_RESUME = FALSE` | Same |
@@ -57,7 +60,9 @@ runtime. A container runtime reads dependencies from `pyproject.toml` or `requir
 The entrypoint and `environment.yml` belong at the root of the staged source directory. Imported
 modules must also be within the deployed source tree. Pin a Snowflake-supported Streamlit version;
 warehouse dependencies must be available from the Snowflake Anaconda channel and cannot be declared
-as pip entries inside `environment.yml`.
+as pip entries inside `environment.yml`. uv cannot install `environment.yml`; for a local
+warehouse-runtime environment Snowflake documents conda with the channels
+`https://repo.anaconda.com/pkgs/snowflake` and `nodefaults`.
 
 Example source-version deployment:
 
@@ -71,9 +76,9 @@ create or replace streamlit DATABASE.SCHEMA.APP_NAME
 alter streamlit DATABASE.SCHEMA.APP_NAME add live version from last;
 ```
 
-- Write `FROM` as a quoted string literal (`FROM '@DB.SCH.STAGE/app'`); this is the house convention.
-  Snowflake's `CREATE STREAMLIT` examples also show unquoted `FROM @stage`, so NEVER treat an existing
-  unquoted repo statement as a bug that needs rewriting on its own.
+- Write new `FROM` paths as quoted string literals (`FROM '@DB.SCH.STAGE/app'`); this is the house
+  convention. Snowflake's `CREATE STREAMLIT` examples also show unquoted `FROM @stage`, so NEVER
+  treat an existing unquoted repo statement as a bug that needs rewriting on its own.
 - A new app is not live until `ALTER STREAMLIT ... ADD LIVE VERSION FROM LAST` runs, or until the
   owning role opens it in Snowsight.
 - `CREATE STREAMLIT` copies the source files once. Later changes to the staged files do not update
@@ -83,22 +88,44 @@ alter streamlit DATABASE.SCHEMA.APP_NAME add live version from last;
   grants.
 - Cloning a database or schema does not clone its Streamlit objects. Environment promotion MUST
   deploy each app explicitly.
-- Treat `ROOT_LOCATION` as legacy. It is warehouse-only, may be deprecated, and lacks multi-file
-  editing and Git integration.
+- Treat `ROOT_LOCATION` as legacy. It is warehouse-only and lacks multi-file editing and Git
+  integration.
 
-## Sessions and local development
+## Container dependency files
 
-In a deployed warehouse app:
+Snowflake installs container-runtime dependencies with uv. It searches the entrypoint's directory,
+then each parent up to the source root, and uses the first dependency file it finds. In one
+directory, `requirements.txt` takes precedence over `pyproject.toml`, so a stray `requirements.txt`
+silently bypasses `uv.lock`. A private or alternative index requires `pyproject.toml`.
 
-```python
-from snowflake.snowpark.context import get_active_session
-
-session = get_active_session()
+```toml
+[project]
+name = "app-name"            # name and version are required but arbitrary
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "streamlit[snowflake]==1.50.0",
+    "pandas>=2.0.0,<3.0.0",
+]
 ```
 
+Without a package source the app can only use the base image's packages. Any extra package, or any
+version specifier on a pre-installed package, needs one of:
+
+- **Artifact repository (recommended):** the owner role needs `SNOWFLAKE.PYPI_REPOSITORY_USER` for
+  the built-in PyPI mirror, or `USAGE` on a customer-hosted repository. Attach it with
+  `ALTER STREAMLIT ... SET ARTIFACT_REPOSITORIES = (snowflake.snowpark.pypi_shared_repository)`.
+  Attaching or removing a repository restarts the app.
+- **EAI fallback:** only when an artifact repository cannot be used, for example an EAI built on the
+  managed rule `SNOWFLAKE.EXTERNAL_ACCESS.PYPI_RULE`. An attached artifact repository overrides EAIs
+  for package installs.
+
+## Sessions
+
 `st.connection("snowflake").session()` works in both runtimes and locally, and is the only option on
-a container runtime. Keep any local fallback explicit, so that a failed deployed session does not
-silently connect to a different account, role, database, or schema.
+a container runtime. `get_active_session()` works only in a deployed warehouse app. Keep any local
+fallback explicit, so that a failed deployed session does not silently connect to a different
+account, role, database, or schema.
 
 ## Secrets and external access
 
@@ -121,9 +148,10 @@ alter streamlit DATABASE.SCHEMA.APP_NAME
   **takes precedence** over them. It is plaintext on the stage. NEVER stage real secrets in it, and
   check that a leftover file is not shadowing a rotated Snowflake secret.
 - Warehouse runtimes do not support `secrets.toml`.
-- For private package indexes such as JFrog on a container runtime, map a basic-auth secret to
-  `UV_INDEX_<NAME>` so the runtime injects uv's `_USERNAME`/`_PASSWORD` variables. The network rule
-  may also need the repository's cloud storage host.
+- For a private index such as JFrog that cannot be a customer-hosted artifact repository, declare
+  it in `[[tool.uv.index]]` and map a basic-auth secret to `UV_INDEX_<NAME>` (index name uppercased,
+  non-alphanumerics as `_`) so the runtime injects uv's `UV_INDEX_<NAME>_USERNAME`/`_PASSWORD`. The
+  network rule may also need the repository's cloud storage host.
 - To call Cortex REST APIs from a container runtime, read the token from `/snowflake/session/token`.
   It replaces `_snowflake.send_snow_api_request()`.
 - `config.toml`: warehouse runtimes honor only `[theme]`, `[theme.sidebar]`, and
@@ -131,6 +159,10 @@ alter streamlit DATABASE.SCHEMA.APP_NAME
   keys. Neither runtime honors `[server]` or `[browser]`.
 
 ## Snowflake CLI deployment
+
+Install the CLI as an isolated uv tool, never with `pip` into a system or Homebrew Python:
+`uv tool install snowflake-cli` (upgrade with `uv tool upgrade snowflake-cli`; one-off runs use
+`uvx --from snowflake-cli snow ...`). Check it with `snow --version`.
 
 `snow streamlit deploy` reads a `definition_version: 2` `snowflake.yml`. It uploads the artifacts to
 `stage` (default `streamlit`, created if missing), then runs `CREATE STREAMLIT ... FROM` or, on
@@ -151,15 +183,14 @@ entities:
     main_file: APP.py
     artifacts:
       - APP.py
-      - environment.yml
+      - environment.yml   # container runtime: pyproject.toml and uv.lock instead
       - app_lib/
     grants:
       - privilege: USAGE
         role: APP_VIEWER_ROLE
 ```
 
-Run it the same way in POSIX shells and PowerShell:
-`snow --version`, then `snow streamlit deploy app_name --replace --connection <name>`.
+Deploy with `snow streamlit deploy app_name --replace --connection <name>`.
 
 | Behavior | What to do |
 |---|---|
@@ -169,10 +200,12 @@ Run it the same way in POSIX shells and PowerShell:
 | `--replace` uploads and overwrites but never deletes staged files | Add `--prune` when files were removed or renamed |
 | `--legacy` deploys with `ROOT_LOCATION` and cannot carry `runtime_name` | Use only for apps that already rely on the legacy contract |
 | Omitting `tags:` leaves existing tags alone; `tags: []` clears them (3.22.1+) | Do not add `tags: []` by accident |
-| `grants:` entries take exactly one of `role:` or `user:`; `sharing:` is the older alias for `USAGE` grants | Keep one spelling per repo |
+| `grants:` entries take exactly one of `role:` or `user:` (`user:` 3.28.0+); `sharing:` (3.28.0+) is the older alias for `USAGE` grants | Keep one spelling per repo |
 
-- Validate the file in CI with `snow helpers generate-project-schema` (3.20.0+) and a JSON Schema
-  validator.
+- Validate the file in CI (3.20.0+):
+  `snow helpers generate-project-schema -o snowflake-schema.json`, then
+  `uvx check-jsonschema --schemafile snowflake-schema.json snowflake.yml`. The schema checks
+  structure only; cross-field rules still fail at deploy time.
 - Stream container-runtime logs with `snow streamlit logs` (3.18.0+).
 - Since 3.27.0, a container-runtime `--replace` restarts the service, so content-only updates appear
   without a Snowsight restart.
@@ -206,7 +239,8 @@ differences:
 When deployment stages files individually, add a test that compares imported local modules with the
 deployment manifest, the SQL list, or the `snowflake.yml` artifacts. Also verify that:
 
-- the dependency file matching the runtime is staged;
+- the dependency file matching the runtime is staged, with `uv.lock` beside `pyproject.toml`;
+- no `requirements.txt` shadows a `pyproject.toml` in the same directory;
 - the entrypoint name matches `MAIN_FILE`;
 - every `CREATE STREAMLIT` and every `snowflake.yml` streamlit entity names its runtime explicitly;
 - the target role is least privilege;
@@ -229,8 +263,10 @@ Local rendering cannot replace the final native smoke test for these properties.
 - [File organization](https://docs.snowflake.com/en/developer-guide/streamlit/app-development/file-organization)
 - [Dependency management](https://docs.snowflake.com/en/developer-guide/streamlit/app-development/dependency-management)
 - [Security overview](https://docs.snowflake.com/en/developer-guide/streamlit/object-management/security)
+- [Installing Snowflake CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli/installation/installation)
 - [Snowflake CLI: Creating a Streamlit app (snowflake.yml properties)](https://docs.snowflake.com/en/developer-guide/snowflake-cli/streamlit-apps/manage-apps/initialize-app)
 - [Snowflake CLI: Deploying a Streamlit app](https://docs.snowflake.com/en/developer-guide/snowflake-cli/streamlit-apps/manage-apps/deploy-app)
 - [snow streamlit deploy reference](https://docs.snowflake.com/en/developer-guide/snowflake-cli/command-reference/streamlit-commands/deploy)
 - [Snowflake CLI release notes (GitHub)](https://github.com/snowflakedb/snowflake-cli/blob/main/RELEASE-NOTES.md)
 - [Snowflake CLI streamlit entity model (GitHub)](https://github.com/snowflakedb/snowflake-cli/blob/main/src/snowflake/cli/_plugins/streamlit/streamlit_entity_model.py)
+- [uv package indexes and credentials](https://docs.astral.sh/uv/concepts/indexes/)

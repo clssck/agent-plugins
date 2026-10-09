@@ -1,6 +1,6 @@
 ---
 name: search-company-knowledge
-description: Search internal company knowledge in Confluence and Jira through the Atlassian Rovo MCP server and answer with cited, synthesized results. Use when the user asks what an internal system, process, term, or ticket is, or says "in our docs", "in Confluence", "in Jira". Not for general technology questions or editing pages; use confluence-html-editor.
+description: Search Confluence and Jira through the Atlassian Rovo MCP server and answer internal questions with cited, synthesized results (read-only). Use when the user asks what an internal system, process, acronym, or ticket is, or says "in our docs", "in Confluence", "in Jira", "on the wiki". Not for general tech questions or creating/editing pages (confluence-html-editor).
 ---
 
 # Search Company Knowledge
@@ -38,7 +38,7 @@ Some tools are deferred: find them with `discover`, run them with `executeRead` 
 | Targeted Confluence query (CQL) | `searchConfluence` | `searchConfluenceUsingCql` |
 | Targeted Jira query (JQL) | `searchJiraIssuesUsingJql` | same |
 
-Source: [Rovo MCP supported tools](https://developer.atlassian.com/cloud/rovo-mcp/guides/supported-tools/). Parameter names and result shapes come from the live schema [verify]. Tool availability varies by auth method, scopes, and admin-enabled permission groups; a missing tool means not granted, not "no data". The `v1` endpoint auto-switches to v2 tools on 2027-03-01; stale clients may need to clear cached OAuth client credentials.
+Source: [Rovo MCP supported tools](https://developer.atlassian.com/cloud/rovo-mcp/guides/supported-tools/). Take parameter names and result shapes from the live schema. Tool availability varies by auth method, scopes, and admin-enabled permission groups; a missing tool means not granted, not "no data". The `v1` endpoint auto-switches to v2 tools on 2027-03-01; stale clients may need to clear cached OAuth client IDs or `.well-known` credentials.
 
 `search` and `getTeamworkGraphObject` may each cost up to 10 Rovo credits per call; another reason to search narrowly and fetch selectively.
 
@@ -46,11 +46,12 @@ Source: [Rovo MCP supported tools](https://developer.atlassian.com/cloud/rovo-mc
 
 1. Get the `cloudId` once (`getAccessibleAtlassianResources`). Several sites → pick by the user's hint or ask.
 2. Extract the shortest useful query: system names, acronyms, error text, ticket keys.
-3. Search with Rovo `search`. Skip it only when the user asks for CQL or JQL, or names one system ("tickets", "in Confluence").
-4. Fetch only the few results needed to answer; NEVER fetch every hit.
-5. Weak results → retry once or twice with variants (synonyms, acronym expansion, error codes) before declaring a gap.
-6. Synthesize by topic, not by source.
-7. Cite every substantive claim.
+3. Search with Rovo `search`, passing natural language. NEVER put CQL or JQL in its query; it silently degrades results. Skip `search` only when the user asks for CQL or JQL, or names one system ("tickets", "in Confluence").
+4. Rovo hits mostly the wrong system → targeted `searchConfluence` (CQL) or `searchJiraIssuesUsingJql` (JQL).
+5. Fetch only the few results needed to answer; NEVER fetch every hit. `getJiraIssue` omits comment bodies; when discussion matters, run `listJiraIssueComments` via `executeRead`.
+6. Weak results → retry once or twice with variants (synonyms, acronym expansion, error codes) before declaring a gap.
+7. Synthesize by topic, not by source.
+8. Cite every substantive claim.
 
 ## Rules
 
@@ -58,7 +59,7 @@ Source: [Rovo MCP supported tools](https://developer.atlassian.com/cloud/rovo-mc
 - **Source choice.** Prefer canonical, recent docs. Use Jira for implementation reality, bugs, decisions, status.
 - **Conflicts.** Name both sources and which looks current, with the reason.
 - **Gaps.** State missing, old, inaccessible, or conflicting material explicitly. NEVER invent.
-- **Access errors.** Report permission failures; NEVER retry around them. An org Data Security Policy can block MCP reads even when the user can open the item in the browser; blocked items return "does not exist or you don't have permission" and drop out of search results. Say so, NEVER claim the item doesn't exist.
+- **Access errors.** Report permission failures; NEVER retry around them. An org Data Security Policy can block MCP reads (OAuth only) even when the user can open the item in the browser. Blocked Jira items drop out of searches, JQL included, and return "does not exist or you don't have permission". Say so; NEVER claim the item doesn't exist.
 - **Read only.** NEVER create, edit, or transition anything from this skill.
 
 ## Answer Shape

@@ -44,22 +44,7 @@ point at a malicious commit that exfiltrates `GITHUB_TOKEN` and environment secr
 - uses: popular-org/useful-action@a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2 # v2.3.1
 ```
 
-**Sanofi allowlist constraint.** Sanofi's GitHub Actions allowlist governs which
-actions can run at all. GitHub-published actions (`actions/*`) and actions from
-verified creators are allowed broadly and SHOULD be SHA-pinned as above. Other
-third-party actions are listed individually, and the allowlist entries are
-tag-based, not SHA-based — so pinning a non-listed action to a commit SHA will
-still be rejected at runtime. For those actions, use the exact reference
-registered in the allowlist (typically a tag such as `@v2`), and ask the platform
-team to update the allowlist if you need a new action or a newer version.
-
-**Exception — org-managed reusable workflows:** Sanofi org-level reusable workflows
-(e.g., CodeGuard `cyber-AST-Action_reusable`) may be referenced with
-`@main` instead of a pinned SHA. These workflows are centrally maintained by the
-security/platform team within the Sanofi GitHub org, so they are not subject to
-third-party supply-chain risk. The owning team controls the `main` branch and reviews
-all changes before merge. When using `@main` for org workflows, always add a comment
-explaining the exception.
+**Sanofi allowlist and `@main` exception.** The allowlist is tag-based, so pin only GitHub-published and verified-creator actions to SHAs; other third-party actions use the registered tag, and org-managed reusable workflows MAY use `@main` with a comment. Rules and wording: [cicd-rules.md §1.1](cicd-rules.md#11-reference-actions-in-a-form-the-sanofi-allowlist-accepts).
 
 **Additional mitigations:**
 

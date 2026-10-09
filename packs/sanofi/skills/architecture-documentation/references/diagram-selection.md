@@ -1,3 +1,5 @@
+# Diagram Selection
+
 ## C4 Model Overview
 
 > **Important**: The C4 model describes systems at various abstraction levels. It does NOT
@@ -103,7 +105,7 @@ environment (production, staging, dev).
 
 ## arc42 Cross-Check
 
-When the repository documents architecture with the arc42 template, place C4 views in its sections instead of creating a parallel document. This mapping follows the C4 FAQ.
+When the repository documents architecture with the arc42 template, place C4 views in its sections instead of creating a parallel document. The C4 FAQ maps sections 3 and 5 only; the Runtime and Deployment rows are this skill's extension.
 
 | arc42 section | C4 view |
 |---|---|

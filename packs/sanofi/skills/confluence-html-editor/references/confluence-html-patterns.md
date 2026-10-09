@@ -113,10 +113,7 @@ For draw.io content, preserve existing draw.io macro extension blocks exactly wh
 
 Observed draw.io extension blocks include app-specific `guestParams` such as `custContentId`, `diagramName`, `diagramDisplayName`, `contentVer`, `revision`, `width`, and `height`, plus embedded macro context. Treat that parameter blob as opaque. If any of it is dropped, the page may keep a macro shell but lose the editable/rendered diagram.
 
-There is no active draw.io skill. Do not create a new draw.io artifact by default.
-When the user explicitly needs one, keep the native `.drawio` source separate from
-the Confluence HTML and use their chosen diagram workflow to edit, export, upload, and
-verify it. Preserve the source alongside any rendered artifact.
+Do not create a new draw.io artifact by default. When the user explicitly needs one, keep the native `.drawio` source separate from the Confluence HTML, use their chosen diagram workflow to edit, export, upload, and verify it, and preserve the source alongside any rendered artifact.
 
 Do not embed base64 `data:image/...` images in Confluence HTML. In this Confluence site, a base64 PNG was accepted by the HTML update path but round-tripped as unsupported migration content instead of a clean rendered image.
 
@@ -181,12 +178,7 @@ Do not mix these modes accidentally. If a page must serve more than one mode, pu
 
 ### Template Assets
 
-- Use `assets/rich-page-template.html` for broad operational pages and major restructures.
-- Use `assets/status-report.html` for project, weekly, or delivery status pages.
-- Use `assets/runbook.html` for operator procedures, recovery guides, or how-to pages.
-- Use `assets/decision-record.html` for durable decisions, tradeoff notes, and implementation direction.
-
-Treat templates as starting points. Remove irrelevant sections, replace placeholders, preserve fetched rich objects, and run the HTML checker before writing.
+Templates (see `## Templates` in [SKILL.md](../SKILL.md)) are starting points: remove irrelevant sections, replace placeholders, preserve fetched rich objects, and run the HTML checker before writing.
 
 ### Composition
 
@@ -219,8 +211,6 @@ Before publishing a polished page, check:
 - Do not create dense tables with paragraph-heavy cells. Split into separate tables when readers need to compare rows.
 - Avoid custom icons, emojis, CSS, and decorative media in the HTML body.
 
-External inspiration behind these patterns: K15t Confluence page design, Refined intranet examples, Stiltsoft Confluence best practices, Covectors documentation hygiene, The Jira Guy on page layouts, Diátaxis documentation modes, The Good Docs Project templates, Microsoft Writing Style Guide, and Nielsen Norman Group intranet design guidance.
-
 ## Native Feature Boundaries
 
 The HTML update path is strong for structured page bodies, but some high-end Confluence features are macro, editor, or app features. Preserve existing macro extension blocks unless the user explicitly asks to replace them.
@@ -229,7 +219,6 @@ The HTML update path is strong for structured page bodies, but some high-end Con
 - **Charts from tables**: Confluence can create charts from a table when editing the page. Through HTML, create the clean source table and state chart intent if the native chart macro path is unavailable. Official docs: https://support.atlassian.com/confluence-cloud/docs/simplify-data-with-tables/
 - **Layouts**: Native Confluence layouts support multiple column arrangements in the editor. The tested HTML pattern is `layout-two-equal`; preserve wider existing layouts and verify ADF after edits. Official docs: https://support.atlassian.com/confluence-cloud/docs/create-and-manage-layouts/
 - **Macros and dynamic content**: Table of contents, roadmap, iframe, dynamic content, and app macros are not ordinary HTML. Preserve existing extension blocks, or use the relevant native macro/app path when adding them. Official docs: https://support.atlassian.com/confluence-cloud/docs/insert-elements-into-a-page/
-- **Current page updates and drafts**: Confluence's API can reconcile updates with existing drafts for current pages. For major rewrites, refetch immediately before writing and verify after writing. Official REST docs: https://developer.atlassian.com/cloud/confluence/rest/v2/api-group-page/#api-pages-id-put
 
 ## Embed Cards And Raw Iframes
 
@@ -266,74 +255,33 @@ Before publishing a large HTML replacement, write the proposed body to a local s
 | Links, mentions, dates, tasks, and decisions | Catches accidental loss of workflow state and navigation. |
 | Risky deletions | Makes removed headings, tables, links, tasks, and decisions explicit. |
 
-When local body files exist, run:
+Run the scripts with the commands in [SKILL.md](../SKILL.md) (steps 4 and 6) and [editing-workflow.md](editing-workflow.md#page-audit-before-a-risky-edit).
 
-```bash
-python3 skill://confluence-html-editor/scripts/check_confluence_html.py proposed.html --original fetched.html --title "Page title"
-```
+`check_confluence_html.py` catches page wrappers, scripts/styles, local file and filesystem paths (`file:`, Windows drives and UNC, `/Users`, `/home`, `/private`, `/tmp`, `~/`), base64 images, long status labels, duplicate title headings, duplicate `data-local-id` values, unclosed tags (including inner tags silently closed by an ancestor's end tag), headings inside table cells, reduced macro extension counts, dropped extension keys, dropped image/embed sources, dropped link hrefs, dropped mentions, dropped dates, and reduced task or decision item counts. Fix `ERROR` findings before publishing and review `WARNING` findings deliberately.
 
-The checker catches page wrappers, scripts/styles, local file and filesystem paths (`file:`, Windows drives and UNC, `/Users`, `/home`, `/private`, `/tmp`, `~/`), base64 images, long status labels, duplicate title headings, duplicate `data-local-id` values, unclosed tags (including inner tags silently closed by an ancestor's end tag), headings inside table cells, reduced macro extension counts, dropped extension keys, dropped image/embed sources, dropped link hrefs, dropped mentions, dropped dates, and reduced task or decision item counts. Fix `ERROR` findings before publishing and review `WARNING` findings deliberately.
+`review_confluence_publish.py` wraps the checker and adds operation context: missing page ID/title/version-message warnings, body-size deltas that catch accidental fragment uploads, dropped heading inventory, a `READY`/`REVIEW`/`BLOCKED` status, and a final MCP publish checklist. Use `--allow-major-rewrite` only when a large body reduction is intentional.
 
-For a fuller local dry run before the update tool, run:
-
-```bash
-python3 skill://confluence-html-editor/scripts/review_confluence_publish.py --original fetched.html --proposed proposed.html --title "Page title" --page-id "123" --version-message "Polish page"
-```
-
-The publish reviewer wraps the HTML checker and adds operation context: missing page ID/title/version-message warnings, body-size deltas that catch accidental fragment uploads, dropped heading inventory, a `READY`/`REVIEW`/`BLOCKED` status, and a final MCP publish checklist. Use `--allow-major-rewrite` only when a large body reduction is intentional.
-
-For pre-edit page audits, fetch both page representations first:
-
-1. Fetch with `detail="full"` in HTML format and save the page body as `fetched.html`.
-2. Fetch in ADF format and save the response or body as `fetched-adf.json`.
-3. Run:
-
-```bash
-python3 skill://confluence-html-editor/scripts/audit_confluence_page.py --html fetched.html --adf fetched-adf.json --title "Page title"
-```
-
-If the saved files are full MCP responses rather than body-only artifacts, extract each into its own directory first (the metadata file name is fixed per prefix, so a shared directory collides on the second extraction):
-
-```bash
-python3 skill://confluence-html-editor/scripts/extract_confluence_fetch.py html-response.json --out-dir scratch/html --prefix fetched
-python3 skill://confluence-html-editor/scripts/extract_confluence_fetch.py adf-response.json --out-dir scratch/adf --prefix fetched
-python3 skill://confluence-html-editor/scripts/audit_confluence_page.py --html scratch/html/fetched.html --adf scratch/adf/fetched-adf.json --title "Page title"
-```
-
-For post-edit native-node verification, run:
-
-```bash
-python3 skill://confluence-html-editor/scripts/verify_confluence_adf.py fetched-adf.json --expect panels,statuses,layouts,tasks,decisions,inline_cards,dates
-```
-
-Add `embeds` to `--expect` when the page should contain embed cards. Add `mermaid` only when a rendered Mermaid extension is expected; a plain Mermaid code block satisfies `mermaid_source`, not `mermaid`. Missing expected components are errors; unsupported ADF nodes are errors.
+`verify_confluence_adf.py --expect`: add `embeds` when the page should contain embed cards. Add `mermaid` only when a rendered Mermaid extension is expected; a plain Mermaid code block satisfies `mermaid_source`, not `mermaid`. Missing expected components and unsupported ADF nodes are errors.
 
 If the HTML update path rejects a large body, do not immediately convert the page to Wiki Markup or storage format. First reduce accidental bloat, split appendix material into child pages when that matches the information architecture, preserve rich macro blocks, and retry the HTML path. Use a non-HTML pipeline only when the user asked for docs-as-code or the HTML path is concretely blocked.
 
 ### Attachment And Image Discipline
 
-HTML body updates do not upload binary files by themselves.
+HTML body updates do not upload binary files; follow the Attachments rule in [SKILL.md](../SKILL.md).
 
 - Preserve existing images, attachment links, and macro extension blocks unless the edit explicitly replaces them.
-- For new externally hosted images, use a full `https://...` URL and verify the image renders after publishing.
-- For new local/generated images, upload the file through an available Confluence MCP attachment tool first (`createConfluenceAttachment` prepares an upload and returns a curl command; run it only as the tool instructs). If no MCP upload tool exists but browser/CDP control is explicitly available, use the native Confluence UI upload flow under user-visible browser control, then verify through MCP fetch/search.
-- Do not use direct Confluence REST, hidden API tokens, or environment-variable auth as a fallback for this skill. The normal Confluence access layer is MCP; browser upload is a supervised native-UI exception only when available.
-- If no MCP upload tool or supervised browser UI path is available in the active environment, do not invent Confluence attachment URLs and do not reference local files. Keep the generated artifact local, tell the user the upload path is missing, and either use an externally hosted URL or wait for the user/native UI to attach it.
-- Do not use local paths such as `./images/diagram.png`, `C:\...`, `/Users/...`, `~/...`, or `file:///...` in published HTML; the checker rejects them.
-- Do not embed base64 images in body HTML. In testing, base64 content round-tripped as unsupported migration content rather than a clean image.
-- For generated diagrams, keep editable source as an artifact (`.drawio`, Mermaid source, PlantUML source) and embed only the rendered or native macro form that the target site can preserve.
-
-After publishing, verify by fetching the page again and checking that images or attachment links survived in the returned HTML or ADF.
+- New externally hosted images: full `https://...` URL; verify the image renders after publishing.
+- New local or generated images: upload through `createConfluenceAttachment` first. No MCP upload tool and no user-supervised native-UI path → keep the artifact local, say the upload path is missing, and use an externally hosted URL or wait for the user to attach it. NEVER invent attachment URLs.
+- Keep editable diagram source (`.drawio`, Mermaid, PlantUML) as an artifact; embed only the rendered or native macro form the site can preserve.
+- After publishing, refetch and confirm images and attachment links survived in the returned HTML or ADF.
 
 ### Parent And Page Metadata Discipline
 
-Exported metadata, frontmatter, copied page notes, and docs-as-code headers are useful evidence, not authority over a live page.
+Exported metadata, frontmatter, and docs-as-code headers are evidence, not authority over a live page.
 
-- For content-only updates, preserve the fetched `spaceId`, `parentId`, and title.
-- For moves, require explicit user intent and pass the destination parent deliberately.
-- For creates, require the destination space and parent when they are not obvious from the request.
-- If imported metadata disagrees with the live fetched parent, trust the live page for content-only updates and surface the mismatch in the final response.
-- Do not restore old backups in a way that moves the page back to an old parent unless the user explicitly asked for that move.
+- Content-only updates preserve the fetched `spaceId`, `parentId`, and title. Imported metadata that disagrees with the live parent → trust the live page and surface the mismatch.
+- Moves need explicit user intent and a deliberate destination parent. Restoring a backup NEVER moves the page back to an old parent unless asked.
+- Creates need the destination space and parent when not obvious from the request.
 
 ### HTML Import Or Export
 

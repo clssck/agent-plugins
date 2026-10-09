@@ -20,10 +20,10 @@ Tiny links look like `/wiki/x/<token>`. Order of preference:
 2. Decode locally (page ID = little-endian bytes, URL-safe base64 with `-` for `/` and `_` for `+`, padding and trailing zero bytes dropped):
 
 ```bash
-python3 skill://adr-writing/scripts/decode_tiny_link.py "<token>"
+uv run "$(realpath skill://adr-writing/scripts/decode_tiny_link.py)" "<token>"
 ```
 
-   Prints a candidate page ID, or exits non-zero on an invalid token. ALWAYS verify by fetching the page and checking the title; the algorithm is documented for Data Center ([Atlassian KB](https://support.atlassian.com/confluence/kb/how-to-programmatically-generate-the-tiny-link-of-a-confluence-page/)) and may not hold for every Cloud token.
+   Prints a candidate page ID, or exits non-zero on an invalid token. ALWAYS verify by fetching the page and checking the title; Atlassian documents the algorithm for Data Center only, unsupported ([KB](https://support.atlassian.com/confluence/kb/how-to-programmatically-generate-the-tiny-link-of-a-confluence-page/)), so it may not hold for every Cloud token. Tests (from `scripts/`): `uv run --no-project python -B -m unittest discover -p 'test_*.py'`; see [test_decode_tiny_link.py](../scripts/test_decode_tiny_link.py).
 3. Search Confluence by keywords from the decision topic.
 4. Ask the user for the numeric page ID.
 

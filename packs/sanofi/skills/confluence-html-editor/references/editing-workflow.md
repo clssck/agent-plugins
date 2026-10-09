@@ -1,11 +1,11 @@
 # Detailed Editing Workflow
 
-Detail for [SKILL.md](../SKILL.md). Tool names are hints; discover the live Atlassian tools and read their schemas first. Scripts run through bash as `python3 skill://confluence-html-editor/scripts/...`.
+Detail for [SKILL.md](../SKILL.md); the numbered steps below extend its workflow. Tool names are hints; discover the live Atlassian tools and read their schemas first. Run scripts exactly as in SKILL.md: `uv run "$(realpath skill://confluence-html-editor/scripts/<name>.py)" ARGS` in the omp `bash` tool.
 
 ## 1. Identify the target
 
 - URL → numeric ID from `/pages/{pageId}` or `/spaces/{spaceKey}/pages/{pageId}`.
-- `cloudId`: site URL or hostname works when no UUID is known; else call `getAccessibleAtlassianResources`.
+- `cloudId`: take it from `getAccessibleAtlassianResources`, or from the schema's own guidance.
 - Title or topic only → `searchConfluence` (CQL) or Rovo `search`, then fetch the pick.
 - Multiple plausible hits → accept only an exact title+space match; otherwise ask.
 - New page → require space and parent when location is not obvious. NEVER invent a parent.
@@ -13,7 +13,6 @@ Detail for [SKILL.md](../SKILL.md). Tool names are hints; discover the live Atla
 ## 2. Fetch
 
 - `getConfluenceContent` with HTML format and `detail="full"` for the page ID (the default `summary` returns title, excerpt, counts, no body). Document responses carry the `snapshotToken`; `include_metadata` adds `hasSpaceInstructions`. v1 servers: `getConfluencePage`.
-- ARI-only result → fetch by ARI, then switch to ID.
 - Capture `id`, `title`, `spaceId`, `parentId`, version, `snapshotToken`, URL. `parentId` may be absent on v2 reads; do not infer it.
 - Space instructions: `getConfluenceSpace` once per space unless the fetch said `hasSpaceInstructions=false`. They override this skill's design defaults when they conflict.
 
@@ -26,7 +25,7 @@ Detail for [SKILL.md](../SKILL.md). Tool names are hints; discover the live Atla
 - Large rewrite → outline retained sections first; compose from a scratch file when diffing or escaping is risky.
 - NEVER silently drop comments, task states, mentions, macros, attachments, decisions.
 
-Large or attachment-heavy pages: treat the local body as a dry run. Check operation mode, page ID, title, parent behavior, body length, macro keys, image and attachment references, links, mentions, dates, tasks, decisions, risky deletions.
+Large or attachment-heavy pages: treat the local body as a dry run using the checks in [confluence-html-patterns.md](confluence-html-patterns.md#large-page-dry-run).
 
 ## 4. Compose valid HTML
 
@@ -51,17 +50,14 @@ Large or attachment-heavy pages: treat the local body as a dry run. Check operat
 - No unsupported classes, inline styles, scripts, wrappers; no duplicate `data-local-id`; no unclosed tags.
 - Extensions, image sources, links, mentions, dates, tasks, decisions still present unless replaced on purpose.
 
-```bash
-python3 skill://confluence-html-editor/scripts/check_confluence_html.py proposed.html --original fetched.html --title "Page title"
-python3 skill://confluence-html-editor/scripts/review_confluence_publish.py --original fetched.html --proposed proposed.html --title "Page title" --page-id 123 --version-message "Polish page"
-```
+Run `check_confluence_html.py` and, for large or attachment-heavy updates, `review_confluence_publish.py` with the commands in SKILL.md step 4.
 
 The checker rejects local image/link paths (Windows, `file:`, `/Users`, `/home`, `/private`, `/tmp`, `~/`), reports unclosed inner tags that an ancestor's end tag swallowed (legal optional end tags such as `<li>`, `<p>`, `<td>` are exempt), and diffs the preserved inventory against `--original`. `ERROR` blocks; review each `WARNING`. Use `--allow-major-rewrite` on the reviewer only for an intended large reduction.
 
 ## 6. Write
 
 - Existing page → update tool with HTML content format, the latest `snapshotToken`, and either node `edits` (`dryRun: true` first) or the full body. New page → create tool with `parent` and `contentType`.
-- Set `includeBody: false` (or the schema's equivalent) unless the response body is needed; skip if the schema has no such option.
+- Ask the update tool for a minimal response if its schema offers an option for that; otherwise ignore the returned body.
 - Version message example: `Polish status report layout`.
 
 ## 7. Verify
@@ -70,9 +66,7 @@ The checker rejects local image/link paths (Windows, `file:`, `/Users`, `/home`,
 - Compare intent, not bytes; Confluence normalizes HTML.
 - Rich pages: fetch ADF too and run the verifier.
 
-```bash
-python3 skill://confluence-html-editor/scripts/verify_confluence_adf.py fetched-adf.json --expect panels,statuses,layouts,tasks,decisions,inline_cards,dates
-```
+Run `verify_confluence_adf.py` on the saved ADF fetch with the command in SKILL.md step 6.
 
 - Add `embeds` when embed cards are expected. `mermaid` requires a rendered Mermaid extension; a plain Mermaid code block only satisfies `mermaid_source`.
 - Missing expected components and unsupported ADF nodes are errors.
@@ -83,9 +77,9 @@ python3 skill://confluence-html-editor/scripts/verify_confluence_adf.py fetched-
 Fetch HTML and ADF, then extract each saved full response into its own directory. The metadata file name is fixed (`<prefix>-metadata.json`), so two extractions into the same directory with the same prefix collide.
 
 ```bash
-python3 skill://confluence-html-editor/scripts/extract_confluence_fetch.py html-response.json --out-dir scratch/html --prefix fetched
-python3 skill://confluence-html-editor/scripts/extract_confluence_fetch.py adf-response.json --out-dir scratch/adf --prefix fetched
-python3 skill://confluence-html-editor/scripts/audit_confluence_page.py --html scratch/html/fetched.html --adf scratch/adf/fetched-adf.json --title "Page title"
+uv run "$(realpath skill://confluence-html-editor/scripts/extract_confluence_fetch.py)" html-response.json --out-dir scratch/html --prefix fetched
+uv run "$(realpath skill://confluence-html-editor/scripts/extract_confluence_fetch.py)" adf-response.json --out-dir scratch/adf --prefix fetched
+uv run "$(realpath skill://confluence-html-editor/scripts/audit_confluence_page.py)" --html scratch/html/fetched.html --adf scratch/adf/fetched-adf.json --title "Page title"
 ```
 
 Outputs: `fetched.html` / `fetched-adf.json` plus `fetched-metadata.json`. Use `--force` only to replace an extraction deliberately. The extractor and the ADF verifier both unwrap MCP text results.
@@ -101,8 +95,8 @@ Facts below come from the sources listed at the end. Tool schemas change often; 
 - **Format guide.** `getContentFormatGuide` with `toolName` = `createConfluencePage` or `updateConfluencePage` (the content key, not the tool being called) before authoring.
 - **Node edits.** An Atlassian engineer states `updateConfluenceContent` accepts node-targeted edits (`replaceNode`, `insertNodeAfter`, `deleteNode`, `moveNode`, `setAttrs`, addressed by `localId`) plus `snapshotToken` and `dryRun`, and that the default HTML+ format is lossless. A community test of the v2 preview also listed `insertNodeBefore`, `removeNodes`, `appendNodeToEnd`; edits are mutually exclusive with `body`; `dryRun: true` returns the resulting HTML without saving; untouched nodes, panels, statuses, task and decision lists, and macros came back unchanged. Use `edits` for any change smaller than a rewrite; names MUST match the live schema.
 - **Stale tokens.** A `snapshotToken` older than the current version returns `snapshot_stale` with the current token. Refetch and reapply; NEVER retry with the old token.
-- **Markdown and ADF lossiness.** Markdown has no equivalent for panels, statuses, layouts, TOC, mentions, and other ADF nodes; the Markdown round trip drops them, and Atlassian staff said they will not extend the dialect. Atlassian describes its HTML format as full-parity with ADF and 2.5–3x more token-efficient. Another reason to stay HTML-first.
-- **Body-less updates.** A title-only update through the connector was reported to clear the whole body (community report, Atlassian developer acknowledged). Send the fetched body with a rename, or confirm the schema's optional-body behavior on a throwaway page first.
+- **Markdown and ADF lossiness.** Markdown has no equivalent for panels, statuses, layouts, TOC, mentions, and other ADF nodes; the Markdown round trip drops them. An Atlassian engineer said Atlassian will not extend the Markdown dialect to ADF parity and announced a custom HTML format with full ADF parity, 2.5–3x more token-efficient. Another reason to stay HTML-first.
+- **Body-less updates.** A community report says a title-only update through the v1 connector cleared the whole body; not confirmed on v2. Send the fetched body with a rename, or confirm the schema's optional-body behavior on a throwaway page first.
 - **Macros.** `resolveConfluenceContentMacros` returns per-macro HTML for reading macro output; it does not replace preserving the extension block.
 - **Remix tools.** `createConfluenceInfographicForPage`, `editConfluenceInfographicForPage`, `createConfluenceMauiApp`, `editConfluenceMauiApp` are for guided workflows, use Rovo credits (15–30 per request), and MUST NOT be called standalone.
 - **Attachments.** `createConfluenceAttachment` and `downloadConfluenceAttachment` return a curl command, not a completed transfer.

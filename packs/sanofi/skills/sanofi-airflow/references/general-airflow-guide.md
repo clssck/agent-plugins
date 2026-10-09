@@ -61,12 +61,12 @@ setting can be overridden. Check the live value for the target environment befor
 writing a project `.airflowignore`. Never copy an ignore file written for one syntax
 into an environment configured for the other.
 
-Amazon MWAA facts (AWS docs, checked 2026-10): supported versions are 3.3.1, 3.2.1,
-2.11.2, 2.11.0, and 3.0.6, all on Python 3.12; MWAA keeps Flask-AppBuilder auth on 3.x
-(no Simple Auth switch), and multi-team mode is unsupported. MWAA only does in-place
-minor upgrades, so 2.x -> 3.x means a new environment (blue/green), not an update.
-Platform version numbers above are Sanofi facts; confirm the live version before
-relying on either list.
+Amazon MWAA facts (AWS docs, checked 2026-10): MWAA supports 3.3.1, 3.2.1, 3.0.6, 2.11.2,
+2.11.0, and older 2.7-2.10 releases; 2.11 and 3.x run Python 3.12 (2.10 and earlier: 3.11).
+MWAA keeps Flask-AppBuilder auth on 3.x (no Simple Auth switch), and multi-team mode is
+unsupported. MWAA only does in-place minor upgrades, so 2.x -> 3.x means a new environment
+(blue/green), not an update. Which version a Sanofi platform runs (2.11 shared, 3.2.1
+dedicated) is a Sanofi fact; confirm the live version before relying on it.
 
 MWAA components (provisioned via Terraform): Scheduler, Workers (Celery), WebServer,
 Metadata DB, S3 DAG bucket, and Secrets Manager. DAGs are deployed by syncing to the S3
@@ -90,6 +90,12 @@ providers). Do not reinstall or pin these in a project; request additions or
 version changes via a PR to the MWAA provisioning repo's `requirements.txt`. Treat exact
 versions as environment facts that drift — verify the live `requirements.txt`/constraints
 rather than hardcoding versions in a DAG.
+
+Dedicated tenants own their `requirements.txt`. MWAA installs it with `pip3 install -r`
+plus an Airflow constraints file (a `--constraint` line is required from Airflow 2.7.2),
+and the install fails on any pin the constraints reject. Prove it locally first with the
+uv recipe in SKILL.md (Local Environment) and, for MWAA parity,
+`./run.sh test-requirements` from `aws/amazon-mwaa-docker-images`.
 
 ## Parse-Time Safety
 
@@ -391,18 +397,11 @@ ACCESS_CONTROL = {
 }
 ```
 
-## Testing
-
 Keep DAG unit tests under a `unit_tests/` directory that is excluded from DAG parsing.
 Cover: the DAG imports with no errors, there are no cycles, `default_args`/tags/timeouts
-are set, and any custom builder logic behaves. Locally, prove a change with
-`python -c "import <dag_module>"` (POSIX: prefix `time`; PowerShell: `Measure-Command {
-python -c "import <dag_module>" }`) for the parse budget. `airflow tasks test <dag_id>
-<task_id> <date>` and `airflow dags test <dag_id> <date>` **execute task code** (warehouse
-writes, API calls, secret reads); run them only against a local/containerized Airflow
-with DEV connections. `tasks test` ignores dependencies and does not record state;
-`dags test` runs a whole DAG run in one process. Lint with `ruff`/`pylint` and type-check
-with `pyright` when the repo configures them.
+are set, and any custom builder logic behaves. Local commands and their order: Validation
+Ladder in SKILL.md. `airflow tasks test` and `airflow dags test` **execute task code**; run
+them only against a local/containerized Airflow with DEV connections.
 
 ## CI/CD and Deployment
 
@@ -446,8 +445,8 @@ Before deploying a DAG to shared MWAA, confirm:
 - `default_args` sets `retries` and `execution_timeout`; the DAG sets `dagrun_timeout`.
 - `dag_id` includes the environment (via `os.environ.get("MWAA_ENV")`).
 - Config comes from `ConfigLoader`/YAML, not hardcoded env dicts.
-- The file parses fast locally (`python -c "import <dag_module>"`, target <30s) and
-  CI DagBag validation is clean.
+- The file parses fast locally (Validation Ladder step 1, target <30s) and CI DagBag
+  validation is clean.
 - `access_control`, `max_active_runs`, and `max_active_tasks` are set.
 
 ## Troubleshooting
@@ -467,8 +466,7 @@ the UI.
 | Task exit 127 / Signal 9 | Worker OOM kill                  | Add retries; chunk/stream; use a `pool` to cap memory-heavy tasks                      |
 | Task logs missing        | Worker SIGKILLed before flushing | Check CloudWatch `Worker` logs directly by task/run id                                 |
 
-Diagnose parse cost locally by timing `python -c "import <dag_module>"` (POSIX `time`,
-PowerShell `Measure-Command { ... }`). Key CloudWatch
+Diagnose parse cost locally with Validation Ladder step 1 (SKILL.md). Key CloudWatch
 log groups: `airflow-<env>-DAGProcessing` (parse errors/timeouts), `-Scheduler` (stale
 DAGs/evictions), `-Task` (task execution), `-Worker` (OOM/celery), `-WebServer`. Watch
 metrics: Scheduler CPU (<60% healthy, >80% critical), Worker CPU (<70%/>90%), Queued
@@ -481,7 +479,7 @@ Tasks (<50/>200), Stale DAGs (0 healthy). Highest-impact, lowest-effort fixes: m
 Apply when a DAG targets a 3.x tenant or is being prepared to move off the shared 2.11
 platform. Review order: lint, imports, scheduling semantics, DB access, config, requirements.
 
-1. **Lint first.** `ruff check <dags_dir> --select AIR301,AIR302` (ruff >= 0.13.1) flags
+1. **Lint first.** `uvx ruff@latest check <dags_dir> --select AIR301,AIR302` (ruff >= 0.13.1) flags
    removals and provider moves; `--fix` applies safe fixes, `--unsafe-fixes` also rewrites
    import paths (enable `F401` to drop leftovers). `AIR311`/`AIR312` are still-working but
    deprecated. Preview rules `AIR003` (`Variable.get()` outside a task) and `AIR304`
@@ -511,65 +509,28 @@ platform. Review order: lint, imports, scheduling semantics, DB access, config, 
    `create_cron_data_intervals=True` before upgrading; flipping it later skips one run.
    Do not assume a manual run's `data_interval` equals the supplied `logical_date`.
 4. **Context.** Removed keys: `execution_date`, `prev_*`, `next_*`, `tomorrow_*`,
-   `yesterday_*`; also `conf` and `dag_run.external_trigger`. Asset-triggered and
-   API-triggered runs have `logical_date=None`: read `dag_run.logical_date` with a
-   fallback, not `context["data_interval_start"]`. `xcom_pull()` without `task_ids`
-   reads only the current task.
+   `yesterday_*`; also `conf` and `dag_run.external_trigger`. For `logical_date=None` runs
+   and the `xcom_pull()` default, see Airflow 3 Traps in SKILL.md.
 5. **No metadata-DB access from tasks.** Remove ORM/session imports; use
-   `airflow.sdk` `Variable`/`Connection`, `get_current_context()`, or the REST API
-   (`/api/v2`, `/api/v1` is gone). A `PostgresHook` against the metadata DB is documented as
-   an unsupported workaround that will break.
+   `airflow.sdk` `Variable`/`Connection`, `get_current_context()`, or the REST API through
+   `apache-airflow-client` (`/api/v2`; `/api/v1` is gone). A `PostgresHook` against the
+   metadata DB is a documented not-recommended workaround that will break.
 6. **Removed features.** SubDAGs (use TaskGroups), SLAs/`sla_miss_callback` (Deadline
    Alerts, 3.1+), DAG/XCom pickling, `none_failed_or_skipped` (use
    `none_failed_min_one_success`), `dummy` trigger rule (use `always`), `fail_stop` (use
    `fail_fast`), core `EmailOperator` (smtp provider), `SequentialExecutor`, `--subdir`.
 7. **`.airflowignore`.** Default syntax flips to `glob`; see Platform Model.
-8. **Tests.** `DagBag` lives at `airflow.dag_processing.dagbag` on 3.2+ (the module is
-   absent at 3.0.6/3.1.0); use the path the target version ships.
+8. **Tests.** `DagBag` lives at `airflow.dag_processing.dagbag` on 3.2+ (absent on 3.0.6
+   and 3.1.x, where it is `airflow.models.dagbag`); use the path the target version ships.
 
-MWAA migration 2.x -> 3.x: first land on 2.10.x/2.11, build a new environment with a new
-bucket, rebuild `requirements.txt` against the `constraints-<airflow>/constraints-3.12.txt`
-file plus the standard provider, and test it with `aws/amazon-mwaa-docker-images`
-(`./run.sh test-requirements`; PowerShell `.\run.ps1 -Command test-requirements`). Pause
-a DAG in the old environment before enabling it in the new one to avoid double runs, and
-set `catchup=True` only deliberately because a clean environment has no run history.
-
-## Anti-Patterns
-
-Avoid: module-level `Variable.get()`/secret lookups; heavy imports or DB connections at
-top level; dynamic DAGs that query a database at parse time; `datetime.now()` as
-`start_date`; `catchup=True` by default; missing retries/timeouts; per-task
-`email_on_failure=True` instead of a shared `on_failure_callback`; a failure callback
-that can raise; hardcoded env dicts instead of `ConfigLoader`; classic `DAG()` +
-`PythonOperator` for new work instead of TaskFlow; `TriggerDagRunOperator`/
-`ExternalTaskSensor` where Datasets fit; `poke`-mode sensors for long waits; uploading
-non-DAG files to the S3 `dags/` path; a sole `all_done` leaf that masks upstream failure;
-an ignore file written for the wrong `dag_ignore_file_syntax`; on 3.x, legacy `airflow.decorators`/
-`Dataset` imports, removed context keys (`execution_date`), `context["data_interval_*"]`
-without a fallback in asset/API-triggered runs, and bare-cron schedules whose logic needs a
-non-zero data interval.
-
-## Quick Reference
-
-- Import/parse check: `python -c "import <dag_module>"`.
-- Local structure (no execution): `airflow dags list`, `airflow dags list-import-errors`,
-  `airflow tasks list <dag_id>`, `airflow dags show <dag_id>`.
-- Local execution (runs task code, DEV only): `airflow tasks test <dag_id> <task_id>
-  <date>`, `airflow dags test <dag_id> <date>`.
-- DAG-level config env var: `os.environ.get("MWAA_ENV", "dev")`.
-- Task-time config: `{{ var.value.KEY }}` or `Variable.get()` inside a task; shared
-  config via `sanofi-airflow-utils` `ConfigLoader`.
-- Running dbt: see [`orchestrating-dbt.md`](orchestrating-dbt.md).
-
-## Checklist
-
-- Imports, context keys, and `.airflowignore` syntax match the target Airflow major version.
-- On 3.x: `ruff --select AIR3` clean; interval logic uses an explicit data-interval timetable; no `logical_date` assumptions in asset/API-triggered runs.
-- No module-level `Variable.get()`/secret/heavy import; no runtime-changing values (`datetime.now()`) in DAG or task arguments.
-- `retries`, `execution_timeout`, `dagrun_timeout`, `catchup`, `max_active_runs` set deliberately.
-- No `all_done` leaf masking upstream failure; failure callbacks never raise.
-- Tasks idempotent (partitioned on the data interval, UPSERT not INSERT).
-- Validated locally (import, `DagBag`/CI) and executed only against DEV.
+MWAA migration 2.x -> 3.x: start from a current 2.x environment (AWS's blog names 2.10.x;
+Airflow's guide says upgrade to the latest 2.x, at least 2.7), build a new environment with
+a new bucket, rebuild `requirements.txt` against the `constraints-<airflow>/constraints-3.12.txt`
+file plus the standard provider, and test it with the uv recipe in SKILL.md or
+`aws/amazon-mwaa-docker-images` (`./run.sh test-requirements`; PowerShell
+`.\run.ps1 -Command test-requirements`). Pause a DAG in the old environment before enabling
+it in the new one to avoid double runs, and set `catchup=True` only deliberately because a
+clean environment has no run history.
 
 ## Sources
 
@@ -580,6 +541,7 @@ non-zero data interval.
 - Airflow configuration reference (`dag_ignore_file_syntax`, `refresh_interval`): https://airflow.apache.org/docs/apache-airflow/stable/configurations-ref.html
 - Ruff Airflow rules (AIR003, AIR301-AIR304, AIR311, AIR312, AIR321): https://docs.astral.sh/ruff/rules/#airflow-air
 - Apache Airflow versions on Amazon MWAA (supported versions, minor-only upgrades, no multi-team mode): https://docs.aws.amazon.com/mwaa/latest/userguide/airflow-versions.html
+- Python dependencies on Amazon MWAA (`pip3 install -r requirements.txt`, required `--constraint`): https://docs.aws.amazon.com/mwaa/latest/userguide/working-dags-dependencies.html
 - Best practices for migrating from Airflow 2.x to 3.x on Amazon MWAA (blue/green, constraints, docker images): https://aws.amazon.com/blogs/big-data/best-practices-for-migrating-from-apache-airflow-2-x-to-apache-airflow-3-x-on-amazon-mwaa/
 - Performance tuning for Apache Airflow on Amazon MWAA (v3 `dag_processor.*` options): https://docs.aws.amazon.com/mwaa/latest/userguide/best-practices-tuning.html
 - aws/amazon-mwaa-docker-images (local MWAA-parity runtime): https://github.com/aws/amazon-mwaa-docker-images

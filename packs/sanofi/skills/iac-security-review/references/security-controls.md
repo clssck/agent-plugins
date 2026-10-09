@@ -134,7 +134,7 @@ AWS defaults (since 2022–2023) encrypt S3 objects (SSE-S3), SQS queues (SSE-SQ
 | No encryption block | None, or Informational (default SSE-S3 applies) |
 | Policy requires CMK and bucket lacks `aws:kms` + key | Medium, "CMK policy" |
 | `BucketEncryption.UNENCRYPTED` (legacy CDK) | Informational |
-| `blocked_encryption_types = ["NONE"]` (re-enables SSE-C; new buckets block it by default since April 2026) | Low, "SSE-C allowed". Ask for the use case: AWS documents SSE-S3/SSE-KMS as the modern default |
+| `blocked_encryption_types = ["NONE"]` (re-enables SSE-C; new buckets block it by default since April 2026, except Bahrain and UAE Regions) | Low, "SSE-C allowed". Ask for the use case: AWS documents SSE-S3/SSE-KMS as the modern default |
 
 Remediate with the standalone `aws_s3_bucket_server_side_encryption_configuration`; the inline `server_side_encryption_configuration` block is legacy.
 

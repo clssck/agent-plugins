@@ -1,14 +1,21 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#   "jsonschema>=4.18",
+#   "pyyaml>=6",
+# ]
+# ///
 """Validate ODCS YAML contracts against the official versioned JSON schema.
 
-Usage: python3 validate_odcs.py CONTRACT.odcs.yaml [...] [--schema PATH_OR_URL]
+Usage: uv run validate_odcs.py CONTRACT.odcs.yaml [...] [--schema PATH_OR_URL]
 
 Default schema: picked per contract from its `apiVersion` (v3.1.0 or v3.2.0);
 anything else falls back to v3.1.0. Both files come from the immutable v3.2.0
 release tag of bitol-io/open-data-contract-standard, whose v3.1.0 file carries
 the silent v3.1.0 fixes (wider `id` pattern) the v3.1.0 tag lacks.
 `--schema` forces one schema for every contract.
-Requires jsonschema and pyyaml, e.g. `uv run --no-project --with jsonschema --with pyyaml python3 validate_odcs.py FILE`.
+Dependencies are declared inline (PEP 723); `uv run` installs them into a cached, isolated environment.
 Exit codes: 0 valid, 1 invalid, 2 validator unavailable or unreadable input.
 """
 from __future__ import annotations
@@ -49,7 +56,7 @@ def main() -> int:
         import jsonschema
         import yaml
     except ImportError as exc:
-        print(f"VALIDATION UNAVAILABLE: {exc}. Run via: uv run --no-project --with jsonschema --with pyyaml python3 {sys.argv[0]} ...")
+        print(f"VALIDATION UNAVAILABLE: {exc}. Run via: uv run {sys.argv[0]} ...")
         return 2
 
     validators: dict[str, object] = {}

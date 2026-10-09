@@ -39,7 +39,7 @@ Sanofi conventions for dbt project structure, model development, documentation, 
 | Rule | Check before applying |
 |---|---|
 | Test params under `arguments:` | dbt >= 1.10.5; from 1.10.8 top-level params warn; older: top-level params |
-| Engine and install | `pip install dbt` now installs dbt v2; v1 projects install `dbt-core` + `dbt-snowflake`. Run `dbt --version` before trusting parse or test output |
+| Engine and install | The bare `dbt` PyPI package is dbt v2 (since 2026-09-14); v1 projects install `dbt-core` + `dbt-snowflake` with uv (setup in the guide). Run `dbt --version` before trusting parse or test output |
 | Custom keys, `meta`, `tags`, `freshness`, `docs`, `group`, `access` | dbt >= 1.10: under `config:` (custom keys only in `config.meta`); top-level forms warn, error on dbt v2 |
 | `microbatch` incremental | dbt >= 1.9; needs `event_time` on model and filtered parents, `begin`, `batch_size`; NEVER add `is_incremental()` |
 | Snapshot deletes | dbt >= 1.9: `hard_deletes: invalidate\|new_record` replaces `invalidate_hard_deletes` |
@@ -63,7 +63,7 @@ Smallest command that proves the change.
 | Deprecations (1.10+) | `dbt parse --no-partial-parse --show-all-deprecations`; fix with `uvx dbt-autofix deprecations --dry-run` first |
 | CI-style | `state:modified+ --state <manifest-dir>` when a prior manifest exists |
 | Docs artifacts or catalog | `dbt docs generate`, only when it matters |
-| Format/lint | `sqlfluff`, `ruff`, pre-commit, repo scripts, only when configured |
+| Format/lint | `sqlfluff`, `ruff`, pre-commit, repo scripts, only when configured; `uv run` them in uv projects |
 
 - Use the `grep`, `glob`, `read` tools to inspect files; `bash` only for dbt and other real CLIs.
 - Validation cannot run locally? State the exact command and the missing prerequisite.

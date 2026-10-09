@@ -92,32 +92,53 @@ config.materialized:incremental,config.on_schema_change:sync_all_columns
 --resource-type model`; if any match, resolve `dbt-snowflake>=1.10.6`.
 
 Engine naming changed in September 2026: dbt Core 1.x is now "dbt v1", and the Rust
-Fusion engine is "dbt v2" (GA). `python -m pip install dbt` now installs dbt v2. For a
-v1 project, NEVER run `pip install dbt`; install `dbt-core` and `dbt-snowflake` at the
-repository's pins, and run `dbt --version` to confirm which engine is on `PATH` before
-trusting a parse or test result. Both engines read the same project and write
-compatible `manifest.json` (v12) artifacts, so `state:modified` and `--defer` work across
-them, but v2 fails on what v1 only warned about: resolve every deprecation warning first,
-and expect unknown config keys, missing macros, missing generic tests, and undefined
-`var()` calls to fail at `dbt parse` rather than `dbt compile`. On dbt 1.12,
-`--use-v2-parser` tests v2 parse compatibility without switching engines.
+Fusion engine is "dbt v2" (GA). Since 2026-09-14 the bare `dbt` package on PyPI is dbt v2.
+For a v1 project, NEVER install the bare `dbt` package (`pip install dbt`, `uv add dbt`,
+`uv tool install dbt`); install `dbt-core` and `dbt-snowflake` at the repository's pins,
+and run `dbt --version` to confirm which engine is on `PATH` before trusting a parse or
+test result. Both engines read the same project and write compatible `manifest.json`
+(v12) artifacts, so `state:modified` and `--defer` work across them, but v2 fails on what
+v1 only warned about: resolve every deprecation warning first, and expect unknown config
+keys, missing macros, missing generic tests, and undefined `var()` calls to fail at
+`dbt parse` rather than `dbt compile`. On dbt 1.12, `--use-v2-parser` tests v2 parse
+compatibility without switching engines. Validate with the repo's dbt Core (v1) workflow
+unless the repo/platform explicitly adopts dbt v2; a local dbt v2 binary is a developer
+aid, not the verification of record.
 
-Use dbt Core (v1) for production-quality execution and validation unless the
-repo/platform explicitly adopts dbt v2. Developer tooling such as dbt Fusion (dbt v2) may
-help locally, but final verification should run through the repo's dbt Core workflow when
-that is the documented Sanofi standard.
+Install with uv. An existing repo on poetry, pip-tools, or plain requirements files keeps
+its manager; recommend uv for new work only.
 
-Use the Sanofi Artifactory PyPI mirror in new `pyproject.toml` files:
-`https://artifactory.sanofi.com/artifactory/api/pypi/public-mirror-python-pypi/simple`.
+- New project: `uv init`, set `requires-python = ">=3.11,<3.12"`, `uv python pin 3.11`,
+  then `uv add "dbt-core==1.10.*" "dbt-snowflake==1.10.*"` plus the toolchain above.
+  Commit `uv.lock`; run dbt as `uv run dbt ...`; CI uses `uv sync --locked`.
+- Requirements-file repo: `uv venv --python 3.11`, then
+  `uv pip install -r requirements.txt`.
+- Standalone v1 CLI outside a project: `uv tool install "dbt-core==<pin>" --with
+  "dbt-snowflake==<pin>"` (adapter shares the tool environment).
+- NEVER `pip install` into a system or Homebrew Python.
 
-Sanofi workstation setup: use a Python virtual environment per project. Activate it with
-`source .venv/bin/activate` (macOS/Linux) or `.venv\Scripts\Activate.ps1` (Windows
-PowerShell). Windows users should use PowerShell or Git Bash from VS Code; WSL is not an
-option under the referenced Sanofi security guidance. Windows only: if Git TLS
-validation blocks cloning, check whether the workstation needs `git config --global
-http.sslbackend schannel`; PowerShell script activation may require
-`Set-ExecutionPolicy RemoteSigned -Scope CurrentUser`. Do not run those two Windows
-configuration commands on macOS or Linux.
+Use the Sanofi Artifactory PyPI mirror in new `pyproject.toml` files as the default index:
+
+```toml
+[[tool.uv.index]]
+name = "sanofi-artifactory"
+url = "https://artifactory.sanofi.com/artifactory/api/pypi/public-mirror-python-pypi/simple"
+default = true
+```
+
+Outside a project (`uv tool install`, `uvx`), pass `--default-index <mirror-url>` or set
+`UV_DEFAULT_INDEX=<mirror-url>`.
+
+Sanofi workstations: one environment per project (`.venv`, created by uv). `uv run`
+needs no activation; to activate manually use `source .venv/bin/activate` (macOS/Linux)
+or `.venv\Scripts\Activate.ps1` (Windows PowerShell). Windows users should use PowerShell
+or Git Bash from VS Code; WSL is not an option under the referenced Sanofi security
+guidance. Windows only: if Git TLS validation blocks cloning, check whether the
+workstation needs `git config --global http.sslbackend schannel`; if uv fails TLS against
+the mirror behind the corporate proxy, use the OS trust store with `--system-certs` or
+`UV_SYSTEM_CERTS=true`. Manual PowerShell activation may require
+`Set-ExecutionPolicy RemoteSigned -Scope CurrentUser`. Do not run the `git config` or
+`Set-ExecutionPolicy` commands on macOS or Linux.
 
 ## Profiles and Secrets
 
@@ -788,10 +809,10 @@ builds, `edr report`, WAP operations (`wap_status`, `wap_compare`, `wap_diff`,
 External sources for the version-sensitive rules in this skill (dbt v1.10-v1.12, dbt v2,
 dbt-snowflake). Re-check them when the project's resolved versions differ:
 
-- [Upgrading to v1.10](https://docs.getdbt.com/docs/dbt-versions/core-upgrade/upgrading-to-v1.10): deprecation warnings, `meta`/`config` nesting, `anchors:`, `--models`, `warn_error_options` rename, dbt-snowflake 1.10.6 column-size note.
-- [Upgrading to v1.11](https://docs.getdbt.com/docs/dbt-versions/core-upgrade/upgrading-to-v1.11): UDFs, `DBT_ENGINE_` env prefix, default-on JSON-schema deprecations, dynamic-table configs, `config.meta_get()`, disabled models disable unit tests.
-- [Upgrading to v1.12](https://docs.getdbt.com/docs/dbt-versions/core-upgrade/upgrading-to-v1.12): `--use-v2-parser`, `scheduler` default for Snowflake dynamic tables, `--sql` for `run-operation`.
-- [Upgrading to v2](https://docs.getdbt.com/docs/dbt-versions/core-upgrade/upgrading-to-v2): strict parse-time validation, `pip install dbt`, manifest compatibility, unit tests first in `dbt build`.
+- [Upgrading to v1.10](https://docs.getdbt.com/docs/dbt-versions/dbt-upgrade/upgrading-to-v1.10): deprecation warnings, `meta`/`config` nesting, `anchors:`, `--models`, `warn_error_options` rename, dbt-snowflake 1.10.6 column-size note.
+- [Upgrading to v1.11](https://docs.getdbt.com/docs/dbt-versions/dbt-upgrade/upgrading-to-v1.11): UDFs, `DBT_ENGINE_` env prefix, default-on JSON-schema deprecations, dynamic-table configs, `config.meta_get()`, disabled models disable unit tests.
+- [Upgrading to v1.12](https://docs.getdbt.com/docs/dbt-versions/dbt-upgrade/upgrading-to-v1.12): `--use-v2-parser`, `scheduler` default for Snowflake dynamic tables, `--sql` for `run-operation`.
+- [Upgrading to v2](https://docs.getdbt.com/docs/dbt-versions/dbt-upgrade/upgrading-to-v2): strict parse-time validation, bare `dbt` package is v2, manifest compatibility, unit tests first in `dbt build`.
 - [Deprecations](https://docs.getdbt.com/reference/deprecations): `--show-all-deprecations`, each warning's resolution, silencing.
 - [Behavior change flags](https://docs.getdbt.com/reference/global-configs/behavior-changes) and [`require_generic_test_arguments_property`](https://docs.getdbt.com/reference/global-configs/behavior-flags/require_generic_test_arguments_property): `arguments:` introduced 1.10.5, default 1.10.8.
 - [Data tests property](https://docs.getdbt.com/reference/resource-properties/data-tests): `arguments:` and `config:` placement.
@@ -802,4 +823,5 @@ dbt-snowflake). Re-check them when the project's resolved versions differ:
 - [Snowflake configurations](https://docs.getdbt.com/reference/resource-configs/snowflake-configs): `insert_overwrite` behavior, dynamic tables, `copy_grants`, `LAST_ALTERED` freshness caveat.
 - [Environment variable configs](https://docs.getdbt.com/reference/global-configs/environment-variable-configs): `DBT_ENGINE_` prefix.
 - [dbt-autofix](https://github.com/dbt-labs/dbt-autofix): deprecation autofix, `packages`, `manual_fixes/`.
-- [dbt v1 pip install best practices](https://docs.getdbt.com/faqs/Core/install-pip-best-practices): v1 installs use `dbt-core`/`dbt-<adapter>`.
+- [Installing dbt v1 with pip](https://docs.getdbt.com/faqs/Core/install-pip-best-practices.md): v1 installs use `dbt-core`/`dbt-<adapter>`; [dbt platform CLI migration](https://docs.getdbt.com/docs/platform/platform-cli-migration): `dbt` on PyPI is v2 from 2026-09-14.
+- uv: [package indexes](https://docs.astral.sh/uv/concepts/indexes/) (`[[tool.uv.index]]`, `default = true`, `UV_DEFAULT_INDEX`) and [TLS certificates](https://docs.astral.sh/uv/concepts/authentication/certificates/) (`--system-certs`, `UV_SYSTEM_CERTS`).

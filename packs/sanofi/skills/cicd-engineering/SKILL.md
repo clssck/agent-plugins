@@ -21,7 +21,7 @@ Read only what the task needs.
 2. Classify the pipeline: build/test, publish, release, deploy, Terraform, SAST/SCA.
 3. Apply the rules below; load `cicd-rules.md` for exact wording.
 4. Reuse the repo's own scripts and package manager. NEVER invent a parallel build path.
-5. Validate: `actionlint` when installed (v1.7.12 rejects the newer `cache-mode` key and `vulnerability-alerts` permission; see Failure Modes); otherwise parse each YAML file and check every `needs.<job>.outputs.<name>` and `secrets.<NAME>` reference resolves.
+5. Validate: `uvx --from actionlint-py actionlint` (or an installed `actionlint`). It flags `atmos-aws-arc-runner-set` as unknown unless `.github/actionlint.yaml` lists it under `self-hosted-runner.labels`; v1.7.12 also rejects the newer `cache-mode` key and `vulnerability-alerts` permission (see Failure Modes). Without `actionlint`, parse each YAML file and check every `needs.<job>.outputs.<name>` and `secrets.<NAME>` reference resolves.
 6. Report changed behavior, required secrets/environments/variables, and manual platform setup.
 
 ## Rules
@@ -36,7 +36,7 @@ Read only what the task needs.
 - **Injection**: pass PR/issue text through `env:`, never `${{ }}` inside `run:`.
 - **Untrusted triggers**: `pull_request_target` and `workflow_run` MUST NOT check out or execute PR code or trust downloaded artifacts. They run from the default branch and see secrets. Their caches stay `cache-mode: read`.
 - **Security steps**: NEVER `continue-on-error: true` on SAST, SCA, secret scan, or gate steps.
-- **Installs**: commit lockfiles; use deterministic installs (`npm ci`, `uv sync --frozen`).
+- **Installs**: commit lockfiles; use deterministic installs (`npm ci`, `uv sync --locked`). Python CI uses `astral-sh/setup-uv` and `uv run`, not `setup-python` + `pip install`; keep a repo's existing tooling (poetry, pip-tools) and say how to adopt uv.
 - **SCA/SAST**: every repo runs both in CI with blocking results. CodeGuard preferred; SonarCloud adds quality gating; CodeQL is the fallback.
 - **Coverage**: Sonar imports reports through `sonar-project.properties`, and the scan waits for the quality gate (`sonar.qualitygate.wait=true`). The aggregate required check MUST depend on the Sonar job.
 - **Artifacts**: build once, promote the same image digest through dev → test → prod. NEVER rebuild per environment. Production images SHOULD carry a build-provenance attestation ([security-hardening.md §11](references/security-hardening.md#11-artifact-attestations-and-provenance)).

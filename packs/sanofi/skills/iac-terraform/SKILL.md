@@ -9,9 +9,9 @@ Build AWS Terraform from `Sanofi-InnerSource/terraform-aws-library` modules with
 
 ## References
 
-- [module-guide.md](references/module-guide.md): discovery commands, version constraints and AWS provider v6 changes, S3 backend locking, `terraform test`, secrets, module catalog, project layout, anti-patterns, sources.
+- [module-guide.md](references/module-guide.md): discovery commands, version constraints and AWS provider v6 changes, S3 backend locking, `terraform test`, secrets, module catalog, project layout, pinning, sources.
 - [tagging-guide.md](references/tagging-guide.md): mandatory tag values, `local.tags` pattern, `default_tags` limits, effective-tag check, sources.
-- [scripts/check_tags.py](scripts/check_tags.py): validates tags on every resource in a plan JSON (run via `bash`, see tagging guide).
+- [scripts/check_tags.py](scripts/check_tags.py): validates tags on every resource in a plan JSON; tests in [scripts/test_check_tags.py](scripts/test_check_tags.py). Invocation: [tagging-guide.md](references/tagging-guide.md#effective-tag-check).
 
 ## Rules
 
@@ -41,14 +41,12 @@ Build AWS Terraform from `Sanofi-InnerSource/terraform-aws-library` modules with
 
 | Bad | Good |
 | --- | --- |
-| Raw `aws_s3_bucket` when `s3_bucket` module exists | Library module with pinned `version` |
 | Only the 3 corporate tags | `local.tags` with all 10 |
 | `variable "version"` | `app_version`; `version` is a reserved variable name |
 | `application_id` derived from `cc-*`/`dp-*` cost center | Separate validated `application_id` variable |
 | `terraform validate` before `init` | `terraform init -backend=false` first |
 | `gh search code ... --path accepted` | `gh search code 'tagging path:accepted' --repo OWNER/REPO` |
 | `grep` for tag names in `*.tf` | Evaluate tags from plan JSON |
-| `dynamodb_table` in a new `backend "s3"` | `use_lockfile = true` (Terraform 1.11+) |
 | `password_wo` set but `password_wo_version` unchanged on rotation | Increment the `*_version` argument |
 | `data "aws_secretsmanager_secret_version"` feeding a resource | `ephemeral` block feeding a write-only argument |
 | `data.aws_region.current.name` on provider 6 | `.region` |

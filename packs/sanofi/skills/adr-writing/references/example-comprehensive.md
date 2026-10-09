@@ -83,14 +83,14 @@ manual retry logic and dead-letter queues for failure handling.
 
 ## Architecture Manifesto Alignment
 
-| # | Principle              | Alignment | Notes                                                                        |
-| - | ---------------------- | --------- | ---------------------------------------------------------------------------- |
-| 2 | Simplicity             | Aligned   | Declarative orchestration replaces ~2,000 lines of custom retry/routing code |
-| 4 | Quality by Design      | Aligned   | Built-in retry and audit trail satisfy SOX compliance from day one           |
-| 6 | Decoupling             | Aligned   | Each step is an independent Lambda; orchestration logic is external          |
-| 8 | Performance            | Partial   | Assumed 700 transitions/s peak fits the 5,000/s Ireland quota; 10x growth needs a quota increase |
-| 9 | Automation             | Aligned   | State machine definition is IaC-compatible (CDK/CloudFormation)              |
-| 10 | Frugality             | Tension   | ~$87.50/month vs ~$4.20/month for SQS — accepted because the SQS option needs ~$60K of build effort |
+| #  | Principle                  | Alignment | Notes                                                                                               |
+| -- | -------------------------- | --------- | --------------------------------------------------------------------------------------------------- |
+| 2  | Simplicity                 | Aligned   | Declarative orchestration replaces ~2,000 lines of custom retry/routing code                        |
+| 4  | Quality by Design          | Aligned   | Built-in retry and audit trail satisfy SOX compliance from day one                                  |
+| 6  | Decoupling                 | Aligned   | Each step is an independent Lambda; orchestration logic is external                                 |
+| 8  | Performance and Monitoring | Partial   | Assumed 700 transitions/s peak fits the 5,000/s Ireland quota; 10x growth needs a quota increase    |
+| 9  | Automation                 | Aligned   | State machine definition is IaC-compatible (CDK/CloudFormation)                                     |
+| 10 | Frugality                  | Tension   | ~$87.50/month vs ~$4.20/month for SQS — accepted because the SQS option needs ~$60K of build effort |
 
 ## Options Ruled Out
 

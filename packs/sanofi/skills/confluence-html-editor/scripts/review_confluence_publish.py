@@ -1,8 +1,14 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
 """Review a proposed Confluence HTML publish before calling the update tool.
 
 This script is intentionally local-only. It does not call Confluence. Use it
 after saving a fetched HTML body and a proposed full replacement body.
+
+Usage: uv run review_confluence_publish.py --original fetched.html --proposed proposed.html --title "Page title" --page-id 123 --version-message "Polish page"
 """
 
 from __future__ import annotations

@@ -119,7 +119,7 @@ these columns:
 | Version | `v{X.Y.Z}` | Semantic version number |
 | Date | `YYYY-MM-DD` | Date of the change |
 | Ticket | `{PROJ-123}` or `--` | Jira ticket that triggered the change |
-| Level | `L1`, `L2`, `L3`, `Deploy`, `Dynamic` | Which C4 level(s) were affected |
+| Level | `L1`, `L2`, `L3`, `Deploy`, `Dynamic`, `Landscape` | Which C4 level(s) were affected |
 | Summary | Free text (one line) | What changed and why |
 | Author | Name, or `AI-assisted (architecture-documentation)` when no named author is supplied; never overwrite attribution on existing entries | Who made the change |
 
@@ -332,7 +332,7 @@ v3.0.0 (from v2.0.1):
 
 ### Retention
 
-| Content | Retention Period |
+| Content | Retention Period (default; the system's records-retention policy overrides) |
 |---------|-----------------|
 | Current architecture artifacts | Indefinite (always available) |
 | Previous MAJOR versions | Minimum 2 years |

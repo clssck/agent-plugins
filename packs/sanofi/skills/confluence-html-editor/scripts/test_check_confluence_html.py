@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Regression tests for check_confluence_html.py."""
 
 from __future__ import annotations

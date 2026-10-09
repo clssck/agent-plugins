@@ -1,6 +1,6 @@
 # Terraform Module Guide
 
-Discovery, module usage, validation, versions, state backend, testing, secrets, and anti-patterns for Sanofi AWS Terraform. Tag rules: [tagging-guide.md](tagging-guide.md).
+Discovery, module usage, validation, versions, state backend, testing, secrets, and module pinning for Sanofi AWS Terraform. Tag rules: [tagging-guide.md](tagging-guide.md).
 
 ## Contents
 
@@ -13,9 +13,7 @@ Discovery, module usage, validation, versions, state backend, testing, secrets, 
 - [Secrets](#secrets)
 - [Module catalog](#module-catalog)
 - [Project layout](#project-layout)
-- [Common patterns](#common-patterns)
-- [Anti-patterns](#anti-patterns)
-- [Compliance check](#compliance-check)
+- [Pinning](#pinning)
 - [Sources](#sources)
 
 ## Discovery
@@ -75,7 +73,7 @@ $env:TF_TOKEN_sanofi_jfrog_io = "<token from the user's secret store>"
 - `init -backend=false` validates syntax and module wiring without touching state.
 - `terraform plan`, with a real backend and AWS credentials, runs only on user authorization. NEVER run `apply`.
 - Review plan output for the user; tag verification is in [tagging-guide.md](tagging-guide.md#effective-tag-check).
-- Optional `checkov -d .` is a static scan. Triage its findings through the `iac-security-review` skill.
+- Optional `uvx checkov -d .` is a static scan. Triage its findings through the `iac-security-review` skill.
 
 CI plan/apply workflows and runner-side JFrog credentials: `cicd-engineering` skill.
 
@@ -271,90 +269,14 @@ infrastructure/
 
 Keep secrets out of committed `*.tfvars`.
 
-## Common patterns
+## Pinning
 
-Input wiring is illustrative; read each module's README.
-
-### ECS service with ALB
-
-```hcl
-module "alb" {
-  source  = "sanofi.jfrog.io/terraform-innersource-local__aws-services/elb_alb/aws"
-  version = "X.Y.Z"
-  tags    = local.tags
-}
-
-module "ecs_cluster" {
-  source  = "sanofi.jfrog.io/terraform-innersource-local__aws-services/ecs_cluster/aws"
-  version = "X.Y.Z"
-  tags    = local.tags
-}
-
-module "ecs_service" {
-  source  = "sanofi.jfrog.io/terraform-innersource-local__aws-services/ecs_service/aws"
-  version = "X.Y.Z"
-  tags    = local.tags
-}
-```
-
-### Lambda with API Gateway
-
-```hcl
-module "lambda" {
-  source  = "sanofi.jfrog.io/terraform-innersource-local__aws-services/lambda_function/aws"
-  version = "X.Y.Z"
-  tags    = local.tags
-}
-
-module "api_gateway" {
-  source  = "sanofi.jfrog.io/terraform-innersource-local__aws-services/api_gateway_rest_api/aws"
-  version = "X.Y.Z"
-  tags    = local.tags
-}
-```
-
-## Anti-patterns
-
-```hcl
-# BAD: module exists in terraform-aws-library
-resource "aws_s3_bucket" "data" {
-  bucket = "my-bucket"
-}
-
-# GOOD: library module, pinned, tagged
-module "data_bucket" {
-  source  = "sanofi.jfrog.io/terraform-innersource-local__aws-services/s3_bucket/aws"
-  version = "X.Y.Z"
-  tags    = local.tags
-}
-
-# BAD: unpinned
-module "lambda" {
-  source = "sanofi.jfrog.io/terraform-innersource-local__aws-services/lambda_function/aws"
-}
-```
-
-Registry modules take `version`. Local (`./modules/...`) and Git modules cannot use it; pin Git sources with `?ref=<tag-or-sha>`.
-
-## Compliance check
-
-This skill's scope, reported in chat. Security findings go to the `iac-security-review` skill.
-
-- [ ] Every AWS resource comes from a library module, or the reason none exists is stated
-- [ ] Every registry module pins `version`; Git modules pin `?ref=`
-- [ ] All 10 mandatory tags reach every taggable resource (plan JSON check)
-- [ ] `fmt -check`, `init -backend=false`, `validate` pass
-- [ ] No literal secrets; secret handling matches [Secrets](#secrets)
-- [ ] Choices comply with the accepted RFCs found in discovery
-- [ ] Security review requested from `iac-security-review`
-- [ ] `versions.tf` floors match the features used; module and provider constraints agree
-- [ ] New backends use `use_lockfile = true`, never `dynamodb_table`
-- [ ] Any `terraform test` run is mocked with `command = plan`, or the user authorized real resources
+Registry modules take `version`. Local (`./modules/...`) and Git modules cannot use it; pin Git sources with `?ref=<tag-or-sha>`. A registry `module` block without `version` floats to the latest release.
 
 ## Sources
 
 - Terraform S3 backend (`use_lockfile`, deprecated DynamoDB locking, `.tflock` permissions, versioning): <https://developer.hashicorp.com/terraform/language/backend/s3>
-- Terraform 1.10 changelog (ephemeral resources/values, S3 lockfile experimental): <https://github.com/hashicorp/terraform/blob/v1.10/CHANGELOG.md>
+- Terraform 1.10 changelog (ephemeral resources/values, S3 native state locking added): <https://github.com/hashicorp/terraform/blob/v1.10/CHANGELOG.md>
 - Terraform 1.11 changelog (write-only attributes, S3 lockfile GA, DynamoDB arguments deprecated): <https://github.com/hashicorp/terraform/blob/v1.11/CHANGELOG.md>
 - Terraform 1.13 changelog (test-file variable definitions upgrade note): <https://github.com/hashicorp/terraform/blob/v1.13/CHANGELOG.md>
 - Write-only arguments: <https://developer.hashicorp.com/terraform/language/manage-sensitive-data/write-only>

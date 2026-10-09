@@ -1,4 +1,8 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
 """Extract Confluence page fetch results into audit-ready files.
 
 This accepts raw JSON from the Atlassian MCP Confluence content/page read tool
@@ -7,6 +11,8 @@ tool-output wrappers such as [{"type":"text","text":"{...}"}]. It writes
 the fetched body to <prefix>.html or <prefix>-adf.json and stores page metadata
 in <prefix>-metadata.json. Use a separate --out-dir per extraction when pulling
 both the HTML and ADF of one page; the metadata file name is fixed per prefix.
+
+Usage: uv run extract_confluence_fetch.py response.json --out-dir scratch/html --prefix fetched
 """
 
 from __future__ import annotations

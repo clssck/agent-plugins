@@ -12,7 +12,7 @@ Work from the repo's existing runtime and deployment contract. Complements the g
 - **NEVER silently migrate** between warehouse and container runtimes. With the 2026_06 behavior bundle (enabled by default since Sept 2026), `CREATE STREAMLIT` without `RUNTIME_NAME` creates a container-runtime app, so every statement and `snowflake.yml` entity MUST name its runtime explicitly.
 - **NEVER replace legacy deployment syntax**, broaden an owner role, or publish an app unless the user asks.
 - **NEVER execute deployment SQL**, upload staged files, change grants, or promote a live version without an explicit deployment request.
-- **Inspect first.** Locate entrypoint, supporting modules, `environment.yml` or Python dependency file, stage and deployment SQL, query warehouse, owner and viewer roles, CI workflow, app tests.
+- **Inspect first** with `read`, `grep`, `glob`. Locate entrypoint, supporting modules, `environment.yml` or Python dependency file, stage and deployment SQL, query warehouse, owner and viewer roles, CI workflow, app tests.
 - **Check the pinned Streamlit version** before using an API. Prefer repo-native patterns while they remain valid.
 - Runtime selection, deployment mechanics, security constraints, current Snowflake links: [runtime-and-deployment.md](references/runtime-and-deployment.md).
 
@@ -44,18 +44,28 @@ Work from the repo's existing runtime and deployment contract. Complements the g
 - Keep `ROOT_LOCATION` only where the repo deliberately uses that legacy contract.
 - CLI deployment: `snow streamlit deploy <entity_id> --replace` from a `definition_version: 2` `snowflake.yml`. Set `runtime_name` there too, require CLI 3.27.0+, and add `--prune` when staged files were removed.
 - Changing `runtime_name` in an existing project file moves the deployed app on the next deploy (CLI 3.27.0+).
+- Install the CLI with `uv tool install snowflake-cli`; NEVER `pip install` into a system or Homebrew Python.
 
 | Bad | Good |
 |---|---|
-| `FROM @DB.SCH.STAGE/app` (unquoted) | `FROM '@DB.SCH.STAGE/app'` |
+| New `FROM @DB.SCH.STAGE/app` (unquoted) | `FROM '@DB.SCH.STAGE/app'` |
 | `CREATE STREAMLIT` and assume live | Follow with `ADD LIVE VERSION FROM LAST` |
 | `CREATE STREAMLIT ... FROM '...'` with no `RUNTIME_NAME` | Add `RUNTIME_NAME = 'SYSTEM$WAREHOUSE_RUNTIME'` (or the container name plus `COMPUTE_POOL`) |
+
+## Python Dependencies
+
+- Container runtime: Snowflake installs with uv from `pyproject.toml` (preferred) or `requirements.txt`. New apps: `uv init --bare`, `uv add "streamlit[snowflake]==<pinned>"`, commit `uv.lock`, stage it with the app.
+- NEVER leave a `requirements.txt` beside `pyproject.toml`; it takes precedence and bypasses `uv.lock`.
+- Container packages need an attached artifact repository (or an EAI fallback); an owner role without one cannot install them.
+- Warehouse runtime: `environment.yml` from the Snowflake Anaconda channel only. uv cannot install it; do not convert it to `pyproject.toml` unless migrating runtimes.
+- Local dev on a repo that already uses `requirements.txt` MAY use `uv venv` and `uv pip install -r requirements.txt`; do not migrate its tooling unasked.
 
 ## Checklist
 
 - Pure-module unit tests and Streamlit `AppTest` run where the pinned version supports it.
 - Python sources compile; repo linter passes.
 - Deployment SQL names every imported supporting file and pins supported dependencies.
+- Container apps: `uv.lock` committed and staged with `pyproject.toml`; no shadowing `requirements.txt`; package source attached.
 - Entrypoint name matches `MAIN_FILE`; runtime named explicitly and matching the dependency file (`environment.yml` vs `pyproject.toml`/`requirements.txt`); target role least privilege; target environment correct.
 - Native Snowflake smoke test done when owner rights, warehouse packages, staged files, viewer grants, CSP, or networking affect behavior.
 - No secrets in staged files; no widget-driven SQL or identifiers.
