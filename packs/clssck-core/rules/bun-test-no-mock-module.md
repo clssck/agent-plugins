@@ -1,18 +1,15 @@
 ---
 description: Ban Bun module mocks in tests
-globs:
-  - "**/*{.test,.spec,_test,_spec}.{ts,tsx,js,jsx,mts,cts,mjs,cjs}"
-  - "**/{test,tests,__tests__}/**/*.{ts,tsx,js,jsx,mts,cts,mjs,cjs}"
-  - "**/*{preload,setup}*.{ts,tsx,js,jsx,mts,cts,mjs,cjs}"
 astCondition:
-  - "mock.module($$$ARGS)"
+- mock.module($$$ARGS)
 scope:
-  - tool:edit(**/*{.test,.spec,_test,_spec}.{ts,tsx,js,jsx,mts,cts,mjs,cjs})
-  - tool:write(**/*{.test,.spec,_test,_spec}.{ts,tsx,js,jsx,mts,cts,mjs,cjs})
-  - tool:edit(**/{test,tests,__tests__}/**/*.{ts,tsx,js,jsx,mts,cts,mjs,cjs})
-  - tool:write(**/{test,tests,__tests__}/**/*.{ts,tsx,js,jsx,mts,cts,mjs,cjs})
-  - tool:edit(**/*{preload,setup}*.{ts,tsx,js,jsx,mts,cts,mjs,cjs})
-  - tool:write(**/*{preload,setup}*.{ts,tsx,js,jsx,mts,cts,mjs,cjs})
+- tool:edit(**/*{.test,.spec,_test,_spec}.{ts,tsx,js,jsx,mts,cts,mjs,cjs})
+- tool:write(**/*{.test,.spec,_test,_spec}.{ts,tsx,js,jsx,mts,cts,mjs,cjs})
+- tool:edit(**/{test,tests,__tests__}/**/*.{ts,tsx,js,jsx,mts,cts,mjs,cjs})
+- tool:write(**/{test,tests,__tests__}/**/*.{ts,tsx,js,jsx,mts,cts,mjs,cjs})
+- tool:edit(**/*{preload,setup}*.{ts,tsx,js,jsx,mts,cts,mjs,cjs})
+- tool:write(**/*{preload,setup}*.{ts,tsx,js,jsx,mts,cts,mjs,cjs})
+interruptMode: never
 ---
 
 **NEVER use `mock.module()` in tests.**

@@ -1,7 +1,10 @@
 ---
 description: Check authorization, target, and outgoing commits before git push
-condition: '^(?:\s*|(?:(?:[^#''"\\]|(?<=[^\s;&|()<>])#|#[^\r\n]*(?=[\r\n]|$)|\\[\s\S]|''[^'']*''|"(?:[^"\\]|\\[\s\S])*")*?)(?:&&|;|\|\|?|\r?\n|\()\s*)(?:(?:[A-Za-z_][A-Za-z0-9_]*=(?:"(?:[^"\\]|\\[\s\S])*"|''[^'']*''|[^\s;&|''"#]+)|(?:env|command|sudo|xargs(?:[ \t]+-[^\s;&|()''"#]+)*)(?:\s+--)?)\s+)*git\s+(?:(?:(?:-C|-c|--(?:git-dir|work-tree|namespace|config-env|super-prefix|shallow-file|attr-source|date))(?:=|\s+)(?:"(?:[^"\\]|\\[\s\S])*"|''[^'']*''|[^\s;&|''"#]+)|--exec-path(?:=|\s+)(?:"(?:[^"\\]|\\[\s\S])*"|''[^'']*''|[^\s;&|''"#]+)|(?:-p|-P|--(?:paginate|no-pager|no-replace-objects|no-lazy-fetch|no-optional-locks|no-advice|bare|literal-pathspecs|glob-pathspecs|noglob-pathspecs|icase-pathspecs)))\s+)*push(?=\s|$|[;&|)])'
+condition:
+- '^(?:\s*|(?:(?:[^#''"\\]|(?<=[^\s;&|()<>])#|#[^\r\n]*(?=[\r\n]|$)|\\[\s\S]|''[^'']*''|"(?:[^"\\]|\\[\s\S])*")*?)(?:&&|;|\|\|?|\r?\n|\()\s*)(?:(?:[A-Za-z_][A-Za-z0-9_]*=(?:"(?:[^"\\]|\\[\s\S])*"|''[^'']*''|[^\s;&|''"#]+)|(?:env|command|sudo|xargs(?:[ \t]+-[^\s;&|()''"#]+)*)(?:\s+--)?)\s+)*git\s+(?:(?:(?:-C|-c|--(?:git-dir|work-tree|namespace|config-env|super-prefix|shallow-file|attr-source|date))(?:=|\s+)(?:"(?:[^"\\]|\\[\s\S])*"|''[^'']*''|[^\s;&|''"#]+)|--exec-path(?:=|\s+)(?:"(?:[^"\\]|\\[\s\S])*"|''[^'']*''|[^\s;&|''"#]+)|(?:-p|-P|--(?:paginate|no-pager|no-replace-objects|no-lazy-fetch|no-optional-locks|no-advice|bare|literal-pathspecs|glob-pathspecs|noglob-pathspecs|icase-pathspecs)))\s+)*push(?=\s|$|[;&|)])'
+- '"command"\s*:\s*"(?:(?:\\"(?:[^"\\]|\\[^"])*?\\"|\''(?:[^\''"\\]|\\.)*\''|\\[^"]|[^"\\\''])*?(?:&&|;|\|\|?|\\n|\(|\$\()\s*)?(?:(?:[A-Za-z_][A-Za-z0-9_]*=(?:"(?:[^"\\]|\\[\s\S])*"|''[^'']*''|[^\s;&|''"#]+)|(?:env|command|sudo|xargs(?:[ \t]+-[^\s;&|()''"#]+)*)(?:\s+--)?)\s+)*git\s+(?:(?:(?:-C|-c|--(?:git-dir|work-tree|namespace|config-env|super-prefix|shallow-file|attr-source|date))(?:=|\s+)(?:"(?:[^"\\]|\\[\s\S])*"|''[^'']*''|[^\s;&|''"#]+)|--exec-path(?:=|\s+)(?:"(?:[^"\\]|\\[\s\S])*"|''[^'']*''|[^\s;&|''"#]+)|(?:-p|-P|--(?:paginate|no-pager|no-replace-objects|no-lazy-fetch|no-optional-locks|no-advice|bare|literal-pathspecs|glob-pathspecs|noglob-pathspecs|icase-pathspecs)))\s+)*push(?=\s|$|[;&|)"]|\\n)'
 scope: tool:bash
+interruptMode: always
 ---
 
 **A push publishes work to shared, external state.**
