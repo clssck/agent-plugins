@@ -22,7 +22,7 @@ omp plugin link $AP/upstream/emilkowalski-skills
 | Pack | Link | Source | Contents |
 | --- | --- | --- | --- |
 | `bro` | `omp plugin link $AP/packs/bro` | this repo | 1 skill |
-| `clssck-core` | `omp plugin link $AP/packs/clssck-core` | this repo | 1 skill, 13 rules, 2 agents |
+| `clssck-core` | `omp plugin link $AP/packs/clssck-core` | this repo | 1 skill, 17 rules, 2 agents |
 | `coco-airflow` | `omp plugin link $AP/packs/coco-airflow` | this repo | 18 skills |
 | `coco-blueprints` | `omp plugin link $AP/packs/coco-blueprints` | this repo | 3 skills, 12 commands |
 | `coco-bundled-skills` | `omp plugin link $AP/packs/coco-bundled-skills` | this repo | 74 skills |
