@@ -5,7 +5,7 @@ description: Sanofi MWAA Airflow conventions - parse-time safety, sanofi-airflow
 
 # Sanofi Airflow
 
-Sanofi conventions for DAGs on AWS MWAA: shared central environment and dedicated tenants. Platform facts only; generic review stays with the code-review skill. Run it on the diff, then apply this skill for Sanofi-specific defects.
+Sanofi conventions for DAGs on AWS MWAA: shared central environment and dedicated tenants. Platform facts only; generic review stays with omp `/review`. Run it on the diff, then apply this skill for Sanofi-specific defects.
 
 ## Core Rules
 
