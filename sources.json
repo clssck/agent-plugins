@@ -26,7 +26,7 @@
       "name": "lavish-axi",
       "repo": "kunchenguid/lavish-axi",
       "ref": "main",
-      "sha": "fb12e17da12297b582092a80995cbd7498ee706f",
+      "sha": "fac7c000c4dd1cb7316fcb89dc23ed7cc1d73907",
       "description": "HTML is the new markdown. Lavish is the new editor for your HTML artifacts.",
       "include": {
         "skills": "skills"
