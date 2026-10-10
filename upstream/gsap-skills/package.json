@@ -6,5 +6,20 @@
   "homepage": "https://github.com/greensock/gsap-skills/tree/aed9cfd3277740755f6bfc1155c7aa645403b760",
   "repository": "https://github.com/greensock/gsap-skills",
   "gitHead": "aed9cfd3277740755f6bfc1155c7aa645403b760",
+  "sync": {
+    "build": "55ad9e3a1d2664b3da21e28b97adf8422ed4fb5274d9e34262140d767ab9951a",
+    "origins": {
+      "LICENSE": "LICENSE",
+      "skills/gsap-core": "skills/gsap-core",
+      "skills/gsap-frameworks": "skills/gsap-frameworks",
+      "skills/gsap-performance": "skills/gsap-performance",
+      "skills/gsap-plugins": "skills/gsap-plugins",
+      "skills/gsap-react": "skills/gsap-react",
+      "skills/gsap-scrolltrigger": "skills/gsap-scrolltrigger",
+      "skills/gsap-timeline": "skills/gsap-timeline",
+      "skills/gsap-utils": "skills/gsap-utils",
+      "skills/llms.txt": "skills/llms.txt"
+    }
+  },
   "omp": {}
 }

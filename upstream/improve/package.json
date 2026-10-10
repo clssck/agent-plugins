@@ -6,5 +6,12 @@
   "homepage": "https://github.com/shadcn/improve/tree/cac56e1ebd3c279aa9153616cfeac7b174ab90f9",
   "repository": "https://github.com/shadcn/improve",
   "gitHead": "cac56e1ebd3c279aa9153616cfeac7b174ab90f9",
+  "sync": {
+    "build": "7fdf998bd5ad5662bc2139c2665717c11021a38a90739ac3d58978b66b9c78cc",
+    "origins": {
+      "LICENSE.md": "LICENSE.md",
+      "skills/improve": "skills/improve"
+    }
+  },
   "omp": {}
 }

@@ -6,5 +6,28 @@
   "homepage": "https://github.com/Snowflake-Labs/coco-skills/tree/28b549f48da9994307081a9d4d2f16379f5a9c16",
   "repository": "https://github.com/Snowflake-Labs/coco-skills",
   "gitHead": "28b549f48da9994307081a9d4d2f16379f5a9c16",
+  "sync": {
+    "build": "05fed46be760da28a927bce2308f54caa29c1fd1be5775c5661e18e2158974e4",
+    "origins": {
+      "skills/check-agent-access": "skills/check-agent-access",
+      "skills/dcr-v1-to-v2": "skills/dcr-v1-to-v2",
+      "skills/manage-zerocopy-sapbdc": "skills/manage-zerocopy-sapbdc",
+      "skills/mlops": "skills/mlops",
+      "skills/ontology-stack-builder": "skills/ontology-stack-builder",
+      "skills/openflow-spcs-privatelink": "skills/openflow-spcs-privatelink",
+      "skills/quickstart-guide": "skills/quickstart-guide",
+      "skills/rbac": "skills/rbac",
+      "skills/review-skill-sflabs": "skills/review-skill-sflabs",
+      "skills/semantic-view-patterns": "skills/semantic-view-patterns",
+      "skills/snowflake-docs": "skills/snowflake-docs",
+      "skills/snowpipe-bcdr": "skills/snowpipe-bcdr",
+      "skills/snowpro-study": "skills/snowpro-study",
+      "skills/solutions-installer": "skills/solutions-installer",
+      "skills/spark-migration": "skills/spark-migration",
+      "skills/spec-driven": "skills/spec-driven",
+      "skills/swap-databases": "skills/swap-databases",
+      "skills/well-architected-framework-assessment": "skills/well-architected-framework-assessment"
+    }
+  },
   "omp": {}
 }
