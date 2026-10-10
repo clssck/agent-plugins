@@ -118,7 +118,7 @@ For persons (no technology):
         <mxCell id="11" value="Reads/writes data&lt;br&gt;[SQL/TCP]" style="endArrow=blockThin;endFill=1;html=1;fontSize=11;fontColor=#707070;strokeColor=#707070;" edge="1" parent="1" source="6" target="7">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="12" value="Publishes events to&lt;br&gt;[AMQP]" style="endArrow=blockThin;endFill=1;dashed=1;html=1;fontSize=11;fontColor=#707070;strokeColor=#707070;" edge="1" parent="1" source="6" target="8">
+        <mxCell id="12" value="Publishes events to&lt;br&gt;[SQS/HTTPS]" style="endArrow=blockThin;endFill=1;dashed=1;html=1;fontSize=11;fontColor=#707070;strokeColor=#707070;" edge="1" parent="1" source="6" target="8">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <mxCell id="13" value="&lt;b&gt;{External System}&lt;/b&gt;&lt;br&gt;[Software System]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;{Description}&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#6D6E71;fontColor=#ffffff;strokeColor=none;arcSize=10;" vertex="1" parent="1">

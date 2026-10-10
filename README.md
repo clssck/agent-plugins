@@ -4,7 +4,9 @@
 
 OMP extension packs: my own rules, agents, and skills, plus skills from other repositories, refreshed daily.
 
-Every directory in `packs/` (written here) and `upstream/` (copied from other repositories) is an OMP extension package: a `package.json` with an `omp` field, plus any of `skills/`, `rules/`, `agents/`, `commands/`, `hooks/`, `tools/`, `prompts/`, and `.mcp.json`. Linked packs appear under **OMP Extension Packages** in `/extensions`.
+Every directory in `packs/` and `upstream/` is an OMP extension package: a `package.json` with an `omp` field, plus any of `skills/`, `rules/`, `agents/`, `commands/`, `hooks/`, `tools/`, `prompts/`, and `.mcp.json`. Linked packs appear under **OMP Extension Packages** in `/extensions`.
+
+`packs/` holds packs written here (`bro`, `clssck-core`, `sanofi`) and packs vendored with the owner's permission (`coco-airflow`, `coco-blueprints`, `coco-bundled-skills`, `coco-databricks`, `coco-sf-solutions`), each of which ships its own `LICENSE` and `ATTRIBUTION`. `upstream/` holds vendored copies of the repositories in [`sources.json`](./sources.json) at their pinned commits, with the license files those repositories ship. The root [`LICENSE`](./LICENSE) covers only what is written here.
 
 ## Install
 
@@ -23,11 +25,11 @@ omp plugin link $AP/upstream/emilkowalski-skills
 | --- | --- | --- | --- |
 | `bro` | `omp plugin link $AP/packs/bro` | this repo | 1 skill |
 | `clssck-core` | `omp plugin link $AP/packs/clssck-core` | this repo | 1 skill, 9 rules, 2 agents |
-| `coco-airflow` | `omp plugin link $AP/packs/coco-airflow` | this repo | 18 skills |
-| `coco-blueprints` | `omp plugin link $AP/packs/coco-blueprints` | this repo | 3 skills, 12 commands |
-| `coco-bundled-skills` | `omp plugin link $AP/packs/coco-bundled-skills` | this repo | 74 skills |
-| `coco-databricks` | `omp plugin link $AP/packs/coco-databricks` | this repo | 12 skills |
-| `coco-sf-solutions` | `omp plugin link $AP/packs/coco-sf-solutions` | this repo | 1 skill |
+| `coco-airflow` | `omp plugin link $AP/packs/coco-airflow` | vendored, see [ATTRIBUTION](./packs/coco-airflow/ATTRIBUTION) | 18 skills |
+| `coco-blueprints` | `omp plugin link $AP/packs/coco-blueprints` | vendored, see [ATTRIBUTION](./packs/coco-blueprints/ATTRIBUTION) | 3 skills, 12 commands, 1 extension |
+| `coco-bundled-skills` | `omp plugin link $AP/packs/coco-bundled-skills` | vendored, see [ATTRIBUTION](./packs/coco-bundled-skills/ATTRIBUTION) | 74 skills |
+| `coco-databricks` | `omp plugin link $AP/packs/coco-databricks` | vendored, see [ATTRIBUTION](./packs/coco-databricks/ATTRIBUTION) | 12 skills |
+| `coco-sf-solutions` | `omp plugin link $AP/packs/coco-sf-solutions` | vendored, see [ATTRIBUTION](./packs/coco-sf-solutions/ATTRIBUTION) | 1 skill |
 | `emilkowalski-skills` | `omp plugin link $AP/upstream/emilkowalski-skills` | [emilkowalski/skills@e8a175d](https://github.com/emilkowalski/skills/tree/e8a175de22ae1e49370fc144c1f3bb9aeedf988d) | 14 skills |
 | `gsap-skills` | `omp plugin link $AP/upstream/gsap-skills` | [greensock/gsap-skills@aed9cfd](https://github.com/greensock/gsap-skills/tree/aed9cfd3277740755f6bfc1155c7aa645403b760) | 8 skills |
 | `improve` | `omp plugin link $AP/upstream/improve` | [shadcn/improve@cac56e1](https://github.com/shadcn/improve/tree/cac56e1ebd3c279aa9153616cfeac7b174ab90f9) | 1 skill |

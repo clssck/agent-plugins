@@ -38,7 +38,7 @@ Sanofi conventions for dbt project structure, model development, documentation, 
 
 | Rule | Check before applying |
 |---|---|
-| Test params under `arguments:` | dbt >= 1.10.5; from 1.10.8 top-level params warn; older: top-level params |
+| Test params under `arguments:` | dbt >= 1.10.8: nest (flag defaults `true`, top-level warns). 1.10.5-1.10.7: nest only if `require_generic_test_arguments_property: true` is set, else the nested form warns (`ArgumentsPropertyInGenericTestDeprecation`); older: top-level |
 | Engine and install | The bare `dbt` PyPI package is dbt v2 (since 2026-09-14); v1 projects install `dbt-core` + `dbt-snowflake` with uv (setup in the guide). Run `dbt --version` before trusting parse or test output |
 | Custom keys, `meta`, `tags`, `freshness`, `docs`, `group`, `access` | dbt >= 1.10: under `config:` (custom keys only in `config.meta`); top-level forms warn, error on dbt v2 |
 | `microbatch` incremental | dbt >= 1.9; needs `event_time` on model and filtered parents, `begin`, `batch_size`; NEVER add `is_incremental()` |

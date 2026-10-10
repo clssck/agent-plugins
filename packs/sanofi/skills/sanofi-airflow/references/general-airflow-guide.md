@@ -463,7 +463,8 @@ the UI.
 | DAG missing from UI      | Missing Variable                 | Search `Failed to retrieve secret`; create it or remove the top-level `Variable.get()` |
 | DAG missing from UI      | Brand-new file not scanned yet   | Wait one `dag_dir_list_interval` (~5-15 min by env) before assuming a defect           |
 | DAG missing from UI      | Stale eviction (>40 min)         | Confirm the file is valid Python and parses quickly                                    |
-| Task exit 127 / Signal 9 | Worker OOM kill                  | Add retries; chunk/stream; use a `pool` to cap memory-heavy tasks                      |
+| Task exit 127            | Command not found (bash 127)     | Check the command name, `PATH`, and that the binary (e.g. `dbt`) is installed in the runtime |
+| Task exit 137 / Signal 9 | SIGKILL (128+9); often OOM       | Check `Worker` logs for OOM or another kill cause first; then chunk/stream, cap memory-heavy tasks with a `pool`, add retries |
 | Task logs missing        | Worker SIGKILLed before flushing | Check CloudWatch `Worker` logs directly by task/run id                                 |
 
 Diagnose parse cost locally with Validation Ladder step 1 (SKILL.md). Key CloudWatch

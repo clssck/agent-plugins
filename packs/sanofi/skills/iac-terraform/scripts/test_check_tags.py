@@ -114,6 +114,55 @@ class CliTests(unittest.TestCase):
         self.assertIn("WARN aws_s3_bucket.later", lenient.stdout)
         self.assertEqual(run(plan, "--strict").returncode, 1)
 
+    def test_partially_unknown_tags_warn_not_missing(self):
+        known = {k: v for k, v in GOOD.items() if k != "service"}
+        res = resource("aws_s3_bucket.part", {"tags_all": known}, after_unknown={"tags_all": {"service": True}})
+        plan = {"resource_changes": [res]}
+        lenient = run(plan)
+        self.assertEqual(lenient.returncode, 0, lenient.stdout)
+        self.assertIn("WARN aws_s3_bucket.part: values unknown until apply: `service`", lenient.stdout)
+        self.assertNotIn("FAIL", lenient.stdout)
+        self.assertEqual(run(plan, "--strict").returncode, 1)
+
+    def test_partially_unknown_still_fails_invalid_known_values(self):
+        known = {k: v for k, v in GOOD.items() if k != "service"} | {"env": "staging"}
+        res = resource("aws_s3_bucket.part", {"tags_all": known}, after_unknown={"tags_all": {"service": True}})
+        result = run({"resource_changes": [res]})
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("`env` must be dev|test|prod", result.stdout)
+        self.assertNotIn("missing or empty tag `service`", result.stdout)
+
+    def test_unknown_tags_omitted_from_after(self):
+        res = resource("aws_s3_bucket.later", {}, after_unknown={"tags": True, "tags_all": True})
+        result = run({"resource_changes": [res]})
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("WARN aws_s3_bucket.later", result.stdout)
+
+    def test_asg_without_tags_fails_even_strict(self):
+        res = {**resource("aws_autoscaling_group.a", {"tag": []}), "type": "aws_autoscaling_group"}
+        result = run({"resource_changes": [res]}, "--strict")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("FAIL aws_autoscaling_group.a", result.stdout)
+        self.assertIn("missing or empty tag `team`", result.stdout)
+
+    def test_asg_noncompliant_and_compliant_blocks(self):
+        def blocks(propagate: bool, **override: str) -> list[dict]:
+            tags = {**GOOD, **override}
+            return [{"key": k, "value": v, "propagate_at_launch": propagate} for k, v in tags.items()]
+
+        def asg(name: str, tag: list[dict]) -> dict:
+            return {**resource(f"aws_autoscaling_group.{name}", {"tag": tag}), "type": "aws_autoscaling_group"}
+
+        bad = run({"resource_changes": [asg("bad", blocks(True, env="staging"))]})
+        self.assertEqual(bad.returncode, 1)
+        self.assertIn("`env` must be dev|test|prod", bad.stdout)
+        no_propagate = run({"resource_changes": [asg("np", blocks(False))]})
+        self.assertEqual(no_propagate.returncode, 1)
+        self.assertIn("propagate_at_launch", no_propagate.stdout)
+        ok = run({"resource_changes": [asg("ok", blocks(True))]}, "--strict")
+        self.assertEqual(ok.returncode, 0, ok.stdout)
+        self.assertIn("checked 1 taggable resources: 0 failing, 0 unknown", ok.stdout)
+
     def test_utf16_bom_input_accepted(self):
         raw = json.dumps({"resource_changes": [resource("aws_s3_bucket.ok", {"tags_all": GOOD})]}).encode("utf-16")
         self.assertEqual(run(None, raw=raw).returncode, 0)

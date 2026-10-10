@@ -83,11 +83,13 @@ the repository lockfile, `pyproject.toml`, and project onboarding docs as bindin
 an existing project; use the OneMesh 1.10 baseline only when creating or modernizing a
 project that has no stricter local version constraint. The `1.10.*` pins admit patch
 releases below 1.10.5, where syntax such as the `arguments:` test property is not yet
-available; check the resolved version before using patch-level features. They also admit
+available, and 1.10.5-1.10.7, where it needs `require_generic_test_arguments_property: true`;
+check the resolved version and flag before using patch-level features. They also admit
 `dbt-snowflake` below 1.10.6, which can fail incremental models that combine
 `on_schema_change: sync_all_columns` with collated string columns once Snowflake's
-default string/binary column-size change (BCR 2118, scheduled for September 2026) is
-deployed. Find exposed models with `dbt ls -s
+default string/binary column-size change ([BCR 2118](https://docs.snowflake.com/en/release-notes/bcr-bundles/un-bundled/bcr-2118))
+is deployed. Snowflake has postponed BCR 2118 to a future bundle with no date, so treat
+this as conditional on its eventual rollout. Find exposed models with `dbt ls -s
 config.materialized:incremental,config.on_schema_change:sync_all_columns
 --resource-type model`; if any match, resolve `dbt-snowflake>=1.10.6`.
 
@@ -239,8 +241,10 @@ resolved version. Project-owned variables read with `env_var()` (for example
 
 On dbt 1.10.8+ the `require_generic_test_arguments_property` flag defaults to `true`, so
 top-level test keyword arguments warn (`MissingArgumentsPropertyInGenericTestDeprecation`).
-A custom generic test that already has a parameter named `arguments` must rename it
-inside the macro, then pass it nested under `arguments:`.
+On 1.10.5-1.10.7 the default is `false` and the nested form warns instead
+(`ArgumentsPropertyInGenericTestDeprecation`) unless the flag is set to `true` in
+`dbt_project.yml`. A custom generic test that already has a parameter named `arguments`
+must rename it inside the macro, then pass it nested under `arguments:`.
 
 ## Project Structure
 
@@ -450,11 +454,12 @@ For data-test work, use `writing-data-tests.md`. Keep these routing rules in min
 - Marts focus on relationships, accepted values, and business invariants.
 - Normalize legacy Confluence `tests:` snippets to `data_tests:` unless the repo is
   intentionally pinned to the older style.
-- Nest generic test parameters under `arguments` only when the project runs dbt
-  >= 1.10.5 (the property is documented as available from 1.10.5); on older versions
-  keep them as top-level properties of the test. Config such as `severity`, `where`, and
-  `store_failures` stays under `config:`. From 1.10.8 the flag default makes top-level
-  parameters warn; 1.10.5-1.10.7 accept both forms.
+- Nest generic test parameters under `arguments` when the project runs dbt >= 1.10.8, or
+  on 1.10.5-1.10.7 only after setting `flags: require_generic_test_arguments_property: true`
+  (its default there is `false`, and the nested form then raises
+  `ArgumentsPropertyInGenericTestDeprecation`). Otherwise keep them as top-level
+  properties of the test. Config such as `severity`, `where`, and `store_failures` stays
+  under `config:`. From 1.10.8 the flag defaults to `true` and top-level parameters warn.
 
 If a repo uses a `run_dq_check` macro, treat it as a pre-hook data quality gate. In the
 standards page example it wraps `DQ_SF.SP_DQ_FETCH_CUSTOM_CHECKS`; a critical

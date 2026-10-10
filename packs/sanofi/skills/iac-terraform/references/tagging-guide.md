@@ -224,7 +224,7 @@ terraform show -json tfplan > plan.json
 uv run "$(realpath skill://iac-terraform/scripts/check_tags.py)" plan.json
 ```
 
-Run these in the omp `bash` tool; `realpath` resolves `skill://` there, and the script needs no installed dependencies. The script walks `resource_changes`, reads `tags_all` (falling back to `tags`), and fails on missing/empty tags, wrong case, bad prefixes, and mismatched `CE_Environment`. Tags unknown until apply print as warnings (`--strict` fails them). Exit codes: 0 compliant, 1 violations, 2 unreadable input.
+Run these in the omp `bash` tool; `realpath` resolves `skill://` there, and the script needs no installed dependencies. The script walks `resource_changes`, reads `tags_all` (falling back to `tags`), and fails on missing/empty tags, wrong case, bad prefixes, and mismatched `CE_Environment`. `aws_autoscaling_group` is checked through its `tag` blocks (key, value, `propagate_at_launch = true`). Tags or individual tag values unknown until apply print as warnings (`--strict` fails them); invalid known values still fail. Exit codes: 0 compliant, 1 violations, 2 unreadable input.
 
 In CI, copy the script into the repository and run `uv run check_tags.py plan.json` after the plan step; the workflow template is in the `cicd-engineering` skill.
 

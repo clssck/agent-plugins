@@ -88,7 +88,7 @@ MCP text results (`{"content":[{"type":"text","text":"..."}]}`) are accepted dir
 | File | Load when |
 |---|---|
 | [editing-workflow.md](references/editing-workflow.md) | New pages, audits, large or attachment-heavy updates, ADF checks, script options, MCP call contract |
-| [rich-page-design.md](references/rich-page-design.md) | Redesigns and new rich pages |
+| [rich-page-design.md](references/rich-page-design.md) | Redesigns, new rich pages, page archetypes, quality gate |
 | [confluence-html-patterns.md](references/confluence-html-patterns.md) | Building components, round-trip behavior, rejected HTML, macro boundaries |
 
 ## Scripts

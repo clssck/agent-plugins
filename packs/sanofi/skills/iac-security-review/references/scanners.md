@@ -52,7 +52,7 @@ Workflows that reference `aquasecurity/trivy-action`, `aquasecurity/setup-trivy`
 - Trivy, Terraform coverage (remote module downloads, `--tf-vars`, `--tf-exclude-downloaded-modules`, inline ignore): https://github.com/aquasecurity/trivy/blob/main/docs/guide/coverage/iac/terraform.md
 - Trivy, Filtering (`.trivyignore`, `.trivyignore.yaml`): https://github.com/aquasecurity/trivy/blob/main/docs/guide/configuration/filtering.md
 - Aqua Security, Trivy supply chain attack advisory (affected versions, tag poisoning, Docker Hub 0.69.5/0.69.6): https://www.aquasec.com/blog/trivy-supply-chain-attack-what-you-need-to-know/
-- GitHub advisory GHSA-cxm3-wv7p-598c (CVE-2026-33634): https://github.com/advisories/GHSA-cxm3-wv7p-598c
+- GitHub advisory GHSA-69fq-xp46-6x23 (CVE-2026-33634): https://github.com/advisories/GHSA-69fq-xp46-6x23
 - Wiz, KICS GitHub Action compromised (35 tags; `litellm` PyPI update): https://www.wiz.io/blog/teampcp-attack-kics-github-action
 - Docker, malicious `checkmarx/kics` images on Docker Hub (2026-04-22, tags, restore to 2026-03-03 image): https://www.docker.com/blog/trivy-kics-and-the-shape-of-supply-chain-attacks-so-far-in-2026/
 - Checkov, CLI command reference: https://github.com/bridgecrewio/checkov/blob/main/docs/2.Basics/CLI%20Command%20Reference.md

@@ -8,7 +8,6 @@
 
 import { YAML } from "bun";
 import { cp, mkdir, mkdtemp, readdir, rename, rm, stat } from "node:fs/promises";
-import { tmpdir } from "node:os";
 import * as path from "node:path";
 
 interface Upstream {
@@ -43,8 +42,20 @@ interface Pack {
 	/** Directory relative to the repository root, e.g. `packs/bro`. */
 	dir: string;
 	upstream?: Upstream;
+	/** Upstream packs: pack path → upstream path of each copied entry, as recorded by fetch. */
+	origins?: Record<string, string>;
+	/** A pack under packs/ that ships an ATTRIBUTION file: vendored here rather than written here. */
+	attribution: boolean;
 	skills: Skill[];
 	counts: Record<"rules" | "agents" | "commands" | "extensions", number>;
+}
+
+/** What fetch records in each generated upstream package.json. */
+interface SyncRecord {
+	/** buildId() of the inputs the pack was built from. */
+	build: string;
+	/** Pack path → upstream path of every copied top-level entry. */
+	origins: Record<string, string>;
 }
 
 const ROOT = path.resolve(import.meta.dir, "..");
@@ -53,6 +64,10 @@ const README_PATH = path.join(ROOT, "README.md");
 const UPSTREAM_DIR = path.join(ROOT, "upstream");
 const SKIPPED_NAMES: Record<string, true> = { ".DS_Store": true, ".git": true, __pycache__: true };
 const LICENSE_FILE = /^(licen[cs]e|copying|notice)(\.|$)/i;
+/** Prefix of fetch's staging directories inside upstream/; leftovers from an interrupted run are removed. */
+const STAGING_PREFIX = ".sync-";
+/** Bump whenever buildUpstream's output changes for an unchanged sources.json entry, so every pack is rebuilt. */
+const BUILD_FORMAT = 2;
 
 const token = process.env.GITHUB_TOKEN;
 
@@ -138,8 +153,33 @@ async function extractTarball(repo: string, sha: string, destination: string): P
 	if ((await tar.exited) !== 0) throw new Error(`tar failed for ${repo}@${sha}: ${await new Response(tar.stderr).text()}`);
 }
 
-async function buildUpstream(upstream: Upstream): Promise<void> {
-	const scratch = await mkdtemp(path.join(tmpdir(), `agent-plugins-${upstream.name}-`));
+/** Hash of everything that shapes a generated pack; fetch rebuilds a pack whenever it changes. */
+export function buildId(upstream: Upstream): string {
+	const inputs = [BUILD_FORMAT, upstream.name, upstream.repo, upstream.sha, upstream.description, Object.entries(upstream.include)];
+	return new Bun.CryptoHasher("sha256").update(JSON.stringify(inputs)).digest("hex");
+}
+
+/**
+ * Move `staged` onto `target`, parking the previous `target` at `backup` (same filesystem) until the
+ * move succeeds and putting it back if it fails. Replaces in place: `omp plugin link` points at `target`.
+ */
+export async function replaceDir(staged: string, target: string, backup: string): Promise<void> {
+	let hadPrevious = true;
+	await rename(target, backup).catch((error: NodeJS.ErrnoException) => {
+		if (error.code !== "ENOENT") throw error;
+		hadPrevious = false;
+	});
+	try {
+		await rename(staged, target);
+	} catch (error) {
+		if (hadPrevious) await rename(backup, target);
+		throw error;
+	}
+}
+
+export async function buildUpstream(upstream: Upstream): Promise<void> {
+	// Stage inside upstream/: rename() cannot cross filesystems, so staging in tmpdir() could fail after the old pack was gone.
+	const scratch = await mkdtemp(path.join(UPSTREAM_DIR, `${STAGING_PREFIX}${upstream.name}-`));
 	try {
 		const checkout = path.join(scratch, "checkout");
 		const pack = path.join(scratch, "pack");
@@ -147,17 +187,38 @@ async function buildUpstream(upstream: Upstream): Promise<void> {
 		await mkdir(pack);
 		await extractTarball(upstream.repo, upstream.sha, checkout);
 
+		// Includes may share a destination; copying entry by entry records where each one came from
+		// and refuses to merge two includes into, or over, the same path.
+		const origins: Record<string, string> = {};
+		const claim = (to: string, from: string) => {
+			for (const [taken, origin] of Object.entries(origins)) {
+				if (to === taken || to.startsWith(`${taken}/`) || taken.startsWith(`${to}/`)) {
+					throw new Error(`${upstream.name}: "${from}" and "${origin}" both map to "${to}" in the pack`);
+				}
+			}
+			origins[to] = from;
+		};
 		const keep = (source: string) => !SKIPPED_NAMES[path.basename(source)];
 		for (const [from, to] of Object.entries(upstream.include)) {
 			const source = path.join(checkout, from);
 			if (!(await stat(source).catch(() => undefined))?.isDirectory()) {
 				throw new Error(`${upstream.name}: "${from}" is not a directory at ${upstream.sha}`);
 			}
-			await cp(source, path.join(pack, to), { recursive: true, filter: keep });
+			for (const name of await readdir(source)) {
+				if (SKIPPED_NAMES[name]) continue;
+				claim(path.posix.join(to, name), path.posix.join(from, name));
+				await cp(path.join(source, name), path.join(pack, to, name), { recursive: true, filter: keep });
+			}
 		}
 		for (const entry of await entries(checkout)) {
-			if (entry.isFile() && LICENSE_FILE.test(entry.name)) await cp(path.join(checkout, entry.name), path.join(pack, entry.name));
+			if (!entry.isFile() || !LICENSE_FILE.test(entry.name)) continue;
+			claim(entry.name, entry.name);
+			await cp(path.join(checkout, entry.name), path.join(pack, entry.name));
 		}
+		const sync: SyncRecord = {
+			build: buildId(upstream),
+			origins: Object.fromEntries(Object.entries(origins).sort(([a], [b]) => a.localeCompare(b))),
+		};
 		const manifest = {
 			name: upstream.name,
 			version: `0.0.0-g${upstream.sha.slice(0, 7)}`,
@@ -166,33 +227,31 @@ async function buildUpstream(upstream: Upstream): Promise<void> {
 			homepage: `https://github.com/${upstream.repo}/tree/${upstream.sha}`,
 			repository: `https://github.com/${upstream.repo}`,
 			gitHead: upstream.sha,
+			sync,
 			omp: {},
 		};
 		await Bun.write(path.join(pack, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`);
 
-		// Replace in place: `omp plugin link` points at this directory path.
-		const target = path.join(UPSTREAM_DIR, upstream.name);
-		await rm(target, { recursive: true, force: true });
-		await rename(pack, target);
+		await replaceDir(pack, path.join(UPSTREAM_DIR, upstream.name), path.join(scratch, "previous"));
 	} finally {
 		await rm(scratch, { recursive: true, force: true });
 	}
 }
 
-async function fetchUpstreams(sources: Sources): Promise<void> {
+export async function fetchUpstreams(sources: Sources): Promise<void> {
 	await mkdir(UPSTREAM_DIR, { recursive: true });
+	// upstream/ is generated: anything not listed in sources.json goes, including staging left by an interrupted run.
+	const listed = new Set(sources.upstreams.map(upstream => upstream.name));
+	for (const name of await readdir(UPSTREAM_DIR)) {
+		if (listed.has(name)) continue;
+		await rm(path.join(UPSTREAM_DIR, name), { recursive: true, force: true });
+		console.log(`remove upstream/${name}`);
+	}
 	for (const upstream of sources.upstreams) {
-		const current = await readJson<{ gitHead?: string }>(path.join(UPSTREAM_DIR, upstream.name, "package.json"));
-		if (current?.gitHead === upstream.sha) continue;
+		const current = await readJson<{ sync?: Partial<SyncRecord> }>(path.join(UPSTREAM_DIR, upstream.name, "package.json"));
+		if (current?.sync?.build === buildId(upstream)) continue;
 		await buildUpstream(upstream);
 		console.log(`fetch  ${upstream.name} @ ${upstream.sha.slice(0, 7)}`);
-	}
-	// upstream/ is generated: anything not listed in sources.json goes.
-	const listed = new Set(sources.upstreams.map(upstream => upstream.name));
-	for (const entry of await entries(UPSTREAM_DIR)) {
-		if (listed.has(entry.name)) continue;
-		await rm(path.join(UPSTREAM_DIR, entry.name), { recursive: true, force: true });
-		console.log(`remove upstream/${entry.name}`);
 	}
 }
 
@@ -212,7 +271,7 @@ async function flatMarkdown(packDir: string, sub: string, pattern: RegExp, error
 
 async function inspectPack(dir: string, upstream: Upstream | undefined, errors: string[]): Promise<Pack | undefined> {
 	const packDir = path.join(ROOT, dir);
-	const manifest = await readJson<{ name?: string; version?: string; omp?: { extensions?: string[] } }>(
+	const manifest = await readJson<{ name?: string; version?: string; sync?: Partial<SyncRecord>; omp?: { extensions?: string[] } }>(
 		path.join(packDir, "package.json"),
 	);
 	if (!manifest) {
@@ -257,12 +316,14 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 		name: label,
 		dir,
 		upstream,
+		origins: manifest.sync?.origins,
+		attribution: !upstream && (await Bun.file(path.join(packDir, "ATTRIBUTION")).exists()),
 		skills,
 		counts: { rules: rules.length, agents: agents.length, commands: commands.length, extensions: extensions.length },
 	};
 }
 
-async function check(sources: Sources): Promise<Pack[]> {
+export async function check(sources: Sources): Promise<Pack[]> {
 	const errors: string[] = [];
 	const packs: Pack[] = [];
 	for (const entry of await entries(path.join(ROOT, "packs"))) {
@@ -323,7 +384,7 @@ async function upstreamLastCommits(packs: Pack[]): Promise<Map<string, Commit>> 
 		const histories = pack.skills.map((skill, s) => {
 			const dir = path.posix.dirname(skill.file);
 			lookups.push({ key: `${pack.name}/${dir}`, alias: `${p}.${s}` });
-			return `s${s}: history(first: 1, path: ${JSON.stringify(upstreamPath(upstream, dir))}) { nodes { oid committedDate } }`;
+			return `s${s}: history(first: 1, path: ${JSON.stringify(upstreamPath(pack, dir))}) { nodes { oid committedDate } }`;
 		});
 		return [`p${p}: ${repositoryField(upstream.repo)} { object(oid: ${JSON.stringify(upstream.sha)}) { ... on Commit { ${histories.join(" ")} } } }`];
 	});
@@ -339,12 +400,13 @@ async function upstreamLastCommits(packs: Pack[]): Promise<Map<string, Commit>> 
 	return commits;
 }
 
-/** Map a path inside an upstream pack back to its path in the upstream repository. */
-function upstreamPath(upstream: Upstream, packPath: string): string {
-	for (const [from, to] of Object.entries(upstream.include)) {
+/** Map a path inside an upstream pack back to its path in the upstream repository, via fetch's copy record. */
+export function upstreamPath(pack: Pack, packPath: string): string {
+	// Recorded entries never overlap, so at most one matches.
+	for (const [to, from] of Object.entries(pack.origins ?? {})) {
 		if (packPath === to || packPath.startsWith(`${to}/`)) return `${from}${packPath.slice(to.length)}`;
 	}
-	throw new Error(`${upstream.name}: ${packPath} is outside every include mapping`);
+	throw new Error(`${pack.name}: ${packPath} has no recorded upstream origin; rerun fetch`);
 }
 
 function describeContents(pack: Pack): string {
@@ -354,7 +416,7 @@ function describeContents(pack: Pack): string {
 		.join(", ");
 }
 
-async function renderReadme(sources: Sources, packs: Pack[]): Promise<string> {
+export async function renderReadme(sources: Sources, packs: Pack[]): Promise<string> {
 	const localCommits = localLastCommits();
 	const upstreamCommits = await upstreamLastCommits(packs);
 	const rows: string[] = [];
@@ -365,7 +427,7 @@ async function renderReadme(sources: Sources, packs: Pack[]): Promise<string> {
 			let skillUrl: string;
 			let commit: Commit | undefined;
 			if (pack.upstream) {
-				const source = upstreamPath(pack.upstream, dir);
+				const source = upstreamPath(pack, dir);
 				repo = pack.upstream.repo;
 				commit = upstreamCommits.get(`${pack.name}/${dir}`);
 				skillUrl = `https://github.com/${repo}/blob/${pack.upstream.sha}/${source}/SKILL.md`;
@@ -383,6 +445,9 @@ async function renderReadme(sources: Sources, packs: Pack[]): Promise<string> {
 	}
 	rows.sort((a, b) => a.localeCompare(b));
 	const skillCount = packs.reduce((total, pack) => total + pack.skills.length, 0);
+	const local = packs.filter(pack => !pack.upstream);
+	const authored = local.filter(pack => !pack.attribution).map(pack => `\`${pack.name}\``).join(", ");
+	const vendored = local.filter(pack => pack.attribution).map(pack => `\`${pack.name}\``).join(", ");
 
 	return [
 		"<!-- Generated by scripts/sync.ts. Do not edit manually. -->",
@@ -391,7 +456,9 @@ async function renderReadme(sources: Sources, packs: Pack[]): Promise<string> {
 		"",
 		sources.description,
 		"",
-		"Every directory in `packs/` (written here) and `upstream/` (copied from other repositories) is an OMP extension package: a `package.json` with an `omp` field, plus any of `skills/`, `rules/`, `agents/`, `commands/`, `hooks/`, `tools/`, `prompts/`, and `.mcp.json`. Linked packs appear under **OMP Extension Packages** in `/extensions`.",
+		"Every directory in `packs/` and `upstream/` is an OMP extension package: a `package.json` with an `omp` field, plus any of `skills/`, `rules/`, `agents/`, `commands/`, `hooks/`, `tools/`, `prompts/`, and `.mcp.json`. Linked packs appear under **OMP Extension Packages** in `/extensions`.",
+		"",
+		`\`packs/\` holds packs written here (${authored}) and packs vendored with the owner's permission (${vendored}), each of which ships its own \`LICENSE\` and \`ATTRIBUTION\`. \`upstream/\` holds vendored copies of the repositories in [\`sources.json\`](./sources.json) at their pinned commits, with the license files those repositories ship. The root [\`LICENSE\`](./LICENSE) covers only what is written here.`,
 		"",
 		"## Install",
 		"",
@@ -411,7 +478,9 @@ async function renderReadme(sources: Sources, packs: Pack[]): Promise<string> {
 		...packs.map(pack => {
 			const source = pack.upstream
 				? `[${pack.upstream.repo}@${pack.upstream.sha.slice(0, 7)}](https://github.com/${pack.upstream.repo}/tree/${pack.upstream.sha})`
-				: "this repo";
+				: pack.attribution
+					? `vendored, see [ATTRIBUTION](./${pack.dir}/ATTRIBUTION)`
+					: "this repo";
 			return `| \`${pack.name}\` | \`omp plugin link $AP/${pack.dir}\` | ${source} | ${describeContents(pack)} |`;
 		}),
 		"",
@@ -442,13 +511,15 @@ async function renderReadme(sources: Sources, packs: Pack[]): Promise<string> {
 
 // ---------------------------------------------------------------------------
 
-const sources = (await Bun.file(SOURCES_PATH).json()) as Sources;
-await pin(sources);
-await fetchUpstreams(sources);
-const packs = await check(sources);
-const readme = await renderReadme(sources, packs);
-if (readme !== (await Bun.file(README_PATH).text())) {
-	await Bun.write(README_PATH, readme);
-	console.log("readme updated");
+if (import.meta.main) {
+	const sources = (await Bun.file(SOURCES_PATH).json()) as Sources;
+	await pin(sources);
+	await fetchUpstreams(sources);
+	const packs = await check(sources);
+	const readme = await renderReadme(sources, packs);
+	if (readme !== (await Bun.file(README_PATH).text())) {
+		await Bun.write(README_PATH, readme);
+		console.log("readme updated");
+	}
+	console.log(`${packs.length} packs, ${packs.reduce((total, pack) => total + pack.skills.length, 0)} skills: all load in OMP`);
 }
-console.log(`${packs.length} packs, ${packs.reduce((total, pack) => total + pack.skills.length, 0)} skills: all load in OMP`);

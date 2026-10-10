@@ -11,8 +11,10 @@ Usage:
 
 Evaluates effective tags (`tags_all`, falling back to `tags`), so module and
 provider `default_tags` propagation is honoured. Exit codes: 0 = compliant,
-1 = violations, 2 = unreadable input. Resources whose tags are unknown until
-apply are listed as warnings; add --strict to treat them as violations.
+1 = violations, 2 = unreadable input. Tags (or individual tag values) unknown
+until apply are listed as warnings; add --strict to treat them as violations.
+`aws_autoscaling_group` is checked through its `tag` blocks (default_tags
+does not reach it); each mandatory tag needs propagate_at_launch = true.
 """
 
 from __future__ import annotations
@@ -40,8 +42,9 @@ APPLICATION_ID = re.compile(r"^APM[0-9]{7}$")
 CONTACT = re.compile(r"@sanofi\.com$")
 
 
-def validate(tags: dict) -> list[str]:
-    problems = [f"missing or empty tag `{key}`" for key in REQUIRED if not tags.get(key)]
+def validate(tags: dict, unknown: frozenset[str] = frozenset()) -> list[str]:
+    """Return problems with known values; keys in `unknown` are unresolved until apply, not missing."""
+    problems = [f"missing or empty tag `{key}`" for key in REQUIRED if not tags.get(key) and key not in unknown]
     env = tags.get("env")
     if env and env not in ENV_TO_CE:
         problems.append(f"`env` must be dev|test|prod, got `{env}`")
@@ -63,6 +66,43 @@ def validate(tags: dict) -> list[str]:
     return problems
 
 
+def unknown_keys(marker: object) -> frozenset[str] | None:
+    """Keys of a tag map marked unknown in `after_unknown`; None when the whole map is unknown."""
+    if marker is True:
+        return None
+    if isinstance(marker, dict):
+        return frozenset(key for key, value in marker.items() if value)
+    return frozenset()
+
+
+def asg_tags(after: dict, marker: object) -> tuple[dict | None, frozenset[str] | None, list[str]]:
+    """Normalize `aws_autoscaling_group` `tag` blocks into a map, unknown keys, and block problems."""
+    blocks = after.get("tag") or []
+    if marker is True or not isinstance(blocks, list):
+        return None, None, []
+    marks = marker if isinstance(marker, list) else []
+    tags: dict = {}
+    unknown: set[str] = set()
+    problems: list[str] = []
+    for index, block in enumerate(blocks):
+        raw = marks[index] if index < len(marks) else {}
+        if raw is True:
+            return None, None, []  # whole block unknown
+        mark = raw if isinstance(raw, dict) else {}
+        key = (block or {}).get("key")
+        if mark.get("key"):
+            return None, None, []  # a key unknown until apply could be any required tag
+        if not key:
+            continue
+        if mark.get("value"):
+            unknown.add(key)
+        else:
+            tags[key] = block.get("value")
+        if key in REQUIRED and block.get("propagate_at_launch") is not True and not mark.get("propagate_at_launch"):
+            problems.append(f"tag `{key}` must set propagate_at_launch = true")
+    return tags, frozenset(unknown), problems
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("plan", help="plan JSON file, or - for stdin")
@@ -82,32 +122,39 @@ def main() -> int:
 
     checked = 0
     violations: list[tuple[str, list[str]]] = []
-    unknown: list[str] = []
+    unknown: list[tuple[str, str]] = []
     for rc in plan["resource_changes"]:
         change = rc.get("change", {})
         if rc.get("mode") != "managed" or change.get("actions") == ["delete"]:
             continue
         after = change.get("after") or {}
-        if "tags_all" not in after and "tags" not in after:
+        unknown_after = change.get("after_unknown") or {}
+        if rc.get("type") == "aws_autoscaling_group":
+            # default_tags does not reach ASGs; their tags are `tag` blocks.
+            tags, pending, block_problems = asg_tags(after, unknown_after.get("tag"))
+        elif {"tags_all", "tags"} & (after.keys() | unknown_after.keys()):
+            source = "tags_all" if isinstance(after.get("tags_all"), dict) or unknown_after.get("tags_all") else "tags"
+            tags = after.get(source)
+            pending, block_problems = unknown_keys(unknown_after.get(source)), []
+        else:
             continue  # not taggable
         checked += 1
-        tags = after.get("tags_all")
-        if not isinstance(tags, dict):
-            tags = after.get("tags")
-        unknown_after = change.get("after_unknown") or {}
-        if unknown_after.get("tags_all") is True or unknown_after.get("tags") is True or not isinstance(tags, dict):
-            unknown.append(rc["address"])
+        if pending is None or not isinstance(tags, dict):
+            unknown.append((rc["address"], "tags unknown until apply"))
             continue
-        problems = validate(tags)
+        problems = block_problems + validate(tags, pending)
         if problems:
             violations.append((rc["address"], problems))
+        unresolved = [key for key in REQUIRED if key in pending and not tags.get(key)]
+        if unresolved:
+            unknown.append((rc["address"], "values unknown until apply: " + ", ".join(f"`{key}`" for key in unresolved)))
 
     for address, problems in violations:
         print(f"FAIL {address}")
         for problem in problems:
             print(f"  - {problem}")
-    for address in unknown:
-        print(f"WARN {address}: tags unknown until apply")
+    for address, reason in unknown:
+        print(f"WARN {address}: {reason}")
     print(f"checked {checked} taggable resources: {len(violations)} failing, {len(unknown)} unknown")
     return 1 if violations or (args.strict and unknown) else 0
 

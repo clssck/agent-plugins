@@ -22,7 +22,13 @@ SOFTWARE.
 
 ---
 
-This license covers the plugins authored in this repository and the tooling
-under scripts/. Upstream plugins referenced from sources.json are not vendored
-here; each remains under its own license, recorded per entry in the generated
-catalog and README.
+This license covers only what is written in this repository: the packs
+clssck-core, bro, and sanofi under packs/, and the tooling under scripts/.
+
+Everything else is a vendored copy of third-party work and remains under its
+own terms. The five coco-* packs under packs/ are copies of Snowflake Cortex
+Code bundled plugins; each carries its own LICENSE and ATTRIBUTION file. The
+directories under upstream/ are copies of the repositories listed in
+sources.json at their pinned commits; each carries the license files shipped by
+its repository, including any per-skill LICENSE files inside skills/. See the
+files inside each pack directory for the terms that apply to it.

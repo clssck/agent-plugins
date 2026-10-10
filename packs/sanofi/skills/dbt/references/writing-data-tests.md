@@ -28,11 +28,13 @@ Prefer `data_tests` in YAML. Use legacy `tests` only when the target project is 
 to an older dbt style or already standardizes on it.
 
 Put generic data-test arguments under `arguments:` only when the project runs dbt
->= 1.10.5 (documented as available from 1.10.5); on older versions keep them as
-top-level properties of the test. Config (`severity`, `where`, `store_failures`,
-`warn_if`) stays under `config:`. From 1.10.8 the `require_generic_test_arguments_property`
-flag defaults to `true`, so top-level parameters warn; check the resolved dbt version
-before choosing the form. This applies to the `test_name:` long form too (`name`,
+>= 1.10.8, or 1.10.5-1.10.7 with `require_generic_test_arguments_property: true` in
+`dbt_project.yml` `flags:` (default `false` there, so the nested form raises
+`ArgumentsPropertyInGenericTestDeprecation`); otherwise keep them as top-level
+properties of the test. Config (`severity`, `where`, `store_failures`, `warn_if`) stays
+under `config:`. From 1.10.8 the flag defaults to `true`, so top-level parameters warn;
+check the resolved dbt version and flag before choosing the form. This applies to the
+`test_name:` long form too (`name`,
 `test_name`, `arguments`, `config`). Keep singular SQL data tests under the project's
 configured `test-paths`. Unit test YAML definitions belong under `model-paths`, not in
 `test-paths` or `tests/`; unit test fixture files can still live in a `fixtures`
@@ -59,8 +61,8 @@ categorical fields in marts with `accepted_values`.
 | Multi-dimensional (fact / analytics) | `dim1 + dim2 + ... + date` | `unique_combination_of_columns` on all grain columns |
 
 Use `dbt_utils.unique_combination_of_columns` at model level whenever the grain spans
-more than one column. On dbt >= 1.10.5 put the grain columns under
-`arguments.combination_of_columns`; on older versions use top-level
+more than one column. Where `arguments:` is allowed (see above) put the grain columns
+under `arguments.combination_of_columns`; otherwise use top-level
 `combination_of_columns`.
 
 ## Where Tests Belong
