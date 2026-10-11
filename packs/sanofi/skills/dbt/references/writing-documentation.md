@@ -78,8 +78,7 @@ classification, and SLA. Fields are team-defined; align with catalog conventions
 
 On dbt >= 1.10 write `meta` and `tags` under `config:` (`config: {meta: {...}, tags: [...]}`),
 on models, columns, and sources alike. Top-level `meta`/`tags` and any other custom key
-(for example `owner:` beside `description:`) raise deprecation warnings that dbt v2 turns
-into errors; custom keys MUST live inside `config.meta`. Only apply this form when the
+(for example `owner:` beside `description:`) raise deprecation warnings; custom keys MUST live inside `config.meta`. Only apply this form when the
 resolved dbt version is 1.10 or newer; older versions keep the top-level properties.
 
 `persist_docs` (`relation: true`, `columns: true`) pushes descriptions into Snowflake

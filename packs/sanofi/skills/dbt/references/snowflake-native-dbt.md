@@ -170,8 +170,7 @@ dbt `>=1.0.0, <2.0.0`, so it targets dbt v1 (dbt Core 1.x). The package's own
 latest tag checked), which conflicts with that page. Because the bare `dbt` PyPI package and
 native `DBT_VERSION` `2.x` run dbt v2, do not combine `dbt_semantic_view` with a `2.x`
 runtime until the project has proven `dbt deps` and a scoped `dbt build` of the
-semantic-view models on that exact version; otherwise keep those projects on dbt v1
-([upgrading-and-v2.md](upgrading-and-v2.md#dbt-v2-readiness)).
+semantic-view models on that exact version; otherwise keep those projects on dbt 1.x.
 
 A semantic-view model uses the package materialization plus Snowflake's semantic-view SQL
 body:

@@ -147,14 +147,9 @@ switch that input or `expect` to `format: sql` with an explicit `cast(...)`.
   case prints an `actual differs from expected` diff.
 - Run them in development and CI only. Inputs are static, so production runs waste compute:
   `dbt build --exclude-resource-type unit_test` or `DBT_ENGINE_EXCLUDE_RESOURCE_TYPES=unit_test`
-  (1.11+). For `dbt test`, `--select "test_type:data"` runs only data tests on both v1 and
-  v2 (`--exclude-resource-type` works there on v1 only).
-- A disabled model disables its unit tests (1.11+). On dbt v2, `dbt build` runs **all** unit
-  tests first, before the rest of the DAG (v2 knows column types without existing parents).
-  `compute: local` (v2, Snowflake/BigQuery, experimental, opt-in with
-  `DBT_ENGINE_EXPERIMENTAL_LOCAL_UNIT_TESTS=true`) runs a test on DuckDB without warehouse
-  compute; platform-specific functions can fail translation and a failed translation is a
-  test failure.
+  (1.11+). For `dbt test`, `--select "test_type:data"` runs only data tests
+  (`--exclude-resource-type` works for `dbt test` only on 1.x).
+- A disabled model disables its unit tests (1.11+).
 
 ## Limits
 

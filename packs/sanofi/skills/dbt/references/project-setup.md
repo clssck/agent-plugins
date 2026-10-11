@@ -2,8 +2,8 @@
 
 Environment setup, profiles and secrets, the `dbt_project.yml` baseline, and deprecation
 handling for Sanofi dbt projects. Moved from `general-dbt-guide.md`; layer, naming, and
-model-development rules stay there. Upgrade and dbt v2 procedure is in
-[upgrading-and-v2.md](upgrading-and-v2.md).
+model-development rules stay there. Upgrade procedure is in
+[upgrading.md](upgrading.md).
 
 ## Setup and Environment
 
@@ -32,11 +32,11 @@ this as conditional on its eventual rollout. Find exposed models with `dbt ls -s
 config.materialized:incremental,config.on_schema_change:sync_all_columns
 --resource-type model`; if any match, resolve `dbt-snowflake>=1.10.6`.
 
-The bare `dbt` PyPI package is dbt v2 (since 2026-09-14). For a v1 project NEVER install it
-(`pip install dbt`, `uv add dbt`, `uv tool install dbt`); install `dbt-core` and
-`dbt-snowflake` at the repository's pins and run `dbt --version` to confirm which engine is
-on `PATH` before trusting a parse or test result. Engine naming, v2 differences, and the
-upgrade procedure are in [upgrading-and-v2.md](upgrading-and-v2.md#engines-and-install).
+The bare `dbt` PyPI package is dbt v2 (since 2026-09-14), so for a 1.x project NEVER install
+it (`pip install dbt`, `uv add dbt`, `uv tool install dbt`); install `dbt-core` and
+`dbt-snowflake` at the repository's pins and run `dbt --version` to confirm the engine on
+`PATH` before trusting a parse or test result. The upgrade procedure is in
+[upgrading.md](upgrading.md#engines-and-install).
 
 Install with uv. An existing repo on poetry, pip-tools, or plain requirements files keeps
 its manager; recommend uv for new work only.
@@ -137,15 +137,14 @@ and dbt version:
 
 ## Deprecations and Strict Validation
 
-dbt 1.10 warns on project code that dbt v2 rejects, and 1.11 enables the JSON-schema
+dbt 1.10 warns on project code that later versions reject, and 1.11 enables the JSON-schema
 deprecation warnings by default on Snowflake. Treat each new warning as required work,
-not log noise, and clear them before any move to dbt v2.
+not log noise.
 
-- Find them: `dbt parse --no-partial-parse --show-all-deprecations` (on dbt v2 omit
-  `--no-partial-parse`; the flag is deprecated there, warning `dbt1700`).
+- Find them: `dbt parse --no-partial-parse --show-all-deprecations`.
 - Fix them: run `uvx dbt-autofix deprecations --dry-run` on a clean git branch, review the
   diff, then apply. `--include-packages` edits are reverted by the next `dbt deps`; upgrade
-  the package instead (`dbt-autofix packages` checks dbt v2 compatibility). Its
+  the package instead (`dbt-autofix packages` checks package compatibility). Its
   `manual_fixes/` list covers what it cannot do: dynamic SQL, custom configuration read in
   macros, misspelled config keys, sources without tables, and incompatible packages.
 - NEVER hide them as the fix. `--warn-error-options '{"silence": ["Deprecations"]}'` or
@@ -186,13 +185,12 @@ must rename it inside the macro, then pass it nested under `arguments:`.
 
 ## Sources
 
-External sources for the version-sensitive rules in this file (dbt v1.10-v1.12, dbt v2,
+External sources for the version-sensitive rules in this file (dbt 1.10-1.12,
 dbt-snowflake). Re-check them when the project's resolved versions differ:
 
 - [Upgrading to v1.10](https://docs.getdbt.com/docs/dbt-versions/dbt-upgrade/upgrading-to-v1.10): deprecation warnings, `meta`/`config` nesting, `anchors:`, `--models`, `warn_error_options` rename, dbt-snowflake 1.10.6 column-size note.
 - [Upgrading to v1.11](https://docs.getdbt.com/docs/dbt-versions/dbt-upgrade/upgrading-to-v1.11): UDFs, `DBT_ENGINE_` env prefix, default-on JSON-schema deprecations, dynamic-table configs, `config.meta_get()`, disabled models disable unit tests.
-- [Upgrading to v1.12](https://docs.getdbt.com/docs/dbt-versions/dbt-upgrade/upgrading-to-v1.12): `--use-v2-parser`, `scheduler` default for Snowflake dynamic tables, `--sql` for `run-operation`.
-- [Upgrading to v2](https://docs.getdbt.com/docs/dbt-versions/dbt-upgrade/upgrading-to-v2): strict parse-time validation, bare `dbt` package is v2, manifest compatibility, unit tests first in `dbt build`.
+- [Upgrading to v1.12](https://docs.getdbt.com/docs/dbt-versions/dbt-upgrade/upgrading-to-v1.12): `scheduler` default for Snowflake dynamic tables, `--sql` for `run-operation`.
 - [Deprecations](https://docs.getdbt.com/reference/deprecations): `--show-all-deprecations`, each warning's resolution, silencing.
 - [Behavior change flags](https://docs.getdbt.com/reference/global-configs/behavior-changes) and [`require_generic_test_arguments_property`](https://docs.getdbt.com/reference/global-configs/behavior-flags/require_generic_test_arguments_property): `arguments:` introduced 1.10.5, default 1.10.8.
 - [Data tests property](https://docs.getdbt.com/reference/resource-properties/data-tests): `arguments:` and `config:` placement.

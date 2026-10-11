@@ -9,7 +9,7 @@ skill (see `ATTRIBUTION`).
 
 `contract`, `access`, and `group` are **configs**. In properties YAML nest them under
 `config:`; in `dbt_project.yml` use the `+` prefix (`+access`, `+group`). `access` and `group`
-as top-level model properties are deprecated from dbt 1.10 and rejected on dbt v2
+as top-level model properties are deprecated from dbt 1.10
 ([Deprecations and Strict Validation](project-setup.md#deprecations-and-strict-validation)).
 `versions:`, `latest_version:`, and `deprecation_date:` stay model properties.
 
@@ -109,7 +109,7 @@ Consumers outside dbt read a fixed relation name. Pick one mechanism, never two:
 | project `post-hook` creating the view | <= 1.11 | Pattern from dbt's versions docs; macro below |
 | `alias` on one version | any | Pins that single version to the name; manual rewiring at promotion |
 
-`latest_version_pointer` is opt-in on dbt v1 and **on by default on dbt v2**:
+`latest_version_pointer` is opt-in on dbt 1.12:
 
 ```yaml
 flags:
@@ -120,15 +120,13 @@ models:
       latest_version_pointer: {enabled: true, alias: fct_orders_current}   # alias optional
 ```
 
-- dbt raises `dbt1005` when the latest version's `alias` equals the pointer name. On dbt v2 this
-  surfaces on any versioned model whose `alias` is the base name, even if you never enabled the
-  pointer. Fix it by dropping the `alias` (preferred), setting
+- dbt raises `dbt1005` when the latest version's `alias` equals the pointer name. Fix it by
+  dropping the `alias` (preferred), setting
   `latest_version_pointer: {enabled: false}` for that model, giving the version a different
   alias, or overriding the `generate_latest_version_pointer_alias` macro.
 - A project that aliases its latest version and does not want pointers sets
-  `latest_version_pointer_enabled_by_default: false` (or disables the pointer per model); the
-  flag stays configurable on dbt v2, where its default is `true`
-  ([upgrading-and-v2.md](upgrading-and-v2.md#behavior-flags)).
+  `latest_version_pointer_enabled_by_default: false` (or disables the pointer per model)
+  ([upgrading.md](upgrading.md#behavior-flags)).
 - The pointer follows `latest_version`; it does not shield consumers from a shape change.
 
 ```sql
@@ -177,6 +175,6 @@ separated by the migration window.
 ## Sources
 
 - [Model contracts](https://docs.getdbt.com/reference/resource-configs/contract) and [constraints](https://docs.getdbt.com/reference/resource-properties/constraints) (Snowflake enforcement, `warn_unenforced`, `rely`).
-- [Model versions](https://docs.getdbt.com/docs/mesh/govern/model-versions), [`latest_version_pointer`](https://docs.getdbt.com/reference/resource-configs/latest_version_pointer) (dbt 1.12+, `dbt1005`), [flag](https://docs.getdbt.com/reference/global-configs/behavior-flags/latest_version_pointer_enabled_by_default) (`false` on v1, `true` on v2), [`deprecation_date`](https://docs.getdbt.com/reference/resource-properties/deprecation_date).
+- [Model versions](https://docs.getdbt.com/docs/mesh/govern/model-versions), [`latest_version_pointer`](https://docs.getdbt.com/reference/resource-configs/latest_version_pointer) (dbt 1.12+, `dbt1005`), [flag](https://docs.getdbt.com/reference/global-configs/behavior-flags/latest_version_pointer_enabled_by_default) [`deprecation_date`](https://docs.getdbt.com/reference/resource-properties/deprecation_date).
 - [Upgrading to v1.10](https://docs.getdbt.com/docs/dbt-versions/dbt-upgrade/upgrading-to-v1.10): `access`/`group` move to `config:`. [Project dependencies](https://docs.getdbt.com/docs/mesh/govern/project-dependencies): cross-project refs need Enterprise.
 - dbt Labs `working-with-dbt-mesh` skill (Apache-2.0).

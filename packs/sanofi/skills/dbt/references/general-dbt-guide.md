@@ -68,7 +68,7 @@ references: Snowflake materializations and incremental design in
 `writing-documentation.md` and `writing-data-tests.md` after checking the local project
 conventions here. For CI/governance read Tags here, plus `state-and-ci.md` (selectors,
 state, defer, CI), `contracts-and-versions.md` (contracts, versions, access),
-`upgrading-and-v2.md` (upgrades, dbt v2), `troubleshooting.md`, and `operations.md`
+`upgrading.md` (upgrades), `troubleshooting.md`, and `operations.md`
 (Elementary, query tracking, feature flags, WAP).
 
 ## Project Structure

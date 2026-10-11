@@ -33,7 +33,7 @@ Sanofi conventions for dbt project structure, model development, documentation, 
 | Unit tests, `--empty`, mocking inputs, `is_incremental` overrides | [unit-tests.md](references/unit-tests.md) |
 | Selectors, `state:modified`, `--defer`, `dbt clone`, CI jobs, PR schemas | [state-and-ci.md](references/state-and-ci.md) |
 | Contracts, constraints, model versions, `access`, `group`, `deprecation_date` | [contracts-and-versions.md](references/contracts-and-versions.md) |
-| Upgrading dbt, deprecations, behavior flags, dbt v2 readiness, v2 error codes | [upgrading-and-v2.md](references/upgrading-and-v2.md) |
+| Upgrading dbt, deprecations, behavior flags | [upgrading.md](references/upgrading.md) |
 | Failed run, error triage, exit codes, `run_results.json`, flaky test | [troubleshooting.md](references/troubleshooting.md) |
 | Model/column descriptions, source metadata, tags, `meta` | [writing-documentation.md](references/writing-documentation.md) |
 | Adding or auditing data tests, coverage vs cost, DQ report triage | [writing-data-tests.md](references/writing-data-tests.md) |
@@ -49,18 +49,18 @@ Sanofi conventions for dbt project structure, model development, documentation, 
 | Rule | Check before applying |
 |---|---|
 | Test params under `arguments:` | dbt >= 1.10.8: nest (flag defaults `true`, top-level warns). 1.10.5-1.10.7: nest only if `require_generic_test_arguments_property: true` is set, else the nested form warns (`ArgumentsPropertyInGenericTestDeprecation`); older: top-level |
-| Engine and install | The bare `dbt` PyPI package is dbt v2 (since 2026-09-14); v1 projects install `dbt-core` + `dbt-snowflake` with uv ([project-setup.md](references/project-setup.md#setup-and-environment)). Run `dbt --version` before trusting parse or test output; upgrade and v2 steps in [upgrading-and-v2.md](references/upgrading-and-v2.md) |
-| Custom keys, `meta`, `tags`, `freshness`, `docs`, `group`, `access` | dbt >= 1.10: under `config:` (custom keys only in `config.meta`); top-level forms warn, error on dbt v2 |
+| Engine and install | The bare `dbt` PyPI package is dbt v2 (since 2026-09-14), so a 1.x project installs `dbt-core` + `dbt-snowflake` with uv ([project-setup.md](references/project-setup.md#setup-and-environment)). Run `dbt --version` before trusting parse or test output; upgrade steps in [upgrading.md](references/upgrading.md) |
+| Custom keys, `meta`, `tags`, `freshness`, `docs`, `group`, `access` | dbt >= 1.10: under `config:` (custom keys only in `config.meta`); top-level forms warn |
 | `microbatch` incremental | dbt >= 1.9; needs `event_time` on model and filtered parents, `begin`, `batch_size`; NEVER add `is_incremental()` |
 | Snapshot deletes | dbt >= 1.9: `hard_deletes: invalidate\|new_record` replaces `invalidate_hard_deletes` |
 | `dbt-snowflake` < 1.10.6 | Can break incrementals with `sync_all_columns` and collated strings after Snowflake's column-size change; upgrade |
 | `insert_overwrite` on Snowflake | Truncates and reloads the whole table; NEVER use as partition replace on history-bearing models |
-| `latest_version_pointer` | dbt >= 1.12 (default on in dbt v2); collides (`dbt1005`) with a latest version aliased to the model name |
-| `dbt_semantic_view` | dbt's Snowflake docs say dbt `<2.0.0`; verify before using it on dbt v2 or native `DBT_VERSION` 2.x |
+| `latest_version_pointer` | dbt >= 1.12; collides (`dbt1005`) with a latest version aliased to the model name |
+| `dbt_semantic_view` | Verify its required dbt range against the project's resolved version before using it |
 | `DBT_ENV_SECRET_*` | Only in `profiles.yml` and `packages.yml`; NEVER in sources, macros, vars, SQL |
 | `--full-refresh` vs `full_refresh: false` | Config wins; the flag does not override `false` |
 | Unit test YAML | Under `model-paths`, NEVER `tests/` |
-| Native `snow dbt` | Re-verify CLI minimums, flags, and the `DBT_VERSION` pin (1.x = Core, 2.x = dbt v2) against current Snowflake docs |
+| Native `snow dbt` | Re-verify CLI minimums, flags, and the `DBT_VERSION` pin against current Snowflake docs |
 
 ## Command Scope
 

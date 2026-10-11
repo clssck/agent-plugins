@@ -27,10 +27,8 @@ references/contracts-and-versions.md
   dbt/skills/working-with-dbt-mesh (SKILL.md; references/model-contracts.md,
   model-versions.md, groups-and-access.md)
 
-references/upgrading-and-v2.md
+references/upgrading.md
   dbt-migration/skills/upgrading-dbt (SKILL.md: behavior-flag handling)
-  dbt-migration/skills/migrating-dbt-core-to-v2 (SKILL.md; references/error-patterns-reference.md,
-  classification-categories.md)
 
 references/troubleshooting.md
   dbt/skills/troubleshooting-dbt-job-errors (SKILL.md)
