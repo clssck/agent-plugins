@@ -5,7 +5,7 @@ description: Use for authorized discovery of a web app's API surface — static 
 
 # API Recon
 
-Collect the complete outbound API surface of an authorized web app: backend paths, methods, parameters, response shapes, front-end routes, and the UI actions that trigger them. Methodology adapted from ARTEX's api-recon skill (Hinln/ARTEX, AGPL-3.0); rewritten for omp tools. Recon only — exploitation belongs elsewhere.
+Collect the complete outbound API surface of an authorized web app: backend paths, methods, parameters, response shapes, front-end routes, and the UI actions that trigger them.
 
 ## Boundaries
 
