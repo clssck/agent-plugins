@@ -1,7 +1,7 @@
 # Upgrading dbt 1.x
 
 Procedure for moving a dbt Core 1.x project to a newer 1.x release. Adapted from dbt Labs'
-`upgrading-dbt` skill (see `ATTRIBUTION`). The deprecation table and warning-silencing rules
+`upgrading-dbt` skill (see `licenses/sanofi/dbt/ATTRIBUTION`). The deprecation table and warning-silencing rules
 are in [project-setup.md](project-setup.md#deprecations-and-strict-validation).
 
 ## Engines and Install

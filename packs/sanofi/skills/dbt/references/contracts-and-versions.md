@@ -3,7 +3,7 @@
 Final dbt models consumed by other teams or systems behave like APIs. Contracts enforce the
 shape at build time, versions give consumers a migration window for breaking changes, and
 `access`/`group` say who may `ref()` a model. Adapted from dbt Labs' `working-with-dbt-mesh`
-skill (see `ATTRIBUTION`).
+skill (see `licenses/sanofi/dbt/ATTRIBUTION`).
 
 ## Placement
 

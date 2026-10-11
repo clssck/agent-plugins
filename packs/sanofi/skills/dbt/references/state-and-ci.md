@@ -2,7 +2,7 @@
 
 Scoped execution is the Sanofi default: select the smallest meaningful set of nodes, and in
 CI let a prior production manifest decide what changed. Adapted in part from dbt Labs'
-`running-dbt-commands` skill (see `ATTRIBUTION`).
+`running-dbt-commands` skill (see `licenses/sanofi/dbt/ATTRIBUTION`).
 
 ## Selectors
 

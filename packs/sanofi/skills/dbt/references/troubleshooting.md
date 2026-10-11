@@ -2,7 +2,7 @@
 
 Triage for a failed dbt Core invocation, whether local, CI, or an Airflow/MWAA task. Adapted
 from dbt Labs' `troubleshooting-dbt-job-errors` and `debugging-dbt-errors` guidance, with the
-dbt platform Admin API steps replaced by dbt Core artifacts (see `ATTRIBUTION`).
+dbt platform Admin API steps replaced by dbt Core artifacts (see `licenses/sanofi/dbt/ATTRIBUTION`).
 
 ## The Rule
 

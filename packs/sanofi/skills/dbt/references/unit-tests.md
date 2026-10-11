@@ -5,7 +5,7 @@ conditional mappings, regex, date math, window functions, and edge cases that sh
 validated before scanning large tables. Skip them for warehouse built-ins such as `min()`.
 Data tests check real Snowflake data; unit tests check transformation logic on static
 mock inputs. Unit tests require dbt-core >= 1.8. Adapted from dbt Labs' `adding-dbt-unit-test`
-skill (see `ATTRIBUTION`).
+skill (see `licenses/sanofi/dbt/ATTRIBUTION`).
 
 ## Placement and Naming
 

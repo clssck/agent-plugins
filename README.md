@@ -253,3 +253,7 @@ Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).
 | [blueprints-projects-list](https://github.com/clssck/agent-plugins/blob/72964048bc39f552679da8adf0aea982c978f38e/packs/coco-blueprints/commands/blueprints-projects-list.md) | `coco-blueprints` | `0.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-07 21:35 UTC](https://github.com/clssck/agent-plugins/commit/72964048bc39f552679da8adf0aea982c978f38e) |
 | [blueprints-render](https://github.com/clssck/agent-plugins/blob/72964048bc39f552679da8adf0aea982c978f38e/packs/coco-blueprints/commands/blueprints-render.md) | `coco-blueprints` | `0.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-07 21:35 UTC](https://github.com/clssck/agent-plugins/commit/72964048bc39f552679da8adf0aea982c978f38e) |
 | [blueprints-validate](https://github.com/clssck/agent-plugins/blob/72964048bc39f552679da8adf0aea982c978f38e/packs/coco-blueprints/commands/blueprints-validate.md) | `coco-blueprints` | `0.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-07 21:35 UTC](https://github.com/clssck/agent-plugins/commit/72964048bc39f552679da8adf0aea982c978f38e) |
+
+## License
+
+The root [LICENSE](./LICENSE) covers what is written here: `packs/` (clssck-core, sanofi), `rule-sources/`, and `scripts/`. Vendored packs and `upstream/` copies carry the license files their upstreams ship. Third-party adaptations and attributions are listed in [`licenses/`](./licenses/README.md).

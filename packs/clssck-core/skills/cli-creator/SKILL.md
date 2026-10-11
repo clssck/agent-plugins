@@ -7,7 +7,7 @@ description: Use for reusable CLIs from APIs/SDKs/scripts; not one-offs or CI/CD
 
 Build a real CLI an agent can run by command name from any working directory, plus a companion omp skill that teaches it. Durable tools only: a short script in the current repo solves the task? Write the script there. CI/CD pipelines belong in cicd-engineering, not this skill.
 
-License: [LICENSE.txt](LICENSE.txt).
+License: Apache-2.0; see `licenses/clssck-core/cli-creator/LICENSE.txt`.
 
 ## Start
 

@@ -572,6 +572,10 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		...section("Rules", pack => pack.rules),
 		...section("Agents", pack => pack.agents),
 		...section("Commands", pack => pack.commands),
+		"## License",
+		"",
+		"The root [LICENSE](./LICENSE) covers what is written here: `packs/` (clssck-core, sanofi), `rule-sources/`, and `scripts/`. Vendored packs and `upstream/` copies carry the license files their upstreams ship. Third-party adaptations and attributions are listed in [`licenses/`](./licenses/README.md).",
+		"",
 	].join("\n");
 }
 
