@@ -1,6 +1,6 @@
 ---
 name: api-recon
-description: Use when mapping a web app's API surface before any testing — harvesting endpoints from static bundles, reverse-engineering parameters from anchors and UI bindings, modeling the auth gates, and enumerating the live session under stubs. Not for exploitation or credential attacks (`exploitation`). The request, not the mock, is the truth.
+description: "Map a web app's API surface before any testing: endpoints from static bundles, parameters from anchors and UI bindings, the auth gates, and the live session under stubs. Use when you need the complete outbound surface of an authorized web app — paths, methods, params, route coverage. Not for exploitation or credential attacks (`exploitation`). The request, not the mock, is the truth."
 ---
 
 # API Recon

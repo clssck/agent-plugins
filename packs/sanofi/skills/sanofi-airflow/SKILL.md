@@ -1,6 +1,6 @@
 ---
 name: sanofi-airflow
-description: "Use when authoring, reviewing, deploying, or troubleshooting Airflow DAGs on Sanofi MWAA (shared central or dedicated tenant): parse-time safety, sanofi-airflow-utils ConfigLoader and secrets, failure alerts, access_control roles, CI S3 sync, Airflow 2.11 → 3.x migration, running dbt via dbt_run.sh or DbtClient. Not for generic Airflow — coco-airflow; dbt models/SQL — dbt skill; generic CI/CD — cicd-engineering; generic review — omp /review."
+description: "Author, review, deploy, and troubleshoot Airflow DAGs on Sanofi MWAA (shared central or dedicated tenant). Use when working with parse-time safety, sanofi-airflow-utils ConfigLoader and secrets, failure alerts, access_control roles, CI S3 sync, the Airflow 2.11 → 3.x migration, or running dbt via dbt_run.sh or DbtClient. Not for generic Airflow — coco-airflow; dbt models/SQL — dbt skill; generic CI/CD — cicd-engineering; generic review — omp /review."
 ---
 
 # Sanofi Airflow

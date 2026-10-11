@@ -1,6 +1,6 @@
 ---
 name: search-company-knowledge
-description: "Use when answering questions from internal company knowledge: Confluence pages, Jira tickets, wiki, runbooks, internal systems, acronyms, processes, ticket status; phrasings like \"in our docs\", \"in Confluence\", \"in Jira\", \"on the wiki\", \"what is PROJ-123\". Read-only Atlassian Rovo MCP search with cited synthesis. Not for creating or editing pages — confluence-html-editor instead; not for public tech questions — web_search instead."
+description: "Answer questions from internal company knowledge — Confluence pages, Jira tickets, wiki, runbooks, internal systems. Use when asked about acronyms, processes, ticket status, or phrasings like \"in our docs\", \"in Confluence\", \"in Jira\", \"on the wiki\", \"what is PROJ-123\". Read-only Atlassian Rovo MCP search with cited synthesis. Not for creating or editing pages — confluence-html-editor instead; not for public tech questions — web_search instead."
 ---
 
 # Search Company Knowledge

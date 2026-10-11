@@ -1,6 +1,6 @@
 ---
 name: dbt
-description: "Use when building, reviewing, testing, or running Sanofi dbt Core projects on Snowflake: models, sources, snapshots, seeds, incremental design, data and unit tests, docs and meta, contracts and versions, selectors, state:modified CI, upgrades and deprecations, failed-run triage, Elementary, WAP, feature flags, native snow dbt. Not for generic dbt-on-Snowflake mechanics — dbt-projects-on-snowflake; ODCS contracts — datacontract-writing; DAGs — sanofi-airflow."
+description: "Build, review, test, and run Sanofi dbt Core projects on Snowflake. Use when working with models, sources, snapshots, seeds, incremental design, data and unit tests, docs and meta, contracts and versions, selectors, state:modified CI, upgrades and deprecations, failed-run triage, Elementary, WAP, feature flags, or native snow dbt. Not for generic dbt-on-Snowflake mechanics — dbt-projects-on-snowflake; ODCS contracts — datacontract-writing; DAGs — sanofi-airflow."
 ---
 
 # Sanofi dbt
@@ -61,7 +61,7 @@ Confirm engine and version with `dbt --version` before applying any row.
 | `--full-refresh` vs `full_refresh: false` | Config wins; the flag does not override `false` |
 | Unit test YAML | Under `model-paths`, NEVER `tests/` |
 | Native `snow dbt` | Re-verify CLI minimums, flags, and the `DBT_VERSION` pin against current Snowflake docs |
-| Deprecation warnings (1.10+) | None new; fix, never silence as the fix |
+| Deprecation warnings | None new; fix, never silence as the fix |
 
 ## Command Scope
 

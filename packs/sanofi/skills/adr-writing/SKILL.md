@@ -1,6 +1,6 @@
 ---
 name: adr-writing
-description: "Use when writing, drafting, reviewing, or fact-checking an architecture decision record (ADR, MADR): recording a technology choice, numbering docs/adr files, comparing options with pros/cons, Architecture Manifesto Alignment, cost annex, drafting from Jira tickets or Confluence pages, auditing ADR comment threads. Not for C4/architecture docs — use architecture-documentation; not for Confluence publishing — use confluence-html-editor; not for code review — use /review."
+description: "Write, review, and fact-check architecture decision records (ADR, MADR) in the Sanofi format. Use when recording a technology choice, numbering docs/adr files, comparing options with pros/cons, Architecture Manifesto Alignment, cost annex, drafting from Jira tickets or Confluence pages, auditing ADR comment threads. Not for C4/architecture docs — use architecture-documentation; not for Confluence publishing — use confluence-html-editor; not for code review — use /review."
 ---
 
 # Architecture Decision Records

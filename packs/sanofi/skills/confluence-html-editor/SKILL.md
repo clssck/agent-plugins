@@ -1,6 +1,6 @@
 ---
 name: confluence-html-editor
-description: "Use when creating, updating, polishing, redesigning, auditing, or repairing a Confluence page's HTML or ADF through Atlassian Rovo MCP tools, including when given a Confluence page URL to change or publish. Preserves native macros and workflow state, verifies after every write. Not for answering questions from Confluence — use search-company-knowledge; not for ADRs or post-mortems — use adr-writing, incident-postmortem."
+description: "Create, update, polish, redesign, audit, or repair a Confluence page's HTML or ADF through Atlassian Rovo MCP tools. Use when given a Confluence page URL to change or publish; preserves native macros and workflow state, verifies after every write. Not for answering questions from Confluence — use search-company-knowledge; not for ADRs or post-mortems — use adr-writing, incident-postmortem."
 ---
 
 # Confluence HTML Editor

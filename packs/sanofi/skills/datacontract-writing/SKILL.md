@@ -1,6 +1,6 @@
 ---
 name: datacontract-writing
-description: Use when writing, reviewing, linting, diffing, or importing ODCS (Open Data Contract Standard) data contracts — `.odcs.yaml` files generated from dbt projects, Snowflake schemas, SQL DDL, spreadsheets, or pasted column lists; validating apiVersion v3.1.0/v3.2.0; running `datacontract` CLI lint, breaking, or import. Not for OpenAPI specs, ADRs, or architecture docs; dbt model authoring → `dbt` skill.
+description: "Write, review, lint, diff, and import ODCS (Open Data Contract Standard) data contracts. Use when producing `.odcs.yaml` from dbt projects, Snowflake schemas, SQL DDL, spreadsheets, or pasted column lists; validating apiVersion v3.1.0/v3.2.0; running `datacontract` CLI lint, breaking, or import. Not for OpenAPI specs, ADRs, or architecture docs; dbt model authoring → `dbt` skill."
 ---
 
 # Data Contract Writing

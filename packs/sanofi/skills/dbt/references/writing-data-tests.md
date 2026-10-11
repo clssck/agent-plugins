@@ -75,7 +75,7 @@ Tests are defined at column level (under a column in `columns:`) or model level 
 
 ## Test Severity
 
-Default `severity: error` → failure stops the run. `severity: warn` only when failure is informational and must not block.
+Default `severity: error` → failure stops the run. `severity: warn` only when failure is informational and should not block.
 
 | Tier                            | Severity          | Rationale                                                                      |
 | ------------------------------- | ----------------- | ------------------------------------------------------------------------------ |

@@ -1,6 +1,6 @@
 ---
 name: cicd-engineering
-description: "Use when writing, reviewing, or fixing Sanofi GitHub Actions workflows and CI security gates: runner, permissions, action pinning and allowlist, SAST/SCA, SonarCloud coverage gate, CodeGuard, AWS OIDC, image promotion to ECS, attestations, pull_request_target, cache poisoning, actionlint. Not for Terraform authoring (iac-terraform), IaC security audits (iac-security-review), or non-GitHub CI."
+description: "Write, review, and fix Sanofi GitHub Actions workflows and CI security gates. Use when touching runner, permissions, action pinning and allowlist, SAST/SCA, SonarCloud coverage gate, CodeGuard, AWS OIDC, image promotion to ECS, attestations, pull_request_target, cache poisoning, or actionlint findings. Not for Terraform authoring (iac-terraform), IaC security audits (iac-security-review), or non-GitHub CI."
 ---
 
 # CI/CD Engineering

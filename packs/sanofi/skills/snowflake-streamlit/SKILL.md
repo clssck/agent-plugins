@@ -1,6 +1,6 @@
 ---
 name: snowflake-streamlit
-description: Use when building, reviewing, deploying, or troubleshooting Streamlit in Snowflake (SiS) apps in Sanofi repos — CREATE/ALTER STREAMLIT, warehouse vs container runtime, RUNTIME_NAME, BCR-2342, snowflake.yml and `snow streamlit deploy`, owner-rights roles, secrets/EAI, uv/environment.yml dependencies, AppTest or deployment contract tests. Not for local or Community Cloud Streamlit — generic developing-with-streamlit-in-snowflake instead; generic review/security → `/review`, `/security`.
+description: "Build, review, deploy, and troubleshoot Streamlit in Snowflake (SiS) apps in Sanofi repos. Use when working with CREATE/ALTER STREAMLIT, warehouse vs container runtime, RUNTIME_NAME, BCR-2342, snowflake.yml and `snow streamlit deploy`, owner-rights roles, secrets/EAI, uv/environment.yml dependencies, or AppTest and deployment contract tests. Not for local or Community Cloud Streamlit — generic developing-with-streamlit-in-snowflake instead; generic review/security → `/review`, `/security`."
 ---
 
 # Streamlit in Snowflake
