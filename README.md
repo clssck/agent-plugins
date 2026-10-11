@@ -27,7 +27,7 @@ Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 | Pack | Version | Source | Contents | Last updated |
 | --- | --- | --- | --- | --- |
-| `clssck-core` | `1.1.0` | this repo | 6 skills, 9 rules, 2 agents | [2026-10-11 19:03 UTC](https://github.com/clssck/agent-plugins/commit/943b7d36706c177dab54e3a8a4e775af9bb9eceb) |
+| `clssck-core` | `1.1.0` | this repo | 6 skills, 9 rules, 2 agents | [2026-10-11 19:14 UTC](https://github.com/clssck/agent-plugins/commit/ab1f4fc87a0949c3b55c4eaec762599d2e28d3e3) |
 | `coco-airflow` | `0.1.0` | vendored, see [ATTRIBUTION](./packs/coco-airflow/ATTRIBUTION) | 18 skills | [2026-10-07 20:52 UTC](https://github.com/clssck/agent-plugins/commit/2f5fa8216c5b4c7268181df3ba906ac59b083dd1) |
 | `coco-blueprints` | `0.1.0` | vendored, see [ATTRIBUTION](./packs/coco-blueprints/ATTRIBUTION) | 3 skills, 12 commands | [2026-10-07 21:35 UTC](https://github.com/clssck/agent-plugins/commit/72964048bc39f552679da8adf0aea982c978f38e) |
 | `coco-bundled-skills` | `1.1.69` | vendored, see [ATTRIBUTION](./packs/coco-bundled-skills/ATTRIBUTION) | 74 skills | [2026-10-08 10:28 UTC](https://github.com/clssck/agent-plugins/commit/303a98463414aaa1a8049c1647f67453070bdbe8) |
@@ -37,7 +37,7 @@ Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).
 | `gsap-skills` | `0.0.0-gaed9cfd` | [greensock/gsap-skills@aed9cfd](https://github.com/greensock/gsap-skills/tree/aed9cfd3277740755f6bfc1155c7aa645403b760) | 8 skills | [2026-10-11 18:10 UTC](https://github.com/greensock/gsap-skills/commit/ba4555993e08bb4661100bf6d86911fa2565d49f) |
 | `improve` | `0.0.0-gcac56e1` | [shadcn/improve@cac56e1](https://github.com/shadcn/improve/tree/cac56e1ebd3c279aa9153616cfeac7b174ab90f9) | 1 skill | [2026-10-10 21:46 UTC](https://github.com/shadcn/improve/commit/cfe23121d7da976d408381ac6c887fdc35730076) |
 | `lavish-axi` | `0.0.0-gfbb728d` | [kunchenguid/lavish-axi@fbb728d](https://github.com/kunchenguid/lavish-axi/tree/fbb728d317a3f9a3df6cf3fd937d36f8860464fa) | 1 skill | [2026-10-10 21:46 UTC](https://github.com/kunchenguid/lavish-axi/commit/cfe23121d7da976d408381ac6c887fdc35730076) |
-| `sanofi` | `1.0.0` | this repo | 12 skills, 2 rules | [2026-10-11 18:49 UTC](https://github.com/clssck/agent-plugins/commit/12750bc4dccb615ae2b34028cd2ee191194be0f7) |
+| `sanofi` | `1.0.0` | this repo | 12 skills, 2 rules | [2026-10-11 19:14 UTC](https://github.com/clssck/agent-plugins/commit/ab1f4fc87a0949c3b55c4eaec762599d2e28d3e3) |
 | `snowflake-labs-coco-skills` | `0.0.0-g28b549f` | [Snowflake-Labs/coco-skills@28b549f](https://github.com/Snowflake-Labs/coco-skills/tree/28b549f48da9994307081a9d4d2f16379f5a9c16) | 18 skills | [2026-10-10 21:46 UTC](https://github.com/Snowflake-Labs/coco-skills/commit/cfe23121d7da976d408381ac6c887fdc35730076) |
 
 ## Skills
@@ -45,7 +45,7 @@ Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).
 | Skill | Pack | Version | Source | Last updated |
 | --- | --- | --- | --- | --- |
 | [api-recon](https://github.com/clssck/agent-plugins/blob/943b7d36706c177dab54e3a8a4e775af9bb9eceb/packs/clssck-core/skills/api-recon/SKILL.md) | `clssck-core` | `1.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-11 19:03 UTC](https://github.com/clssck/agent-plugins/commit/943b7d36706c177dab54e3a8a4e775af9bb9eceb) |
-| [cli-creator](https://github.com/clssck/agent-plugins/blob/12750bc4dccb615ae2b34028cd2ee191194be0f7/packs/clssck-core/skills/cli-creator/SKILL.md) | `clssck-core` | `1.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-11 18:49 UTC](https://github.com/clssck/agent-plugins/commit/12750bc4dccb615ae2b34028cd2ee191194be0f7) |
+| [cli-creator](https://github.com/clssck/agent-plugins/blob/ab1f4fc87a0949c3b55c4eaec762599d2e28d3e3/packs/clssck-core/skills/cli-creator/SKILL.md) | `clssck-core` | `1.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-11 19:14 UTC](https://github.com/clssck/agent-plugins/commit/ab1f4fc87a0949c3b55c4eaec762599d2e28d3e3) |
 | [evidence-led-exploration](https://github.com/clssck/agent-plugins/blob/12750bc4dccb615ae2b34028cd2ee191194be0f7/packs/clssck-core/skills/evidence-led-exploration/SKILL.md) | `clssck-core` | `1.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-11 18:49 UTC](https://github.com/clssck/agent-plugins/commit/12750bc4dccb615ae2b34028cd2ee191194be0f7) |
 | [offensive-agent-guardrails](https://github.com/clssck/agent-plugins/blob/12750bc4dccb615ae2b34028cd2ee191194be0f7/packs/clssck-core/skills/offensive-agent-guardrails/SKILL.md) | `clssck-core` | `1.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-11 18:49 UTC](https://github.com/clssck/agent-plugins/commit/12750bc4dccb615ae2b34028cd2ee191194be0f7) |
 | [pentest-tradecraft](https://github.com/clssck/agent-plugins/blob/12750bc4dccb615ae2b34028cd2ee191194be0f7/packs/clssck-core/skills/pentest-tradecraft/SKILL.md) | `clssck-core` | `1.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-11 18:49 UTC](https://github.com/clssck/agent-plugins/commit/12750bc4dccb615ae2b34028cd2ee191194be0f7) |
