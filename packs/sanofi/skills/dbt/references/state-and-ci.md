@@ -148,7 +148,7 @@ runs when the state manifest is available.
 ## Checklist
 
 - Every `dbt build|run|test|seed|snapshot` in CI has a selector (or a documented reason).
-- `--state` points to a copied production manifest, never to `target/`.
+- `--state` points to a copied production manifest, NEVER to `target/`.
 - Deferred or cloned runs account for cross-environment reads; `relationships` tests excluded.
 - PR schemas are created through an approved path, named per PR, and dropped on close with a
   prefix-guarded cleanup.

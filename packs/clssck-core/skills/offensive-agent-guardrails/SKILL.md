@@ -1,6 +1,7 @@
 ---
 name: offensive-agent-guardrails
-description: Use for fail-closed agent tool authorization, approval gates, and audit logs.
+description: Design fail-closed authorization gates, approvals, and audit logs for agents doing authorized security work. Only runs when explicitly invoked; it does not trigger on its own.
+disable-model-invocation: true
 ---
 
 # Offensive Agent Guardrails
@@ -53,7 +54,7 @@ Two axes: reversibility (read/probe vs write/delete/reset/config) × ownership (
 
 ## Block Messages
 
-Tell the model the block is platform policy, not a target defense, so it does not burn turns evading. State the reason and the allowed next step (narrow scope, ask the operator). The raw reason goes to the audit log only. Blocked classes MUST NOT be retried through re-encoding, obfuscation, or another tool.
+Tell the model the block is platform policy, not a target defense, so it does not burn turns evading. State the reason and the allowed next step (narrow scope, ask the operator). The raw reason goes to the audit log only. Blocked classes NEVER get retried through re-encoding, obfuscation, or another tool.
 
 ## Placement
 
@@ -70,12 +71,12 @@ Tell the model the block is platform policy, not a target defense, so it does no
 ## Checklist
 
 - Authorization comes from trusted operator scope and ownership, evaluated per call.
-- Untrusted narrative and tool arguments never grant permission.
+- Untrusted narrative and tool arguments NEVER grant permission.
 - Missing scope or unknown ownership → ask or deny.
 - Invalid args, judge failure, timeout, cancel, load error → non-allow.
 - Only approved calls execute, with unchanged parameters.
 - Verdict parser is strict JSON; no keyword scanning.
 - Single choke point covers every runner; write endpoints re-check.
 - No blanket allow for offensive categories.
-- Secrets and real user data never logged or echoed; logs redacted.
-- Blocked classes are not retried around.
+- Secrets and real user data NEVER logged or echoed; logs redacted.
+- Blocked classes NEVER retried around.

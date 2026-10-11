@@ -17,7 +17,7 @@ Detect with `glob`/`grep` BEFORE drafting anything new. Edit the format the repo
 
 | Need | Prefer | Why |
 |---|---|---|
-| Several views that must stay consistent; renames in one place | Structurizr DSL | Modelling tool: one model, many views. The C4 site recommends modelling over diagramming |
+| Several views that MUST stay consistent; renames in one place | Structurizr DSL | Modelling tool: one model, many views. The C4 site recommends modelling over diagramming |
 | Text source with legend, dashed async lines, landscape view | C4-PlantUML | `SHOW_LEGEND()`, `AddRelTag(... DashedLine())`, `C4_Context` covers landscape |
 | A small view rendered inline in Markdown | Mermaid C4 | Native rendering; accept the limits below |
 

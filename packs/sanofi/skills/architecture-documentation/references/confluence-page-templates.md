@@ -432,5 +432,5 @@ the native callout representation.
 - **Planned Changes**: `{Description of upcoming changes and expected timeline.}`
 - **Deprecated**: This component or service is deprecated as of `{date}`. See
   `{PROJ-XXX}` for the migration plan.
-- **GxP Compliance**: This system is classified as GxP-relevant. All changes must
+- **GxP Compliance**: This system is classified as GxP-relevant. All changes MUST
   follow validated change-control procedures per 21 CFR Part 11.

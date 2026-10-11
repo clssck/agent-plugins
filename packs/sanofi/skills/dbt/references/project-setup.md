@@ -64,7 +64,7 @@ Outside a project (`uv tool install`, `uvx`), pass `--default-index <mirror-url>
 
 Sanofi workstations: one environment per project (`.venv`, created by uv). `uv run`
 needs no activation; to activate manually use `source .venv/bin/activate` (macOS/Linux)
-or `.venv\Scripts\Activate.ps1` (Windows PowerShell). Windows users should use PowerShell
+or `.venv\Scripts\Activate.ps1` (Windows PowerShell). Windows users SHOULD use PowerShell
 or Git Bash from VS Code; WSL is not an option under the referenced Sanofi security
 guidance. Windows only: if Git TLS validation blocks cloning, check whether the
 workstation needs `git config --global http.sslbackend schannel`; if uv fails TLS against
@@ -80,7 +80,7 @@ Always prefix sensitive env vars with `DBT_ENV_SECRET_`, and read them only from
 (including `dbt_project.yml`, sources, macros, vars, and model SQL) so secrets cannot
 reach the warehouse or artifacts; use a non-secret `DBT_` variable for anything those
 files need. dbt scrubs secret values from its logs. Scrubbing does not protect secrets
-embedded into SQL literals that reach Snowflake `QUERY_HISTORY`, so never build secrets
+embedded into SQL literals that reach Snowflake `QUERY_HISTORY`, so NEVER build secrets
 into query text.
 
 Profile patterns:
@@ -174,7 +174,7 @@ top-level test keyword arguments warn (`MissingArgumentsPropertyInGenericTestDep
 On 1.10.5-1.10.7 the default is `false` and the nested form warns instead
 (`ArgumentsPropertyInGenericTestDeprecation`) unless the flag is set to `true` in
 `dbt_project.yml`. A custom generic test that already has a parameter named `arguments`
-must rename it inside the macro, then pass it nested under `arguments:`.
+MUST rename it inside the macro, then pass it nested under `arguments:`.
 
 ## Checklist
 

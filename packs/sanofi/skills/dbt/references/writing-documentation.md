@@ -26,7 +26,7 @@ Never guess values; always derive them from `dbt show` or a direct query.
 
 ## Model (Table) Level
 
-Every model description must include:
+Every model description MUST include:
 1. **Grain**: one row per what?
 2. **Purpose**: why does this model exist, what question does it answer?
 3. **Edge cases**: filters applied, known nulls, exclusions, or historical quirks

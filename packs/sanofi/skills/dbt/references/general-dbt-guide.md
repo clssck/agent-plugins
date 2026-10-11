@@ -89,7 +89,7 @@ folder alongside `.github/workflows`, `ddl/`, and `orchestration/`. Inspect the 
 root before assuming the dbt project root is the repository root.
 
 Sanofi guidance describes more than one dbt layer taxonomy; follow the target
-repository's applicable, approved, current standard and never force one onto the other.
+repository's applicable, approved, current standard and NEVER force one onto the other.
 The Draft OneMesh guide uses `staging` / `intermediate` / `marts` (with
 `marts/warehouse` for the gold/table layer and `marts/published` for the consumer view
 layer). The DD&O (DCFDP) standard uses `psa` / `rsv` / `dwh` / `dmt`:
@@ -129,7 +129,7 @@ layers. Avoid phase/version markers such as `_phase_2` or `_v1` in model names; 
 dbt versioning, aliases, or documented deprecation paths instead. Expose one grain key
 and test it with `unique` and `not_null`; when the repo uses hashed technical keys this
 is commonly `tech_key_hash`. Technical columns use a clear prefix such as `tech_`,
-timestamps use `_ts`, and column names should avoid reserved warehouse keywords.
+timestamps use `_ts`, and column names SHOULD avoid reserved warehouse keywords.
 
 ## dbt Docs Node Colors
 
@@ -140,7 +140,7 @@ for exceptions. Recommended palette: view/staging/published `#4dabf7`, warehouse
 
 ## Schemas, Sources, and Lineage
 
-dbt should not manage schemas, grants, database permissions, or DDL outside model
+dbt SHOULD NOT manage schemas, grants, database permissions, or DDL outside model
 objects at Sanofi. Use approved schema management, commonly Schemachange in CI/CD, for
 schemas and grants; dbt may create tables/views inside pre-existing schemas. Treat
 example schema prefixes as illustrative and follow the data lead/platform naming.
@@ -218,7 +218,7 @@ Recommended package version bands from the guide:
 
 For documentation work, use `writing-documentation.md`. The core OneMesh rules are:
 include grain, purpose, and edge cases at model level; document calculated fields,
-encoded values, foreign keys, nullable columns, sources, tags, and useful `meta`; avoid
+encoded values, foreign keys, nullable columns, sources, tags, and useful `meta`; AVOID
 descriptions that only restate object names. For shared marts or KPI-producing models,
 also capture refresh cadence, main consumers, owner/domain metadata, and KPI/catalog
 codes when the repo uses them.
@@ -239,12 +239,12 @@ Structure model SQL as readable CTEs, commonly import/source CTEs, logical CTEs,
 `select f.* from final as f` can be a local debugging convention after columns have
 already been explicitly shaped. Let SQLFluff/dbt templater enforce style when configured
 (commonly via a `.sqlfluff` at the project root); lint failures in pre-commit or CI
-should block merge rather than becoming subjective review debates.
+SHOULD block merge rather than becoming subjective review debates.
 
 For Jinja/macros, default to plain SQL. Extract a macro only when it removes real
 duplication, commonly after the same logic appears three or more times. Keep macros in
 `macros/`, one concern per file, document non-trivial macros with args/returns/example,
-and never hardcode database names, schemas, dates, or environment values; derive them
+and NEVER hardcode database names, schemas, dates, or environment values; derive them
 from `target`, `var()`, or `env_var()`. Shared cross-project macros belong in an
 approved dbt package rather than being copy-pasted between repositories.
 
@@ -283,7 +283,7 @@ standards page example it wraps `DQ_SF.SP_DQ_FETCH_CUSTOM_CHECKS`; a critical
 propagates through the orchestrator/alerting path. Inspect the project macro before
 changing arguments or failure semantics.
 
-Before PR merge, relevant scoped dbt tests should pass with zero error-level failures.
+Before PR merge, relevant scoped dbt tests SHOULD pass with zero error-level failures.
 At minimum, cover the model grain with `unique`/`not_null`, foreign keys with
 `relationships`, and controlled categorical mart fields with `accepted_values` when
 the allowed values are verified.
@@ -345,7 +345,7 @@ Configure seed schemas, `quote_columns`, docs colors, and per-seed `column_types
 Define sources in YAML and reference them with `source()`. Add source freshness where
 freshness matters and confirm that `loaded_at_field` exists and is populated. On dbt
 >= 1.10 `freshness` and `loaded_at_field` live under `config:`; use `loaded_at_query`
-(1.10+) for derived or filtered timestamps, never together with `loaded_at_field`.
+(1.10+) for derived or filtered timestamps, NEVER together with `loaded_at_field`.
 Without either, Snowflake falls back to `LAST_ALTERED` metadata, which moves on any
 object change, not only data loads. Set `freshness: null` to opt a table out.
 

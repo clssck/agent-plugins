@@ -11,5 +11,5 @@ interruptMode: always
 
 1. Read the repository's commit instructions and recent subjects: `git log --pretty=format:'%h %s' -10`.
 2. Stage one coherent concern by named paths; check `git status --short` first. Without a pathspec (or with a root one such as `.`), `git add -A`/`-u` and `git commit -a` sweep in every unrelated change, including the user's uncommitted work. `git add -A <paths>` stages only the named paths, and `--dry-run`/`-n` previews are not flagged.
-3. Write a concise, specific subject describing the actual change. Use `type(scope): summary` only when the history demonstrably uses it; never generic subjects (`update stuff`, `misc fixes`, `wip`, `address review comments`).
+3. Write a concise, specific subject describing the actual change. Use `type(scope): summary` only when the history demonstrably uses it; NEVER generic subjects (`update stuff`, `misc fixes`, `wip`, `address review comments`).
 4. Add a body only when it explains rationale, risk, or follow-up.

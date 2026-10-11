@@ -58,7 +58,7 @@ runtime: the container runtime ignores `environment.yml` and breaks wherever the
 ## Warehouse source layout
 
 The entrypoint and `environment.yml` belong at the root of the staged source directory. Imported
-modules must also be within the deployed source tree. Pin a Snowflake-supported Streamlit version;
+modules MUST also be within the deployed source tree. Pin a Snowflake-supported Streamlit version;
 warehouse dependencies must be available from the Snowflake Anaconda channel and cannot be declared
 as pip entries inside `environment.yml`. uv cannot install `environment.yml`; for a local
 warehouse-runtime environment Snowflake documents conda with the channels
@@ -160,7 +160,7 @@ alter streamlit DATABASE.SCHEMA.APP_NAME
 
 ## Snowflake CLI deployment
 
-Install the CLI as an isolated uv tool, never with `pip` into a system or Homebrew Python:
+Install the CLI as an isolated uv tool, NEVER with `pip` into a system or Homebrew Python:
 `uv tool install snowflake-cli` (upgrade with `uv tool upgrade snowflake-cli`; one-off runs use
 `uvx --from snowflake-cli snow ...`). Check it with `snow --version`.
 
@@ -219,7 +219,7 @@ Restricted caller's rights (Preview) work on container runtimes only and need St
 
 - Use `st.connection("snowflake-callers-rights")` for viewer-scoped queries and
   `st.connection("snowflake")` for owner-scoped ones.
-- An admin with `MANAGE CALLER GRANTS` must issue `GRANT CALLER ...` to the owner role.
+- An admin with `MANAGE CALLER GRANTS` MUST issue `GRANT CALLER ...` to the owner role.
 - Create the connection at the top of the script, not behind branches or pages. Its token is valid
   for only two minutes after the session starts.
 - The connection uses the viewer's **default** role, not the role selected in Snowsight.

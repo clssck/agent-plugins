@@ -35,7 +35,7 @@ Write and review ADRs in a Sanofi variant of [MADR](https://adr.github.io/madr/)
 - Problem statement: 2-3 sentences, a question, with constraints or metrics.
 - Add technical specificity ("PostgreSQL with JSONB"); stay close to user facts.
 - NEVER invent performance numbers, costs, benchmarks, or options. Ask.
-- Pros/cons: factual statements, bold list labels (`* **Pros**`), never heading levels (MD024).
+- Pros/cons: factual statements, bold list labels (`* **Pros**`), NEVER heading levels (MD024).
 - One `###` heading per option, unique names.
 - Decision Drivers: table, Driver and Description columns.
 - Two or more considered options. Exception: a single mandated option, see below.

@@ -211,7 +211,7 @@ These checks ensure all C4 levels tell a coherent story.
 - [ ] Text has sufficient contrast against its background
 - [ ] Boundaries and arrows remain visible without relying on color alone
 - [ ] Colors are distinguishable when printed in grayscale
-- [ ] Color choices consider color blindness (avoid relying on red/green distinction alone)
+- [ ] Color choices consider color blindness (AVOID relying on red/green distinction alone)
 
 ### Naming Conventions
 

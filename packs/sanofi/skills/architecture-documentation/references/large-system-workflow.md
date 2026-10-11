@@ -9,7 +9,7 @@ than cramming everything into one. Split strategies:
 - **By bounded context**: One diagram per DDD bounded context
 - **By service group**: One diagram per related cluster of microservices
 
-Keep a single logical model and avoid duplicating the same relationship facts across
+Keep a single logical model and AVOID duplicating the same relationship facts across
 unrelated views. Use the repository's established source-of-truth format when it has one;
 otherwise keep the model narrative, labels, and change history sufficient to recreate a
 visual artifact consistently.

@@ -46,7 +46,7 @@ doing this; see Command Scope in SKILL.md.
 A behavior flag gates a change that makes the same project behave differently. For each flag
 that matured to default `true` in the new version, **check whether the project exhibits the
 old behavior; pin `false` only if it does and the change is not being adopted now.** Never pin
-a flag the project does not exhibit, never pin one to avoid fixing a real bug, and never leave
+a flag the project does not exhibit, NEVER pin one to avoid fixing a real bug, and NEVER leave
 an exhibited one unset, which silently adopts the new behavior.
 
 dbt 1.12 flags that mature to `true` (set them in `dbt_project.yml` `flags:`):

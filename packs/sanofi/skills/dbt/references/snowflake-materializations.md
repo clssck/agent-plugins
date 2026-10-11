@@ -79,9 +79,9 @@ For incremental models, verify:
 
 Separate source and target pruning: `is_incremental()` filters source reads,
 `incremental_predicates` filter destination scans, `unique_key` matches incoming rows
-to target rows, and `cluster_by` should align with predicate/filter columns.
+to target rows, and `cluster_by` SHOULD align with predicate/filter columns.
 
-The source lookback window should be smaller than the target predicate window. Example:
+The source lookback window SHOULD be smaller than the target predicate window. Example:
 read the last 3 days from source, but let Snowflake scan the last 7 days of the target
 so late-arriving data can still merge into existing records.
 
@@ -178,7 +178,7 @@ and detect changes with a payload hash generated from the payload columns. Use `
 with the technical key as `unique_key`, and exclude audit columns such as creation
 timestamps from updates via `merge_exclude_columns` when the repo does so. Select new or
 changed rows by hash comparison rather than a time watermark. Truncate/reload
-working-layer exceptions should not carry an `is_incremental()` delta filter.
+working-layer exceptions SHOULD NOT carry an `is_incremental()` delta filter.
 
 ### Filter Placement
 
@@ -227,7 +227,7 @@ batch, so no `unique_key` is needed and each batch is replaced as a whole. Rules
 
 ## Checklist
 
-- Persisted layers set `transient: false`; `copy_grants: true` where grants must survive rebuilds.
+- Persisted layers set `transient: false`; `copy_grants: true` where grants MUST survive rebuilds.
 - No `insert_overwrite` on a model whose query does not return the complete result.
 - Every parent of an incremental model has a change signal or an affected-key re-derivation.
 - Lookback sized to real lateness; `on_schema_change` set; deletes handled.

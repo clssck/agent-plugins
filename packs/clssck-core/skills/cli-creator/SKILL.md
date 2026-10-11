@@ -140,7 +140,7 @@ Contract:
 - Runtime choice stated with reason.
 - `--help`, `--version`, `--json doctor`, discovery, resolve, reads, raw escape hatch present.
 - Runs without a TTY: no prompts without one, documented nonzero exit codes, `NO_COLOR` honored, network timeout set.
-- Auth never printed; secrets never accepted as flag values; errors under `--json` carry no credentials.
+- NEVER print auth; NEVER accept secrets as flag values; `--json` errors carry no credentials.
 - Python: uv project or PEP 723 script; nothing `pip install`ed into system Python.
 - Smoke test ran from a fresh directory with the right command form.
 - No live write without user approval.

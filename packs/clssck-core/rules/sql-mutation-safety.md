@@ -13,10 +13,10 @@ interruptMode: tool-only
 **Before running SQL that deletes or overwrites persistent data, or drops or narrows a schema, establish target, scope, and recovery.**
 
 - Establish the target connection, environment, database, and schema without exposing credentials.
-- Match the operation and affected data to the user's authorization. Ask only when authorization or consequential scope remains unclear; do not demand redundant confirmation.
+- Match the operation and affected data to the user's authorization. Ask only when authorization or consequential scope remains unclear; NEVER demand redundant confirmation.
 - Before UPDATE, DELETE, or MERGE, establish the intended affected rows. Use a read-only preview where practical; a WHERE clause alone does not prove the scope is correct.
-- Before DROP, TRUNCATE, or destructive ALTER, establish an appropriate recovery path or explicitly authorized acceptance of irreversible loss. Do not assume DDL can be rolled back; transaction behavior varies by database engine and operation.
-- Prefer the narrowest operation that fulfills the request. Do not replace a targeted repair with a table-wide reset.
+- Before DROP, TRUNCATE, or destructive ALTER, establish an appropriate recovery path or explicitly authorized acceptance of irreversible loss. NEVER assume DDL can be rolled back; transaction behavior varies by database engine and operation.
+- SHOULD use the narrowest operation that fulfills the request. NEVER replace a targeted repair with a table-wide reset.
 - Verify the resulting row changes or schema state; report what was actually checked and any recovery limitations.
 
 Apply the same checks to destructive migration commands. Inspect what the selected downgrade/reset/clean operation will do before running it.

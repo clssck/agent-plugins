@@ -57,8 +57,8 @@ Guardrails for building, reviewing, deploying, and troubleshooting Streamlit in 
 - Container runtime: Snowflake installs with uv from `pyproject.toml` (preferred) or `requirements.txt`. New apps: `uv init --bare`, `uv add "streamlit[snowflake]==<pinned>"`, commit `uv.lock`, stage it with the app.
 - NEVER leave a `requirements.txt` beside `pyproject.toml`; it takes precedence and bypasses `uv.lock`.
 - Container packages need an attached artifact repository (or an EAI fallback); an owner role without one cannot install them.
-- Warehouse runtime: `environment.yml` from the Snowflake Anaconda channel only. uv cannot install it; do not convert it to `pyproject.toml` unless migrating runtimes.
-- Local dev on a repo that already uses `requirements.txt` MAY use `uv venv` and `uv pip install -r requirements.txt`; do not migrate its tooling unasked.
+- Warehouse runtime: `environment.yml` from the Snowflake Anaconda channel only. uv cannot install it; NEVER convert it to `pyproject.toml` unless migrating runtimes.
+- Local dev on a repo that already uses `requirements.txt` MAY use `uv venv` and `uv pip install -r requirements.txt`; NEVER migrate its tooling unasked.
 
 ## Checklist
 

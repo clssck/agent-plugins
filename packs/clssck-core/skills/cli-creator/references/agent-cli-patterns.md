@@ -126,7 +126,7 @@ Non-interactive behavior (agents have no TTY):
 
 - Prompt only when stdin is a TTY. Otherwise fail fast with an error that names the flag to pass. Offer `--no-input` to force this.
 - Command expects piped stdin but stdin is a TTY? Print help or an error; NEVER hang waiting.
-- Accept secrets via `--token-file` or stdin, never as a flag value.
+- Accept secrets via `--token-file` or stdin; NEVER as a flag value.
 - Disable color when stdout/stderr is not a TTY, when `NO_COLOR` is set and non-empty, or when `TERM=dumb`; support `--no-color`. No spinners or progress animations when stdout is not a TTY.
 - Network calls MUST have a configurable timeout with a finite default. Ctrl-C MUST still interrupt a hung request.
 - `--force` bypasses confirmations; `--dry-run` describes changes without making them.

@@ -15,7 +15,7 @@ variable pricing — applies to both write mode (Cost Annex) and review mode (co
    region, free tier, batching, retries, and shared costs excluded from the comparison.
 
 3. **Build comparison tables** showing costs across configurations (e.g., instance sizes,
-   worker counts, number of environments). Each row should trace back to a cited source.
+   worker counts, number of environments). Each row SHOULD trace back to a cited source.
 
 4. **Model multi-scenario projections** (e.g., 5, 10, 15 teams) to show how costs scale.
    Choose scenarios that match the decision drivers in the ADR.
@@ -34,7 +34,7 @@ variable pricing — applies to both write mode (Cost Annex) and review mode (co
 
 ## Source Requirements
 
-- Every cost figure must cite its origin (pricing page URL, API query, or vendor quote).
-- When a pricing API is available, prefer it over static page scraping.
+- Every cost figure MUST cite its origin (pricing page URL, API query, or vendor quote).
+- When a pricing API is available, SHOULD prefer it over static page scraping.
 - When no public pricing exists (e.g., enterprise-negotiated rates), note the figure as
   "estimate — confirm with vendor" and flag it in the review.

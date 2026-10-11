@@ -38,7 +38,7 @@ Use stable ledger IDs. A recipient should be able to resume without reading the 
 |---|---|---|
 |  |  |  |
 
-Never include secrets in the packet. Name the approved access method or prerequisite instead.
+NEVER include secrets in the packet. Name the approved access method or prerequisite instead.
 
 ### Resume
 
@@ -47,7 +47,7 @@ Never include secrets in the packet. Name the approved access method or prerequi
 - **Command / tool / owner:** if already determined
 - **Expected outcomes and resulting transitions:**
 
-A sender never marks a branch `active` for a hypothetical “next worker.” Keep an unowned choice `open` and `selected_next`; the recipient moves it to `active` and names itself as owner when accepting the handoff.
+A sender NEVER marks a branch `active` for a hypothetical “next worker.” Keep an unowned choice `open` and `selected_next`; the recipient moves it to `active` and names itself as owner when accepting the handoff.
 
 ## Worker Delta
 
@@ -65,4 +65,4 @@ Use this smaller packet when a parallel worker returns one scoped branch to a co
 - **Blocked by:** prerequisite and `unblock_when`
 - **One recommended next action:**
 
-The coordinator validates and merges this delta. The worker does not declare shared state updated merely because it proposed a change.
+The coordinator validates and merges this delta. The worker NEVER declares shared state updated merely because it proposed a change.

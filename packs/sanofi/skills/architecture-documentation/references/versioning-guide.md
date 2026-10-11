@@ -121,7 +121,7 @@ these columns:
 | Ticket | `{PROJ-123}` or `--` | Jira ticket that triggered the change |
 | Level | `L1`, `L2`, `L3`, `Deploy`, `Dynamic`, `Landscape` | Which C4 level(s) were affected |
 | Summary | Free text (one line) | What changed and why |
-| Author | Name, or `AI-assisted (architecture-documentation)` when no named author is supplied; never overwrite attribution on existing entries | Who made the change |
+| Author | Name, or `AI-assisted (architecture-documentation)` when no named author is supplied; NEVER overwrite attribution on existing entries | Who made the change |
 
 ### Example Changelog
 
@@ -208,7 +208,7 @@ user-platform-landscape-v1.0.0
 
 ### Every Change Traces to a Ticket
 
-Architecture documentation changes should be traceable to the work that caused them.
+Architecture documentation changes SHOULD be traceable to the work that caused them.
 This means:
 
 1. The changelog entry includes the Jira ticket ID
@@ -328,7 +328,7 @@ v3.0.0 (from v2.0.1):
 2. Add an info panel on the archived page: "This version is archived. Current
    version: [link to current page]"
 3. Do NOT delete archived diagrams -- they serve as historical record
-4. Maintain the master changelog with all entries (never remove old entries)
+4. Maintain the master changelog with all entries (NEVER remove old entries)
 
 ### Retention
 
@@ -336,7 +336,7 @@ v3.0.0 (from v2.0.1):
 |---------|-----------------|
 | Current architecture artifacts | Indefinite (always available) |
 | Previous MAJOR versions | Minimum 2 years |
-| Changelog entries | Indefinite (never delete) |
+| Changelog entries | Indefinite (NEVER delete) |
 | GxP system diagrams | Per the system's approved records-retention policy; confirm the period with Quality/Compliance |
 
 ---

@@ -70,7 +70,7 @@ A dbt command that writes to Snowflake rebuilds whatever it selects. Scope it be
 - **Preview first** when a selector is non-trivial: `dbt ls --select "<selector>" --resource-type model`. Add `--warn-error-options '{"error": ["NoNodesForSelectionCriteria"]}'` so a typo fails instead of building nothing.
 - `--empty` makes refs and sources read zero rows; selected tables and views are rebuilt empty, while an existing incremental gets a zero-row incremental run. Use it only on the target model or its parents, or on explicitly scoped incremental models, and only in a fresh or disposable CI schema (parents: `--select "1+<model>" --exclude "<model>"`). NEVER aim it at data-bearing relations or pair it with an unchecked `+` upstream selector.
 - **Prod or `--full-refresh`:** confirm explicit user approval for that target and selection first. Read the `on-run-start`/`on-run-end` hooks in `dbt_project.yml` (they run on `build`, `run`, `test`, `seed`, `snapshot`) and the model's `full_refresh` config. Afterwards verify row counts against a count taken before the run (or Time Travel) and run the model's tests.
-- **Prefer `dbt build`** (models + tests + unit tests, in lineage order) over `dbt run`. The exception is the documented per-layer `dbt run` + `dbt test` orchestration pattern ([state-and-ci.md](references/state-and-ci.md#gates)); do not mix patterns in one pipeline.
+- **Prefer `dbt build`** (models + tests + unit tests, in lineage order) over `dbt run`. The exception is the documented per-layer `dbt run` + `dbt test` orchestration pattern ([state-and-ci.md](references/state-and-ci.md#gates)); NEVER mix patterns in one pipeline.
 - **Inspect data with `dbt show`**, not ad-hoc Python: `dbt show --select <model> --limit 10` or `dbt show --inline "select ... from {{ ref('x') }}" --limit 10`. Use `--limit`, not a SQL `LIMIT`; `--select` takes one node. `--inline` can run any SQL, so use a read-only role.
 - Use `uv run dbt ...` in uv projects; one `uv.lock` left untracked is not part of the task.
 
@@ -83,7 +83,7 @@ Smallest command that proves the change.
 | YAML, source, package, project config | `dbt parse` |
 | Model SQL | `dbt compile --select <model_name>` |
 | Data tests | `dbt test --select <model_name>` or the changed test; add `+` only for downstream |
-| Unit tests | `dbt test --select "test_type:unit"`; in a fresh or disposable schema, parents must exist (`dbt run --select <parents> --empty`, no `+`), plus an incremental model's own `--empty` shell; exclude from production builds ([unit-tests.md](references/unit-tests.md)) |
+| Unit tests | `dbt test --select "test_type:unit"`; in a fresh or disposable schema, parents MUST exist (`dbt run --select <parents> --empty`, no `+`), plus an incremental model's own `--empty` shell; exclude from production builds ([unit-tests.md](references/unit-tests.md)) |
 | Deprecations (1.10+) | `dbt parse --no-partial-parse --show-all-deprecations`; fix with `uvx dbt-autofix deprecations --dry-run` first |
 | CI-style | `state:modified+ --state <manifest-dir>` when a prior manifest exists ([state-and-ci.md](references/state-and-ci.md)) |
 | Docs artifacts or catalog | `dbt docs generate`, only when it matters |
@@ -100,6 +100,6 @@ Smallest command that proves the change.
 - No new deprecation warnings; custom keys under `config.meta`; none silenced as the fix.
 - Incremental strategy valid on Snowflake; every parent has a change signal; `full_refresh` behavior understood.
 - Test `arguments:` syntax matches the project's dbt version; engine and version confirmed with `dbt --version`.
-- Every mutating dbt command (including `clone`) selected; `--empty` only in a fresh or disposable schema, never on data-bearing relations; prod and `--full-refresh` approved, hooks read, counts checked.
+- Every mutating dbt command (including `clone`) selected; `--empty` only in a fresh or disposable schema, NEVER on data-bearing relations; prod and `--full-refresh` approved, hooks read, counts checked.
 - Native-project steps authorized; no forced deploy, drop, or schedule change without approval.
 - Narrowest validation command run, or blocker stated.

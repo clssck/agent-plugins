@@ -1,7 +1,7 @@
 # Action Items Tracker (skeleton)
 
 Copy into an issue tracker or spreadsheet used alongside the post-mortem.
-Every row must have owner (named person), absolute deadline (YYYY-MM-DD),
+Every row MUST have owner (named person), absolute deadline (YYYY-MM-DD),
 priority, type, and tracking link before the post-mortem is considered
 complete.
 

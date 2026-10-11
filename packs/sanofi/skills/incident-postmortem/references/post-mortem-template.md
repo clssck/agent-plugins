@@ -4,7 +4,7 @@ Copy this file to `docs/postmortems/YYYY-MM-DD-short-slug.md` where the date
 is the **incident start date** and the slug describes the impact (e.g.,
 `2026-04-28-checkout-500s.md`).
 
-Every section marked **Required** must be filled. Optional sections may be
+Every section marked **Required** MUST be filled. Optional sections may be
 omitted if they have no content — do not leave `TBD` placeholders.
 
 ---
@@ -104,7 +104,7 @@ interpretation.
 - **Time-to-Mitigate (TTM)**: 1h 18m (detection 14:18 → impact stopped 15:36).
 - **Time-to-Resolve (TTR)**: 1h 40m (impact start 14:07 → resolution 15:47).
 
-Always state both endpoints; never write a bare "MTTR".
+Always state both endpoints; NEVER write a bare "MTTR".
 
 ## Root Cause (Required)
 
@@ -173,7 +173,7 @@ align for this incident to occur:
 
 ## Action Items (Required)
 
-Every action item must have owner (a named person, never a role, rotation,
+Every action item MUST have owner (a named person, NEVER a role, rotation,
 or team), absolute deadline, tracking link, priority (P0/P1/P2), and type
 (`prevent`, `detect`, `mitigate`, `process`, `documentation`). If no
 individual has accepted an item yet, write `UNASSIGNED` in Owner, leave

@@ -86,7 +86,7 @@ Scaffold with `uv init --package <tool-name>`: it creates `src/<package>/`, a `[
 - NEVER `pip install` or `pipx install` into system or Homebrew Python; interpreters marked `EXTERNALLY-MANAGED` (PEP 668) make pip refuse, and `--break-system-packages` is the risky override. Use `uv tool install`.
 - `uv tool install` will not overwrite an executable it did not install (e.g. one from `pipx`). Treat that as a name collision: rename the tool or ask. Use `--force` only after the user agrees to replace the existing binary.
 - `uv tool update-shell` adds the tool bin directory to shell config; ask first.
-- Distribution beyond this machine: `uv build` writes the sdist and wheel to `dist/`; `uv publish` uploads them. Publish only when the user asks. Prefer PyPI trusted publishing from CI; otherwise `UV_PUBLISH_TOKEN`. Private index: `[[tool.uv.index]]` with `publish-url`, then `uv publish --index <name>`.
+- Distribution beyond this machine: `uv build` writes the sdist and wheel to `dist/`; `uv publish` uploads them. Publish only when the user asks. SHOULD use PyPI trusted publishing from CI; otherwise `UV_PUBLISH_TOKEN`. Private index: `[[tool.uv.index]]` with `publish-url`, then `uv publish --index <name>`.
 - Single-file tool with few dependencies: PEP 723 inline metadata plus an executable file. POSIX shebang:
 
 ```python

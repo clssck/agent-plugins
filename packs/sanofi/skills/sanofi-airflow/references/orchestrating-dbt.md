@@ -84,7 +84,7 @@ Pass Airflow run context into dbt so runs are traceable and reprocessable. Commo
 `data_interval_start` / `data_interval_end`. Incremental models can filter their source
 on that explicit window (instead of, or alongside, a `max()` watermark) to make each run
 idempotent and any date range replayable — see the dbt skill's incremental guidance.
-Build the `--vars` string inside a task or via `DbtClient`, never at module level.
+Build the `--vars` string inside a task or via `DbtClient`, NEVER at module level.
 
 On Airflow 3.x, bare-cron schedules and asset-/API-triggered runs break these window vars:
 apply Airflow 3 Traps (SKILL.md) before passing the window to dbt.
@@ -107,7 +107,7 @@ workers unless the DAG persists them. Debug in this order: open the DAG run, ope
 failed task instance, read its CloudWatch task log, then read the dbt stdout/stderr in
 that task's log.
 
-Never write dbt logs or artifacts into the S3 `dags/` prefix, and never point every
+NEVER write dbt logs or artifacts into the S3 `dags/` prefix, and NEVER point every
 project/run at one shared `dbt.log` — the `dags/` prefix is deployed code, not a runtime
 log archive. Persist artifacts only when there is a concrete need (post-run analysis,
 audit evidence, model-level failure routing). When you do, write to a unique per-run path

@@ -40,7 +40,7 @@ make dbt runs traceable in Snowflake query history.
 
 Use the local `disable_when()` macro pattern when present. Feature flags are for
 temporary operational control such as WIP trunk models, sources not ready in higher
-environments, risky rollouts, scheduled go-live, and kill switches; avoid them for
+environments, risky rollouts, scheduled go-live, and kill switches; AVOID them for
 permanent disables, A/B testing, percentage rollout, user-specific logic, or normal
 environment config. Use `targets`, `environments`, `databases`, or runtime `flag`
 parameters according to the repo pattern. With multiple `disable_when()` parameters,
@@ -67,12 +67,12 @@ with `wap_publish_all`, then run or test the published layer. When Elementary is
 silence Elementary during WAP runs and run a clean post-publish phase so reports capture
 base-table artifacts, not `__wap` artifacts.
 
-WAP safety: publishing should block recent `test_failed` audit status; the current safe
+WAP safety: publishing SHOULD block recent `test_failed` audit status; the current safe
 mode blocks publish when the audit table has a recent `test_failed` status for the
 model, commonly within the last 24 hours. `force: true` is a human escape hatch after
-investigation, never an automated default. Use `wap_status`, `wap_compare`, and
+investigation, NEVER an automated default. Use `wap_status`, `wap_compare`, and
 `wap_diff` before publishing, and discard/cleanup operations for failed or stale
-`__wap` tables. Publish is per-table atomic, not multi-table atomic; orchestration must
+`__wap` tables. Publish is per-table atomic, not multi-table atomic; orchestration MUST
 skip publish if any protected model fails. First deploy promotes `__wap` by rename when
 no base table exists. Audit statuses include `pending`,
 `test_passed`, `test_failed`, `published`, and `discarded`, with invocation, logical
@@ -92,5 +92,5 @@ physical Snowflake alias, not the dbt SQL filename.
 
 - Elementary: package and CLI both present, monitoring schema isolated, `dbt build`/`run` + `dbt test` before `edr report`.
 - Feature flags: ticket, reason, and removal date documented; none used for permanent disables.
-- WAP only where `sanofi-dbt-utils` is configured; publish blocked on recent `test_failed`; `force: true` never automated.
+- WAP only where `sanofi-dbt-utils` is configured; publish blocked on recent `test_failed`; `force: true` NEVER automated.
 - Query comment includes node name, target, and `invocation_id`.

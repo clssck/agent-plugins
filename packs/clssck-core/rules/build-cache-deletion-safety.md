@@ -12,7 +12,7 @@ interruptMode: always
 - Delete or clean only when the user explicitly requested this exact target; otherwise ask first.
 - Resolve the real path and inspect its size before mutation; prove it is the intended cache, not source, a symlink escape, or a shared canonical target.
 - Verify no active build, test, server, or package process owns the path. If another process owns it, defer cleanup; stop that process only when its shutdown is explicitly authorized.
-- Prefer the tool's narrow, documented prune operation when it preserves reusable artifacts.
+- SHOULD use the tool's narrow, documented prune operation when it preserves reusable artifacts.
 - NEVER use `chmod`, `chown`, `bazel clean`, `cargo clean`, or recursive removal as default troubleshooting.
 - NEVER delete shared Cargo, Bazel, Gradle, Go, Bun, npm, pnpm, uv, pip, or macOS `~/Library/Caches` caches to fix an unrelated failure.
 - Command-owned temporary directories may be removed after their owner exits.

@@ -51,7 +51,7 @@ C4 modeling (context, container, component, deployment, landscape), architecture
 | Significant, recurring interaction (sparingly) | Dynamic |
 | Runtime mapped to ONE environment | Deployment |
 
-Match requested scope and audience. L1 and L2 suffice for most teams; do not add levels by default. See [diagram-selection.md](references/diagram-selection.md), which also maps views to arc42 sections.
+Match requested scope and audience. L1 and L2 suffice for most teams; NEVER add levels by default. See [diagram-selection.md](references/diagram-selection.md), which also maps views to arc42 sections.
 
 ## Versioning
 
@@ -74,7 +74,7 @@ Match requested scope and audience. L1 and L2 suffice for most teams; do not add
 | [confluence-page-templates.md](references/confluence-page-templates.md) | Preparing page content per level; organizing a multi-page set |
 | [versioning-guide.md](references/versioning-guide.md) | Versions, changelog, Jira links |
 | [c4-notation-checklist.md](references/c4-notation-checklist.md) | Pre-publish validation |
-| [drawio-c4-templates.md](references/drawio-c4-templates.md) | ONLY when an existing Draw.io source must stay compatible |
+| [drawio-c4-templates.md](references/drawio-c4-templates.md) | ONLY when an existing Draw.io source MUST stay compatible |
 
 ## Checklist
 

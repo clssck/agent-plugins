@@ -644,7 +644,7 @@ Production-bound image? Add a provenance attestation step after `Build and push`
 
 ## CD: auto-deploy + manual promotion to ECS
 
-- `workflow_run` deploys the image built by the successful CI run that triggered it (`github.event.workflow_run.id`), never the branch tip.
+- `workflow_run` deploys the image built by the successful CI run that triggered it (`github.event.workflow_run.id`), NEVER the branch tip.
 - `workflow_dispatch` promotes the image from a named CI run ID; the run MUST be a successful `CI` push run on `main`.
 - Each deploy renders a new task-definition revision with the image digest, deploys it, and waits for service stability. `update-service --force-new-deployment` alone keeps the old task definition's image (<https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_UpdateService.html>).
 - Deploy role needs `ecs:DescribeTaskDefinition`, `ecs:RegisterTaskDefinition`, `ecs:UpdateService`, `ecs:DescribeServices`, and `iam:PassRole` on the task/execution roles.

@@ -33,7 +33,7 @@ Read only what the task needs.
 - **Org workflows**: Sanofi org-managed reusable workflows (CodeGuard) MAY use `@main`; comment the exception.
 - **Secrets**: scope per Environment; NEVER in files or logs. Prefer OIDC over long-lived cloud keys.
 - **Reusable workflows**: callee declares `on.workflow_call.secrets`; caller passes named secrets. `secrets: inherit` only to org-managed workflows.
-- **Injection**: pass PR/issue text through `env:`, never `${{ }}` inside `run:`.
+- **Injection**: pass PR/issue text through `env:`, NEVER `${{ }}` inside `run:`.
 - **Untrusted triggers**: `pull_request_target` and `workflow_run` MUST NOT check out or execute PR code or trust downloaded artifacts. They run from the default branch and see secrets. Their caches stay `cache-mode: read`.
 - **Security steps**: NEVER `continue-on-error: true` on SAST, SCA, secret scan, or gate steps.
 - **Installs**: commit lockfiles; use deterministic installs (`npm ci`, `uv sync --locked`). Python CI uses `astral-sh/setup-uv` and `uv run`, not `setup-python` + `pip install`; keep a repo's existing tooling (poetry, pip-tools) and say how to adopt uv.

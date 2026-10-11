@@ -38,7 +38,7 @@ BI/reverse-ETL/other teams and would break on a rename or retype. Do NOT add one
 models, models still being iterated, models with no external consumers (ask who depends on
 the schema first), dynamic/`pivot` columns, or ephemeral models.
 
-- **Every column** must be declared with `name` and `data_type`; the build fails and the model
+- **Every column** MUST be declared with `name` and `data_type`; the build fails and the model
   is not materialized when the query result differs in names, types, or column count.
 - Supported: `table`, `incremental` (with `on_schema_change: append_new_columns` or `fail`;
   `sync_all_columns` can remove a contracted column, which is a breaking change), and `view`
@@ -101,7 +101,7 @@ contract). Do not version for additive columns, bug fixes, performance work, or 
 
 ### Keeping an unversioned relation name
 
-Consumers outside dbt read a fixed relation name. Pick one mechanism, never two:
+Consumers outside dbt read a fixed relation name. Pick one mechanism, NEVER two:
 
 | Mechanism | Version | Notes |
 |---|---|---|
@@ -152,7 +152,7 @@ separated by the migration window.
    unversioned relation exists through the mechanism above.
 2. Deploy; both versions now exist in Snowflake.
 3. Verify the window is open: `dbt show --inline "select <old_col> from <unversioned_relation>" --limit 1`
-   must still return the old columns. `column does not exist` means latest was promoted early.
+   MUST still return the old columns. `column does not exist` means latest was promoted early.
 4. Notify consumers to move to `v=<new>` or pin the old one.
 5. Bump `latest_version` only after every consumer confirms; for unversioned-name consumers
    this is the breaking release.

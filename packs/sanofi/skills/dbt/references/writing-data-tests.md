@@ -44,7 +44,7 @@ Run unit tests in CI for changed logic. Prefer scoped selectors over global test
 `dbt test --select "test_type:unit"`, `dbt test --select "test_type:data"`, and, when
 a prior manifest is available, `dbt test --select state:modified+ --state ./prod-manifest`.
 
-Before a PR is merge-ready, relevant scoped dbt tests should pass with zero
+Before a PR is merge-ready, relevant scoped dbt tests SHOULD pass with zero
 error-level failures. At minimum, cover the documented grain or primary key with
 `unique`/`not_null`, foreign keys with `relationships`, and verified controlled
 categorical fields in marts with `accepted_values`.
@@ -103,7 +103,7 @@ By default every test has `severity: error`, so a failure stops the run. Use
 
 | Tier                            | Severity          | Rationale                                                                      |
 | ------------------------------- | ----------------- | ------------------------------------------------------------------------------ |
-| Tier 1 (PK, FK)                 | `error`           | Data is broken; never let it pass downstream                                   |
+| Tier 1 (PK, FK)                 | `error`           | Data is broken; NEVER let it pass downstream                                   |
 | Tier 2 (nulls, accepted values) | `error` or `warn` | Use `error` when used in joins or calculations, `warn` when informational only |
 | Tier 3 (business logic)         | `warn`            | Flag anomalies without blocking; investigate async                             |
 
@@ -113,7 +113,7 @@ small number of failures is acceptable but a large number indicates a real probl
 Projects that explicitly adopt the Data Quality Framework — dbt + Elementary invert the
 key/null policy: they run PK/uniqueness and `not_null` as `warn` with
 `store_failures: true` (advisory, but every failing row is captured for triage) and
-reserve `error` for control-total and row-count reconciliation that must block
+reserve `error` for control-total and row-count reconciliation that MUST block
 promotion. Apply this exception only to a project that explicitly adopts that named
 framework. Keep `relationships`/FK tests at `error` unless that adopted framework's
 documented policy explicitly changes them. Otherwise retain Tier 1 `error` severity; if

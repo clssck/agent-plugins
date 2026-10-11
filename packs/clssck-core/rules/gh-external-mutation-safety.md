@@ -13,5 +13,5 @@ interruptMode: always
 - Name the repo explicitly (`--repo owner/name` or `repos/owner/name/...`); NEVER rely on the inferred remote of an unfamiliar checkout.
 - `gh api` with `-f`/`-F`/`--field`/`--raw-field`/`--input` defaults to **POST**. To read with fields on a REST endpoint, pass `-X GET`. GraphQL (`gh api graphql -f query=...`) always POSTs, but a literal `query` is a read; only a `mutation`, or a query supplied from `@file`, `--input`, or a variable (which this reminder cannot inspect), changes state.
 - Destructive targets (`repo delete`, `release delete`, `secret delete`, `run delete`, `cache delete`, DELETE requests) need an explicit request naming that target.
-- Prefer a reversible form: draft PRs/releases, `--dry-run` where `gh` supports it.
+- SHOULD use a reversible form: draft PRs/releases, `--dry-run` where `gh` supports it.
 - After the call, report the URL or ID it created or changed.

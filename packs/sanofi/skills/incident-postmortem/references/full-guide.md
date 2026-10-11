@@ -7,7 +7,7 @@ deadlines.
 
 ## Philosophy
 
-- **Blameless**: focus on systems, processes, and missing safeguards — never
+- **Blameless**: focus on systems, processes, and missing safeguards — NEVER
   on individuals. Bad outcomes come from weak systems, not bad people.
 - **Timeline before theories**: reconstruct what happened in chronological
   order before trying to explain why. Speculation anchored on a wrong fact
@@ -210,8 +210,8 @@ gets reinforced:
 
 ### 7. Define action items
 
-Every action item **must** have the fields below. If an owner or tracking link is not yet
-known, mark it `UNASSIGNED`/blank, never invent it, and keep the post-mortem in Draft:
+Every action item MUST have the fields below. If an owner or tracking link is not yet
+known, mark it `UNASSIGNED`/blank, NEVER invent it, and keep the post-mortem in Draft:
 
 | Field         | Required | Notes                                                               |
 | ------------- | -------- | ------------------------------------------------------------------- |

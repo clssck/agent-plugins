@@ -251,7 +251,7 @@ domain logic).
 | Using "Uses" as relationship label | Too generic, gives no useful information | Be specific: "Reads user profiles from", "Sends events to" |
 | Missing technology labels | Containers and components need technology context | Always include [Technology] annotation |
 | Showing deployment details in L2 | Load balancers, AZs, replicas belong in Deployment | Keep L2 focused on logical architecture |
-| Mixing abstraction levels | Having both systems and components in one diagram | Each diagram should be one C4 level |
+| Mixing abstraction levels | Having both systems and components in one diagram | Each diagram SHOULD be one C4 level |
 | Bidirectional arrows | C4 uses unidirectional relationships | Two separate arrows if communication goes both ways |
 | Person interacting with database directly | Users interact with applications, not databases | Route through the application container |
 | Modeling tools/frameworks as elements | Frameworks are technology choices, not architectural units | Annotate as [Technology] label or comment on the element that uses them |

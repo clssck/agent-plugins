@@ -8,7 +8,7 @@ Optional pass with Checkov, Trivy, or KICS after the manual review. Scanner hits
 - NEVER install or download a scanner without asking. Checkov needs no install step: with approval run it as `uvx checkov ...` (ephemeral environment), or persist it with `uv tool install checkov`. Third-party packages are a supply-chain surface: Wiz reports trojanized PyPI releases of `litellm` (1.82.7, 1.82.8) in a follow-on operation.
 - 2026 scanner compromises. Trivy: malicious binary v0.69.4 (2026-03-19), malicious Docker Hub images 0.69.5 and 0.69.6 (2026-03-22), 76 of 77 `aquasecurity/trivy-action` tags and all 7 `setup-trivy` tags force-pushed. KICS: 35 `Checkmarx/kics-github-action` tags hijacked (2026-03-23), then malicious `checkmarx/kics` Docker Hub images (2026-04-22; tags `latest`, `alpine`, `debian`, `v2.1.20`, `v2.1.20-debian`, `v2.1.21`, `v2.1.21-debian`) that exfiltrated scan output. Local `trivy --version` reports 0.69.4, a local Trivy image is 0.69.5 or 0.69.6, or a local `checkmarx/kics` image was pulled on 2026-04-22 → STOP and tell the user; the host may have leaked credentials. Docker restored `checkmarx/kics` to the legitimate 2026-03-03 image: pin by digest, not tag.
 - Untrusted repo? `trivy config` downloads remote Terraform modules and the CLI cannot turn that off, so each download is a request to a host the repo author chose. Prefer Checkov, which downloads external modules only when `--download-external-modules true` (or `DOWNLOAD_EXTERNAL_MODULES`) is set.
-- Write scanner output to a temp directory or `audits/`, never next to the IaC files.
+- Write scanner output to a temp directory or `audits/`, NEVER next to the IaC files.
 
 ## Commands
 

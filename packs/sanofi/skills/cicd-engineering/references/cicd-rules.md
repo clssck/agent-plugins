@@ -356,7 +356,7 @@ before deployment.** Unsigned artifacts SHOULD NOT be promoted to production reg
   preferred over long-lived keys).
 - Generate **SLSA provenance attestations** to record builder, inputs, and timestamp.
 - Configure the registry (ECR, JFrog) to reject unsigned uploads where supported.
-- Rotate signing keys at least every 6 months; prefer Sigstore keyless to avoid key
+- Rotate signing keys at least every 6 months; SHOULD prefer Sigstore keyless to avoid key
   rotation entirely.
 
 Teams MUST document their signing process (tools, key management, verification gates)
@@ -377,7 +377,7 @@ outside of documented emergency hotfix procedures.
 The standard Sanofi pattern builds the image once in CI, then combines `workflow_run`
 (auto-deploy to dev when CI succeeds) with `workflow_dispatch` (manual promotion to
 test and prod). Both paths deploy the **image digest recorded by a specific CI run**,
-never a rebuild and never the branch tip. Full workflows in
+NEVER a rebuild and NEVER the branch tip. Full workflows in
 [pipeline-templates.md](pipeline-templates.md#cd-auto-deploy--manual-promotion-to-ecs):
 
 ```yaml

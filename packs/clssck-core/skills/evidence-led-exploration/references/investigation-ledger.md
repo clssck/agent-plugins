@@ -39,7 +39,7 @@ Rules:
 |---|---|---|---|---|---|
 | E-001 | command, file, test, user report, document | path:line, URL, artifact, command output range |  |  | P-001 |
 
-An evidence record describes what was observed, not why it happened. Keep bulky output in the cited artifact. A negative result is bounded by its recorded input, time, version, environment, and scope; never promote it to a universal claim.
+An evidence record describes what was observed, not why it happened. Keep bulky output in the cited artifact. A negative result is bounded by its recorded input, time, version, environment, and scope; NEVER promote it to a universal claim.
 
 ## Contradictions
 
@@ -89,7 +89,7 @@ After every evidence merge, check deferred and blocked predicates before choosin
 |---|---|---|---|
 |  |  |  |  |
 
-Record decisions that change priority, scope, claim status, or branch state. Do not duplicate the probe log.
+Record decisions that change priority, scope, claim status, or branch state. NEVER duplicate the probe log.
 
 ## Current State
 

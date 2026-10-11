@@ -109,8 +109,8 @@ jobs:
 
 **Mitigation:**
 
-1. Avoid `pull_request_target` entirely when possible -- use `pull_request` instead
-2. If you must use it, NEVER checkout the PR head code
+1. AVOID `pull_request_target` entirely when possible -- use `pull_request` instead
+2. If you MUST use it, NEVER checkout the PR head code
 3. If you need the PR code, use a two-workflow pattern:
    - First workflow (`pull_request`): build and test (no secrets needed)
    - Second workflow (`workflow_run`): post results using secrets
@@ -319,7 +319,7 @@ Trust-policy rules:
 - NEVER widen to `repo:OWNER/REPO:*`. It admits every branch, pull request, and environment.
 - GitHub states that custom claims, including `job_workflow_ref`, are unavailable in AWS trust policies. A shared role cannot be limited to one reusable workflow from the AWS side; scope by environment and deployment rules instead.
 - The environment `sub` form applies only when the job sets `environment:`. Without it, `sub` ends in `:ref:refs/heads/BRANCH` or `:pull_request`.
-- OIDC tokens for Dependabot update jobs carry `event_name: dynamic`. Only workflows you expect should reach a deploy role.
+- OIDC tokens for Dependabot update jobs carry `event_name: dynamic`. Only workflows you expect SHOULD reach a deploy role.
 
 **IAM trust policy (per environment; immutable-format example):**
 

@@ -154,7 +154,7 @@ orchestration/
     └── .airflowignore           ← excludes unit_tests/ and other non-DAG dirs
 ```
 
-Only files needed by the scheduler should reach the S3 `dags/` path; uploading extra
+Only files needed by the scheduler SHOULD reach the S3 `dags/` path; uploading extra
 files slows scans and wastes storage. The platform ships a global `.airflowignore` at
 the `dags/` root that already excludes `transformation/`, `dbt_packages/`, `seeds/`,
 `macros/`, non-Python files (`.sql`, `.yml`, `.csv`, `.json`, ...), build artifacts, and
@@ -171,12 +171,12 @@ match the environment's configured `dag_ignore_file_syntax`.
   repo's convention.
 - `task_id` is verb-first and names one unit of work: `extract_*`, `validate_*`,
   `load_*`, `run_dbt_*`. It should read as a pipeline so it is clear what failed.
-- Owner, emails, tags, and schedules come from shared constants/helpers, never inline
+- Owner, emails, tags, and schedules come from shared constants/helpers, NEVER inline
   literals.
 
 ## DAG Configuration
 
-Every DAG must set these explicitly; implicit defaults cause surprise backfills and
+Every DAG MUST set these explicitly; implicit defaults cause surprise backfills and
 stuck runs.
 
 | Setting            | Standard                                                         | Why                                            |
@@ -186,7 +186,7 @@ stuck runs.
 | `schedule`         | Explicit cron/preset; `None` for trigger-only                    | Removes ambiguity about when it runs           |
 | `max_active_runs`  | Deliberate — `1` for any stateful load                           | Prevents two runs racing on the same target    |
 | `max_active_tasks` | Set on wide DAGs (e.g. `16`)                                     | Stops one DAG flooding shared worker slots     |
-| `dagrun_timeout`   | Set on anything that can hang                                    | A stuck run must not hold a slot indefinitely  |
+| `dagrun_timeout`   | Set on anything that can hang                                    | A stuck run MUST NOT hold a slot indefinitely  |
 | `tags`             | From a shared helper; include team, priority, schedule           | Findable in a crowded UI                       |
 | `default_args`     | Shared dict; `email_on_failure=False`, `on_failure_callback` set | Consistent, predictable failure behavior       |
 
@@ -270,8 +270,8 @@ alternative when a real setup task exists; teardowns are ignored for run state b
 (`on_failure_fail_dagrun=True` changes that for the teardown itself).
 
 Make tasks idempotent so retries and backfills are safe: UPSERT/MERGE instead of
-INSERT, read and write one partition keyed on `data_interval_start` (never "latest"),
-and never use `datetime.now()` for business logic inside a task.
+INSERT, read and write one partition keyed on `data_interval_start` (NEVER "latest"),
+and NEVER use `datetime.now()` for business logic inside a task.
 
 Key decorators: `@task` (replaces `PythonOperator`), `@task.bash` (return the command
 string; replaces `BashOperator`), `@task.short_circuit` (skip downstream),
@@ -360,7 +360,7 @@ and run vars. For changes to the dbt models/SQL/tests themselves, use the dbt sk
 
 ## Alerting and Failure Handling
 
-Every production DAG must alert on failure with actionable context (which task, why, and
+Every production DAG MUST alert on failure with actionable context (which task, why, and
 a link to the logs) via a shared `on_failure_callback`, not per-task
 `email_on_failure=True`. Common Sanofi pattern: a callback that sends a custom failure
 email and, for production failures needing human action, auto-creates a ServiceNow
@@ -378,16 +378,16 @@ def task_error_alert(context):
     send_alert(info)  # email helper in sanofi-airflow-utils; add incident on PROD
 ```
 
-Rules for callbacks: a failure callback must **never raise** — catch and log internally
+Rules for callbacks: a failure callback MUST NEVER raise — catch and log internally
 so the original task error and other callbacks still propagate. Gate incident creation to
-production. Use a `trigger_rule="all_done"` cleanup/summary task for work that must run
+production. Use a `trigger_rule="all_done"` cleanup/summary task for work that MUST run
 regardless of upstream success (resource cleanup, failure summaries), but NEVER as the
 sole leaf of the DAG: it would mark the run `success` after an upstream failure. Pair it
 with a default-rule leaf as shown in the TaskFlow example.
 
 ## Access Control
 
-Set `access_control` on DAGs so the right MWAA roles can view/edit them. Role names must
+Set `access_control` on DAGs so the right MWAA roles can view/edit them. Role names MUST
 match the IAM role mappings configured by the platform team:
 
 ```python
