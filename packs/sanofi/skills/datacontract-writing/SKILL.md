@@ -1,11 +1,11 @@
 ---
 name: datacontract-writing
-description: Write or review ODCS data contracts (v3.1.0 default, v3.2.0 on request) from dbt projects, Snowflake metadata, SQL DDL, or pasted schemas. Use when asked to write a data contract, turn a table schema into one, generate or lint ODCS YAML, or diff contract versions. Not for OpenAPI specs, ADRs, architecture docs, or dbt model authoring (use the dbt skill).
+description: Use for ODCS data contracts from schemas; not OpenAPI.
 ---
 
 # Data Contract Writing
 
-Produce Open Data Contract Standard YAML. Default `apiVersion: v3.1.0`; use v3.2.0 only when the user or the consuming tool asks. Contracts MUST validate against the official JSON schema for their declared `apiVersion`.
+Write, review, lint, or diff Open Data Contract Standard YAML from dbt projects, Snowflake metadata, SQL DDL, or pasted schemas. Default `apiVersion: v3.1.0`; use v3.2.0 only when the user or the consuming tool asks. Contracts MUST validate against the official JSON schema for their declared `apiVersion`. OpenAPI specs, ADRs, and architecture docs are out of scope; dbt model authoring belongs to the dbt skill.
 
 ## References
 

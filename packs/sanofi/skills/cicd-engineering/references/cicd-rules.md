@@ -113,7 +113,7 @@ Requirements:
 - Use **GitHub Environments** or **AWS Secrets Manager** (the approved Sanofi vault)
   for secret storage.
 - Production environments SHOULD require manual approval via environment protection
-  rules. For **GxP** projects this is a **MUST** — regulatory change control requires
+  rules. For GxP projects this is a MUST — regulatory change control requires
   a recorded approval step.
 - Secret scanning MUST be enabled org-wide (GitHub secret scanning; GitGuardian for
   Sanofi). Exposed credentials MUST be revoked and rotated immediately.
@@ -335,7 +335,7 @@ SAST findings MUST NOT be gated by `continue-on-error: true`.
 
 ### 3.4 Generate and keep an SBOM
 
-**Production-bound projects SHOULD generate a Software Bill of Materials (SBOM)** at
+Production-bound projects SHOULD generate a Software Bill of Materials (SBOM) at
 release time (CycloneDX or SPDX) and store it alongside the release artifact. SBOMs
 are required input for SLSA provenance, vulnerability response, and license audits.
 

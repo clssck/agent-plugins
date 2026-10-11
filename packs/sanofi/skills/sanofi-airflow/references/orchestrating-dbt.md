@@ -59,16 +59,22 @@ To move away from stringly-typed bash while staying on the dbt CLI, build dbt co
 with a typed, frozen `DbtClient` dataclass (available via `sanofi-airflow-utils`). It
 centralizes the binary, project/profiles dirs, target, and log paths, and safely assembles
 `--select`, `--full-refresh`, `--vars`, and extra args. Invoke it inside `@task.bash` so
-command construction runs at execution time:
+command construction runs at execution time. Pass an explicit selection through the
+documented extra args; a run without one builds the whole project and is allowed only when
+the user explicitly asked for it:
 
 ```python
 @task.bash(env=snowflake_env_vars)
 def run_models(**context) -> str:
-    return dbt.build_command("run", dbt_vars={"dag_run_id": context["dag_run"].run_id})
+    return dbt.build_command(
+        "run",
+        dbt_vars={"dag_run_id": context["dag_run"].run_id},
+        extra_args="--select <selector>",
+    )
 
 @task.bash(env=snowflake_env_vars)
 def run_tests() -> str:
-    return dbt.build_command("test", extra_args="--exclude test_type:unit")
+    return dbt.build_command("test", extra_args="--select <selector> --exclude test_type:unit")
 ```
 
 ## Passing Run Vars and Idempotent Windows

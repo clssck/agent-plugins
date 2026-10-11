@@ -1,11 +1,11 @@
 ---
 name: cicd-engineering
-description: GitHub Actions CI/CD for Sanofi repos - workflows, quality and security gates, SonarCloud, CodeGuard, AWS OIDC, image promotion, action pinning, attestations. Use when writing, reviewing, or hardening .github/workflows, or adding SAST, SCA, or coverage gates. Not for app review (/review), Terraform (iac-terraform, iac-security-review), non-GitHub CI.
+description: Use for GitHub Actions workflows and CI security gates; not Terraform.
 ---
 
 # CI/CD Engineering
 
-Sanofi GitHub Actions rules and verified templates. Complements the built-in `/review` and `/security` commands: those find generic defects; this skill supplies the Sanofi runner, allowlist, gate, and promotion policy.
+Sanofi GitHub Actions rules and verified templates: workflows, quality and security gates (SAST, SCA, coverage), SonarCloud, CodeGuard, AWS OIDC, image promotion, action pinning, attestations. Complements the built-in `/review` and `/security` commands: those find generic defects; this skill supplies the Sanofi runner, allowlist, gate, and promotion policy. Terraform belongs to iac-terraform and iac-security-review; non-GitHub CI is out of scope.
 
 ## References
 

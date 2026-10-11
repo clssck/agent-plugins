@@ -1,17 +1,17 @@
 ---
 name: snowflake-streamlit
-description: Guardrails for Streamlit in Snowflake apps in Sanofi repos - explicit runtime choice, owner-rights least privilege, parameterized read-only queries, viewer-safe caching, source-version and snow CLI deployment, contract tests. Use when building, reviewing, deploying, or troubleshooting such apps. Not for Community Cloud or general how-to (developing-with-streamlit-in-snowflake).
+description: Use for Sanofi Streamlit-in-Snowflake apps and deployment; not local Streamlit.
 ---
 
 # Streamlit in Snowflake
 
-Work from the repo's existing runtime and deployment contract. Complements the generic developing-with-streamlit-in-snowflake skill; generic review and security stay with `/review` and `/security`.
+Guardrails for building, reviewing, deploying, and troubleshooting Streamlit in Snowflake apps in Sanofi repos: explicit runtime choice, owner-rights least privilege, parameterized read-only queries, viewer-safe caching, source-version and `snow` CLI deployment, contract tests. Work from the repo's existing runtime and deployment contract. Complements the generic developing-with-streamlit-in-snowflake skill (general how-to; Community Cloud is out of scope); generic review and security stay with `/review` and `/security`.
 
 ## Core Rules
 
-- **NEVER silently migrate** between warehouse and container runtimes. With the 2026_06 behavior bundle (enabled by default since Sept 2026), `CREATE STREAMLIT` without `RUNTIME_NAME` creates a container-runtime app, so every statement and `snowflake.yml` entity MUST name its runtime explicitly.
-- **NEVER replace legacy deployment syntax**, broaden an owner role, or publish an app unless the user asks.
-- **NEVER execute deployment SQL**, upload staged files, change grants, or promote a live version without an explicit deployment request.
+- NEVER silently migrate between warehouse and container runtimes. With the 2026_06 behavior bundle (enabled by default since Sept 2026), `CREATE STREAMLIT` without `RUNTIME_NAME` creates a container-runtime app, so every statement and `snowflake.yml` entity MUST name its runtime explicitly.
+- NEVER replace legacy deployment syntax, broaden an owner role, or publish an app unless the user asks.
+- NEVER execute deployment SQL, upload staged files, change grants, or promote a live version without an explicit deployment request.
 - **Inspect first** with `read`, `grep`, `glob`. Locate entrypoint, supporting modules, `environment.yml` or Python dependency file, stage and deployment SQL, query warehouse, owner and viewer roles, CI workflow, app tests.
 - **Check the pinned Streamlit version** before using an API. Prefer repo-native patterns while they remain valid.
 - Runtime selection, deployment mechanics, security constraints, current Snowflake links: [runtime-and-deployment.md](references/runtime-and-deployment.md).

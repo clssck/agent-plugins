@@ -1,11 +1,11 @@
 ---
 name: search-company-knowledge
-description: Search Confluence and Jira through the Atlassian Rovo MCP server and answer internal questions with cited, synthesized results (read-only). Use when the user asks what an internal system, process, acronym, or ticket is, or says "in our docs", "in Confluence", "in Jira", "on the wiki". Not for general tech questions or creating/editing pages (confluence-html-editor).
+description: Use for internal docs, Jira, and Confluence searches.
 ---
 
 # Search Company Knowledge
 
-Find internal answers in Confluence and Jira via Atlassian MCP tools. Synthesize by topic; cite every source.
+Find internal answers in Confluence and Jira via Atlassian Rovo MCP tools (read-only): what an internal system, process, acronym, or ticket is, or when the user says "in our docs", "in Confluence", "in Jira", "on the wiki". Synthesize by topic; cite every source. General tech questions are out of scope; creating or editing pages belongs to confluence-html-editor.
 
 ## Prerequisite: Atlassian MCP Server
 

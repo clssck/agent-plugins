@@ -24,9 +24,11 @@ SOFTWARE.
 
 This license covers only what is written in this repository: the packs
 clssck-core, bro, and sanofi under packs/, and the tooling under scripts/.
-Exception: reference files in packs/sanofi/skills/dbt/ adapted from
-dbt-labs/dbt-agent-skills remain under Apache-2.0; see the ATTRIBUTION and
-LICENSE-dbt-agent-skills files in that directory.
+Exceptions:
+- packs/clssck-core/skills/cli-creator/ remains under Apache-2.0; see LICENSE.txt
+  in that directory.
+- Reference files in packs/sanofi/skills/dbt/ adapted from dbt-labs/dbt-agent-skills
+  remain under Apache-2.0; see ATTRIBUTION and LICENSE-dbt-agent-skills there.
 
 Everything else is a vendored copy of third-party work and remains under its
 own terms. The five coco-* packs under packs/ are copies of Snowflake Cortex

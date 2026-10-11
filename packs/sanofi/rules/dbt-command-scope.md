@@ -11,11 +11,11 @@ scope: tool:bash
 interruptMode: always
 ---
 
-**A dbt command's blast radius is its selection.** An unselected build rewrites every model in the target, and `--empty` or `--full-refresh` can replace data you wanted to keep.
+**A dbt command's blast radius is its selection.** An unselected build can touch every model in the target; `--empty` and `--full-refresh` can replace stored data.
 
 - MUST pass `--select`, `-s`, or `--selector` to `build`, `run`, `test`, `seed`, `snapshot`, and `clone`. Run the whole project only when the user asked for it. Preview a selection with `dbt ls --select <x>`.
-- Prefer `dbt build` over `dbt run`: `run` skips tests, so a bad rebuild passes silently. Keep `run` only when the project's per-layer pattern says so.
-- `--empty` replaces every selected table with a zero-row copy. An upstream selector (`+x`, `2+x`, `@x`) selects the parents, so their existing data is lost. Select only the target model, or add `--exclude` for the parents.
+- SHOULD use `dbt build` over `dbt run`: `run` skips tests. Keep `run` only for the project's documented per-layer pattern.
+- `--empty` reads refs and sources as zero-row inputs; the materialization determines what is written. MUST use it only on explicitly selected models in a fresh or disposable schema. NEVER empty-run relations holding data you need. An upstream selector (`+x`, `2+x`, `@x`) includes parents: exclude relations to keep and preview the remaining selection.
 - `x+` and `state:modified+` select downstream; only a leading `+` or `@` pulls in parents.
 - An approved `--full-refresh` on a prod-like target drops and recreates tables. Before running it:
   - Read the project's `on-run-start` and `on-run-end` hooks; they run against that target too.

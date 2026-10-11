@@ -1,11 +1,11 @@
 ---
 name: incident-postmortem
-description: Write or review Sanofi blameless post-mortems for production incidents (severity, UTC timeline, impact, root cause, contributing factors, owned actions). Use when writing a post-mortem, post-incident review (PIR), incident report, RCA, or outage writeup. Not for live response or paging, bug triage, sprint retrospectives, or security scanning (/security).
+description: Use for evidence-based incident timelines, root causes, and postmortems; not live triage.
 ---
 
 # Incident Post-Mortem
 
-Blameless, evidence-backed post-mortems for production incidents. Output: one Markdown document at `docs/postmortems/YYYY-MM-DD-short-slug.md` (date = incident start). Complements `/security`: that finds vulnerabilities; this records an incident that occurred.
+Blameless, evidence-backed post-mortems for production incidents (post-incident review, incident report, RCA, outage writeup): severity, UTC timeline, impact, root cause, contributing factors, owned actions. Output: one Markdown document at `docs/postmortems/YYYY-MM-DD-short-slug.md` (date = incident start). Complements `/security`: that finds vulnerabilities; this records an incident that occurred. Live response or paging, bug triage, and sprint retrospectives are out of scope.
 
 ## Workflow
 

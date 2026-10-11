@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "private": true,
   "description": "Personal OMP rules, task agents, and skills.",
-  "license": "MIT",
+  "license": "MIT AND Apache-2.0",
   "author": {
     "name": "clssck"
   },

@@ -130,14 +130,17 @@ switch that input or `expect` to `format: sql` with an explicit `cast(...)`.
   model's own relation (`this`); on a fresh schema `dbt build` runs the unit test before the
   model and fails with `Not able to get columns for unit test '<model>'`
   ([dbt-core#10844](https://github.com/dbt-labs/dbt-core/issues/10844)). Make the first
-  build pass: run `dbt run --select "<model>" --empty` (or
-  `--select "config.materialized:incremental" --empty`) before the build in CI and fresh dev
-  schemas, and prove it by building once from an empty schema.
-- **`--empty` replaces the selected relations with zero-row versions.** NEVER combine it with
-  a `+` upstream selector, and never aim it at a schema holding data you need. To cover all
-  parents of one model use `--select "1+<model>" --exclude "<model>"` and only in a
-  disposable schema. `dbt build --select "+<model>"` builds the parents for real instead,
-  in lineage order with the unit tests before the model; use it when those builds are cheap.
+  build pass: in CI and fresh dev schemas only, run `dbt run --select "<model>" --empty` (or
+  an explicit list of the affected incremental models) before the build, and prove it by
+  building once from an empty schema.
+- `--empty` makes refs and sources read zero rows: selected tables and views are rebuilt
+  empty, and an existing incremental gets a zero-row incremental run. Use it only on the
+  target model, its parents, or explicitly scoped incremental models in a fresh or
+  disposable schema. NEVER aim it at data-bearing relations or combine it with an unchecked
+  `+` upstream selector. To cover all parents of one model use
+  `--select "1+<model>" --exclude "<model>"`. `dbt build --select "+<model>"` builds the
+  parents for real instead, in lineage order with the unit tests before the model; use it
+  when those builds are cheap.
 - Commands: all unit tests `dbt test --select "test_type:unit"`; one model's
   `dbt test --select "<model>,test_type:unit"`; a single case `dbt test --select "<case>"`
   (or `unit_test:<case>`); generic data tests `dbt test --select "test_type:generic"`;
@@ -147,8 +150,8 @@ switch that input or `expect` to `format: sql` with an explicit `cast(...)`.
   case prints an `actual differs from expected` diff.
 - Run them in development and CI only. Inputs are static, so production runs waste compute:
   `dbt build --exclude-resource-type unit_test` or `DBT_ENGINE_EXCLUDE_RESOURCE_TYPES=unit_test`
-  (1.11+). For `dbt test`, `--select "test_type:data"` runs only data tests
-  (`--exclude-resource-type` works for `dbt test` only on 1.x).
+  (1.11+). For `dbt test`, `--select "test_type:data"` runs only data tests, or use
+  `--exclude-resource-type unit_test`.
 - A disabled model disables its unit tests (1.11+).
 
 ## Limits
@@ -163,7 +166,7 @@ switch that input or `expect` to `format: sql` with an explicit `cast(...)`.
 
 - YAML under `model-paths`, not `tests/`; every `ref`/`source` mocked.
 - `is_incremental` (and `dbt_utils.star`) overridden where used; ephemeral parents use `format: sql`.
-- Parents built with `--empty` without `+`, never over data that matters.
+- Parents built with `--empty` without `+`, only in a fresh or disposable schema.
 - Incremental unit tests pass from an empty schema (model's own `--empty` shell pre-built).
 - Unit tests excluded from production builds.
 - A deliberately broken expectation fails, proving the test can fail.

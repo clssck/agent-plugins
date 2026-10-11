@@ -1,11 +1,11 @@
 ---
 name: evidence-led-exploration
-description: Manage open-ended investigations with separate subject and investigation ledgers, evidence-linked claims, explicit branch states, contradiction handling, deferred leads with wake conditions, and compact agent handoffs. Use for ambiguous debugging, research, incident analysis, or multi-agent exploration. Not for a known linear procedure or a single lookup.
+description: Use for ambiguous debugging/research, evidence ledgers, and handoffs; not single lookups.
 ---
 
 # Evidence-Led Exploration
 
-Keep facts about the subject separate from the history of exploring it. Use a compact inline ledger for a short investigation; persist a task-owned artifact when context loss, branching, or handoff is likely. Reuse the project's notes location when one exists. Do not create hidden global state.
+Keep facts about the subject separate from the history of exploring it. Use a compact inline ledger for a short investigation; persist a task-owned artifact when context loss, branching, or handoff is likely. Reuse the project's notes location when one exists. NEVER create hidden global state.
 
 Start from [the ledger template](references/investigation-ledger.md). For a worker or session boundary, use [the handoff packet](references/handoff-packet.md).
 
@@ -104,7 +104,3 @@ Stop when the observable done condition is met, all useful branches are terminal
 - Every blocked or deferred branch has an observable predicate.
 - One branch is active per worker; merges are serialized.
 - Handoff names exhausted paths and one next action.
-
-## Provenance
-
-Original operational synthesis; no ARTEX source code or prompt text is included. The subject/investigation split was informed by ARTEX v0.3.15 exploration-state design (commit `e6ec56999175509551a1e43a3ee3b053d0941bd9`), reviewed read-only through surviving mirrors after the original repository disappeared.

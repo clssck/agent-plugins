@@ -1,22 +1,22 @@
 ---
 name: sanofi-airflow
-description: Sanofi MWAA Airflow conventions - parse-time safety, sanofi-airflow-utils config/secrets, failure alerts, access roles, CI/S3 sync, Airflow 3 migration, dbt via dbt_run.sh/DbtClient. Use when creating, reviewing, deploying, or troubleshooting DAGs in a Sanofi orchestration repo. Not for generic Airflow (coco-airflow), dbt models/SQL (dbt), or generic CI/CD (cicd-engineering).
+description: Use for Sanofi MWAA DAG authoring, troubleshooting, and deployment; not generic Airflow.
 ---
 
 # Sanofi Airflow
 
-Sanofi conventions for DAGs on AWS MWAA: shared central environment and dedicated tenants. Platform facts only; generic review stays with omp `/review`. Run it on the diff, then apply this skill for Sanofi-specific defects.
+Sanofi conventions for creating, reviewing, deploying, and troubleshooting DAGs on AWS MWAA (shared central environment and dedicated tenants): parse-time safety, sanofi-airflow-utils config/secrets, failure alerts, access roles, CI/S3 sync, Airflow 3 migration, dbt via `dbt_run.sh`/`DbtClient`. Platform facts only; generic review stays with omp `/review`. Run it on the diff, then apply this skill for Sanofi-specific defects. Generic Airflow belongs to coco-airflow, dbt models/SQL to the dbt skill, generic CI/CD to cicd-engineering.
 
 ## Core Rules
 
-- **MUST inspect the real repo first.** Derive `dags/` layout, `dag_id`/`task_id` convention, `default_args`, config/secrets loader, tags, roles, Airflow major version (2.11 vs 3.x), dbt-run mechanism from files.
+- MUST inspect the real repo first. Derive `dags/` layout, `dag_id`/`task_id` convention, `default_args`, config/secrets loader, tags, roles, Airflow major version (2.11 vs 3.x), dbt-run mechanism from files.
 - **Examples are patterns.** NEVER copy example names, roles, paths, or versions verbatim.
 - **Parse-time safety is review item one.** Shared MWAA scheduler imports every `.py` under `dags/` every 30-60s; one bad DAG degrades every tenant.
 - **Module-level `Variable.get()`, `get_secret()`, heavy import, DB connection, API call = blocking defect.** Even if the DAG "works". Move into the task body or Jinja (`{{ var.value.KEY }}`).
 - **Version-sensitive syntax follows configuration, not version.** Check `dag_ignore_file_syntax` (`regexp` or `glob`; default `glob` in Airflow 3, `regexp` before).
 - **Imports follow the target major version.** 2.11: `airflow.decorators`, `airflow.operators.bash`, `Dataset`. 3.x: `airflow.sdk` (`dag`, `task`, `Asset`, `Variable`) and `airflow.providers.standard.operators.bash`. `airflow.sdk` is not part of 2.11; legacy paths only warn on 3.x and are slated for removal.
 - **Airflow 3 changes run semantics, not just imports.** Check every DAG headed to a 3.x tenant against [Airflow 3 Traps](#airflow-3-traps).
-- **NEVER deploy to shared MWAA to test a DAG.** Prove changes locally or in CI.
+- NEVER deploy to shared MWAA to test a DAG. Prove changes locally or in CI.
 - **Prefer the repo's README, Makefile, CI, or scripts** for verification; otherwise use the ladder below.
 
 ## Routing

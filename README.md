@@ -26,7 +26,7 @@ omp plugin link $AP/upstream/emilkowalski-skills
 | `bro` | `omp plugin link $AP/packs/bro` | this repo | 1 skill |
 | `clssck-core` | `omp plugin link $AP/packs/clssck-core` | this repo | 4 skills, 9 rules, 2 agents |
 | `coco-airflow` | `omp plugin link $AP/packs/coco-airflow` | vendored, see [ATTRIBUTION](./packs/coco-airflow/ATTRIBUTION) | 18 skills |
-| `coco-blueprints` | `omp plugin link $AP/packs/coco-blueprints` | vendored, see [ATTRIBUTION](./packs/coco-blueprints/ATTRIBUTION) | 3 skills, 12 commands, 1 extension |
+| `coco-blueprints` | `omp plugin link $AP/packs/coco-blueprints` | vendored, see [ATTRIBUTION](./packs/coco-blueprints/ATTRIBUTION) | 3 skills, 12 commands |
 | `coco-bundled-skills` | `omp plugin link $AP/packs/coco-bundled-skills` | vendored, see [ATTRIBUTION](./packs/coco-bundled-skills/ATTRIBUTION) | 74 skills |
 | `coco-databricks` | `omp plugin link $AP/packs/coco-databricks` | vendored, see [ATTRIBUTION](./packs/coco-databricks/ATTRIBUTION) | 12 skills |
 | `coco-sf-solutions` | `omp plugin link $AP/packs/coco-sf-solutions` | vendored, see [ATTRIBUTION](./packs/coco-sf-solutions/ATTRIBUTION) | 1 skill |
@@ -214,7 +214,7 @@ omp plugin link $AP/upstream/emilkowalski-skills
 
 ## Maintenance
 
-[`.github/workflows/sync-upstreams.yml`](./.github/workflows/sync-upstreams.yml) runs [`scripts/sync.ts`](./scripts/sync.ts) daily at 06:17 UTC and on pushes that change `packs/`, `sources.json`, or `scripts/`. It moves every upstream in [`sources.json`](./sources.json) to the latest commit of its branch, copies it into `upstream/`, regenerates this README, and commits the result. The run fails, and commits nothing, if any skill, rule, agent, or command would not load in OMP or two packs define the same skill.
+[`.github/workflows/sync-upstreams.yml`](./.github/workflows/sync-upstreams.yml) runs [`scripts/sync.ts`](./scripts/sync.ts) daily at 06:17 UTC and on pushes that change `packs/`, `sources.json`, or `scripts/`. It moves every upstream in [`sources.json`](./sources.json) to the latest commit of its branch, copies it into `upstream/`, regenerates this README, and commits the result. The run fails, and commits nothing, if any skill, rule, agent, or command would not load in OMP or two packs define the same skill. That check covers only loadability and names; it does not run or verify any skill's workflow.
 
 To run it locally: `GITHUB_TOKEN=$(gh auth token) bun scripts/sync.ts`.
 
@@ -225,3 +225,11 @@ Append to `upstreams` in `sources.json`: `name` (the pack name), `repo` (`owner/
 ### Add a pack of your own
 
 Create `packs/<name>/package.json` with `name` (matching the directory), `version`, and `"omp": {}` (list TypeScript extension modules under `omp.extensions`). Add `skills/<skill>/SKILL.md`, `rules/*.md`, `agents/*.md`, or `commands/*.md` as needed; OMP does not look inside subdirectories of `rules/`, `agents/`, or `commands/`.
+
+### Authored skill style
+
+Skills written here follow the style of OMP's stock skills: `name` and `description` frontmatter (`disable-model-invocation` is allowed to keep a skill manual-only), a `# Title`, a short purpose, `##` sections, and a final `## Checklist`. Write dense imperative prose with plain uppercase RFC 2119 keywords (MUST, NEVER, SHOULD, MAY), keep `SKILL.md` a small router (about 150 lines or fewer), and move detail into reference files behind relative links instead of duplicating it. Routing descriptions MUST retain the key task triggers and sibling boundaries: the model sees only the description before choosing a skill. Put detailed procedures and explanations in the body. Runtime description compression is a separate model call and can fail even when the pack loads correctly. Upstream and vendored packs are copied as published and need not follow this style.
+
+## Compatibility
+
+A pack that loads in OMP is not guaranteed to work with your host or tools. Some skills target other agents: the Cortex Code (CoCo) and Snowflake packs reference CoCo tools, the `cortex` CLI, and host path variables. Before executing such a skill, the tool mapping, credentials, and real paths it relies on MUST be available; when they are not, stop and say so, and NEVER silently improvise a substitute.

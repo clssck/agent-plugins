@@ -1,11 +1,11 @@
 ---
 name: cli-creator
-description: Build a durable CLI from API docs, OpenAPI, curl examples, an SDK, a web app, or an existing script, with stable JSON output, auth handling, PATH install, and a companion omp skill. Use when a tool must run by command name from any directory. Not for one-off scripts that fit in the current repo or CI/CD pipelines (cicd-engineering).
+description: Use for reusable CLIs from APIs/SDKs/scripts; not one-offs or CI/CD.
 ---
 
 # CLI Creator
 
-Build a real CLI an agent can run by command name from any working directory, plus a companion omp skill that teaches it. Durable tools only: a short script in the current repo solves the task? Write the script there.
+Build a real CLI an agent can run by command name from any working directory, plus a companion omp skill that teaches it. Durable tools only: a short script in the current repo solves the task? Write the script there. CI/CD pipelines belong in cicd-engineering, not this skill.
 
 License: [LICENSE.txt](LICENSE.txt).
 
@@ -126,8 +126,8 @@ After the CLI works, create or update a companion skill. It is a normal omp skil
 Contract:
 
 - One level deep: `<skills-root>/<tool-name>/SKILL.md`; folder name = `name`.
-- Frontmatter: only `name` and `description`. Agent Plugins packs reject omp-only keys such as `hide`.
-- Description: what the CLI does, then `Use when ...` with concrete triggers, then `Not for ...` when a sibling fits better. At most ~380 characters.
+- Frontmatter: `name` and `description`; add `disable-model-invocation: true` only for a manual-only skill.
+- Description: purpose plus concrete use triggers; `Not for ...` only to prevent sibling confusion. Keep the routing hint short; put source details and output contracts in the body.
 - Body: `# Title`, purpose, ordered workflow, rules, `## Checklist`; under ~150 lines.
 - Detail goes in `references/*.md`; link with relative Markdown links. Every file linked from `SKILL.md`.
 - Bundled scripts: PEP 723 header with `#!/usr/bin/env -S uv run --script`; invoke as `uv run "$(realpath skill://<tool-name>/scripts/<file>.py)"` in the omp `bash` tool. A bare `skill://` path fails in external programs; `realpath` prints the physical path.

@@ -1,11 +1,11 @@
 ---
 name: confluence-html-editor
-description: Create, update, audit, or repair Confluence pages via the Atlassian Rovo MCP server with HTML bodies, native macros, and ADF verification. Use when a Confluence page must be created, edited, redesigned, or checked, or a page URL is given to change. Not for answering from Confluence (search-company-knowledge) or ADR and post-mortem writing (adr-writing, incident-postmortem).
+description: Use for Confluence HTML/ADF editing; not knowledge searches.
 ---
 
 # Confluence HTML Editor
 
-Edit Confluence pages HTML-first through Atlassian MCP tools. Preserve native macros and workflow state; verify after every write.
+Create, update, audit, or repair Confluence pages HTML-first through Atlassian Rovo MCP tools, including a page URL given to change. Preserve native macros and workflow state; verify after every write. Answering questions from Confluence belongs to search-company-knowledge; ADR and post-mortem writing belong to adr-writing and incident-postmortem.
 
 ## Prerequisite: Atlassian MCP Server
 

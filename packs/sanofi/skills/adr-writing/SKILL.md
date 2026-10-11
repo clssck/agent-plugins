@@ -1,11 +1,11 @@
 ---
 name: adr-writing
-description: Write or review Sanofi MADR Architecture Decision Records - numbering, template, manifesto alignment, option evidence, cost annex. Use when recording an architecture decision, drafting an ADR from Jira/Confluence, or reviewing or fact-checking an ADR. Not for C4/architecture docs (architecture-documentation), Confluence publishing (confluence-html-editor), or code review.
+description: Use for architecture decision records; not C4 documentation.
 ---
 
 # Architecture Decision Records
 
-Write and review ADRs in a Sanofi variant of [MADR](https://adr.github.io/madr/): the MADR 2.x Positive/Negative Consequences layout (MADR 3.0.0 merged them into one `Consequences` list) plus mandatory Architecture Manifesto Alignment.
+Write and review ADRs in a Sanofi variant of [MADR](https://adr.github.io/madr/): the MADR 2.x Positive/Negative Consequences layout (MADR 3.0.0 merged them into one `Consequences` list) plus mandatory Architecture Manifesto Alignment. Covers numbering, template, option evidence, cost annex, drafting from Jira/Confluence, and fact-checking. C4/architecture docs belong to architecture-documentation, Confluence publishing to confluence-html-editor, code review to `/review`.
 
 ## Layout
 

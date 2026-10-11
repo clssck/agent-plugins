@@ -1,11 +1,11 @@
 ---
 name: architecture-documentation
-description: Create or update C4 models (context, container, component, deployment, landscape), architecture narratives, diagrams-as-code (Structurizr, C4-PlantUML, Mermaid C4), and versioned artifacts from a codebase with Sanofi conventions. Use when documenting or versioning system architecture. Not for ADRs (adr-writing), API specs, or Confluence publishing (confluence-html-editor).
+description: Use for C4/system documentation; not ADRs.
 ---
 
 # Architecture Documentation
 
-C4 modeling, content, and versioning for architecture documentation. Artifact-neutral: preserve the repository's source format; NEVER make a diagramming tool a prerequisite.
+C4 modeling (context, container, component, deployment, landscape), architecture narratives, diagrams-as-code (Structurizr, C4-PlantUML, Mermaid C4), and versioned artifacts from a codebase, with Sanofi conventions. Artifact-neutral: preserve the repository's source format; NEVER make a diagramming tool a prerequisite. ADRs belong to adr-writing, API specs are out of scope, Confluence publishing belongs to confluence-html-editor.
 
 ## Handoffs
 

@@ -1,11 +1,11 @@
 ---
 name: iac-security-review
-description: AWS IaC security review with a control matrix for Terraform, CDK, SST, CloudFormation, and Pulumi, plus Sanofi tag and module policy. Use when auditing infrastructure code for public exposure, IAM, encryption, network, logging, or secrets. Not for authoring Terraform (iac-terraform), CI/CD workflows (cicd-engineering), or app code (/review, /security).
+description: Use for IaC security review; not Terraform authoring.
 ---
 
 # IaC Security Review
 
-Static, read-only review of AWS infrastructure code. Produces an evidence-graded report.
+Static, read-only AWS infrastructure code review (Terraform, CDK, SST, CloudFormation, Pulumi) against a control matrix and Sanofi tag and module policy: public exposure, IAM, encryption, network, logging, secrets. Produces an evidence-graded report. Terraform authoring belongs to iac-terraform, CI/CD workflows to cicd-engineering, app code to `/review` and `/security`.
 
 Complements omp built-ins: `/security` and `security-reviewer` run generic vulnerability discovery; this skill supplies the IaC resource-control matrix and Sanofi policy. Run both for a full security audit; use `/review` for diffs.
 

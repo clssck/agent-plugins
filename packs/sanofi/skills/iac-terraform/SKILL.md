@@ -1,11 +1,11 @@
 ---
 name: iac-terraform
-description: Author or review AWS Terraform using Sanofi terraform-aws-library modules, pinned versions, and the mandatory tag set. Use when creating or changing AWS Terraform at Sanofi, picking a library module, applying or checking tags, or validating a project. Not for security audits (iac-security-review), CI/CD (cicd-engineering), or non-AWS IaC.
+description: Use for Terraform authoring; not IaC security review.
 ---
 
 # Terraform IaC
 
-Build AWS Terraform from `Sanofi-InnerSource/terraform-aws-library` modules with pinned versions and the full Sanofi tag set. Complements the built-in `/review` command: that finds generic defects; this skill checks module, tag, and validation conventions. Security analysis belongs to the `iac-security-review` skill.
+Author or review AWS Terraform from `Sanofi-InnerSource/terraform-aws-library` modules with pinned versions and the full Sanofi tag set; covers picking a module, applying or checking tags, and validating a project. Complements the built-in `/review` command: that finds generic defects; this skill checks module, tag, and validation conventions. Security analysis belongs to `iac-security-review`, CI/CD to cicd-engineering; non-AWS IaC is out of scope.
 
 ## References
 
