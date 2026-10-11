@@ -1,0 +1,56 @@
+Sanofi dbt skill - third-party attribution
+
+Upstream: dbt-labs/dbt-agent-skills
+Repository: https://github.com/dbt-labs/dbt-agent-skills
+Commit: 168a2b0 (168a2b0b92da59be88866257140907c206ff0e44)
+License: Apache License 2.0. The upstream LICENSE is reproduced in LICENSE-dbt-agent-skills.
+The upstream repository contains no NOTICE file at this commit.
+
+Changes: the files below are adapted from the upstream skills, not copied verbatim. They were
+modified: condensed, restricted to dbt Core and Snowflake, merged with Sanofi-specific rules,
+re-verified against docs.getdbt.com and docs.snowflake.com, and extended with material that is
+not in the upstream files. Sanofi-originated content in these files is not from dbt Labs.
+The dbt Labs skill directories below are under skills/ in the upstream repository.
+
+references/unit-tests.md
+  dbt/skills/adding-dbt-unit-test (SKILL.md; references/spec.md,
+  special-cases-incremental-model.md, special-cases-special-case-overrides.md,
+  special-cases-versioned-model.md, special-cases-ephemeral-dependency.md,
+  warehouse-snowflake-data-types.md)
+
+references/state-and-ci.md
+  dbt/skills/running-dbt-commands (SKILL.md: selectors, defer, --favor-state)
+  dbt/skills/using-dbt-state (consulted; not adopted: dbt State is a paid, server-backed
+  product distinct from state:modified and is out of scope)
+
+references/contracts-and-versions.md
+  dbt/skills/working-with-dbt-mesh (SKILL.md; references/model-contracts.md,
+  model-versions.md, groups-and-access.md)
+
+references/upgrading-and-v2.md
+  dbt-migration/skills/upgrading-dbt (SKILL.md: behavior-flag handling)
+  dbt-migration/skills/migrating-dbt-core-to-v2 (SKILL.md; references/error-patterns-reference.md,
+  classification-categories.md)
+
+references/troubleshooting.md
+  dbt/skills/troubleshooting-dbt-job-errors (SKILL.md)
+  dbt/skills/using-dbt-for-analytics-engineering (references/debugging-dbt-errors.md)
+
+SKILL.md (Command Scope section)
+  dbt/skills/running-dbt-commands (select-always, build over run, dbt show --limit)
+  dbt/skills/adding-dbt-unit-test (the --empty overwrite warning)
+
+references/snowflake-materializations.md
+  Sanofi content moved from references/general-dbt-guide.md, extended with facts verified
+  against the dbt Snowflake configurations page. No upstream text adapted.
+
+references/project-setup.md, references/operations.md
+  Sanofi content moved (lightly edited) from references/general-dbt-guide.md; no upstream text adapted.
+
+references/snowflake-native-dbt.md
+  The dbt_semantic_view engine-compatibility note is Sanofi-authored from docs.getdbt.com and
+  the Snowflake-Labs/dbt_semantic_view repository; no upstream dbt Labs skill text adapted.
+
+Not adopted from upstream: building-dbt-semantic-layer, querying-the-dbt-information-schema,
+configuring-dbt-mcp-server, creating-mermaid-dbt-dag, answering-natural-language-questions-with-dbt,
+maintaining-dbt-documentation, fetching-dbt-docs, migrating-dbt-project-across-platforms.

@@ -9,8 +9,9 @@ Use this reference only for capabilities that differ materially from ordinary db
 - authoring Snowflake semantic views through the `dbt_semantic_view` package.
 
 For normal model SQL, project structure, tests, documentation, incremental logic,
-selectors, packages, CI, or dbt Core commands, use `general-dbt-guide.md` instead. Add
-that guide when a native-project request also changes ordinary dbt code.
+selectors, packages, CI, or dbt Core commands, use the other dbt references instead
+(`general-dbt-guide.md`, `snowflake-materializations.md`, `state-and-ci.md`, `project-setup.md`,
+routed from SKILL.md). Add them when a native-project request also changes ordinary dbt code.
 
 ## Sources and Currency
 
@@ -162,6 +163,15 @@ assessment.
 Use `dbt_semantic_view` only when the user explicitly wants a Snowflake semantic view.
 Before adding the dependency, follow the project's package approval process, verify the
 current release and dbt compatibility, and pin an approved version.
+
+**Engine compatibility:** dbt's Snowflake configuration page states the package requires
+dbt `>=1.0.0, <2.0.0`, so it targets dbt v1 (dbt Core 1.x). The package's own
+`require-dbt-version` is `<2.0.0` in v1.0.0-v1.0.3 and `<3.0.0` from v1.0.4 (v1.0.6 is the
+latest tag checked), which conflicts with that page. Because the bare `dbt` PyPI package and
+native `DBT_VERSION` `2.x` run dbt v2, do not combine `dbt_semantic_view` with a `2.x`
+runtime until the project has proven `dbt deps` and a scoped `dbt build` of the
+semantic-view models on that exact version; otherwise keep those projects on dbt v1
+([upgrading-and-v2.md](upgrading-and-v2.md#dbt-v2-readiness)).
 
 A semantic-view model uses the package materialization plus Snowflake's semantic-view SQL
 body:
