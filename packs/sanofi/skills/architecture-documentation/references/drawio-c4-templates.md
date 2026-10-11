@@ -1,25 +1,12 @@
 # Draw.io C4 Templates
 
-Complete draw.io XML templates for each C4 level and supplementary diagram type.
-All templates use the Sanofi color palette, numeric cell IDs, 3-line element labels,
-and include a legend.
-
-## Table of Contents
-
-- [3-Line Element Label Format](#3-line-element-label-format)
-- [Level 1: System Context Template](#level-1-system-context-template)
-- [Level 2: Container Template](#level-2-container-template)
-- [Level 3: Component Template](#level-3-component-template)
-- [Deployment Diagram Template](#deployment-diagram-template)
-- [Dynamic Diagram Template](#dynamic-diagram-template)
-- [Legend Template (Standalone)](#legend-template-standalone)
-- [Sanofi Color Palette Summary](#sanofi-color-palette-summary)
+Draw.io XML templates for each C4 level and supplementary type; use ONLY when an existing Draw.io source MUST stay compatible. All templates: Sanofi color palette, numeric cell IDs, 3-line element labels, legend.
 
 ---
 
 ## 3-Line Element Label Format
 
-Every element in a C4 diagram uses this label structure:
+Every element uses this label structure:
 
 ```html
 <b>Element Name</b><br>[Type: Technology]<br><br><font style="font-size:11px">Short description of<br>key responsibilities</font>

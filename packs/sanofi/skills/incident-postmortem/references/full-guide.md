@@ -1,74 +1,39 @@
 # Post-Mortem Process Guide
 
-Produces a blameless post-mortem for Sanofi incident management. The output
-is a single Markdown document with severity classification, a reconstructed
-timeline, root-cause analysis, and action items owned by named people with
-deadlines.
+Blameless post-mortem for Sanofi incident management. Output: single Markdown document — severity classification, reconstructed timeline, root-cause analysis, action items owned by named people with deadlines.
 
 ## Philosophy
 
-- **Blameless**: focus on systems, processes, and missing safeguards — NEVER
-  on individuals. Bad outcomes come from weak systems, not bad people.
-- **Timeline before theories**: reconstruct what happened in chronological
-  order before trying to explain why. Speculation anchored on a wrong fact
-  is worse than no theory.
-- **Lessons > documents**. A post-mortem that produces no durable change
-  (runbook update, monitor added, code fix, process change) has failed.
+- **Blameless.** Focus on systems, processes, missing safeguards; NEVER individuals. Bad outcomes come from weak systems, not bad people.
+- **Timeline before theories.** Reconstruct chronologically before explaining. Speculation anchored on a wrong fact is worse than no theory.
+- **Lessons > documents.** No durable change (runbook update, monitor added, code fix, process change) ⇒ post-mortem failed.
 
 ## Workflow
 
 ### 1. Confirm (or revise) severity
 
-Severity is set **during** the incident — it drives paging, war-room
-activation, and the comms plan, so it cannot wait for the post-mortem.
-The post-mortem's job here is to **confirm the live classification was
-correct, or deliberately reclassify** now that the settled facts
-(actual user impact, duration, data/compliance blast radius) are known.
+Severity is set **during** the incident — it drives paging, war-room activation, comms plan; it cannot wait. The post-mortem **confirms the live classification or deliberately reclassifies** once settled facts (user impact, duration, data/compliance blast radius) are known. Definitions, response SLAs, decision flow: [severity-levels.md](severity-levels.md).
 
-Severity definitions, response SLAs, and the decision flow are in
-[severity-levels.md](severity-levels.md).
+- **Reclassify up** when settled facts show a larger blast radius (more users, longer duration, data/compliance impact discovered after the fact).
+- **Reclassify down** only when measured impact is genuinely smaller than the live call; record the reason. NEVER down to avoid the 5-business-day deadline — real, material impact is SEV2 (or higher) however inconvenient the write-up.
+- **No live severity** (incident bypassed declared process) → record a process gap in Contributing Factors; classify now on measured impact.
 
-Check the live severity against the measured impact:
-
-- **Reclassify up** if settled facts show the blast radius was larger than
-  first thought (more users, longer duration, data / compliance impact
-  discovered after the fact).
-- **Reclassify down** only when the measured impact is genuinely smaller
-  than the live call, and record the reason. Do **not** reclassify down
-  to avoid the 5-business-day post-mortem deadline — if impact was real
-  and material, it is SEV2 (or higher) regardless of whether writing it
-  up is inconvenient.
-- If no live severity was set (the incident bypassed the declared
-  process), record that as a process gap in the Contributing Factors
-  section and classify now based on measured impact.
-
-Capture both the live severity and the final severity (and the reason if
-they differ) in the header of the post-mortem document.
+Record live and final severity (plus reason if they differ) in the document header.
 
 ### 2. Identify roles
 
-Every incident has at minimum:
+| Role | Duty |
+|---|---|
+| Incident Commander (IC) | Owned response, drove decisions, coordinated comms; usually on-call engineer or designated deputy. **Responsible for ensuring the post-mortem is written**, not for writing every section alone |
+| Responders | Engineers who diagnosed or remediated |
+| Communications lead | SEV1 only; owned customer/stakeholder updates |
+| Post-mortem author | Usually the IC; name explicitly so ownership is unambiguous |
 
-- **Incident Commander (IC)** — owned the response, drove decisions,
-  coordinated communications. Usually the on-call engineer or their
-  designated deputy. The IC is **responsible for ensuring the post-mortem
-  is written**, but does not have to write every section alone.
-- **Responders** — engineers who diagnosed or remediated the issue.
-- **Communications lead** (SEV1 only) — owned customer/stakeholder updates.
-- **Post-mortem author** — usually the IC. Name explicitly so ownership is
-  unambiguous.
-
-Capture these in the header of the post-mortem document, along with the
-**Incident ID**. Reuse the ID from whichever incident tracker your team
-already uses (PagerDuty incident ID, ServiceNow ticket, Opsgenie alert
-ID, Jira incident issue, etc.) so the post-mortem is linkable from the
-same ID the responders used in the war room. If the team has no such
-system, fall back to `INC-YYYY-MMDD-NNN` using the incident start date
-and a daily sequence number.
+Capture all in the header with the **Incident ID**. Reuse the ID from the team's incident tracker (PagerDuty incident ID, ServiceNow ticket, Opsgenie alert ID, Jira incident issue, etc.) so the post-mortem links from the ID responders used in the war room. No tracker → `INC-YYYY-MMDD-NNN` (incident start date + daily sequence number).
 
 ### 3. Reconstruct the timeline
 
-Gather raw sources in this order:
+Raw sources, in order:
 
 ```text
 # Incident chat/war room transcript
@@ -78,73 +43,54 @@ Gather raw sources in this order:
 # Customer support tickets filed during the incident
 ```
 
-Build the timeline in UTC, with source links where possible. Every entry
-has a timestamp, actor (role not person when identity doesn't matter), and
-a short factual statement, plus a metric, log search, or dashboard link
-showing where the data point came from (put commands/queries used in the
-document so others can reproduce). **Do not interpret yet** — just record what
-happened. Include changes in status/impact and key responder actions and
-decisions.
+UTC, source links where possible. Entry = timestamp + actor (role, not person, when identity is immaterial) + short factual statement + metric/log search/dashboard link showing provenance. Put commands/queries in the document so others can reproduce. **Do not interpret yet.** Include status/impact changes, key responder actions and decisions.
 
-Report impact duration separately from response duration: impact may
-start before detection and may end before resolution.
+Impact duration ≠ response duration: impact may start before detection and end before resolution.
 
-Example row (good):
+Good:
 
 > `14:03 UTC` — Deploy of `orders-api` v2.41.0 completes.
 > `14:07 UTC` — Error rate on `/checkout` climbs from 0.1% to 8% (link to dashboard).
 > `14:09 UTC` — First customer ticket filed ("Payment fails with 500").
 
-Anti-pattern (bad — contains interpretation and blame):
+Bad — interpretation and blame:
 
 > `14:07 UTC` — Alice's deploy breaks checkout because she didn't test properly.
 
-Key timestamps to always capture:
+Key timestamps — always capture:
 
-- **Detection** — when did an alert fire or a report first reach responders?
-- **Acknowledgement** — when was the incident declared / on-call paged?
-- **Mitigation** — when was customer impact stopped (even if root cause
-  wasn't yet known)?
-- **Resolution** — when was the underlying issue fully fixed?
+| Name | Question |
+|---|---|
+| Detection | When did an alert fire or a report first reach responders? |
+| Acknowledgement | When was the incident declared / on-call paged? |
+| Mitigation | When did customer impact stop (root cause may still be unknown)? |
+| Resolution | When was the underlying issue fully fixed? |
 
-**Start** = first customer impact (record the triggering deploy or change separately).
-Impact often starts before responders know; keep Start separate from Detection.
-**Time-to-Detect (TTD)** = Detection − Start.
-**Time-to-Acknowledge (TTA)** = Acknowledgement − Detection.
-**Time-to-Mitigate (TTM)** = Mitigation − Detection.
-**Time-to-Resolve (TTR)** = Resolution − Start.
+**Start** = first customer impact; record the triggering deploy/change separately. Impact often starts before responders know ⇒ keep Start separate from Detection.
 
-Always write the two endpoint events beside each duration. "MTTR" is used
-for repair, recover/restore, respond, and resolve, so a bare "MTTR" is
-ambiguous. Averages of a few incident durations are not evidence of
-improvement: Google's analysis of incident metrics found MTTx statistics
-poorly suited to decisions or trend analysis, so report this incident's
-durations only. TTR above is not DORA's "failed deployment recovery
-time", which covers only recovery from a deployment that fails and needs
-immediate intervention; do not use the two interchangeably. Start the
-timeline before the trigger and work forward, not backward from
-resolution (hindsight bias); include information the team did not have
-at the time that you wish they had.
+- **TTD** = Detection − Start
+- **TTA** = Acknowledgement − Detection
+- **TTM** = Mitigation − Detection
+- **TTR** = Resolution − Start
+
+**Durations.** Write both endpoint events beside each duration. "MTTR" covers repair, recover/restore, respond, resolve ⇒ bare "MTTR" ambiguous. Averages of a few incident durations are not evidence of improvement: Google's analysis of incident metrics found MTTx statistics poorly suited to decisions or trend analysis ⇒ report this incident's durations only. TTR above ≠ DORA's "failed deployment recovery time" (recovery only from a deployment that fails and needs immediate intervention); NEVER use interchangeably.
+
+**Hindsight bias.** Start the timeline before the trigger and work forward, not backward from resolution. Include information the team did not have at the time that you wish they had.
 
 ### 4. Quantify impact
 
-Be specific. "Some users were affected" is not impact. Use the format:
+"Some users were affected" is not impact.
 
-- **Users affected**: rough count or percentage, and segment (e.g., "EU
-  paying customers").
-- **Requests affected**: count or error rate.
-- **Duration**: start → mitigation (and separately to resolution if they
-  differ).
-- **Revenue / data / compliance impact**: if applicable. If unknown, say
-  so — do not guess.
+| Field | Content |
+|---|---|
+| Users affected | Rough count or percentage, plus segment (e.g. "EU paying customers") |
+| Requests affected | Count or error rate |
+| Duration | Start → mitigation (and separately → resolution if they differ) |
+| Revenue / data / compliance | If applicable; unknown ⇒ say so, NEVER guess |
 
-### 5. Run root-cause analysis
+### 5. Root-cause analysis
 
-Use **5 Whys** as a starting frame, but do not stop at a single chain.
-Real incidents have **multiple contributing factors** — capture all of
-them.
-
-5 Whys sketch:
+**5 Whys** is the starting frame, never a single chain. Real incidents are multi-causal ⇒ capture all contributing factors.
 
 ```
 Q1: Why did /checkout return 500s?          A: Orders-api threw NullPointer on line X.
@@ -154,138 +100,92 @@ Q4: Why didn't the canary catch it?         A: Canary traffic routed only to new
 Q5: Why is canary traffic segmented that way? A: Default router config from 2023 never revisited.
 ```
 
-Then capture **Contributing Factors** separately — the conditions that
-allowed the trigger to cause the outage:
+**Contributing Factors** are captured separately: conditions that let the trigger cause the outage.
 
 - Alerting gap: error-rate alert threshold was 10% (incident peaked at 8%).
 - Runbook gap: no documented rollback for orders-api > v2.40.
 - Process gap: deploy approval did not require canary health check.
 
-**Proximate vs root cause.** The proximate cause is what directly led to
-the incident (the trigger). The root cause is the place in the chain
-where a change prevents the whole class of incident. Keep asking until a
-system, process, or design gap surfaces. "Human error" is never a root
-cause. Also review the response process itself (collaboration,
-communication, review) even if it is not a root cause.
+**Proximate vs root.** Proximate = what directly led to the incident (the trigger). Root = place in the chain where a change prevents the whole class of incident. Keep asking until a system, process, or design gap surfaces; "human error" is never a root cause. Also review the response process itself (collaboration, communication, review), even when it is not a root cause.
 
-**Root-cause categories** (name one; it points to the right action):
+**Root-cause categories** — name one; it points to the right action:
 
-| Category     | Typical action                                                                    |
-| ------------ | --------------------------------------------------------------------------------- |
-| Bug          | Tests, canary, incremental rollout, feature flags                                 |
-| Change       | Improve change review / change management                                        |
-| Scale        | Capacity plan; monitor and alert on resource constraints                          |
-| Architecture | Design review; design misaligned with operating conditions                        |
-| Dependency   | See below                                                                         |
-| Unknown      | Action is to improve observability (logging, monitoring, debugging) so it can be diagnosed |
+| Category | Typical action |
+|---|---|
+| Bug | Tests, canary, incremental rollout, feature flags |
+| Change | Improve change review / change management |
+| Scale | Capacity plan; monitor and alert on resource constraints |
+| Architecture | Design review; design misaligned with operating conditions |
+| Dependency | See below |
+| Unknown | Improve observability (logging, monitoring, debugging) so it can be diagnosed |
 
-**Dependency failures.** Compare with the dependency's SLO (internal) or
-your reasonable expectation of it (third party; contractual SLAs are
-usually too low to be useful). If it breached the SLO or expectation,
-the dependency owner needs to improve, and you still review whether your
-service should degrade more gracefully. If it stayed within, your
-service lacks resilience. If there is no SLO or expectation, creating one
-is an action item.
+**Dependency failures.** Compare with the dependency's SLO (internal) or your reasonable expectation (third party; contractual SLAs usually too low to be useful). Breached → dependency owner improves, and you still review whether your service should degrade more gracefully. Within → your service lacks resilience. No SLO or expectation → creating one is an action item.
 
-Ask "how" and "what" questions rather than "who" or "why" when
-interviewing responders: What were you focusing on? What differed from
-what you expected? What options did you consider and why did this one
-seem best? How did time pressure influence choices? Was there prior work
-the team chose not to do?
+**Interviewing responders.** Ask "how" and "what", not "who" or "why": What were you focusing on? What differed from what you expected? What options did you consider and why did this one seem best? How did time pressure influence choices? Was there prior work the team chose not to do?
 
-Use blameless language throughout. See [blameless-language.md](blameless-language.md)
-for do/don't phrasings.
+Blameless language throughout: [blameless-language.md](blameless-language.md).
 
-### 6. Capture what went well and what went wrong
+### 6. What went well / wrong / lucky
 
-Post-mortems are not just failure catalogs — call out what worked so it
-gets reinforced:
+Post-mortems are not failure catalogs; call out what worked so it gets reinforced.
 
-- **What went well**: fast detection, clean rollback, good communication,
-  useful runbook, solid monitoring.
-- **What went wrong**: gaps, surprises, places where the system or process
-  let the team down.
-- **Where we got lucky**: near-misses that could have made this worse.
-  Lucky outcomes are future incidents waiting to happen.
+| Section | Content |
+|---|---|
+| Went well | Fast detection, clean rollback, good communication, useful runbook, solid monitoring |
+| Went wrong | Gaps, surprises, places where system or process let the team down |
+| Got lucky | Near-misses that could have made this worse; lucky outcomes are future incidents waiting to happen |
 
-### 7. Define action items
+### 7. Action items
 
-Every action item MUST have the fields below. If an owner or tracking link is not yet
-known, mark it `UNASSIGNED`/blank, NEVER invent it, and keep the post-mortem in Draft:
+Every item MUST have the fields below. Owner or tracking link unknown → `UNASSIGNED`/blank, NEVER invent, keep the document in Draft.
 
-| Field         | Required | Notes                                                               |
-| ------------- | -------- | ------------------------------------------------------------------- |
-| Description   | Yes      | Concrete and verifiable                                             |
-| Type          | Yes      | One of: `prevent`, `detect`, `mitigate`, `process`, `documentation` |
-| Owner         | Yes      | A named person, not a team (teams diffuse ownership)                |
-| Deadline      | Yes      | Absolute date (YYYY-MM-DD), not "next sprint"                       |
-| Tracking link | Yes      | Jira/Linear/GitHub issue ID so progress is visible                  |
-| Priority      | Yes      | P0/P1/P2                                                            |
+| Field | Required | Notes |
+|---|---|---|
+| Description | Yes | Concrete and verifiable |
+| Type | Yes | `prevent`, `detect`, `mitigate`, `process`, `documentation` |
+| Owner | Yes | Named person, not a team (teams diffuse ownership) |
+| Deadline | Yes | Absolute `YYYY-MM-DD`, not "next sprint" |
+| Tracking link | Yes | Jira/Linear/GitHub issue ID so progress is visible |
+| Priority | Yes | P0/P1/P2 |
 
-**Balance the action types.** A post-mortem that only produces "prevent"
-actions is brittle — add at least one "detect" (catch it sooner next time)
-and consider "mitigate" (shrink the blast radius when it recurs).
+**Balance types.** Only `prevent` actions ⇒ brittle: add ≥1 `detect` (catch it sooner) and consider `mitigate` (shrink blast radius on recurrence).
 
-Wording: each action MUST be **actionable** (starts with a verb, produces
-a useful outcome), **specific** (scope stated, in and out), and
-**bounded** (a reader can tell when it is finished).
+**Wording** MUST be **actionable** (starts with a verb, useful outcome), **specific** (scope stated, in and out), **bounded** (reader can tell when finished).
 
-| Poorly worded                                   | Better                                                       |
-| ----------------------------------------------- | ------------------------------------------------------------ |
-| Investigate monitoring for this scenario.       | Add alerting for all cases where this service returns >1% errors. |
-| Fix the issue that caused the outage.           | Handle invalid postal code in user address form input safely. |
-| Make sure engineer checks the schema parses.    | Add automated presubmit check for schema changes.            |
+| Poorly worded | Better |
+|---|---|
+| Investigate monitoring for this scenario. | Add alerting for all cases where this service returns >1% errors. |
+| Fix the issue that caused the outage. | Handle invalid postal code in user address form input safely. |
+| Make sure engineer checks the schema parses. | Add automated presubmit check for schema changes. |
 | Improve testing / Be more careful with deploys. | Add integration test covering legacy-cart checkout path (test fixture `legacy_cart_v1.json`). Owner: @alice. Deadline: 2026-05-14. ENG-1234. |
 
-Changing human behaviour (training, "be careful") is less reliable than
-changing systems; reject actions that only ask people to try harder.
+Changing human behaviour (training, "be careful") is less reliable than changing systems ⇒ reject actions that only ask people to try harder.
 
-**Prioritise.** Not every item is P0; equal priorities hide what to do
-first. Group many items by theme (one owner per theme) when the incident
-is large.
+- **Prioritise.** Not everything P0; equal priorities hide what to do first. Large incident → group by theme, one owner per theme.
+- **Do not over-ticket.** Tickets only for actions that must be done. Action judged not worth its cost → record in the document with the reason; NEVER drop silently.
+- **Closure.** Tickets live in the owning team's backlog (not only the document), labelled with severity and incident ID/date so open post-mortem actions are queryable. Check whether the team or Sanofi unit has an action-item closure policy; none ⇒ flag the gap, NEVER invent a Sanofi deadline. Other organisations' closure SLOs, for reference only: PagerDuty 15 days (SEV1) / 30 days (SEV2) for preventive actions; Atlassian 4 or 8 weeks for priority actions depending on service.
 
-**Do not over-ticket.** Tickets are for actions that must be done.
-When an action is judged not worth its cost, record it in the document
-with the reason rather than silently dropping it.
+**Action categories** — coverage check; map onto `Type`:
 
-**Closure.** Tickets live in the owning team's backlog (not only in the
-document), labelled with the severity and incident ID/date so open
-post-mortem actions can be queried. Check whether the team or Sanofi
-unit has an action-item closure policy; if none exists, flag the gap
-rather than inventing a Sanofi deadline. For reference, other
-organisations set closure SLOs (PagerDuty: 15 days for SEV1 and 30
-days for SEV2 preventive actions; Atlassian: 4 or 8 weeks for priority
-actions depending on the service).
+| Question | Type |
+|---|---|
+| How do we decrease time to accurately detect this failure? | `detect` |
+| How do we cut severity or duration when it recurs? | `mitigate` |
+| How do we prevent this class of failure? | `prevent` |
+| How do we improve the response itself? | `process` |
+| What knowledge/runbook was missing? | `documentation` |
 
-**Action categories** (use to check coverage; map onto the `Type`
-field above):
-
-| Question                                                    | Type            |
-| ----------------------------------------------------------- | --------------- |
-| How do we decrease time to accurately detect this failure?  | `detect`        |
-| How do we cut severity or duration when it recurs?          | `mitigate`      |
-| How do we prevent this class of failure?                    | `prevent`       |
-| How do we improve the response itself?                      | `process`       |
-| What knowledge/runbook was missing?                         | `documentation` |
-
-Include at least one `prevent` or `mitigate` action aimed at the root
-cause, not only the trigger.
+≥1 `prevent` or `mitigate` action MUST target the root cause, not only the trigger.
 
 ### 8. Write the document
 
-Use [post-mortem-template.md](post-mortem-template.md)
-as the exact template. Fill every required section; omit optional sections
-only if they have no content (do not leave "TBD" placeholders).
-
-File the document at `docs/postmortems/YYYY-MM-DD-short-slug.md`
-(create the directory if it does not exist). Use the incident **start
-date**, not the authoring date.
+Use [post-mortem-template.md](post-mortem-template.md) as the exact template. Fill every required section; omit optional sections only when empty — no "TBD" placeholders. File at `docs/postmortems/YYYY-MM-DD-short-slug.md` (create directory if missing); date = incident **start**, not authoring date.
 
 ### 9. Review and publish
 
-Reread the document against [blameless-language.md](blameless-language.md) and run the Review Gate and Checklist in SKILL.md before circulating.
+Reread against [blameless-language.md](blameless-language.md); run Verification in SKILL.md before circulating.
 
-## Anti-Patterns
+## Anti-patterns
 
 ### Naming individuals as causes
 
@@ -332,9 +232,7 @@ legacy_cart_v1.json`). Owner: @alice. Deadline: 2026-05-14. ENG-1234.
 
 ### Single-cause narratives
 
-Outages are almost always multi-causal. A post-mortem with exactly one
-contributing factor usually means the author stopped looking. Push on
-"what else had to go wrong for this to happen?"
+Outages are almost always multi-causal; exactly one contributing factor usually means the author stopped looking. Push: "what else had to go wrong for this to happen?"
 
 ### "Human error" and bare vendor faults
 

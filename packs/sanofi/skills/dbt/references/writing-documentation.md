@@ -1,102 +1,72 @@
 # Writing dbt Documentation
 
-Never generate documentation that simply restates the entity's name. Describe **why, not just what**.
+Describe **why, not just what**. NEVER generate documentation that restates the entity's name. Every description earns its place by carrying grain, purpose, edge cases, or non-obvious behavior; anything else is omitted.
 
 ## Before Writing
 
-Inspect the model before documenting it:
-- Read the `.sql` file to understand transformations, filters, and joins
-- Check existing dbt YAML/properties files for descriptions already in place; enrich
-  or correct them, do not blindly overwrite
-- Follow the repo's YAML placement convention. Sanofi guide examples prefer one YAML
-  file per model: `<model>.yml` next to the SQL, `_model.yml` when docs are kept at
-  the top of the folder, or `docs/<model>.yml` when SQL folders are crowded.
-- Run `dbt show --select <model_name>` to see real sample data if needed
+Inspect the model first:
 
-To profile multiple columns, run one sampled query that computes cardinality, null
-counts, and low-cardinality value lists instead of querying each column separately. Use
-`TABLESAMPLE` on large tables.
+- Read the `.sql` → transformations, filters, joins.
+- Check existing YAML/properties files; enrich or correct descriptions, never blindly overwrite.
+- Follow the repo's YAML placement. Sanofi guide examples prefer one YAML per model: `<model>.yml` next to the SQL; `_model.yml` when docs sit at the top of the folder; `docs/<model>.yml` when SQL folders are crowded.
+- `dbt show --select <model_name>` for real sample data when needed.
 
-List possible values when cardinality is low, around 25 or fewer distinct values, or
-when the column name suggests a controlled vocabulary such as `_type`, `_status`,
-`_category`, `_code`, `_flag`, `_level`, `_phase`, `_stage`, `_state`, `_kind`,
-`_class`, `_mode`, or `_role`.
+**Profiling.** Multiple columns → one sampled query computing cardinality, null counts, and low-cardinality value lists, not one query per column. `TABLESAMPLE` on large tables.
 
-Never guess values; always derive them from `dbt show` or a direct query.
+**Listing values.** List possible values when cardinality ≲25 distinct, or when the name suggests a controlled vocabulary: `_type`, `_status`, `_category`, `_code`, `_flag`, `_level`, `_phase`, `_stage`, `_state`, `_kind`, `_class`, `_mode`, `_role`. NEVER guess values; derive from `dbt show` or a direct query.
 
-## Model (Table) Level
+## Model Level
 
 Every model description MUST include:
-1. **Grain**: one row per what?
-2. **Purpose**: why does this model exist, what question does it answer?
-3. **Edge cases**: filters applied, known nulls, exclusions, or historical quirks
 
-For shared marts, KPI-producing models, or models consumed outside the owning team,
-also include refresh cadence and primary consumers. Put structured ownership, domain,
-classification, SLA, KPI/catalog codes, or similar machine-readable fields in `meta`
-when the repo already uses those conventions.
+1. **Grain:** one row per what?
+2. **Purpose:** why the model exists; what question it answers.
+3. **Edge cases:** filters applied, known nulls, exclusions, historical quirks.
 
-Avoid `description: All customers who are active`. Prefer grain plus purpose plus edge
-case, such as "One row per customer whose contract has not expired; excludes trial
-accounts and expired contracts."
+Shared marts, KPI-producing models, or models consumed outside the owning team: also refresh cadence and primary consumers. Structured ownership, domain, classification, SLA, KPI/catalog codes → `meta`, when the repo already uses those conventions.
+
+| Avoid | Prefer |
+|---|---|
+| `description: All customers who are active` | "One row per customer whose contract has not expired; excludes trial accounts and expired contracts." |
 
 ## Column Level
 
-Document columns that are non-obvious. Skip columns whose name and type are self-explanatory (e.g. `created_at timestamp`).
+Document non-obvious columns only; skip those whose name and type are self-explanatory (`created_at timestamp`, `updated_at`, `id`). Always document:
 
-Always document:
-- **Calculated fields**: what the formula does and why
-- **Encoded/prefixed values**: legacy formats, migrations, or system-specific conventions
-- **Foreign keys**: what they reference
-- **Nullable columns**: when and why nulls are expected
+- **Calculated fields:** formula and why.
+- **Encoded/prefixed values:** legacy formats, migrations, system-specific conventions.
+- **Foreign keys:** what they reference.
+- **Nullable columns:** when and why nulls are expected.
 
-Avoid `description: The customer's identification number`. Prefer explanations of
-non-obvious behavior, such as legacy prefixes, nullable conditions, or calculation
-semantics.
+| Avoid | Prefer |
+|---|---|
+| `description: The customer's identification number` | Legacy prefixes, nullable conditions, calculation semantics |
 
-## Sources
+## Sources and Exposures
 
-Document sources with the same "why not what" principle at both source and table level:
-describe the upstream system, load behavior, table grain, archived/deleted rows, and
-filters that staging applies.
+- **Sources:** same why-not-what at source and table level: upstream system, load behavior, table grain, archived/deleted rows, filters staging applies.
+- **Exposures:** for important downstream consumers (dashboards, applications, ML models, notebooks, analyses). Include dependency refs, owner, maturity, URL when available, enough context for impact analysis when a shared model changes.
 
-## Exposures
+## Tags and meta
 
-Use exposures for important downstream consumers such as dashboards, applications, ML
-models, notebooks, and analyses. Include dependency refs, owner, maturity, URL when
-available, and enough context for impact analysis when a shared model changes.
+- **`tags`:** catalog discoverability by domain, team, or sensitivity (`finance`, `certified`, `pii`).
+- **`meta`:** structured, machine-readable metadata (ownership, classification, SLA). Fields team-defined; align with catalog conventions.
+- **dbt >= 1.10:** `meta` and `tags` under `config:` (`config: {meta: {...}, tags: [...]}`) on models, columns, and sources alike. Top-level `meta`/`tags` and any other custom key (for example `owner:` beside `description:`) raise deprecation warnings; custom keys MUST live inside `config.meta`. Older than 1.10 (check the resolved version): top-level properties stay.
 
-## Tags
+## persist_docs
 
-Use `tags` to make models and columns discoverable in the catalog by domain, team, or sensitivity:
-for example `finance`, `certified`, or `pii`.
+`persist_docs` (`relation: true`, `columns: true`) pushes descriptions into Snowflake comments. dbt allows it in `dbt_project.yml`, model properties YAML, or a `config()` block; whether a model may override it = Sanofi/team policy. Default: set once at project or folder level (`general-dbt-guide.md`); no per-model overrides unless the repo already does. Sources: unsupported.
 
-## meta
+## Updating Existing Docs
 
-Use `meta` to attach structured, machine-readable metadata such as ownership,
-classification, and SLA. Fields are team-defined; align with catalog conventions.
+| Existing description | Action |
+|---|---|
+| Correct but incomplete | **Enrich** |
+| Factually wrong or outdated | **Correct** |
+| Accurate and complete | **Leave unchanged**; no style rewrites |
 
-On dbt >= 1.10 write `meta` and `tags` under `config:` (`config: {meta: {...}, tags: [...]}`),
-on models, columns, and sources alike. Top-level `meta`/`tags` and any other custom key
-(for example `owner:` beside `description:`) raise deprecation warnings; custom keys MUST live inside `config.meta`. Only apply this form when the
-resolved dbt version is 1.10 or newer; older versions keep the top-level properties.
+## Out of Scope
 
-`persist_docs` (`relation: true`, `columns: true`) pushes descriptions into Snowflake
-comments. dbt allows it in `dbt_project.yml`, model properties YAML, or a `config()`
-block, so the capability is not project-only; whether a model may override it is Sanofi
-or team policy. Follow the repo's convention: by default set it once at project or
-folder level (see `general-dbt-guide.md`) and do not add per-model overrides unless the
-repo already does. Sources do not support it.
-
-## Updating Existing Documentation
-
-When descriptions already exist:
-- **Enrich** if the existing description is correct but incomplete
-- **Correct** if it is factually wrong or outdated
-- **Leave unchanged** if it is accurate and complete; do not rewrite for style
-
-## What Not to Document
-
-- Columns whose name and type are fully self-explanatory (`created_at`, `updated_at`, `id`)
-- Descriptions that just repeat the column name in different words
-- Implementation details that belong in code comments, not in the catalog
+- Columns whose name and type are fully self-explanatory (`created_at`, `updated_at`, `id`).
+- Descriptions repeating the column name in other words.
+- Implementation details → code comments, not the catalog.

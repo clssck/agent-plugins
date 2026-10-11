@@ -1,15 +1,15 @@
 ---
 name: cli-creator
-description: Use for reusable CLIs from APIs/SDKs/scripts; not one-offs or CI/CD.
+description: Build a durable, installable CLI from API docs, OpenAPI specs, SDKs, curl captures, internal scripts, or shell history, plus a companion omp skill that teaches it. Use when asked to wrap a service or API as a command-line tool, make a script callable from anywhere, add doctor/JSON/pagination to a CLI, or package and install a binary on PATH. Not for one-off scripts or CI/CD pipelines — cicd-engineering instead.
 ---
 
 # CLI Creator
 
-Build a real CLI an agent can run by command name from any working directory, plus a companion omp skill that teaches it. Durable tools only: a short script in the current repo solves the task? Write the script there. CI/CD pipelines belong in cicd-engineering, not this skill.
+Builds a real CLI an agent runs by command name from any working directory, plus a companion omp skill that teaches it. Durable tools only: a short script in the current repo solves the task? Write the script there. The CLI is the agent's command layer — composable discover/resolve/read/write primitives with stable `--json`, no TTY assumptions, and no secret leakage — because an agent drives it cold, repeatedly, without a human to answer prompts.
 
-License: Apache-2.0; see `licenses/clssck-core/cli-creator/LICENSE.txt`.
+License: Apache-2.0; see `licenses/clssck-core/cli-creator/LICENSE.txt`. Command, JSON, and companion-skill contract → [agent-cli-patterns.md](references/agent-cli-patterns.md). Per-runtime install → [install-and-packaging.md](references/install-and-packaging.md).
 
-## Start
+## Scope the tool
 
 Name three things before scaffolding:
 
@@ -19,13 +19,12 @@ Name three things before scaffolding:
 |First jobs|`list drafts`, `download failed job logs`, `search messages`, `upload media`|
 |Install name|Short binary: `ci-logs`, `slack-cli`, `buildkite-logs`|
 
-- Personal tool location: `~/code/clis/<tool-name>` (PowerShell: `$env:USERPROFILE\code\clis\<tool-name>`), unless the user names a repository.
-- Creating a new directory is a local write; state the location first.
-- Check the name is free before scaffolding: `command -v <tool-name> || true` (PowerShell: `Get-Command <tool-name> -ErrorAction SilentlyContinue`). Name exists? Choose a clearer install name or ask.
+- **Location:** `~/code/clis/<tool-name>` (PowerShell: `$env:USERPROFILE\code\clis\<tool-name>`) unless the user names a repository. New directory = local write; state the location first.
+- **MUST check the name is free:** `command -v <tool-name> || true` (PowerShell: `Get-Command <tool-name> -ErrorAction SilentlyContinue`). Taken → clearer install name, or ask.
 
-## Platform Preflight
+## Platform preflight
 
-Detect OS, active shell, toolchains, repository convention, and a user-writable PATH directory before generating install commands. NEVER emit PowerShell syntax for a POSIX shell or the reverse.
+Detect OS, active shell, toolchains, repository convention, and a user-writable PATH directory before generating install commands. **NEVER emit PowerShell syntax for a POSIX shell or the reverse.**
 
 ```bash
 command -v cargo rustc node pnpm npm python3 uv
@@ -38,61 +37,58 @@ $env:TEMP
 [Environment]::GetEnvironmentVariable('Path', 'User')
 ```
 
-- Use the repository's existing package manager and install convention when one exists.
+- Repo has a package manager and install convention → use it.
 - Search source material with `grep`, `glob`, `read`; NEVER shell `rg`/`find`/`Select-String`.
 
-## Choose the Runtime
+## Choose the runtime
 
-|Runtime|Choose when|
-|---|---|
-|Rust (default)|Durable CLI wanted: one fast binary, strong arg parsing, good JSON|
-|TypeScript/Node|Official SDK, auth helper, browser automation, or existing repo tooling is the advantage|
-|Python|Data work, local file transforms, SQLite/CSV/JSON analysis, Python-heavy admin tooling|
-|Go|Repo or team already uses Go; one static binary, easy cross-compile|
+|Runtime|Choose when|Defaults|
+|---|---|---|
+|Rust (default)|Durable CLI: one fast binary, strong arg parsing, good JSON|`clap`, `reqwest`, `serde`/`serde_json`, `toml`, `anyhow`|
+|TypeScript/Node|Official SDK, auth helper, browser automation, or existing repo tooling is the advantage|`commander` or `cac`; native `fetch` or official SDK; `zod` only where payload validation prevents real breakage; `package.json` `bin`; build tool per repo (`tsup`, `tsx`, `tsc`); `bun build --compile` for a single binary with no Node on the target|
+|Python|Data work, local file transforms, SQLite/CSV/JSON analysis, Python-heavy admin tooling|uv project from `uv init --package` with `[project.scripts]` and committed `uv.lock`; `argparse` (or `typer` for deep subcommands); `httpx`/`requests`/`urllib` matching nearby code; PEP 723 single file for one-module tools|
+|Go|Repo or team already uses Go; one static binary, easy cross-compile|Standard `flag` for flat commands; a subcommand library only for nested trees|
 
-- NEVER pick a language that adds setup friction without material benefit.
-- Best language missing? Install the toolchain with user approval, or take the next-best installed option.
-- MUST state the choice in one sentence before scaffolding: reason plus toolchain found.
+- **MUST state the choice in one sentence before scaffolding:** reason + toolchain found.
+- NEVER pick a language that adds setup friction without material benefit. Best language missing → install the toolchain with user approval, or take the next-best installed option.
+- Install target matching repo and platform (`make install-local`, or a PowerShell script on Windows); document what it depends on (toolchain, `uv`, runtime version).
+- **Install into a user-approved, user-writable PATH directory;** NEVER assume `~/.local/bin`. NEVER `pip install` into system Python (PEP 668).
 
-Defaults per runtime:
+## Auth and config
 
-|Runtime|Use|
-|---|---|
-|Rust|`clap`, `reqwest`, `serde`/`serde_json`, `toml`, `anyhow`|
-|TypeScript/Node|`commander` or `cac`; native `fetch` or official SDK; `zod` only where payload validation prevents real breakage; `package.json` `bin`; build tool per repo (`tsup`, `tsx`, `tsc`); `bun build --compile` for a single binary with no Node on the target|
-|Python|uv project from `uv init --package` with `[project.scripts]` and committed `uv.lock`; `argparse` (or `typer` for deep subcommands); `httpx`/`requests`/`urllib` matching nearby code; PEP 723 single file for one-module tools|
-|Go|Standard `flag` for flat commands; a subcommand library only for nested trees|
+Precedence: env var with the service's standard name (`GITHUB_TOKEN`) > user config in a documented OS-appropriate directory (`~/.config/<tool-name>`; Windows `$env:APPDATA\<tool-name>`) > `--token-file <path>` or token on stdin (`--with-token`, as `gh auth login` does) for headless setup.
 
-- Add an install target matching repo and platform (`make install-local`, or a PowerShell script on Windows). Per-runtime install commands, bin locations, and gotchas: [install-and-packaging.md](references/install-and-packaging.md).
-- Document what the install depends on: toolchain, `uv`, runtime version.
-- Install into a user-approved, user-writable PATH directory; NEVER assume `~/.local/bin`. NEVER `pip install` into system Python (PEP 668).
-
-## Auth and Config
-
-Precedence:
-
-1. Environment variable with the service's standard name (`GITHUB_TOKEN`).
-2. User config in a documented OS-appropriate directory: `~/.config/<tool-name>` (Windows: `$env:APPDATA\<tool-name>`).
-3. `--token-file <path>` or token on stdin (`--with-token`, as `gh auth login` does) for headless setup. NEVER accept a secret as a plain flag value: it leaks into `ps` output and shell history.
-
-- NEVER print full tokens.
-- `--json doctor` reports: token available, auth source category (`env`, `config`, `token-file`, `stdin`, provider default, `missing`), missing setup step.
-- Works offline or without auth? `--json doctor` says so: fixture mode, fixture found, auth not required.
-- Internal web app from DevTools curls? Write sanitized endpoint notes first: resource, method/path, required headers, auth, CSRF, request body, response ID fields, pagination, errors, one redacted sample.
+- **NEVER accept a secret as a plain flag value** — it leaks into `ps` output and shell history.
+- **NEVER print full tokens.**
+- `--json doctor` reports: token available, auth source category (`env`, `config`, `token-file`, `stdin`, provider default, `missing`), missing setup step. Offline or no-auth tool → says so: fixture mode, fixture found, auth not required.
+- **Internal web app from DevTools curls:** sanitized endpoint notes first — resource, method/path, required headers, auth, CSRF, request body, response ID fields, pagination, errors, one redacted sample.
 - NEVER commit copied cookies, bearer tokens, customer secrets, full production payloads.
-- Screenshots show workflow and vocabulary; NEVER treat them as API evidence without a request, export, docs page, or fixture.
+- Screenshots show workflow and vocabulary only; NEVER API evidence without a request, export, docs page, or fixture.
 
-## Build Workflow
+## Build
 
-1. Read the source to inventory resources, auth, pagination, IDs, file flows, rate limits, dangerous writes. OpenAPI available? Inspect it before naming commands.
-2. Sketch the command surface in chat before coding: binary name, discovery, resolve, read, write, raw escape hatch, auth/config choice, install command. Short, shell-friendly names. Shape, JSON policy, pagination, exit codes: [agent-cli-patterns.md](references/agent-cli-patterns.md).
+1. **Inventory the source:** resources, auth, pagination, IDs, file flows, rate limits, dangerous writes. OpenAPI available → inspect before naming commands.
+2. **Sketch the command surface in chat before coding:** binary name, discovery, resolve, read, write, raw escape hatch, auth/config choice, install command. Short, shell-friendly names; shape, JSON policy, pagination, exit codes per [agent-cli-patterns.md](references/agent-cli-patterns.md).
 3. Scaffold with a README or equivalent.
 4. Implement `doctor`, discovery, resolve, reads, one narrow draft or dry-run write if requested, raw escape hatch.
-5. Install on PATH only when the user asks for a globally callable command; state the target location first. Otherwise keep the verified local wrapper.
-6. Smoke test from a fresh directory, not `cargo run`, `uv run`, or other package-manager wrappers.
+5. **Install on PATH only when the user asks** for a globally callable command; state the target first. Otherwise keep the verified local wrapper.
+6. Smoke test from a fresh directory — not `cargo run`, `uv run`, or other package-manager wrappers.
 7. Run format, typecheck/build, unit tests (request builders, pagination, body builders), no-auth `doctor`, help output, and one fixture, dry-run, or live read-only call.
 
-Smoke test, installed on PATH:
+### Source shapes
+
+- **Existing script or shell history:** split into phases (setup, discovery, download/export, transform/index, draft, upload, poll, live write); keep the user's flags, paths, env vars; wrap repeatable phases with stable IDs, bounded JSON, file outputs.
+- **Fixture-backed prototype:** fixtures at a predictable path the installed CLI finds; smoke test from a temp directory (`${TMPDIR:-/tmp}`; Windows `$env:TEMP`).
+- **Log-oriented CLI:** deterministic snippet extraction separate from model interpretation; emit filenames, line numbers or byte ranges, matched rules, short excerpts.
+
+### Live writes
+
+- **Live write needed for confidence → ask first;** reversible or draft-only.
+- Raw escape hatch: reads first; NEVER non-GET/HEAD against a live service unless the user asked for that write.
+
+## Verification
+
+Installed on PATH:
 
 ```bash
 cd "$(mktemp -d)" && command -v <tool-name> && <tool-name> --help && <tool-name> --json doctor
@@ -103,19 +99,13 @@ Set-Location (New-Item -ItemType Directory (Join-Path $env:TEMP "smoke-$(Get-Ran
 Get-Command <tool-name>; <tool-name> --help; <tool-name> --json doctor
 ```
 
-Not installed on PATH: run the wrapper or binary by absolute path from the fresh directory; NEVER install just to pass the smoke test.
+Not on PATH → run the wrapper or binary by absolute path from the fresh directory; NEVER install just to pass the smoke test.
 
-Rules:
+Done = all hold: `--help`, `--version`, `--json doctor`, discovery, resolve, reads, raw escape hatch present · runs without a TTY (no prompts without one, documented nonzero exit codes, `NO_COLOR` honored, network timeout set) · `--json` errors carry no credentials · Python is a uv project or PEP 723 script, nothing `pip install`ed into system Python · no live write without approval.
 
-- Live write needed for confidence? Ask first; make it reversible or draft-only.
-- Raw escape hatch: reads first; NEVER run non-GET/HEAD requests against a live service unless the user asked for that write.
-- Existing script or shell history: split into phases (setup, discovery, download/export, transform/index, draft, upload, poll, live write); keep the user's flags, paths, env vars; wrap repeatable phases with stable IDs, bounded JSON, file outputs.
-- Fixture-backed prototype: fixtures at a predictable path the installed CLI can find; smoke test from a temp directory (`${TMPDIR:-/tmp}`; Windows `$env:TEMP`).
-- Log-oriented CLI: deterministic snippet extraction separate from model interpretation; emit filenames, line numbers or byte ranges, matched rules, short excerpts.
+## Companion skill
 
-## Companion Skill
-
-After the CLI works, create or update a companion skill. It is a normal omp skill.
+After the CLI works, create or update a normal omp skill that teaches it.
 
 |Location|Path|Use when|
 |---|---|---|
@@ -123,25 +113,8 @@ After the CLI works, create or update a companion skill. It is a normal omp skil
 |Pack|`skills/<tool-name>/SKILL.md` in an agent-plugins pack, e.g. `clssck-core`|User names a pack or repo|
 |Project|`.omp/skills/<tool-name>/SKILL.md`|Tool belongs to one repository|
 
-Contract:
-
-- One level deep: `<skills-root>/<tool-name>/SKILL.md`; folder name = `name`.
-- Frontmatter: `name` and `description`; add `disable-model-invocation: true` only for a manual-only skill.
-- Description: purpose plus concrete use triggers; `Not for ...` only to prevent sibling confusion. Keep the routing hint short; put source details and output contracts in the body.
-- Body: `# Title`, purpose, ordered workflow, rules, `## Checklist`; under ~150 lines.
-- Detail goes in `references/*.md`; link with relative Markdown links. Every file linked from `SKILL.md`.
-- Bundled scripts: PEP 723 header with `#!/usr/bin/env -S uv run --script`; invoke as `uv run "$(realpath skill://<tool-name>/scripts/<file>.py)"` in the omp `bash` tool. A bare `skill://` path fails in external programs; `realpath` prints the physical path.
-- Body skeleton and content list: [agent-cli-patterns.md](references/agent-cli-patterns.md#companion-skill).
-- Verify: `read skill://<tool-name>` resolves, every link resolves, example commands run from a fresh directory.
-
-## Checklist
-
-- Source, jobs, install name stated; name free of collisions.
-- Runtime choice stated with reason.
-- `--help`, `--version`, `--json doctor`, discovery, resolve, reads, raw escape hatch present.
-- Runs without a TTY: no prompts without one, documented nonzero exit codes, `NO_COLOR` honored, network timeout set.
-- NEVER print auth; NEVER accept secrets as flag values; `--json` errors carry no credentials.
-- Python: uv project or PEP 723 script; nothing `pip install`ed into system Python.
-- Smoke test ran from a fresh directory with the right command form.
-- No live write without user approval.
-- Companion skill in an omp location with valid frontmatter and working links.
+- **Layout:** one level deep, `<skills-root>/<tool-name>/SKILL.md`; folder name = `name`.
+- **Frontmatter:** `name` + `description`; `disable-model-invocation: true` only for a manual-only skill. Description = retrieval surface: purpose + concrete "Use when" triggers; `Not for …` only against sibling confusion. Authoring style → `skill-authoring`.
+- **Body:** `# Title`, dense intro, task-named `##` sections, bold-lead rules; ≤~150 lines. Detail in `references/*.md`, every file linked by relative Markdown link. Skeleton → [agent-cli-patterns.md](references/agent-cli-patterns.md#companion-skill).
+- **Bundled scripts:** PEP 723 header with `#!/usr/bin/env -S uv run --script`; invoke as `uv run "$(realpath skill://<tool-name>/scripts/<file>.py)"` in the omp `bash` tool. Bare `skill://` path fails in external programs; `realpath` prints the physical path.
+- **Verify:** `read skill://<tool-name>` resolves, every link resolves, example commands run from a fresh directory.

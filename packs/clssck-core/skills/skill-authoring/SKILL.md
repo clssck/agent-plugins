@@ -1,71 +1,71 @@
 ---
 name: skill-authoring
-description: Use when writing or revising an agent skill (SKILL.md, references, script templates) or auditing skill quality; not for building the tool a skill wraps — cli-creator does that.
+description: Write, revise, or audit agent skills (SKILL.md, references/, script templates) in OMP's bundled style — trigger-rich descriptions, task-named sections, bold-lead rules, tables, runnable examples. Use when creating a skill, rewriting a description that never triggers, trimming a bloated SKILL.md, adding gates or definitions of done, or reviewing skill quality. Not for building the tool a skill wraps — cli-creator; prompt voice and tags — system-prompts.
 ---
 
 # Skill Authoring
 
-Design rules for skill files: instruction packs an agent loads on demand. A skill is a control surface — what the agent MAY do, in what order, with what evidence, and when the work counts as done. Write dense imperative prose for a competent agent that will otherwise improvise. Discovery behavior is documented in `omp://skills.md`.
+A skill is a control surface loaded on demand: what the agent MAY do, in what order, on what evidence, and when work counts as done. Write dense prose for a competent agent that would otherwise improvise. Model is a cold executor: no author present, so every sentence MUST change a decision. Discovery behavior → `omp://skills.md`.
 
-## Boundaries Before Procedure
+House style = OMP bundled skills (`system-prompts`, `tool-prompt-optimization`, `semantic-compression`): rationale in the intro, task-named sections, bold-lead rules, tables for enumerations, runnable examples. Compression mechanics → `semantic-compression`; tag and RFC vocabulary → `system-prompts`.
 
-- Open with scope: allowed vs forbidden, concretely. Enumerate realistic bypasses, not abstractions.
-- Every prohibition MUST name its substitute. A bare ban forces guessing.
-- State the trust frame (authorization, environment) and what stays out of scope even then.
-- Irreversible actions (delete, publish, overwrite, send) MUST be fenced, with the reversible alternative named.
+## Description
 
-## Structure
+The description is **retrieval surface**: the model sees only it before choosing, and matches it against the user's own phrasing.
 
-- A standalone skill is `<skills-root>/<name>/SKILL.md`; the directory name is the skill `name`.
-- Frontmatter: `name` and `description`. The description is the routing surface — the model sees only it before choosing. Keep task triggers and sibling boundaries in it, one line; `Not for …` only to prevent confusion with a sibling skill.
-- Body: `# Title`, a short purpose, `##` sections, and a final `## Checklist`. Dense imperative prose, plain uppercase RFC 2119 keywords (MUST, NEVER, SHOULD, MAY).
-- SKILL.md is a small router — about 150 lines or fewer. Detail belongs in `references/*.md`, runnable helpers in `scripts/`, linked by relative Markdown links; every file MUST be linked from SKILL.md.
+- **40-70 words, "Use when …" form:** what it does, then tasks, phrasings, and contexts that trigger it. Keep keyword-redundant alternatives ("audit", "review", "trim"); compress the body, NEVER the trigger.
+- **Layout:** a standalone skill is `<skills-root>/<name>/SKILL.md`; the directory name is the skill `name`.
+- **Sibling boundaries inline:** `not for X — <sibling> instead`. Name the sibling.
+- Quote the value when it contains a colon-space.
+- Frontmatter = `name` + `description`; add `disable-model-invocation: true` only for manual-only skills. Directory name = `name`.
 
-## Workflow And Gates
+## Body structure
 
-- Number phases with entry and exit criteria. The agent MUST NOT enter the next phase until the current one's exit criteria hold.
-- Place an explicit gate where shortcuts are likely — the point where a shipped template MUST be copied and adapted, or where a check MUST run before proceeding.
-- Templates vs tools: a per-target TEMPLATE is copied into the task output directory, adapted minimally with deltas recorded, then run. A finished companion tool is run in place — `uv run "$(realpath skill://<name>/scripts/<file>.py)"` — NEVER copied. Say which one a script is.
-- NEVER hand-roll a replacement for a shipped template before running the original form.
-- Write "do X now", not "consider X"; a gate that cannot be checked is not a gate.
+- **Layout:** `# Title`, 1-2 dense intro paragraphs (what, governing principle, why — evidence only where it changes a decision), then `##` sections named for tasks ("Run probe", "Before every deletion", "Verdict"), `###` where needed.
+- **Rules lead with bold:** `**MUST \`git blame\` each cut line.**` Body never restates the lead.
+- **Enumerations → tables.** Telegraphic where enumerating (`→`, `⇒`, `·`); normal dense prose in paragraphs. No hedging, ceremony, closing summaries.
+- **Examples are concrete and runnable** — bash/json fences, real commands — not abstract description. Adjacent Bad/Good pair removes a retry class.
+- **RFC 2119 keywords** (MUST, NEVER, SHOULD, AVOID, MAY) precise and sparse; bold when they lead a line. Prohibition without a stated substitute forces guessing; name the substitute.
+- **Router size:** SKILL.md ≤~150 lines. Detail → `references/*.md` in the same register, runnable helpers → `scripts/`, all linked by relative Markdown links; every file linked from SKILL.md. Scope splits point at sibling skills by name.
 
-## Definition Of Done
+## Boundaries and gates
 
-- End with `## Checklist`; every item MUST hold before completion is claimed. Include checks that can be counted (file exists, line count), not only qualitative claims.
-- Skills that produce artifacts SHOULD carry a deliverables table: exact file, stage, contents.
-- Completeness invariants: every result already produced MUST reach the final output; breadth claims MUST be backed by coverage checks. NEVER silently drop work.
+- **Open with scope:** allowed vs forbidden, concrete. Enumerate realistic bypasses, not abstractions. State the trust frame (authorization, environment) and what stays out of scope anyway.
+- **Fence irreversible actions** (delete, publish, overwrite, send); name the reversible alternative.
+- **Phases carry entry and exit criteria.** Next phase NEVER starts until current exit criteria hold. Put an explicit gate where shortcuts tempt: template copy, pre-proceed check. "Do X now", not "consider X"; an uncheckable gate is not a gate.
+- **Template vs tool — say which a script is.** Per-target TEMPLATE → copied to the task output directory, adapted minimally, deltas recorded, then run. Finished tool → run in place, `uv run "$(realpath skill://<name>/scripts/<file>.py)"`, NEVER copied. NEVER hand-roll a replacement before running the shipped original.
 
-## Context Budget
+## Definition of done
 
-- Cap consumption inside the instructions: size ceilings for files read whole, bounded searches, scripts instead of reading large artifacts.
-- Use harness-native forms: `read path:50-200` ranges, the `grep` tool for search (NEVER shell `grep`/`rg`/`find`), `glob` with `limit`, `wc -l` for counts. Conversation keeps paths and summaries, not payloads.
-- Two-strike rule: the same command or technique MUST NOT be retried after two failures. Switch strategy — read logs, consult the reference, change tool.
+A checklist survives only when it describes the artifact the skill produces (`system-prompts` ends with one for prompts). Otherwise fold its content into task sections: "Before every check", "Verdict", "Stop rules", "Verification".
 
-## Outputs And Evidence
+- Done criteria MUST be countable where possible (file exists, line count, exit code), not only qualitative.
+- Artifact-producing skills SHOULD carry a deliverables table: exact file, stage, contents.
+- **Completeness:** every result already produced reaches the final output; breadth claims backed by coverage checks. NEVER silently drop work.
 
-- Route results to typed channels: artifacts and confirmed facts to structured stores or files, reasoning to prose. Verification MUST read back what was written instead of trusting the write.
-- Cap single outputs and point to where the full artifact lives.
-- Label claims: observed (the artifact shows it), inferred, unverified. NEVER present inferred or unverified results as confirmed.
-- Unknown is not success: a missing error, empty output, or absent response MUST NOT be reported as passing. Baseline failures stay baseline; NEVER restate pre-existing breakage as a regression or a pass.
-- State coverage gaps and known limitations in the final report — what was not reached, and why.
+## Context budget
 
-## Anti-Patterns
+- Cap consumption in the instructions: size ceilings for files read whole, bounded searches, scripts over reading large artifacts.
+- Harness-native forms: `read path:50-200` ranges; the `grep` tool, NEVER shell `grep`/`rg`/`find`; `glob` with `limit`; `wc -l` for counts. Conversation keeps paths and summaries, not payloads.
+- **Two-strike rule:** NEVER retry the same command or technique after two failures; switch strategy — read logs, consult the reference, change tool.
+
+## Outputs and evidence
+
+- Route results by type: artifacts and confirmed facts → structured stores or files; reasoning → prose. Verification reads back what was written.
+- Cap single outputs; point to where the full artifact lives.
+- **Label claims:** observed (artifact shows it) · inferred · unverified. NEVER present inferred or unverified as confirmed.
+- **Unknown ≠ success:** missing error, empty output, or absent response NEVER reports as passing. Baseline failures stay baseline; NEVER restate pre-existing breakage as a regression or a pass.
+- Final report states coverage gaps and limitations: what was not reached, why.
+
+## Anti-patterns
 
 |Wrong|Right|
 |---|---|
+|Description of one line with no triggers|40-70 words, "Use when …", sibling boundaries|
+|Rote `## Checklist` ending|Fold into task sections; keep a checklist only for the produced artifact|
 |Hand-rolling a substitute for a shipped template|Copy, adapt, record deltas, run|
 |Retrying a failing command|Two-strike rule: change strategy|
-|Reading large artifacts whole into context|Ranges, bounded searches, counts; keep summaries|
+|Reading large artifacts whole|Ranges, bounded searches, counts; keep summaries|
 |Skipping gates under time pressure|Gates are exit criteria; finish or report partial with limitations|
-|Detail duplicated into SKILL.md|Progressive disclosure: references/ and scripts/|
+|Detail duplicated into SKILL.md|Progressive disclosure: `references/`, `scripts/`|
 |Inferred results presented as confirmed|Label tiers; verify or mark unverified|
-
-## Checklist
-
-- Description carries task triggers and sibling boundaries in one line.
-- Boundary section present — for pure guidance skills, an explicit trust frame and decision rules; every prohibition names a substitute.
-- Phases have exit criteria where the skill defines a workflow; template-vs-tool rule applied to every script it ships.
-- `## Checklist` with counted checks; deliverables table when artifacts exist.
-- Context-budget rules present and harness-native; two-strike rule stated.
-- Detail in `references/*.md`; every linked file resolves; `read skill://<name>` resolves.
-- Evidence tiers, typed output routing, and limitation reporting present.

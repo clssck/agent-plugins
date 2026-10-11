@@ -1,11 +1,8 @@
 # Post-Mortem Template
 
-Copy this file to `docs/postmortems/YYYY-MM-DD-short-slug.md` where the date
-is the **incident start date** and the slug describes the impact (e.g.,
-`2026-04-28-checkout-500s.md`).
+Copy to `docs/postmortems/YYYY-MM-DD-short-slug.md`; date = **incident start date**, slug describes impact (e.g. `2026-04-28-checkout-500s.md`).
 
-Every section marked **Required** MUST be filled. Optional sections may be
-omitted if they have no content — do not leave `TBD` placeholders.
+Sections marked **Required** MUST be filled. Optional sections: omit when empty; NEVER leave `TBD` placeholders.
 
 ---
 
@@ -17,15 +14,13 @@ omitted if they have no content — do not leave `TBD` placeholders.
 ## Header (Required)
 
 > **Incident ID**: reuse the ID from your incident tracker (PagerDuty,
-> ServiceNow, Opsgenie, Jira incident, etc.) so the post-mortem is
-> linkable from the same ID the responders used live. If no tracker
-> issued one, fall back to `INC-YYYY-MMDD-NNN` (start date + daily
-> sequence).
+> ServiceNow, Opsgenie, Jira incident, etc.) so the post-mortem links
+> from the ID responders used live. No tracker ID → `INC-YYYY-MMDD-NNN`
+> (start date + daily sequence).
 >
-> **Severity**: record both the **live severity** (set during the
-> incident) and the **final severity** (after post-mortem review). If
-> they differ, add a short reason. Do not reclassify down to dodge the
-> 5-business-day post-mortem deadline.
+> **Severity**: record **live severity** (set during the incident) and
+> **final severity** (after post-mortem review); differ → add short
+> reason. NEVER reclassify down to dodge the 5-business-day deadline.
 
 | Field                                                 | Value                                                 |
 | ----------------------------------------------------- | ----------------------------------------------------- |
@@ -47,9 +42,7 @@ omitted if they have no content — do not leave `TBD` placeholders.
 
 ## Summary (Required)
 
-Two-to-four-sentence summary suitable for leadership and incident-review
-meetings. Include: what broke, who was affected, how long it lasted, and
-what the root cause was in one line.
+Two to four sentences for leadership and incident-review meetings: what broke, who was affected, how long, root cause in one line.
 
 > Between 14:07 and 15:36 UTC on 2026-04-28, approximately 8% of checkout
 > requests returned HTTP 500 errors for users with legacy cart schemas
@@ -61,7 +54,7 @@ what the root cause was in one line.
 
 ## Impact (Required)
 
-Quantify wherever possible. If a number is unknown, say so — do not guess.
+Quantify wherever possible. Unknown number → say so; NEVER guess.
 
 - **Users affected**: ~4,200 users (EU paying segment, ~6% of that
   segment's active users during the window).
@@ -79,8 +72,7 @@ Quantify wherever possible. If a number is unknown, say so — do not guess.
 
 ## Timeline (Required)
 
-All times UTC. Sources linked inline where available. Facts only — no
-interpretation.
+All times UTC. Sources linked inline where available. Facts only; no interpretation.
 
 | Time (UTC) | Actor            | Event                                                                          |
 | ---------- | ---------------- | ------------------------------------------------------------------------------ |
@@ -127,8 +119,7 @@ Always state both endpoints; NEVER write a bare "MTTR".
 
 ### Contributing Factors
 
-Root cause is rarely a single chain. Capture **all** factors that had to
-align for this incident to occur:
+Root cause is rarely a single chain. Capture **all** factors that had to align for this incident:
 
 - **Trigger**: v2.41.0 dereferenced `pricing_context.region` without null
   guard.
@@ -173,12 +164,7 @@ align for this incident to occur:
 
 ## Action Items (Required)
 
-Every action item MUST have owner (a named person, NEVER a role, rotation,
-or team), absolute deadline, tracking link, priority (P0/P1/P2), and type
-(`prevent`, `detect`, `mitigate`, `process`, `documentation`). If no
-individual has accepted an item yet, write `UNASSIGNED` in Owner, leave
-the real tracking link blank rather than inventing one, and keep the
-post-mortem in **Draft** until every row is complete.
+Every item MUST have owner (named person, NEVER a role, rotation, or team), absolute deadline, tracking link, priority (P0/P1/P2), type (`prevent`, `detect`, `mitigate`, `process`, `documentation`). No individual has accepted an item → `UNASSIGNED` in Owner, real tracking link blank (NEVER invented), post-mortem stays **Draft** until every row is complete.
 
 | #   | Description                                                                                                     | Type          | Owner       | Deadline   | Priority | Tracking |
 | --- | --------------------------------------------------------------------------------------------------------------- | ------------- | ----------- | ---------- | -------- | -------- |

@@ -1,48 +1,12 @@
 # C4 Notation Checklist
 
-Pre-publish validation checklist for C4 diagrams. Run through ALL applicable sections
-before presenting a diagram to the engineer for review.
-
-## Table of Contents
-
-- [1. Cross-Level Consistency Checks](#1-cross-level-consistency-checks)
-  - [Naming Consistency](#naming-consistency)
-  - [Element Consistency](#element-consistency)
-  - [Relationship Consistency](#relationship-consistency)
-- [2. C4 Notation Compliance](#2-c4-notation-compliance)
-  - [Diagram Titles](#diagram-titles)
-  - [Legend / Key](#legend--key)
-  - [Element Labels](#element-labels)
-  - [Relationship Labels](#relationship-labels)
-  - [Protocol Labels](#protocol-labels)
-  - [Arrow Styles](#arrow-styles)
-- [3. Abstraction Correctness](#3-abstraction-correctness)
-  - [SPA Modeling](#spa-modeling)
-  - [Cloud Services Rule](#cloud-services-rule)
-  - [Not-a-Container Checks](#not-a-container-checks)
-  - [Not-a-Component Checks](#not-a-component-checks)
-  - [Component Diagram Necessity](#component-diagram-necessity)
-- [4. Artifact Checks](#4-artifact-checks)
-  - [Readable Source and Render](#readable-source-and-render)
-  - [Labels and Relationships](#labels-and-relationships)
-- [5. Sanofi-Specific Checks](#5-sanofi-specific-checks)
-  - [Color Palette](#color-palette)
-  - [Naming Conventions](#naming-conventions)
-  - [Metadata](#metadata)
-  - [Description Templates](#description-templates)
-- [6. Per-Level Review Checklists](#6-per-level-review-checklists)
-  - [Context Diagram (L1) Review](#context-diagram-l1-review)
-  - [Container Diagram (L2) Review](#container-diagram-l2-review)
-  - [Component Diagram (L3) Review](#component-diagram-l3-review)
-  - [Deployment Diagram Review](#deployment-diagram-review)
-- [7. Anti-Patterns Check](#7-anti-patterns-check)
-- [8. Readability and Scope Guidelines](#8-readability-and-scope-guidelines)
+Pre-publish review checklist for the C4 artifacts this skill produces. Run ALL applicable sections before presenting a diagram to the engineer; sections 1-5 apply to every artifact, section 6 to the level under review, sections 7-8 to every set.
 
 ---
 
 ## 1. Cross-Level Consistency Checks
 
-These checks ensure all C4 levels tell a coherent story.
+All levels tell one coherent story.
 
 ### Naming Consistency
 
@@ -127,8 +91,7 @@ These checks ensure all C4 levels tell a coherent story.
 - [ ] Dashed lines = asynchronous communication (queues, events, fire-and-forget)
 - [ ] Dotted lines = dependencies (compile-time, structural -- use sparingly)
 
-> **Note**: The C4 model is notation-independent regarding line styles. The solid/dashed/dotted
-> convention above is a Sanofi standard for consistency across teams.
+> **Note**: C4 is notation-independent for line styles; solid/dashed/dotted above is a Sanofi standard for cross-team consistency.
 
 ---
 
@@ -199,9 +162,7 @@ These checks ensure all C4 levels tell a coherent story.
 
 ## 5. Sanofi-Specific Checks
 
-> **Note**: The C4 model is notation-independent regarding colors. The palette below is a
-> Sanofi standard. The official C4 guidance: use any colors, but keep them consistent within
-> and across diagrams, and consider accessibility.
+> **Note**: C4 is notation-independent for colors; the palette below is a Sanofi standard. Official C4 guidance: any colors, consistent within and across diagrams, accessibility considered.
 
 ### Color Palette
 
@@ -306,14 +267,12 @@ These checks ensure all C4 levels tell a coherent story.
 
 ## 8. Readability and Scope Guidelines
 
-Use the smallest set of elements that answers the question for the intended audience.
-There is no C4-mandated element or component count. When a diagram becomes difficult to
-scan, consider:
-1. Splitting into multiple focused diagrams
-2. Using boundary boxes to group related elements
-3. Moving detail to a lower C4 level
-4. Creating supplementary views for specific aspects
-5. Drawing one view per service showing only its nearest inbound and outbound dependencies
+Use the smallest set of elements that answers the question for the audience. C4 mandates no element or component count. When a diagram is hard to scan:
+1. Split into focused diagrams
+2. Group related elements with boundary boxes
+3. Move detail to a lower C4 level
+4. Create supplementary views for specific aspects
+5. Draw one view per service showing only its nearest inbound and outbound dependencies
 
 Every split view stays at one abstraction level and tells part of the same story.
 

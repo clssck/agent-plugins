@@ -1,10 +1,10 @@
 # Security Controls
 
-AWS IaC control matrix. Frameworks: Terraform (TF), CDK, SST, CloudFormation (CFN), Pulumi (use the TF resource names with Pulumi's property casing). Defaults and sources: [aws-defaults.md](aws-defaults.md).
+AWS IaC control matrix. Governing rule: severity = proven exposure; absence is not exposure. Frameworks: Terraform (TF), CDK, SST, CloudFormation (CFN), Pulumi (TF resource names, Pulumi property casing). Defaults and sources: [aws-defaults.md](aws-defaults.md).
 
-## Evidence Status
+## Evidence Status and Severity
 
-Every finding carries one status.
+Every finding carries exactly one status.
 
 | Status | Meaning | Use when |
 |--------|---------|----------|
@@ -12,11 +12,11 @@ Every finding carries one status.
 | Needs confirmation | Setting absent or controlled outside the scanned files | Missing WAF, trail, account-level BPA, shared module internals |
 | Not evidenced | Control cannot be judged from this scope | Central logging, runtime behavior, application authz |
 
-NEVER report an absent property as Confirmed when an AWS default, account/org control, or shared module supplies it. Absent + default-safe → no finding, or Informational.
+**NEVER report an absent property as Confirmed** when an AWS default, account/org control, or shared module supplies it. Absent + default-safe → no finding, or Informational.
 
-## Severity
+### Severity
 
-Severity = exposure × reachable operations × authorization × data/privilege impact. Prove each factor from the code.
+Severity = exposure × reachable operations × authorization × data/privilege impact. Prove each factor from code.
 
 | Level | Requires |
 |-------|----------|
@@ -26,8 +26,8 @@ Severity = exposure × reachable operations × authorization × data/privilege i
 | Low | Hardening or policy gap |
 | Informational | Observation; unverified area; legacy style |
 
-- Public by design (marketing site, public docs API)? Not a finding by itself. Record intent, then check authorization, data, write operations, and cost abuse.
-- Application behavior behind the endpoint is outside static scope: mark unknown, NEVER invent an attack chain.
+- **Public by design** (marketing site, public docs API): not a finding by itself. Record intent, then check authorization, data, write operations, cost abuse.
+- **Application behavior behind the endpoint:** outside static scope → mark unknown; NEVER invent an attack chain.
 
 ## 1. Public Exposure
 
@@ -125,7 +125,7 @@ Trust policy with external account principals and no `sts:ExternalId` (third-par
 
 ## 3. Encryption
 
-AWS defaults (since 2022–2023) encrypt S3 objects (SSE-S3), SQS queues (SSE-SQS), DynamoDB (AWS-owned key). Missing config on these is NOT unencrypted data. See [aws-defaults.md](aws-defaults.md).
+AWS defaults (since 2022–2023) encrypt S3 objects (SSE-S3), SQS queues (SSE-SQS), DynamoDB (AWS-owned key). Missing config on these ≠ unencrypted data. See [aws-defaults.md](aws-defaults.md).
 
 ### EN-01: S3 encryption policy
 
@@ -274,7 +274,7 @@ Secrets in Lambda/ECS environment variables, connection strings, user data. High
 
 ## 8. Sanofi Policy (Sanofi projects only)
 
-Run this section only for Sanofi repositories (confirm from remote, org, or tags convention). Skip otherwise and say so in the report.
+Sanofi repositories only (confirm from remote, org, or tags convention). Otherwise skip and say so in the report.
 
 ### SN-01: Mandatory tags
 

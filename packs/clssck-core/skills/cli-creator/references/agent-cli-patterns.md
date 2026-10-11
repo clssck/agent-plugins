@@ -157,19 +157,19 @@ tool-name --json request get /v2/me
 
 ## Companion skill
 
-The companion skill is an omp skill that teaches the path through the tool. It MUST be smaller than the CLI README. Location and file contract are in [SKILL.md](../SKILL.md#companion-skill).
+The companion skill is an omp skill that teaches the path through the tool. It MUST be smaller than the CLI README. Location and file contract → [SKILL.md](../SKILL.md#companion-skill); authoring style → `skill-authoring`.
 
 Body skeleton:
 
 ````md
 ---
 name: tool-name
-description: <What the CLI does>. Use when <concrete triggers>. Not for <sibling or alternative>.
+description: <What the CLI does, service named>. Use when <concrete triggers, user phrasings>. Not for <sibling or alternative> — <sibling> instead.
 ---
 
 # Tool Name
 
-Wrapper for <service>; run by command name from any directory.
+Wrapper for <service>; run by command name from any directory. `doctor --json` MUST pass before other commands.
 
 ## Start
 
@@ -187,15 +187,10 @@ tool-name --json ...
 
 ## Rules
 
-- Run the installed `tool-name` by name; verify with `command -v tool-name` (PowerShell: `Get-Command tool-name`).
-- Use `--json` when analyzing output.
-- Create drafts by default.
-- NEVER publish, delete, retry, or submit without an explicit user request.
-- Use `request get ...` only when high-level commands are missing.
-
-## Checklist
-
-- `doctor --json` passes before other commands.
+- **Run the installed `tool-name` by name;** verify with `command -v tool-name` (PowerShell: `Get-Command tool-name`).
+- **Use `--json` when analyzing output.**
+- **Create drafts by default.** NEVER publish, delete, retry, or submit without an explicit user request.
+- **Use `request get ...` only when high-level commands are missing.**
 ````
 
 - Order the body as an agent uses the CLI, not as a feature tour.

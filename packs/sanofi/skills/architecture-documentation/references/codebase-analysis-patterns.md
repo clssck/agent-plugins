@@ -1,34 +1,6 @@
 # Codebase Analysis Patterns
 
-How to detect architecture from code. Use these patterns to identify C4 elements
-(systems, containers, components) and relationships (data flows, external integrations)
-by reading the codebase.
-
-## Table of Contents
-
-- [Service Boundary Detection](#service-boundary-detection)
-  - [Monorepo Pattern](#monorepo-pattern)
-  - [Multi-Repo Pattern](#multi-repo-pattern)
-  - [Infrastructure-Defined Containers](#infrastructure-defined-containers)
-- [Data Flow Detection](#data-flow-detection)
-  - [HTTP Calls (REST, GraphQL)](#http-calls-rest-graphql)
-  - [Database Queries](#database-queries)
-  - [Message Queues](#message-queues)
-  - [Cache Operations](#cache-operations)
-  - [Object Storage](#object-storage)
-- [External System Detection](#external-system-detection)
-  - [Authentication Providers](#authentication-providers)
-  - [Payment Services](#payment-services)
-  - [Analytics and Monitoring](#analytics-and-monitoring)
-  - [Email and Notification](#email-and-notification)
-  - [CDN and Storage](#cdn-and-storage)
-- [Technology Detection](#technology-detection)
-  - [Framework Detection (package.json)](#framework-detection-packagejson)
-  - [ORM Detection](#orm-detection)
-  - [Runtime Detection](#runtime-detection)
-- [Worked Example: Mapping Code to C4](#worked-example-mapping-code-to-c4)
-  - [Resulting C4 Elements](#resulting-c4-elements)
-  - [Resulting Relationships](#resulting-relationships)
+Code-to-C4 detection: signals in a codebase → containers, components, relationships, external systems, technology labels. Every signal is evidence, never a classification rule; confirm runtime responsibility and system scope before modeling. Search with `glob`/`grep`, scoped to the smallest relevant paths.
 
 ---
 
@@ -36,9 +8,7 @@ by reading the codebase.
 
 ### Monorepo Pattern
 
-In a monorepo, treat each runnable application or data-store responsibility as a
-container candidate. Directory structure and deployment files are evidence; confirm
-the runtime responsibility before adding it to the model.
+In a monorepo, each runnable application or data-store responsibility is a container candidate. Directory structure and deployment files are evidence; confirm runtime responsibility before adding to the model.
 
 ```
 project-root/
@@ -64,19 +34,14 @@ project-root/
 ```
 
 **Heuristics:**
-- A directory with its own `package.json` and a `start` script or `Dockerfile` is evidence
-  of a runnable container; confirm its runtime responsibility and system scope
+- Own `package.json` + `start` script or `Dockerfile` → evidence of a runnable container; confirm runtime responsibility and system scope
 - Shared libraries (`shared/`, `common/`, `utils/`) are NOT containers
-- `docker-compose.yml` services can reveal runtime boundaries, but local development
-  topology is not by itself the C4 model
-- An image or build context can support a container classification; do not model helper
-  services, build steps, or sidecars automatically
+- `docker-compose.yml` services can reveal runtime boundaries, but local-development topology is not itself the C4 model
+- Image or build context supports a container classification; do not model helper services, build steps, or sidecars automatically
 
 ### Multi-Repo Pattern
 
-When a system spans multiple repositories, do not equate repository boundaries with
-service or system boundaries. Use repositories as evidence for runtime responsibility
-and ownership, then model the resulting scope.
+Repository boundaries ≠ service or system boundaries. Use repositories as evidence for runtime responsibility and ownership, then model the resulting scope.
 
 ```
 github.com/org/user-api       -> Candidate: User API
@@ -95,16 +60,13 @@ github.com/org/infrastructure -> Not a container (Terraform definitions)
 ```
 
 **Heuristics:**
-- A repo with a `Dockerfile` or deployment config is evidence of one or more runnable
-  containers, not a fixed one-repo-to-one-container rule
-- Some repos may contain multiple containers (check for multiple Dockerfiles)
+- Repo with `Dockerfile` or deployment config → evidence of one or more runnable containers, not a one-repo-to-one-container rule
+- A repo may hold several containers (check for multiple Dockerfiles)
 - Infrastructure repos define containers (databases, queues) as Terraform resources
 
 **Cross-repo workspace detection:**
 
-When the task supplies several local repository paths (for example from the user or an
-optional workflow config such as `sanofi-code-workflow.yaml` with `github.repos`),
-analysis strategy:
+Task supplies several local repository paths (from the user, or an optional workflow config such as `sanofi-code-workflow.yaml` with `github.repos`) → strategy:
 
 1. Analyze each repo independently using the same heuristics (Dockerfile, package.json, etc.)
 2. Decide whether the repositories together form one software-system boundary before

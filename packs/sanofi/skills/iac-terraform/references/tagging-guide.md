@@ -1,6 +1,6 @@
 # Sanofi AWS Tagging Guide
 
-Per the accepted RFC in `Sanofi-Accelerator/Request-for-Comments`, every taggable AWS resource carries 10 mandatory tags. The live RFC and the library tags module are the authority; re-verify before deployment ([module-guide.md](module-guide.md#discovery)).
+Every taggable AWS resource carries 10 mandatory tags (accepted RFC, `Sanofi-Accelerator/Request-for-Comments`). Governing principle: one `local.tags` set per project, passed everywhere, verified on the evaluated plan. Live RFC + library tags module are the authority; re-verify before deployment ([module-guide.md](module-guide.md#discovery)).
 
 ## Contents
 
@@ -28,11 +28,11 @@ Per the accepted RFC in `Sanofi-Accelerator/Request-for-Comments`, every taggabl
 | `CE_Application_Name` | Free text, human-readable application name | `Order Portal` |
 | `CE_Environment` | Uppercase `env` | `DEV` |
 
-`CE_Application_ID` and `cost_center`:
+`CE_Application_ID` ↔ `cost_center`:
 
 - `cost_center = apm-1234567` → `CE_Application_ID = APM1234567` (same digits, uppercase prefix).
-- `cost_center = cc-*` or `dp-*` → no APM ID is derivable. ASK the user. NEVER copy the cost center into `CE_Application_ID`.
-- A company-wide cost-center → application mapping is [UNVERIFIED]. Use one only when the user or the RFC supplies it.
+- `cost_center = cc-*` or `dp-*` → no APM ID derivable. ASK the user. NEVER copy the cost center into `CE_Application_ID`.
+- Company-wide cost-center → application mapping: [UNVERIFIED]. Use one only when the user or the RFC supplies it.
 
 ## Environment mapping
 
@@ -44,7 +44,7 @@ Per the accepted RFC in `Sanofi-Accelerator/Request-for-Comments`, every taggabl
 
 ## Standard implementation
 
-Input names avoid Terraform's reserved variable names (`source`, `version`, `providers`, `count`, `for_each`, `lifecycle`, `depends_on`, `locals`), so the `version` tag comes from `app_version`.
+Inputs avoid Terraform's reserved variable names (`source`, `version`, `providers`, `count`, `for_each`, `lifecycle`, `depends_on`, `locals`) ⇒ the `version` tag comes from `app_version`.
 
 ```hcl
 # variables.tf
@@ -161,11 +161,11 @@ module "s3_bucket" {
 }
 ```
 
-Operational tags (`ManagedBy = "Terraform"`, `Repository`) MAY be merged in: `merge(local.tags, { ManagedBy = "Terraform" })`. They never replace the 10.
+Operational tags (`ManagedBy = "Terraform"`, `Repository`) MAY be merged: `merge(local.tags, { ManagedBy = "Terraform" })`. They never replace the 10.
 
 ## Provider default tags
 
-Set the same map at the provider so raw resources and modules without a `tags` input are still covered:
+Same map at the provider ⇒ raw resources and modules without a `tags` input are still covered:
 
 ```hcl
 provider "aws" {
@@ -177,17 +177,17 @@ provider "aws" {
 }
 ```
 
-- Resource-level `tags` override `default_tags` for the same key (AWS provider 5+ allows duplicates and zero-value `""` tags). The effective set is the read-only `tags_all`; that is what `check_tags.py` reads. Still keep identical keys with identical values: a different value silently wins at the resource.
-- `default_tags` is a backstop. Still pass `tags = local.tags` to each module.
+- Resource-level `tags` override `default_tags` for the same key (AWS provider 5+ allows duplicates and zero-value `""` tags). Effective set = read-only `tags_all`; `check_tags.py` reads it. Keep identical keys with identical values: a different value silently wins at the resource.
+- `default_tags` = backstop. Still pass `tags = local.tags` to each module.
 - `default_tags` does NOT cover `aws_autoscaling_group`; give it `tag` blocks (with `propagate_at_launch`) built from `local.tags`.
-- Resources with no `tags` argument (some `aws_*` sub-resources) are not taggable and not checked.
-- `ignore_tags` (provider) or `lifecycle { ignore_changes = [tags] }` hides drift on those keys. NEVER apply either to the 10 mandatory tags. A key in both `ignore_tags` and a resource's `tags` shows a perpetual diff.
-- A tag set only through `aws_ec2_tag` on a resource whose own `tags` argument is also managed produces a perpetual diff; use one or the other.
-- Optional: AWS provider 6.22+ `tag_policy_compliance = "error"` fails plans that miss tags required by the account's AWS Organizations tag policy. The runner role needs the `tags:ListRequiredTags` permission; most SDKv2-based resources can only log a warning. It complements, and does not replace, the 10-tag check.
+- Resources with no `tags` argument (some `aws_*` sub-resources): not taggable, not checked.
+- `ignore_tags` (provider) or `lifecycle { ignore_changes = [tags] }` hides drift on those keys. NEVER apply either to the 10 mandatory tags. A key in both `ignore_tags` and a resource's `tags` → perpetual diff.
+- Tag set only via `aws_ec2_tag` on a resource whose own `tags` argument is also managed → perpetual diff; use one or the other.
+- Optional: AWS provider 6.22+ `tag_policy_compliance = "error"` fails plans missing tags required by the account's AWS Organizations tag policy. Runner role needs `tags:ListRequiredTags`; most SDKv2-based resources can only log a warning. Complements, never replaces, the 10-tag check.
 
 ## tags_mandatory_tags module
 
-The library helper builds the corporate tags. Verify its inputs in the module's `variables.tf`.
+Library helper builds the corporate tags. Verify inputs in the module's `variables.tf`.
 
 ```hcl
 module "tags" {
@@ -212,11 +212,11 @@ locals {
 }
 ```
 
-Pass `local.all_tags` where this guide says `local.tags`. Use ONE set per project.
+Pass `local.all_tags` where this guide says `local.tags`. ONE set per project.
 
 ## Effective-tag check
 
-Source-text greps miss unquoted HCL keys, match variable declarations, and skip nested files. Check the evaluated plan instead. It covers module and provider tag propagation. The user produces the plan; the check is read-only. `tfplan` and `plan.json` contain sensitive values in cleartext: keep them out of Git and chat, and delete them after the check.
+Source-text greps miss unquoted HCL keys, match variable declarations, skip nested files. Check the evaluated plan: covers module + provider tag propagation. User produces the plan; check is read-only. `tfplan` and `plan.json` contain sensitive values in cleartext: keep out of Git and chat; delete after the check.
 
 ```bash
 terraform plan -out=tfplan
@@ -224,9 +224,9 @@ terraform show -json tfplan > plan.json
 uv run "$(realpath skill://iac-terraform/scripts/check_tags.py)" plan.json
 ```
 
-Run these in the omp `bash` tool; `realpath` resolves `skill://` there, and the script needs no installed dependencies. The script walks `resource_changes`, reads `tags_all` (falling back to `tags`), and fails on missing/empty tags, wrong case, bad prefixes, and mismatched `CE_Environment`. `aws_autoscaling_group` is checked through its `tag` blocks (key, value, `propagate_at_launch = true`). Tags or individual tag values unknown until apply print as warnings (`--strict` fails them); invalid known values still fail. Exit codes: 0 compliant, 1 violations, 2 unreadable input.
+Run in the omp `bash` tool; `realpath` resolves `skill://` there; script needs no installed dependencies. Script walks `resource_changes`, reads `tags_all` (fallback `tags`), fails on missing/empty tags, wrong case, bad prefixes, mismatched `CE_Environment`. `aws_autoscaling_group` checked via `tag` blocks (key, value, `propagate_at_launch = true`). Tags or tag values unknown until apply → warnings (`--strict` fails them); invalid known values still fail. Exit codes: 0 compliant, 1 violations, 2 unreadable input.
 
-In CI, copy the script into the repository and run `uv run check_tags.py plan.json` after the plan step; the workflow template is in the `cicd-engineering` skill.
+In CI: copy the script into the repository; `uv run check_tags.py plan.json` after the plan step; workflow template → `cicd-engineering` skill.
 
 ## Common mistakes
 

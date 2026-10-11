@@ -1,6 +1,6 @@
 # Search Patterns and Templates
 
-Supplements [SKILL.md](../SKILL.md). The decision flow lives there: Rovo `search` first, CQL/JQL when requested or clearly targeted, selective fetch, cited synthesis. This file adds query patterns and answer templates only.
+Query-shaping, CQL/JQL, and answer templates for [SKILL.md](../SKILL.md). Decision flow lives there: Rovo `search` first → CQL/JQL when requested or target system clear → selective fetch → cited synthesis. Governing principle: shortest query that names the thing; every claim cited; gaps stated.
 
 ## Query Terms
 
@@ -10,11 +10,11 @@ Supplements [SKILL.md](../SKILL.md). The decision flow lives there: Rovo `search
 | Full sentence with "the", "our", "about" | Key terms: "deployment pipeline" |
 | One failed phrase, then "not found" | Variants: "deploy process" → "deployment pipeline" → error text |
 
-Add system names, acronyms, error codes, and ticket keys when known.
+Add known system names, acronyms, error codes, ticket keys.
 
 ## CQL and JQL
 
-Use only when the user asks for them or the target system is clear. Confirm field names against the tool schema.
+Use only when the user asks for them or the target system is clear. Field names → confirm against tool schema.
 
 ```
 # CQL (Confluence)
@@ -35,11 +35,11 @@ project = PROJ AND text ~ "deployment" AND created >= -90d ORDER BY updated DESC
 
 Gotchas:
 
-- Exact phrases MUST use escaped inner quotes (`"\"...\""`); a plain `"a b"` matches the words in any order.
-- Jira Cloud ignores stop words ("will", "not", "the", ...) and the Lucene fuzzy `~`, proximity, and `^` operators; `"VSX will crash"` also matches "VSX will not crash". Verify negations by reading the item.
-- Text search is stemmed: `summary ~ "customize"` matches "customer". Confirm hits before citing.
-- CQL `=`/`!=` don't work on text fields; use `~`/`!~`. A negative clause can't be the first CQL clause. Quote space keys starting with digits (`space = "3C"`).
-- Narrow JQL with `project`, a date window, or `issuetype` and add `ORDER BY updated DESC` so the newest items come first.
+- **Exact phrase.** MUST use escaped inner quotes (`"\"...\""`); plain `"a b"` matches the words in any order.
+- **Jira stop words.** Jira Cloud ignores stop words ("will", "not", "the", ...) and the Lucene fuzzy `~`, proximity, and `^` operators; `"VSX will crash"` also matches "VSX will not crash". Verify negations by reading the item.
+- **Stemming.** Text search is stemmed: `summary ~ "customize"` matches "customer". Confirm hits before citing.
+- **CQL operators.** `=`/`!=` don't work on text fields → `~`/`!~`. A negative clause can't be the first CQL clause. Quote space keys starting with digits (`space = "3C"`).
+- **JQL narrowing.** Add `project`, a date window, or `issuetype`; add `ORDER BY updated DESC` so newest items come first.
 
 | Signal | Route |
 |---|---|
@@ -49,10 +49,13 @@ Gotchas:
 
 ## Source Quality
 
-- Strong: recent, canonical ("Guide", "Overview"), confirmed by several sources.
-- Weak: tickets older than two years, drafts, personal pages, duplicates.
-- Fetch order: official docs, then recent relevant issues, then related pages named in results.
-- Over 15 hits: group them, curate the top few, offer to narrow.
+| Grade | Signal |
+|---|---|
+| Strong | recent; canonical ("Guide", "Overview"); confirmed by several sources |
+| Weak | tickets older than two years; drafts; personal pages; duplicates |
+
+- Fetch order: official docs → recent relevant issues → related pages named in results.
+- Over 15 hits: group, curate the top few, offer to narrow.
 
 ## Synthesis Templates
 
@@ -114,7 +117,7 @@ Stratus minions are background workers that process asynchronous jobs from a que
 
 ## Out of Scope
 
-Public or general technology questions ("What is machine learning?", "How does React work?"), news, and other companies: answer from general knowledge or `web_search`.
+Public or general technology questions ("What is machine learning?", "How does React work?"), news, other companies → general knowledge or `web_search`.
 
 ## Sources
 

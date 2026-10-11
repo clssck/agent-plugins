@@ -1,46 +1,29 @@
 # Running dbt from Airflow
 
-How to run a dbt project from a Sanofi MWAA DAG. This is the dominant orchestration use
-case. Use this reference to pick and wire the execution approach; use the dbt skill
-for the dbt project itself (model placement, SQL, materialization, YAML, tests).
+Wiring a dbt project into a Sanofi MWAA DAG: choose the execution approach, pass run context, route failures, handle logs and backfills. Dominant orchestration use case. Scope: orchestration only; dbt project itself (model placement, SQL, materialization, YAML, tests) → dbt skill.
 
 ## Source of Truth
 
-Primary reference is OneMesh `1. DAG Authoring Best Practices` `66486699835` (§ "Running
-dbt from Airflow"), `3. Performance & Troubleshooting` `66486175813`, and `dbt Logs and
-Artifacts in MWAA` `65350434990` (logs/artifacts handling). The `BashOperator`/`DbtClient`
-and run-var patterns also appear in CIDF `Best practices - dbt and SQL in general`
-`66074739903`.
-
-Platform package versions are environment facts, not choices: shared central MWAA ships
-`dbt-core` (1.11.x) and `dbt-snowflake` (1.11.x); dedicated Airflow 3.2.1 tenants track
-slightly newer point releases. Confirm the actual versions in the target environment
-before relying on a version-specific dbt feature. All project names, paths, roles, and
-`dag_id`s below are placeholders.
-
-> Cosmos (`astronomer-cosmos`) is pre-installed on the platform but is **not used here** —
-> run dbt via `BashOperator` + `dbt_run.sh` or the typed `DbtClient`. Revisit Cosmos only
-> if per-model Airflow visibility ever becomes a hard requirement.
+- **OneMesh pages:** `1. DAG Authoring Best Practices` `66486699835` (§ "Running dbt from Airflow"), `3. Performance & Troubleshooting` `66486175813`, `dbt Logs and Artifacts in MWAA` `65350434990` (logs/artifacts).
+- **CIDF:** `Best practices - dbt and SQL in general` `66074739903` repeats the `BashOperator`/`DbtClient` and run-var patterns.
+- **Package versions are environment facts, not choices.** Shared central MWAA ships `dbt-core` 1.11.x and `dbt-snowflake` 1.11.x; dedicated Airflow 3.2.1 tenants track slightly newer point releases. Confirm actual versions in the target environment before relying on a version-specific dbt feature.
+- **Placeholders:** all project names, paths, roles, `dag_id`s below.
+- **Cosmos:** `astronomer-cosmos` is pre-installed but **not used here**. Run dbt via `BashOperator` + `dbt_run.sh` or typed `DbtClient`. Revisit Cosmos only if per-model Airflow visibility becomes a hard requirement.
 
 ## Choosing an Approach
 
-Both approaches are parse-time safe (no module-level `Variable.get()`/secrets/heavy
-imports) and scale to large projects. Choose by how you want to build the dbt command:
+Both approaches are parse-time safe (no module-level `Variable.get()`/secrets/heavy imports) and scale to large projects. Both run dbt as a CLI invocation, so one task can cover many models. Choose by how the dbt command is built:
 
-| Approach                         | When                                         | Task visibility          |
-| -------------------------------- | -------------------------------------------- | ------------------------ |
-| `BashOperator` + `dbt_run.sh`    | Most pipelines today; a shared runner script | One task per dbt command |
+| Approach | When | Task visibility |
+|---|---|---|
+| `BashOperator` + `dbt_run.sh` | Most pipelines today; shared runner script | One task per dbt command |
 | `@task.bash` + typed `DbtClient` | Refactoring toward typed, validated commands | One task per dbt command |
 
-Both run dbt as a CLI invocation, so a single task can cover many models. For per-owner
-alerting, split execution by selector (`tag:<team>`, `path:<domain>`) into separate tasks.
+Per-owner alerting → split execution by selector (`tag:<team>`, `path:<domain>`) into separate tasks.
 
 ## BashOperator + dbt_run.sh
 
-The most common pattern: a shared `orchestration/scripts/dbt_run.sh` invoked via
-`BashOperator`. It is parse-time safe and stable at scale. Keep the script small (a `case`
-over run type plus a shared `$DBT_OPTS`); resist letting it grow into deeply nested
-per-layer/per-exclude branches.
+Shared `orchestration/scripts/dbt_run.sh` invoked via `BashOperator`: parse-time safe, stable at scale. **Keep the script small** — a `case` over run type plus a shared `$DBT_OPTS`. Resist deeply nested per-layer/per-exclude branches.
 
 ```python
 from airflow.operators.bash import BashOperator  # 3.x: airflow.providers.standard.operators.bash
@@ -55,13 +38,9 @@ run_dbt = BashOperator(
 
 ## Typed DbtClient
 
-To move away from stringly-typed bash while staying on the dbt CLI, build dbt commands
-with a typed, frozen `DbtClient` dataclass (available via `sanofi-airflow-utils`). It
-centralizes the binary, project/profiles dirs, target, and log paths, and safely assembles
-`--select`, `--full-refresh`, `--vars`, and extra args. Invoke it inside `@task.bash` so
-command construction runs at execution time. Pass an explicit selection through the
-documented extra args; a run without one builds the whole project and is allowed only when
-the user explicitly asked for it:
+Replaces stringly-typed bash while staying on the dbt CLI. Typed, frozen `DbtClient` dataclass (via `sanofi-airflow-utils`) centralizes binary, project/profiles dirs, target, log paths; safely assembles `--select`, `--full-refresh`, `--vars`, extra args. Invoke inside `@task.bash` so command construction runs at execution time.
+
+**Selection is explicit.** Pass it through the documented extra args. A run without one builds the whole project: allowed only when the user explicitly asked for it.
 
 ```python
 @task.bash(env=snowflake_env_vars)
@@ -77,76 +56,51 @@ def run_tests() -> str:
     return dbt.build_command("test", extra_args="--select <selector> --exclude test_type:unit")
 ```
 
-## Passing Run Vars and Idempotent Windows
+## Run Vars and Idempotent Windows
 
-Pass Airflow run context into dbt so runs are traceable and reprocessable. Common vars:
-`airflow_dag_id`, `airflow_dag_run_id`, and the interval boundaries
-`data_interval_start` / `data_interval_end`. Incremental models can filter their source
-on that explicit window (instead of, or alongside, a `max()` watermark) to make each run
-idempotent and any date range replayable — see the dbt skill's incremental guidance.
-Build the `--vars` string inside a task or via `DbtClient`, NEVER at module level.
+Pass Airflow run context into dbt → traceable, reprocessable runs. Common vars: `airflow_dag_id`, `airflow_dag_run_id`, `data_interval_start` / `data_interval_end`. Incremental models filter their source on the explicit window (instead of, or alongside, a `max()` watermark) → idempotent runs, replayable date ranges; see the dbt skill's incremental guidance.
 
-On Airflow 3.x, bare-cron schedules and asset-/API-triggered runs break these window vars:
-apply Airflow 3 Traps (SKILL.md) before passing the window to dbt.
+- **NEVER build the `--vars` string at module level.** Build it inside a task or via `DbtClient`.
+- **Airflow 3.x:** bare-cron schedules and asset-/API-triggered runs break window vars. Apply Airflow 3 Traps (SKILL.md) before passing the window to dbt.
 
 ## Execution Patterns
 
-Pick one pattern per pipeline and stay consistent; do not mix them in one DAG:
+**Pick one per pipeline; never mix in one DAG.**
 
-1. Single `dbt build` per source/project: one task runs `dbt build --select tag:<x>
-   --fail-fast`. Simplest; dbt orders and tests models internally.
-2. Per-layer `run` + `test` chained: one run+test task per layer, ordered
-   staging -> intermediate -> warehouse -> marts, so intermediate test failures gate
-   downstream layers. Use when you want test feedback between layers.
+| Pattern | Shape | Use when |
+|---|---|---|
+| Single `dbt build` | One task per source/project: `dbt build --select tag:<x> --fail-fast`; dbt orders and tests models internally | Default; simplest |
+| Per-layer `run` + `test` chain | One run+test task per layer, ordered staging → intermediate → warehouse → marts; intermediate test failures gate downstream layers | Test feedback needed between layers |
 
 ## Logs, Artifacts, and Failure Routing
 
-Airflow task logs (Airflow UI plus CloudWatch) are the default source of truth for
-debugging a dbt run; dbt's own `dbt.log` and `target/` artifacts are ephemeral on MWAA
-workers unless the DAG persists them. Debug in this order: open the DAG run, open the
-failed task instance, read its CloudWatch task log, then read the dbt stdout/stderr in
-that task's log.
+Airflow task logs (UI + CloudWatch) are the default source of truth. dbt's own `dbt.log` and `target/` are ephemeral on MWAA workers unless the DAG persists them.
 
-NEVER write dbt logs or artifacts into the S3 `dags/` prefix, and NEVER point every
-project/run at one shared `dbt.log` — the `dags/` prefix is deployed code, not a runtime
-log archive. Persist artifacts only when there is a concrete need (post-run analysis,
-audit evidence, model-level failure routing). When you do, write to a unique per-run path
-(`--log-path`/`--target-path`, or `DBT_LOG_PATH`/`DBT_TARGET_PATH`, keyed by dag/task/run
-id) and upload only the files you need (`run_results.json`, `manifest.json`) to an
-approved non-`dags` artifact bucket provisioned via IaC.
+**Debug order:** DAG run → failed task instance → CloudWatch task log → dbt stdout/stderr in that log.
 
-Route failures to owners without scraping logs: split a bash run by selector
-(`tag:<team>`, `path:<domain>`) so a failure maps to a team. Parse `run_results.json`
-(per-node status, timing, message, and node ids that map back to `manifest.json`) only
-when model-level routing cannot be expressed as separate tasks.
+- **NEVER write dbt logs or artifacts into the S3 `dags/` prefix** (deployed code, not a runtime log archive).
+- **NEVER point every project/run at one shared `dbt.log`.**
+- **Persist artifacts only for a concrete need:** post-run analysis, audit evidence, model-level failure routing. Then: unique per-run path (`--log-path`/`--target-path`, or `DBT_LOG_PATH`/`DBT_TARGET_PATH`, keyed by dag/task/run id); upload only needed files (`run_results.json`, `manifest.json`) to an approved non-`dags` artifact bucket provisioned via IaC.
+- **Route failures to owners without scraping logs:** split a bash run by selector (`tag:<team>`, `path:<domain>`) so a failure maps to a team. Parse `run_results.json` (per-node status, timing, message, node ids mapping to `manifest.json`) only when model-level routing cannot be expressed as separate tasks.
 
 ## Backfills
 
-Prefer narrow date ranges over `--full-refresh` (full refreshes are slow and rebuild
-every selected resource that allows it). A resource config `full_refresh: false` takes
-precedence over the `--full-refresh` flag, so protected persistent layers are NOT
-rebuilt by the flag; a rebuild of such a model requires deliberately changing that config
-(see the dbt skill) — NEVER assume the flag overrides it. `full_refresh: true` rebuilds
-even without the flag. A common pattern is a dedicated
-backfill DAG that takes `{model/selector, start_date, end_date, run_tests}` and runs dbt
-over that window. Seed a new incremental table with one full refresh, then run
-incrementally; keep `--full-refresh` available for periodic rebuilds of unprotected
-models. Never edit warehouse data directly except as a documented emergency fix.
+Prefer narrow date ranges over `--full-refresh` (slow; rebuilds every selected resource that allows it).
+
+- **`full_refresh: false` beats the `--full-refresh` flag.** Protected persistent layers are NOT rebuilt by the flag; rebuilding one requires deliberately changing that config (dbt skill). NEVER assume the flag overrides it. `full_refresh: true` rebuilds even without the flag.
+- **Backfill DAG pattern:** takes `{model/selector, start_date, end_date, run_tests}`, runs dbt over that window.
+- **New incremental table:** one full refresh to seed, then incremental runs. Keep `--full-refresh` available for periodic rebuilds of unprotected models.
+- **NEVER edit warehouse data directly** except as a documented emergency fix.
 
 ## Deprecated Patterns
 
-Do not create `dbt_utils.py` / `common_util.py` helper modules that call `Variable.get()`
-or import `snowflake.connector`/`cryptography` at module level, or use `sys.path.append`
-hacks — they fire secrets lookups and heavy imports on every parse cycle. Migrate such
-projects to a small `dbt_run.sh` or the typed `DbtClient`.
+Do not create `dbt_utils.py` / `common_util.py` helpers that call `Variable.get()`, import `snowflake.connector`/`cryptography` at module level, or use `sys.path.append` hacks → each fires secrets lookups and heavy imports on every parse cycle. Migrate such projects to a small `dbt_run.sh` or typed `DbtClient`.
 
-## Checklist
+## Verification
 
-- [ ] Approach chosen (`BashOperator` + `dbt_run.sh` or `@task.bash` + `DbtClient`).
-- [ ] No module-level `Variable.get()`, secrets, or heavy imports.
-- [ ] Run vars (`data_interval_start/end`, run id) passed for traceable/idempotent runs.
-- [ ] One execution pattern (single `build` vs per-layer `run`+`test`), not both.
-- [ ] Logs/artifacts stay out of the `dags/` prefix; if persisted, they go to an approved
-      artifact bucket under a unique per-run path.
-- [ ] `--select` expressions resolve (`dbt ls`) and the dbt project is validated with the
-      dbt skill (`dbt parse`/`compile`).
+- Approach chosen: `BashOperator` + `dbt_run.sh` | `@task.bash` + `DbtClient`.
+- No module-level `Variable.get()`, secrets, heavy imports.
+- Run vars (`data_interval_start/end`, run id) passed for traceable, idempotent runs.
+- One execution pattern (single `build` | per-layer `run`+`test`), not both.
+- Logs/artifacts outside `dags/`; if persisted → approved artifact bucket, unique per-run path.
+- `--select` expressions resolve (`dbt ls`); dbt project validated with the dbt skill (`dbt parse`/`compile`).

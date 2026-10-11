@@ -1,49 +1,16 @@
 # Versioning Guide
 
-Rules for versioning architecture artifacts, maintaining changelogs, tracing changes
-to Jira tickets, and managing the lifecycle of architecture documentation.
-
-## Table of Contents
-
-- [Semantic Versioning Rules](#semantic-versioning-rules)
-  - [MAJOR Version (X.0.0)](#major-version-x00)
-  - [MINOR Version (x.Y.0)](#minor-version-xy0)
-  - [PATCH Version (x.y.Z)](#patch-version-xyz)
-- [Changelog Format](#changelog-format)
-  - [Changelog Table Specification](#changelog-table-specification)
-  - [Example Changelog](#example-changelog)
-  - [Rules](#rules)
-- [Artifact Naming Convention](#artifact-naming-convention)
-  - [Core Views](#core-views)
-  - [Component Views (L3)](#component-views-l3)
-  - [Supplementary Views](#supplementary-views)
-- [Jira Ticket Linkage](#jira-ticket-linkage)
-  - [Every Change Traces to a Ticket](#every-change-traces-to-a-ticket)
-  - [Linkage Patterns](#linkage-patterns)
-- [Retroactive Documentation](#retroactive-documentation)
-  - [Step 1: Initial Version (v1.0.0)](#step-1-initial-version-v100)
-  - [Step 2: Discover Historical Context](#step-2-discover-historical-context)
-  - [Step 3: Ongoing Updates](#step-3-ongoing-updates)
-  - [Step 4: Handling Unknown History](#step-4-handling-unknown-history)
-- [Diff Descriptions](#diff-descriptions)
-  - [Format](#format)
-  - [Examples](#examples)
-- [Archive Policy](#archive-policy)
-  - [When to Archive](#when-to-archive)
-  - [How to Archive](#how-to-archive)
-  - [Retention](#retention)
-- [Change Management Flow](#change-management-flow)
+Versioning, changelog, artifact naming, Jira traceability, retroactive documentation, diff descriptions, archive, and change management for architecture artifacts. Version the logical artifact, not the file format: identifiers stay tool-neutral so history survives a change of diagramming tool.
 
 ---
 
 ## Semantic Versioning Rules
 
-Architecture artifacts use semantic versioning: `v{MAJOR}.{MINOR}.{PATCH}`
+Format: `v{MAJOR}.{MINOR}.{PATCH}`
 
 ### MAJOR Version (X.0.0)
 
-Increment MAJOR when there are **significant architectural changes** that
-fundamentally alter the system's structure or boundaries.
+Increment MAJOR for **significant architectural changes** that fundamentally alter system structure or boundaries.
 
 **Triggers:**
 - System boundary redefinition (scope changes, what is "in" vs "out")
@@ -63,8 +30,7 @@ fundamentally alter the system's structure or boundaries.
 
 ### MINOR Version (x.Y.0)
 
-Increment MINOR when **containers or components are added, removed, or significantly
-changed** without altering the system boundary.
+Increment MINOR when **containers or components are added, removed, or significantly changed** without altering the system boundary.
 
 **Triggers:**
 - New container added (new service, new database, new queue)
@@ -85,8 +51,7 @@ changed** without altering the system boundary.
 
 ### PATCH Version (x.y.Z)
 
-Increment PATCH for **documentation corrections and minor updates** that do not
-change the actual architecture.
+Increment PATCH for **documentation corrections and minor updates** that leave the architecture unchanged.
 
 **Triggers:**
 - Renamed a component or container (same thing, better name)
@@ -111,8 +76,7 @@ change the actual architecture.
 
 ### Changelog Table Specification
 
-Every architecture page includes a Change History table at the bottom. The table has
-these columns:
+Every architecture page carries a Change History table at the bottom, with these columns:
 
 | Column | Format | Description |
 |--------|--------|-------------|
@@ -135,22 +99,18 @@ these columns:
 
 ### Rules
 
-- Entries are ordered newest first (most recent at top)
+- Newest first (most recent at top)
 - Every entry MUST have a date and summary
-- Every entry SHOULD have a Jira ticket (use `--` only for initial documentation or
-  non-ticket-driven changes like periodic refresh)
-- The "Level" column indicates which diagrams were modified
-- When multiple levels change in one update, list all (e.g., "L1 Context, L2 Container")
-- Per-level pages have their own changelog (subset of the master)
+- Every entry SHOULD have a Jira ticket; `--` only for initial documentation or non-ticket-driven changes such as periodic refresh
+- "Level" column = diagrams modified; list all when several change in one update (e.g., "L1 Context, L2 Container")
+- Per-level pages keep their own changelog (subset of the master)
 - The master changelog page aggregates all changes across all levels
 
 ---
 
 ## Artifact Naming Convention
 
-Use a tool-neutral logical identifier, then add the extension or native artifact format
-already established by the repository or destination. Do not introduce a new diagramming
-format solely to follow this skill.
+Tool-neutral logical identifier, plus the extension or native artifact format already established by the repository or destination. NEVER introduce a new diagramming format just to follow this skill.
 
 ### Core Views
 
@@ -174,7 +134,7 @@ user-platform-L3-api-service-v2.0.0.pdf
 
 ### Component Views (L3)
 
-L3 artifacts include the container name since there can be multiple:
+L3 artifacts include the container name (several may exist):
 ```
 {system-name}-L3-{container-name}-v{version}[.{repository-native-extension}]
 ```
@@ -208,13 +168,11 @@ user-platform-landscape-v1.0.0
 
 ### Every Change Traces to a Ticket
 
-Architecture documentation changes SHOULD be traceable to the work that caused them.
-This means:
+Architecture documentation changes SHOULD trace to the work that caused them:
 
-1. The changelog entry includes the Jira ticket ID
-2. The Jira ticket comment references the architecture update
-3. If the PR modifies architecture-relevant code, the PR description links to the
-   updated architecture page
+1. Changelog entry includes the Jira ticket ID
+2. Jira ticket comment references the architecture update
+3. PR modifying architecture-relevant code links the updated architecture page in its description
 
 ### Linkage Patterns
 
@@ -244,8 +202,7 @@ Changelog entry: "v1.0.0 | 2025-11-01 | -- | L1, L2, L3 | Initial documentation"
 
 ## Retroactive Documentation
 
-When documenting an existing system for the first time (no prior architecture docs),
-follow this approach:
+Documenting an existing system for the first time (no prior architecture docs):
 
 ### Step 1: Initial Version (v1.0.0)
 
@@ -256,31 +213,30 @@ Create all applicable C4 levels from the current codebase state:
 
 ### Step 2: Discover Historical Context
 
-If possible, gather context about past changes:
+Gather past-change context where possible:
 - Read git history for major architectural commits
 - Review PRDs and tech specs in Confluence
 - Ask the engineering team about key decisions
-- Document known decisions in the "Key Decisions" section
+- Record known decisions in the "Key Decisions" section
 
 ### Step 3: Ongoing Updates
 
-From this point forward, every change follows normal versioning:
-- Code changes that affect architecture -> new architecture-artifact version
+Every change follows normal versioning:
+- Code change affecting architecture → new architecture-artifact version
 - Each version increment has a Jira ticket and changelog entry
 
 ### Step 4: Handling Unknown History
 
-When the full history is not recoverable:
-- Note in the changelog: "History prior to v1.0.0 is not documented"
-- Focus on documenting the current state accurately
-- Going forward, all changes are fully tracked
+History not recoverable:
+- Changelog note: "History prior to v1.0.0 is not documented"
+- Document the current state accurately
+- Track every later change fully
 
 ---
 
 ## Diff Descriptions
 
-When creating a new version, summarize what changed clearly so reviewers can
-quickly assess the impact.
+Summarize each new version's changes so reviewers can assess impact quickly.
 
 ### Format
 
@@ -356,5 +312,4 @@ For significant architecture changes (MAJOR/MINOR), follow this flow:
 8. Validation       -> Verify published diagrams render correctly
 ```
 
-For PATCH changes (typos, label fixes), steps 5-7 can be simplified to a quick
-review by any team member.
+PATCH changes (typos, label fixes): steps 5-7 collapse to a quick review by any team member.

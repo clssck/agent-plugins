@@ -1,6 +1,6 @@
 # Terraform Module Guide
 
-Discovery, module usage, validation, versions, state backend, testing, secrets, and module pinning for Sanofi AWS Terraform. Tag rules: [tagging-guide.md](tagging-guide.md).
+Module usage for Sanofi AWS Terraform: discovery, call pattern, validation, versions, state backend, testing, secrets, pinning. Governing principle: confirm against the live library repo; catalog and versions here are snapshots. Tag rules → [tagging-guide.md](tagging-guide.md).
 
 ## Contents
 
@@ -18,7 +18,7 @@ Discovery, module usage, validation, versions, state backend, testing, secrets, 
 
 ## Discovery
 
-Run first. Use the GitHub integration if available; otherwise `gh` (same syntax in bash, zsh, PowerShell). No access to a repository? Stop and report it; NEVER guess module inputs.
+Run first. GitHub integration if available; else `gh` (same syntax in bash, zsh, PowerShell). No repository access → stop, report; NEVER guess module inputs.
 
 ```bash
 # Catalog and service modules
@@ -33,7 +33,7 @@ gh api repos/Sanofi-InnerSource/terraform-aws-library/contents/src/SERVICE/MODUL
 gh search code 'tagging path:accepted' --repo Sanofi-Accelerator/Request-for-Comments
 ```
 
-Confluence CODE-space docs: use the `search-company-knowledge` skill. No integration at all? Use user-provided references.
+Confluence CODE-space docs → `search-company-knowledge` skill. No integration at all → user-provided references.
 
 ## Module call pattern
 
@@ -58,7 +58,7 @@ terraform init -backend=false
 terraform validate
 ```
 
-Private modules resolve from `sanofi.jfrog.io`, so `init` needs a token. Prefer the host-specific environment variable (Terraform 1.2+; periods become underscores) over a committed `.terraformrc`:
+Private modules resolve from `sanofi.jfrog.io` ⇒ `init` needs a token. Prefer host-specific env var (Terraform 1.2+; periods → underscores) over a committed `.terraformrc`:
 
 ```bash
 # bash / zsh
@@ -70,16 +70,16 @@ export TF_TOKEN_sanofi_jfrog_io="<token from the user's secret store>"
 $env:TF_TOKEN_sanofi_jfrog_io = "<token from the user's secret store>"
 ```
 
-- `init -backend=false` validates syntax and module wiring without touching state.
-- `terraform plan`, with a real backend and AWS credentials, runs only on user authorization. NEVER run `apply`.
-- Review plan output for the user; tag verification is in [tagging-guide.md](tagging-guide.md#effective-tag-check).
-- Optional `uvx checkov -d .` is a static scan. Triage its findings through the `iac-security-review` skill.
+- `init -backend=false`: validates syntax + module wiring; no state access.
+- `terraform plan` (real backend + AWS credentials): only on user authorization. NEVER run `apply`.
+- Review plan output for the user; tag verification → [tagging-guide.md](tagging-guide.md#effective-tag-check).
+- Optional `uvx checkov -d .`: static scan; triage findings through `iac-security-review` skill.
 
-CI plan/apply workflows and runner-side JFrog credentials: `cicd-engineering` skill.
+CI plan/apply workflows + runner-side JFrog credentials → `cicd-engineering` skill.
 
 ## Versions and providers
 
-Set floors to the features the code actually uses; NEVER copy a floor you do not need:
+Floors = features the code uses; NEVER copy a floor you do not need:
 
 ```hcl
 # versions.tf
@@ -96,8 +96,8 @@ terraform {
 ```
 
 - Terraform selects ONE version per provider that all modules accept. Read each library module's `required_providers` (same `gh api` pattern as [Discovery](#discovery)) before picking the root constraint. NEVER raise a major version a module does not allow.
-- Commit `.terraform.lock.hcl` and review its diff like code. Locked versions move only with `terraform init -upgrade`.
-- AWS provider 5 → 6: move to the latest 5.x first; the user's plan MUST be clean with no deprecation warnings. Then set `~> 6.0` and run `terraform init -upgrade`.
+- Commit `.terraform.lock.hcl`; review its diff like code. Locked versions move only via `terraform init -upgrade`.
+- AWS provider 5 → 6: latest 5.x first; user's plan MUST be clean, no deprecation warnings. Then `~> 6.0` + `terraform init -upgrade`.
 
 AWS provider v6 changes that break or mislead existing code:
 
@@ -109,7 +109,7 @@ AWS provider v6 changes that break or mislead existing code:
 | `cpu_core_count`, `cpu_threads_per_core` on `aws_instance` | `cpu_options { core_count, threads_per_core }` |
 | One aliased provider per Region | MAY use the per-resource `region` argument instead; aliases stay valid |
 
-Changing a resource's `region` forces replacement. Moving deployed resources from provider aliases to `region` needs a user-run `terraform apply -refresh-only` first, so propose the change and let the user run it.
+Changing a resource's `region` forces replacement. Moving deployed resources from provider aliases to `region` needs a user-run `terraform apply -refresh-only` first ⇒ propose; user runs.
 
 ## State backend
 
@@ -126,16 +126,16 @@ terraform {
 }
 ```
 
-- `dynamodb_table` locking is deprecated (Terraform 1.11) and slated for removal. NEVER add it to a new backend.
-- Migrating an existing backend: set `use_lockfile = true` alongside `dynamodb_table`, which acquires both locks. Remove `dynamodb_table` once every local and CI runner is on 1.11+.
-- The state role needs `s3:GetObject`, `s3:PutObject`, and `s3:DeleteObject` on `<key>.tflock`. The state object itself needs no `DeleteObject`.
-- The state bucket SHOULD have versioning enabled so state can be recovered.
-- Keep credentials out of the `backend` block and `-backend-config`. Those values are copied into `.terraform/` and plan files; use environment variables or an AWS profile.
-- Changing an initialized backend needs `terraform init -migrate-state` (or `-reconfigure`) against real state. Only the user runs it.
+- `dynamodb_table` locking: deprecated (Terraform 1.11), slated for removal. NEVER add to a new backend.
+- Migrating an existing backend: `use_lockfile = true` alongside `dynamodb_table` acquires both locks. Remove `dynamodb_table` once every local + CI runner is on 1.11+.
+- State role needs `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject` on `<key>.tflock`. State object itself needs no `DeleteObject`.
+- State bucket SHOULD enable versioning (state recovery).
+- Credentials stay out of the `backend` block and `-backend-config`: values are copied into `.terraform/` and plan files. Use env vars or an AWS profile.
+- Changing an initialized backend → `terraform init -migrate-state` (or `-reconfigure`) against real state. Only the user runs it.
 
 ## Testing
 
-`terraform test` defaults every `run` block to `command = apply`, which creates real infrastructure and destroys it at the end of the file. NEVER run it unless every `run` block sets `command = plan` with the AWS provider mocked, or the user authorizes real resources.
+`terraform test` defaults every `run` block to `command = apply`: creates real infrastructure, destroys it at end of file. NEVER run unless every `run` block sets `command = plan` with the AWS provider mocked, or the user authorizes real resources.
 
 ```hcl
 # tests/tags.tftest.hcl: assumes the root defines the variables and local.tags from tagging-guide.md
@@ -172,9 +172,9 @@ run "rejects_bad_cost_center" {
 }
 ```
 
-- `expect_failures` only covers the operation named by `command`; with `command = apply`, a failing custom condition fails the whole run during plan.
-- Mock providers invent values for computed attributes, so a mocked run proves logic, not effective tags. Effective tags still come from `check_tags.py` on a real plan.
-- With `command = apply`, switching provider configuration between `run` blocks breaks resources the earlier provider created.
+- `expect_failures` covers only the operation named by `command`; with `command = apply`, a failing custom condition fails the whole run during plan.
+- Mock providers invent computed attribute values ⇒ a mocked run proves logic, not effective tags. Effective tags → `check_tags.py` on a real plan.
+- `command = apply`: switching provider configuration between `run` blocks breaks resources the earlier provider created.
 - Terraform 1.13+: external variables referenced in a test file SHOULD have a `variable` block in that file; complex types may error without it.
 
 ## Secrets
@@ -214,16 +214,16 @@ resource "aws_db_instance" "db" {
 }
 ```
 
-- Write-only arguments also accept literals and non-ephemeral values. Nothing enforces ephemerality, so a literal there is still a literal in code.
-- A changed write-only value alone triggers nothing: increment the paired `*_version` argument.
-- A `data` source read of a secret stores the value in state; use the `ephemeral` block instead.
-- A saved plan file and `terraform show -json` output hold sensitive values in cleartext. Treat `tfplan` and `plan.json` as secret artifacts: NEVER commit them or paste them into chat.
+- Write-only arguments also accept literals and non-ephemeral values; nothing enforces ephemerality ⇒ a literal there is still a literal in code.
+- Changed write-only value alone triggers nothing: increment the paired `*_version` argument.
+- `data` source read of a secret stores the value in state; use the `ephemeral` block.
+- Saved plan file + `terraform show -json` output hold sensitive values in cleartext. `tfplan` and `plan.json` are secret artifacts: NEVER commit or paste into chat.
 
-The `aws_db_instance` snippets illustrate the arguments. Prefer the `rds_instance` library module and check whether it exposes `manage_master_user_password` or a write-only input.
+The `aws_db_instance` snippets illustrate arguments only. Prefer the `rds_instance` library module; check whether it exposes `manage_master_user_password` or a write-only input.
 
 ## Module catalog
 
-Versions and inputs change; confirm in the repository. Services under `src/` in `Sanofi-InnerSource/terraform-aws-library`:
+Versions + inputs change; confirm in the repository. Services under `src/` in `Sanofi-InnerSource/terraform-aws-library`:
 
 | Service | Modules |
 | --- | --- |
@@ -271,7 +271,7 @@ Keep secrets out of committed `*.tfvars`.
 
 ## Pinning
 
-Registry modules take `version`. Local (`./modules/...`) and Git modules cannot use it; pin Git sources with `?ref=<tag-or-sha>`. A registry `module` block without `version` floats to the latest release.
+Registry modules take `version`. Local (`./modules/...`) and Git modules cannot; pin Git sources with `?ref=<tag-or-sha>`. Registry `module` block without `version` floats to latest release.
 
 ## Sources
 

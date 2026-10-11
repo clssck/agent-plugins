@@ -1,71 +1,73 @@
 ---
 name: iac-security-review
-description: Use for IaC security review; not Terraform authoring.
+description: "Use when auditing AWS infrastructure code for security — Terraform, CDK, SST, CloudFormation, Pulumi: public S3 buckets, open security groups, wildcard IAM, missing encryption, unauthenticated API Gateway or Lambda URLs, logging gaps, hardcoded secrets, Sanofi tag and module policy, or Checkov/Trivy/KICS triage. Read-only, evidence-graded report. Not for writing Terraform — iac-terraform instead; not CI/CD workflows — cicd-engineering."
 ---
 
 # IaC Security Review
 
-Static, read-only AWS infrastructure code review (Terraform, CDK, SST, CloudFormation, Pulumi) against a control matrix and Sanofi tag and module policy: public exposure, IAM, encryption, network, logging, secrets. Produces an evidence-graded report. Terraform authoring belongs to iac-terraform, CI/CD workflows to cicd-engineering, app code to `/review` and `/security`.
+Static, read-only review of AWS infrastructure code (Terraform, CDK, SST, CloudFormation, Pulumi) against a control matrix and Sanofi tag and module policy: public exposure, IAM, encryption, network, logging, secrets. Output: an evidence-graded report. Governing principle: **absence is not exposure** — AWS defaults, account/org controls, and shared modules often supply what local code omits, so every finding carries an evidence status and severity is proven from code, never assumed.
 
-Complements omp built-ins: `/security` and `security-reviewer` run generic vulnerability discovery; this skill supplies the IaC resource-control matrix and Sanofi policy. Run both for a full security audit; use `/review` for diffs.
+Scope: Terraform authoring → iac-terraform · CI/CD workflows → cicd-engineering · app code → `/review`, `/security`. omp built-ins `/security` and `security-reviewer` run generic vulnerability discovery; this skill supplies the IaC resource-control matrix and Sanofi policy. Full security audit → run both; diffs → `/review`.
 
 ## References
 
 | File | Read for |
 |------|----------|
-| [security-controls.md](references/security-controls.md) | Control IDs, per-framework checks, severity rules |
+| [security-controls.md](references/security-controls.md) | Control IDs, per-framework checks, evidence status, severity rules |
 | [aws-defaults.md](references/aws-defaults.md) | Current AWS defaults and sources; check before flagging absent properties |
 | [scanners.md](references/scanners.md) | Optional Checkov/Trivy/KICS cross-check, uv install, safe invocation, suppressions, 2026 supply-chain warnings |
 | [report.template.md](assets/report.template.md) | Report structure |
 
 ## Guardrails
 
-- NEVER modify IaC files.
-- NEVER treat missing local configuration as proven exposure. Absent + AWS default, account/org control, or shared module → Needs confirmation.
-- NEVER rate Critical without evidence of reachability, authorization gap, and sensitive data or privilege.
-- NEVER invent application behavior or attack chains. Unknown → say unknown.
-- MUST cite file:line and snippet per finding.
-- MUST give remediation in the finding's own framework.
-- MUST run all applicable control groups; list skipped ones with reason.
-- MUST apply Sanofi controls (SN-*) only to Sanofi repositories.
-- MUST emit the executive summary even when clean.
+- **NEVER modify IaC files.**
+- **NEVER treat missing local configuration as proven exposure.** Absent + AWS default, account/org control, or shared module → Needs confirmation.
+- **NEVER rate Critical without evidence** of reachability, authorization gap, and sensitive data or privilege.
+- **NEVER invent application behavior or attack chains.** Unknown → say unknown.
+- **Evidence:** MUST cite file:line and snippet per finding.
+- **Remediation:** MUST be in the finding's own framework.
+- **Coverage:** MUST run all applicable control groups; list skipped ones with reason.
+- **Sanofi controls (SN-\*):** Sanofi repositories only.
+- **Executive summary:** MUST emit even when clean.
 
 ## Workflow
 
 ### 1. Discovery
 
-Use omp tools; no shell needed.
+omp tools only; no shell needed.
 
 | Framework | Step |
 |-----------|------|
 | Terraform | `glob` `**/*.tf`, skip `.terraform/` |
 | CDK | `glob` `**/cdk.json`; `grep` `aws-cdk-lib` in `package.json` |
 | SST | `glob` `**/sst.config.{ts,js}` |
-| CloudFormation | `grep` `^Resources:` or `"Resources"` plus `Type: AWS::` or `"Type": "AWS::"` in `*.{yaml,yml,json,template}`. `AWSTemplateFormatVersion` is optional |
+| CloudFormation | `grep` `^Resources:` or `"Resources"` plus `Type: AWS::` or `"Type": "AWS::"` in `*.{yaml,yml,json,template}`; `AWSTemplateFormatVersion` optional |
 | Pulumi | `glob` `**/Pulumi.yaml`; resources via `aws.` imports |
 
-- Identify environments from directories, workspaces, stack names, tfvars.
-- No IaC found? STOP and tell the user.
-- More than ~500 IaC files? Ask for a narrower scope.
-- Mixed frameworks? Review all; list in metadata.
-- Sanofi repo? Check git remote and tag conventions; note decision.
+- **Environments:** from directories, workspaces, stack names, tfvars.
+- **No IaC found?** STOP; tell the user.
+- **> ~500 IaC files?** Ask for a narrower scope.
+- **Mixed frameworks?** Review all; list in metadata.
+- **Sanofi repo?** Check git remote and tag conventions; record the decision.
 
 ### 2. Inventory
 
-`grep` resource declarations; `read` the files. Per resource record type, name, file:line, internet-facing, intended public (docs, comments, naming), and relationships (CloudFront → API → Lambda). Terraform: also record the AWS provider constraint (`required_providers`, `.terraform.lock.hcl`); defaults differ between provider 5.x and 6.x ([aws-defaults.md](references/aws-defaults.md)).
+`grep` resource declarations; `read` the files. Per resource: type, name, file:line, internet-facing, intended public (docs, comments, naming), relationships (CloudFront → API → Lambda). Terraform: also record the AWS provider constraint (`required_providers`, `.terraform.lock.hcl`) — defaults differ between provider 5.x and 6.x ([aws-defaults.md](references/aws-defaults.md)).
 
 ### 3. Analysis
 
-For each resource, apply [security-controls.md](references/security-controls.md). Before flagging an absent property, check [aws-defaults.md](references/aws-defaults.md). Per finding record control ID, severity, status (Confirmed / Needs confirmation), confidence, evidence, exposure analysis, remediation. `grep` for scanner suppressions (`checkov:skip`, `trivy:ignore`, `kics-scan`) and judge each suppressed control. A scanner MAY cross-check the result: [scanners.md](references/scanners.md).
+Apply [security-controls.md](references/security-controls.md) per resource; check [aws-defaults.md](references/aws-defaults.md) before flagging any absent property. Per finding: control ID, severity, status (Confirmed / Needs confirmation), confidence, evidence, exposure analysis, remediation.
 
-Large repos: delegate per directory with `task`; merge findings centrally.
+- **Suppressions:** `grep` `checkov:skip`, `trivy:ignore`, `kics-scan`; judge each suppressed control yourself.
+- **Scanner cross-check:** MAY run; rules in [scanners.md](references/scanners.md). Hits are re-graded, never copied; scanner already installed or install approved by the user.
+- **Large repos:** delegate per directory with `task`; merge findings centrally.
 
 ### 4. Cross-Resource
 
-- Layered controls on each public path (WAF, authorizer, backend authorization).
+- Layered controls on each public path: WAF, authorizer, backend authorization.
 - Wildcard IAM blast radius.
-- Environment drift (prod protections missing in dev/test).
-- Traffic map through each layer, evidenced hops only.
+- Environment drift: prod protections missing in dev/test.
+- Traffic map through each layer; evidenced hops only.
 
 ### 5. Report
 
@@ -78,7 +80,7 @@ Files scanned: N ({frameworks})
 Report: audits/iac-security-review-YYYY-MM-DD.md
 ```
 
-## Error Handling
+## Edge Cases
 
 | Scenario | Action |
 |----------|--------|
@@ -86,12 +88,14 @@ Report: audits/iac-security-review-YYYY-MM-DD.md
 | Module without visible source | Needs confirmation; name the module |
 | Central control absent from scope (trail, org BPA, WAF policy) | Not evidenced; request evidence |
 
-## Checklist
+## Verification
 
-- Every finding has file:line, snippet, status, and framework-native fix.
+Before handing over the report:
+
+- Every finding: file:line, snippet, status, framework-native fix.
 - No Critical without reachability + impact evidence.
 - Absent-property findings checked against aws-defaults.md.
-- Sanofi section applied only for Sanofi repos.
-- Scanner hits re-graded, not copied; scanner already installed or install approved by the user.
+- Sanofi section applied only for Sanofi repos; otherwise skip stated.
+- Scanner hits re-graded, not copied.
 - Skipped controls listed with reasons.
 - No IaC file modified.

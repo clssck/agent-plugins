@@ -1,7 +1,6 @@
 # GitHub Actions Security Hardening
 
-Deep-dive into GitHub Actions security risks, attack vectors, and mitigations
-relevant to Sanofi CI/CD pipelines.
+GitHub Actions attack vectors and mitigations for Sanofi CI/CD pipelines. Rules and wording: [cicd-rules.md](cicd-rules.md); workflows: [pipeline-templates.md](pipeline-templates.md).
 
 ## Table of Contents
 
@@ -23,9 +22,7 @@ relevant to Sanofi CI/CD pipelines.
 
 ## 1. Supply Chain Attacks via Compromised Actions
 
-**Risk**: A third-party action is compromised (maintainer account takeover, malicious
-update). If you reference it by mutable tag (`@v4`), the next run uses the compromised
-code with full access to your secrets and GITHUB_TOKEN.
+**Risk**: a third-party action is compromised (maintainer account takeover, malicious update). Referenced by mutable tag (`@v4`) → next run executes the compromised code with full access to secrets and `GITHUB_TOKEN`.
 
 **Attack scenario:**
 
@@ -34,8 +31,7 @@ code with full access to your secrets and GITHUB_TOKEN.
 - uses: popular-org/useful-action@v2
 ```
 
-An attacker compromises the action maintainer's account, rewrites the `v2` tag to
-point at a malicious commit that exfiltrates `GITHUB_TOKEN` and environment secrets.
+An attacker takes over the maintainer account and rewrites the `v2` tag to a malicious commit that exfiltrates `GITHUB_TOKEN` and environment secrets.
 
 **Mitigation: SHA pinning (within the limits of the allowlist)**
 
@@ -85,9 +81,7 @@ updates:
 
 ## 2. Secrets Extraction via `pull_request_target`
 
-**Risk**: `pull_request_target` runs in the context of the base branch (with access
-to secrets), but can be triggered by an external contributor's fork PR. If the workflow
-checks out the PR's head code and executes it, the attacker's code runs with your secrets.
+**Risk**: `pull_request_target` runs in the base-branch context (with secrets) yet can be triggered by an external contributor's fork PR. Workflow checks out the PR head and executes it → attacker code runs with your secrets.
 
 **Dangerous pattern:**
 
@@ -141,9 +135,7 @@ jobs:
 
 ## 3. GITHUB_TOKEN Permission Escalation
 
-**Risk**: By default, `GITHUB_TOKEN` may have broad write permissions (depending on
-org settings). Workflows that don't restrict permissions can be exploited to modify
-repo contents, approve PRs, or push to protected branches.
+**Risk**: `GITHUB_TOKEN` may default to broad write permissions (org settings). Workflows without restricted permissions can be exploited to modify repo contents, approve PRs, or push to protected branches.
 
 **Vulnerable (no permissions block):**
 
@@ -190,9 +182,7 @@ jobs:
 
 ## 4. Workflow Injection via Untrusted Input
 
-**Risk**: GitHub Actions expressions (`${{ }}`) in `run:` blocks are interpolated
-before the shell executes. If the expression contains attacker-controlled input (PR
-title, branch name, issue body), it enables command injection.
+**Risk**: `${{ }}` expressions in `run:` blocks are interpolated before the shell executes. Attacker-controlled input (PR title, branch name, issue body) → command injection.
 
 **Vulnerable:**
 
@@ -239,8 +229,7 @@ title, branch name, issue body), it enables command injection.
 
 ## 5. Self-Hosted Runner Risks
 
-**Risk**: Self-hosted runners persist between jobs. A malicious workflow can install
-backdoors, modify tools, or steal credentials that persist for subsequent jobs.
+**Risk**: self-hosted runners persist between jobs. A malicious workflow can install backdoors, modify tools, or steal credentials that persist for subsequent jobs.
 
 **Key risks:**
 
@@ -257,9 +246,7 @@ backdoors, modify tools, or steal credentials that persist for subsequent jobs.
 - Use runner groups to restrict which repos can use which runners
 - Audit runner machines regularly
 
-At Sanofi, all jobs MUST use the managed ARC runner `atmos-aws-arc-runner-set`.
-GitHub-hosted runners (`ubuntu-latest`) are not permitted. The ARC runner set provides
-ephemeral, pre-hardened runners managed by the platform team.
+At Sanofi all jobs MUST use the managed ARC runner `atmos-aws-arc-runner-set`; GitHub-hosted runners (`ubuntu-latest`) not permitted. ARC runner set: ephemeral, pre-hardened runners managed by the platform team.
 
 **Runner fleet obligations (github.com).**
 
@@ -271,10 +258,7 @@ ephemeral, pre-hardened runners managed by the platform team.
 
 ## 6. OIDC for AWS: Role-Per-Environment Pattern
 
-**Pattern**: Use GitHub's OIDC provider to assume AWS IAM roles without storing
-long-lived credentials. Each environment (dev, test, prod) has its own IAM role
-whose trust policy pins the repository and the environment. An environment `sub`
-does not restrict branches; add deployment branch/tag rules on the environment.
+**Pattern**: GitHub's OIDC provider assumes AWS IAM roles without stored long-lived credentials. Each environment (dev, test, prod) has its own IAM role whose trust policy pins the repository and the environment. An environment `sub` does not restrict branches; add deployment branch/tag rules on the environment.
 
 ```yaml
 permissions:
@@ -379,8 +363,7 @@ For Terraform workflows that pull private modules from Sanofi's JFrog Artifactor
 
 ## 8. Environment-Scoped Secrets vs `secrets: inherit`
 
-**`secrets: inherit`**: Passes ALL available secrets to a reusable workflow. This is
-convenient but violates the principle of least privilege.
+**`secrets: inherit`**: passes ALL available secrets to a reusable workflow. Convenient; violates least privilege.
 
 **When `secrets: inherit` is acceptable:**
 
@@ -418,9 +401,7 @@ Reusable workflow limits: 10 levels of nesting and 50 unique called workflows pe
 
 ## 9. `continue-on-error: true` Risks on Security Steps
 
-**Risk**: Setting `continue-on-error: true` on security-related steps (SAST, audit,
-vulnerability scanning) silently swallows failures. The workflow reports success even
-when security checks find critical issues.
+**Risk**: `continue-on-error: true` on security-related steps (SAST, audit, vulnerability scanning) silently swallows failures; the workflow reports success while security checks find critical issues.
 
 **Dangerous:**
 
@@ -452,8 +433,7 @@ when security checks find critical issues.
 
 ## 10. OpenSSF Scorecard Checks
 
-The OpenSSF Scorecard assesses repository security practices. Key checks relevant
-to GitHub Actions security:
+The OpenSSF Scorecard assesses repository security practices. Checks relevant to GitHub Actions security:
 
 | Check               | What It Verifies                                  |
 | ------------------- | ------------------------------------------------- |

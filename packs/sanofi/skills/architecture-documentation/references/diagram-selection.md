@@ -1,24 +1,20 @@
 # Diagram Selection
 
+Picks C4 views per audience and need, with per-view elements and rules, plus the arc42 cross-check. Every diagram MUST stand alone without narrative: title with type and scope, legend, element types, labelled relationships. System Context + Container suffice for most teams; add L3/L4 only when they answer a question the audience actually has.
+
 ## C4 Model Overview
 
-> **Important**: The C4 model describes systems at various abstraction levels. It does NOT
-> imply a specific design process, team structure, or delivery workflow. This skill uses C4
-> within a Sanofi documentation workflow, but the C4 levels themselves are purely descriptive.
+> **Important**: C4 describes systems at several abstraction levels. It does NOT imply a design process, team structure, or delivery workflow. This skill uses C4 inside a Sanofi documentation workflow; the levels themselves are purely descriptive.
 
-You do NOT need all four levels. System Context and Container diagrams are sufficient for
-most teams; add L3/L4 only when they answer a question the audience actually has.
-Each diagram MUST be understandable without a narrative: title with type and scope, legend,
-element types, and labelled relationships.
+Not all four levels are required.
 
 ### Level 1: System Context
 
-**What it shows**: The system as a single box surrounded by the people who use it and
-the external systems it interacts with. This is a "zoomed out" big picture view.
+**What it shows**: system as a single box, surrounded by its users and the external systems it interacts with. Zoomed-out big picture.
 
 **Audience**: Everybody, both technical and non-technical.
 
-**Recommended**: Yes -- a System Context diagram is recommended for ALL teams.
+**Recommended**: yes, for ALL teams.
 
 **When to update**: New external integration, new user persona, system boundary change.
 
@@ -30,41 +26,35 @@ the external systems it interacts with. This is a "zoomed out" big picture view.
 
 ### Level 2: Container Diagram
 
-**What it shows**: The high-level shape of the software architecture and how
-responsibilities are distributed across containers.
+**What it shows**: high-level shape of the software architecture; how responsibilities are distributed across containers.
 
 **Audience**: Technical people (architects, developers, operations/support).
 
-**Recommended**: Yes -- a Container diagram is recommended for ALL teams.
+**Recommended**: yes, for ALL teams.
 
 **When to update**: New service, new database, new frontend app, infrastructure change.
 
 ### Level 3: Component Diagram
 
-**What it shows**: The internal structure of a single container -- groupings of related
-functionality encapsulated behind well-defined interfaces.
+**What it shows**: internal structure of one container: groupings of related functionality behind well-defined interfaces.
 
 **Audience**: Software architects and developers only.
 
-**Recommended**: OPTIONAL. Only create if they add genuine value for understanding a
-complex container.
+**Recommended**: OPTIONAL; only when it adds genuine value for understanding a complex container.
 
 ### Level 4: Code Diagram
 
 **What it shows**: Class/module level detail within a component.
 
-**Recommended**: No. Most IDEs can generate this level of detail on demand.
+**Recommended**: no. Most IDEs generate this detail on demand.
 
-**When to create**: Only on explicit request for a deep-dive into a specific component.
-Not recommended for long-lived documentation.
+**When to create**: only on explicit request for a deep-dive into one component. Not for long-lived documentation.
 
-**Key rule**: Show selectively -- include only the attributes and methods that tell the
-story you want to tell, not a comprehensive class/module dump.
+**Key rule**: show selectively; include only the attributes and methods that tell the intended story, never a comprehensive class/module dump.
 
 ### Supplementary: System Landscape Diagram
 
-**What it shows**: A system context diagram without a focus system: the people and software
-systems within an enterprise, department, or portfolio.
+**What it shows**: a system context diagram without a focus system: the people and software systems within an enterprise, department, or portfolio.
 
 **Audience**: Technical and non-technical people, inside and outside the team.
 

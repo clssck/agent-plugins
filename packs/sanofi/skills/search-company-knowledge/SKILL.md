@@ -1,11 +1,13 @@
 ---
 name: search-company-knowledge
-description: Use for internal docs, Jira, and Confluence searches.
+description: "Use when answering questions from internal company knowledge: Confluence pages, Jira tickets, wiki, runbooks, internal systems, acronyms, processes, ticket status; phrasings like \"in our docs\", \"in Confluence\", \"in Jira\", \"on the wiki\", \"what is PROJ-123\". Read-only Atlassian Rovo MCP search with cited synthesis. Not for creating or editing pages — confluence-html-editor instead; not for public tech questions — web_search instead."
 ---
 
 # Search Company Knowledge
 
-Find internal answers in Confluence and Jira via Atlassian Rovo MCP tools (read-only): what an internal system, process, acronym, or ticket is, or when the user says "in our docs", "in Confluence", "in Jira", "on the wiki". Synthesize by topic; cite every source. General tech questions are out of scope; creating or editing pages belongs to confluence-html-editor.
+Answers internal questions from Confluence and Jira through the read-only Atlassian Rovo MCP tools: what an internal system, process, acronym, or ticket is. Governing principle: **narrow search, selective fetch, cited synthesis by topic** — every claim traces to a page title or issue key, and gaps are stated rather than filled from general knowledge.
+
+Scope split: general tech questions → general knowledge or `web_search`; creating or editing pages → `confluence-html-editor`.
 
 ## Prerequisite: Atlassian MCP Server
 
@@ -75,7 +77,9 @@ Source: [Rovo MCP supported tools](https://developer.atlassian.com/cloud/rovo-mc
 
 More query patterns, CQL/JQL examples, and scenario templates: [workflow.md](references/workflow.md).
 
-## Checklist
+## Verification
+
+Before answering:
 
 - Atlassian tools discovered; schemas read.
 - Query minimal; variants tried before "not found".

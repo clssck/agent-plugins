@@ -1,25 +1,23 @@
 ---
 name: dbt
-description: Use for Sanofi dbt models, tests, and CI.
+description: "Use when building, reviewing, testing, or running Sanofi dbt Core projects on Snowflake: models, sources, snapshots, seeds, incremental design, data and unit tests, docs and meta, contracts and versions, selectors, state:modified CI, upgrades and deprecations, failed-run triage, Elementary, WAP, feature flags, native snow dbt. Not for generic dbt-on-Snowflake mechanics — dbt-projects-on-snowflake; ODCS contracts — datacontract-writing; DAGs — sanofi-airflow."
 ---
 
 # Sanofi dbt
 
-Sanofi conventions for dbt project structure, model development, documentation, testing (data and unit), incremental design, snapshots, contracts and versions, state/CI, upgrades, Elementary/DQ, WAP, and approval-gated Snowflake-native execution. Generic dbt-on-Snowflake mechanics live in the dbt-projects-on-snowflake skill; ODCS contracts in datacontract-writing; generic review and security stay with `/review` and `/security`.
+Sanofi conventions for dbt project structure, model development, documentation, testing (data and unit), incremental design, snapshots, contracts and versions, state/CI, upgrades, Elementary/DQ, WAP, and approval-gated Snowflake-native execution. The real project is the specification: names, layout, grain keys, columns, aliases, materializations, tags, sources, and test scope come from its files and manifests, never from examples here. Generic review and security stay with `/review` and `/security`.
 
-## Core Rules
+Every command that writes to Snowflake rebuilds whatever it selects, so scope precedes execution and the narrowest proving command precedes any broad one.
 
-- MUST inspect the real dbt project first. Derive names, layout, grain keys, columns, aliases, materializations, tags, sources, test scope from files and manifests.
+## Ground Rules
+
+- **Inspect first.** MUST read the real dbt project before writing; derive every name and setting from files and manifests.
 - **Examples are patterns.** NEVER copy example names verbatim.
-- **Standards precedence, high to low:**
-  1. Target repo's documented contract, config, conventions.
-  2. Applicable approved/current team standard.
-  3. Cross-space standards.
-  4. Draft/WIP guidance, advisory only.
-- NEVER let a lower-ranked source override a higher one. Applicability, approval, currency, or conflict unclear? Ask first.
-- **Verify with the narrowest repo-supported command.** Prefer README, Makefile, CI, or project scripts; else the ladder below. Report profile, credential, or Snowflake blockers exactly.
-- **A legacy-style file is not a reason to write legacy syntax.** Write new code in the form the project's resolved dbt version accepts without warning; use the old form only where that version requires it (table below).
-- Incremental models MUST have a change signal for every joined parent (lookback, affected-key re-derivation, `on_schema_change`, periodic refresh). Design before writing the filter: [snowflake-materializations.md](references/snowflake-materializations.md#late-arriving-and-multi-parent-changes).
+- **Standards precedence, high → low:** target repo's documented contract, config, conventions › applicable approved/current team standard › cross-space standards › Draft/WIP guidance (advisory only). NEVER let a lower rank override a higher one. Applicability, approval, currency, or conflict unclear → ask first; surface conflicts, never resolve them silently.
+- **Modern syntax.** A legacy-style file is no reason to write legacy syntax. Write the form the resolved dbt version accepts without warning; old form only where that version requires it (table below).
+- **Incremental change signals.** Every joined parent MUST have one: lookback, affected-key re-derivation, `on_schema_change`, periodic refresh. Design it before writing the filter → [snowflake-materializations.md](references/snowflake-materializations.md#late-arriving-and-multi-parent-changes). Strategy MUST be valid on Snowflake; `full_refresh` behavior understood.
+- **Grain key.** Documented, tested (`unique` + `not_null`), matching the model SQL.
+- **Native execution.** Native-project steps need authorization; NEVER force deploy, drop, or change a schedule without approval.
 
 ## Routing
 
@@ -38,13 +36,15 @@ Sanofi conventions for dbt project structure, model development, documentation, 
 | Model/column descriptions, source metadata, tags, `meta` | [writing-documentation.md](references/writing-documentation.md) |
 | Adding or auditing data tests, coverage vs cost, DQ report triage | [writing-data-tests.md](references/writing-data-tests.md) |
 
-- NEVER route ordinary dbt Core work to the native reference just because the adapter is Snowflake.
-- Docs or tests task also needs layer placement, Elementary, orchestration, or a package change? Add `general-dbt-guide.md` (and `project-setup.md` or `operations.md` as routed).
-- ODCS data contracts → datacontract-writing skill. DAG authoring → sanofi-airflow skill.
-- Multi-area order: placement and naming → SQL and materialization → docs and properties → tests → selectors, CI, run commands.
-- Docs before tests when both requested. Docs exist? Check documented grain matches the model, then go to tests.
+- **Adapter ≠ native.** NEVER route ordinary dbt Core work to the native reference just because the adapter is Snowflake.
+- **Docs/tests plus placement, Elementary, orchestration, or package change** → add `general-dbt-guide.md` (and `project-setup.md` or `operations.md` as routed).
+- **Scope splits:** ODCS data contracts → datacontract-writing. DAG authoring → sanofi-airflow. Generic dbt-on-Snowflake mechanics → dbt-projects-on-snowflake.
+- **Multi-area order:** placement and naming → SQL and materialization → docs and properties → tests → selectors, CI, run commands.
+- **Docs before tests** when both requested. Docs exist → check documented grain matches the model, then tests.
 
 ## Version-Sensitive Rules
+
+Confirm engine and version with `dbt --version` before applying any row.
 
 | Rule | Check before applying |
 |---|---|
@@ -61,22 +61,28 @@ Sanofi conventions for dbt project structure, model development, documentation, 
 | `--full-refresh` vs `full_refresh: false` | Config wins; the flag does not override `false` |
 | Unit test YAML | Under `model-paths`, NEVER `tests/` |
 | Native `snow dbt` | Re-verify CLI minimums, flags, and the `DBT_VERSION` pin against current Snowflake docs |
+| Deprecation warnings (1.10+) | None new; fix, never silence as the fix |
 
 ## Command Scope
 
-A dbt command that writes to Snowflake rebuilds whatever it selects. Scope it before running it.
+- **Select every mutation.** MUST select every `dbt build|run|test|seed|snapshot|clone` with `--select`/`-s`, `--selector`, or `state:modified+ --state <dir>`. Bare invocation only when the user explicitly asked for a full build; say so when running it. `-m`/`--models` deprecated; where ignored, the whole DAG builds.
+- **Preview non-trivial selectors.** `dbt ls --select "<selector>" --resource-type model --warn-error-options '{"error": ["NoNodesForSelectionCriteria"]}'` → a typo fails instead of building nothing.
+- **`--empty` blast radius.** Refs and sources read zero rows; selected tables and views rebuild empty; an existing incremental gets a zero-row incremental run. Only on the target model or its parents, or explicitly scoped incremental models, and only in a fresh or disposable CI schema (parents: `--select "1+<model>" --exclude "<model>"`). NEVER aim it at data-bearing relations or pair it with an unchecked `+` upstream selector.
+- **Prod or `--full-refresh`.** Confirm explicit user approval for that target and selection first. Read the `on-run-start`/`on-run-end` hooks in `dbt_project.yml` (they run on `build`, `run`, `test`, `seed`, `snapshot`) and the model's `full_refresh` config. Afterwards verify row counts against a pre-run count (or Time Travel) and run the model's tests.
+- **Prefer `dbt build`** (models + tests + unit tests, lineage order) over `dbt run`. Exception: the documented per-layer `dbt run` + `dbt test` orchestration pattern ([state-and-ci.md](references/state-and-ci.md#gates)); NEVER mix patterns in one pipeline.
+- **Inspect data with `dbt show`**, not ad-hoc Python:
 
-- MUST select every `dbt build|run|test|seed|snapshot|clone` with `--select`/`-s`, `--selector`, or `state:modified+ --state <dir>`. A bare invocation is allowed only when the user explicitly asked for a full build; say so when running it. `-m`/`--models` is deprecated; where it is ignored, the whole DAG builds.
-- **Preview first** when a selector is non-trivial: `dbt ls --select "<selector>" --resource-type model`. Add `--warn-error-options '{"error": ["NoNodesForSelectionCriteria"]}'` so a typo fails instead of building nothing.
-- `--empty` makes refs and sources read zero rows; selected tables and views are rebuilt empty, while an existing incremental gets a zero-row incremental run. Use it only on the target model or its parents, or on explicitly scoped incremental models, and only in a fresh or disposable CI schema (parents: `--select "1+<model>" --exclude "<model>"`). NEVER aim it at data-bearing relations or pair it with an unchecked `+` upstream selector.
-- **Prod or `--full-refresh`:** confirm explicit user approval for that target and selection first. Read the `on-run-start`/`on-run-end` hooks in `dbt_project.yml` (they run on `build`, `run`, `test`, `seed`, `snapshot`) and the model's `full_refresh` config. Afterwards verify row counts against a count taken before the run (or Time Travel) and run the model's tests.
-- **Prefer `dbt build`** (models + tests + unit tests, in lineage order) over `dbt run`. The exception is the documented per-layer `dbt run` + `dbt test` orchestration pattern ([state-and-ci.md](references/state-and-ci.md#gates)); NEVER mix patterns in one pipeline.
-- **Inspect data with `dbt show`**, not ad-hoc Python: `dbt show --select <model> --limit 10` or `dbt show --inline "select ... from {{ ref('x') }}" --limit 10`. Use `--limit`, not a SQL `LIMIT`; `--select` takes one node. `--inline` can run any SQL, so use a read-only role.
-- Use `uv run dbt ...` in uv projects; one `uv.lock` left untracked is not part of the task.
+```bash
+dbt show --select <model> --limit 10
+dbt show --inline "select ... from {{ ref('x') }}" --limit 10
+```
 
-## Validation Ladder
+`--limit`, not SQL `LIMIT`; `--select` takes one node. `--inline` runs any SQL → read-only role.
+- **uv projects:** `uv run dbt ...`; one untracked `uv.lock` is not part of the task.
 
-Smallest command that proves the change.
+## Verification
+
+Smallest command that proves the change. Prefer README, Makefile, CI, or project scripts; else this ladder.
 
 | Change | Command |
 |---|---|
@@ -89,17 +95,5 @@ Smallest command that proves the change.
 | Docs artifacts or catalog | `dbt docs generate`, only when it matters |
 | Format/lint | `sqlfluff`, `ruff`, pre-commit, repo scripts, only when configured; `uv run` them in uv projects |
 
-- Use the `grep`, `glob`, `read` tools to inspect files; `bash` only for dbt and other real CLIs.
-- Validation cannot run locally? State the exact command and the missing prerequisite.
-
-## Checklist
-
-- Standards precedence applied; conflicts surfaced, not silently resolved.
-- Grain key documented, tested (`unique` + `not_null`), matches model SQL.
-- No secret env var outside `profiles.yml`/`packages.yml`.
-- No new deprecation warnings; custom keys under `config.meta`; none silenced as the fix.
-- Incremental strategy valid on Snowflake; every parent has a change signal; `full_refresh` behavior understood.
-- Test `arguments:` syntax matches the project's dbt version; engine and version confirmed with `dbt --version`.
-- Every mutating dbt command (including `clone`) selected; `--empty` only in a fresh or disposable schema, NEVER on data-bearing relations; prod and `--full-refresh` approved, hooks read, counts checked.
-- Native-project steps authorized; no forced deploy, drop, or schedule change without approval.
-- Narrowest validation command run, or blocker stated.
+- **Tools:** `grep`, `glob`, `read` for files; `bash` only for dbt and other real CLIs.
+- **Blocked:** validation cannot run locally → state the exact command and missing prerequisite; report profile, credential, or Snowflake blockers exactly.

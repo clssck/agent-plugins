@@ -1,29 +1,10 @@
 # Confluence Page Content Outlines
 
-Use these outlines to prepare architecture-page content, not as a publishable HTML or
-storage-format payload. For live Confluence work, hand the target-page context and
-prepared content to `confluence-html-editor`. It fetches the current page, preserves
-macros and attachments, publishes a complete HTML body, and verifies the result.
+Outlines for preparing architecture-page content — NOT a publishable HTML or storage-format payload. Live Confluence work → hand target-page context and prepared content to `confluence-html-editor`: it fetches the current page, preserves macros and attachments, publishes a complete HTML body, verifies.
 
-Do not construct raw macro markup from this reference. Describe a required diagram,
-attachment, panel, or internal link in the content, then let the publishing workflow
-preserve or create the native Confluence representation.
+NEVER construct raw macro markup from this reference. Describe a required diagram, attachment, panel, or internal link in the content; the publishing workflow preserves or creates the native Confluence representation.
 
-For an existing page, set or preserve its title through the publishing workflow rather
-than adding a durable `<h1>` to the replacement body. The title comments below are for a
-new-page title or content-planning context.
-
-## Table of Contents
-
-- [Page Hierarchy](#page-hierarchy)
-- [Architecture Overview Landing Page](#architecture-overview-landing-page)
-- [L1 System Context Page](#l1-system-context-page)
-- [L2 Container Page](#l2-container-page)
-- [L3 Component Page](#l3-component-page)
-- [Deployment Diagram Page](#deployment-diagram-page)
-- [Master Architecture Change Log Page](#master-architecture-change-log-page)
-- [Diagram Artifact Placement](#diagram-artifact-placement)
-- [Callout Content](#callout-content)
+Existing page: set or preserve the title through the publishing workflow; NEVER add a durable `<h1>` to the replacement body. The title comments below serve a new-page title or content planning.
 
 ---
 
@@ -414,18 +395,13 @@ deployment topology are documented below.</p>
 
 ## Diagram Artifact Placement
 
-For a live page, provide the logical artifact identifier, current attachment or embed
-context, and intended placement to `confluence-html-editor`. Do not construct a macro
-payload or reference a local file path in the page body. The publisher fetches the page,
-preserves compatible existing embeds, uploads new attachments only through an available
-attachment path, and verifies the resulting page.
+Live page → give `confluence-html-editor` the logical artifact identifier, current attachment or embed context, and intended placement. NEVER construct a macro payload or reference a local file path in the page body. The publisher fetches the page, preserves compatible existing embeds, uploads new attachments only through an available attachment path, verifies the resulting page.
 
 ---
 
 ## Callout Content
 
-Supply the intended meaning and text; let `confluence-html-editor` select or preserve
-the native callout representation.
+Supply intended meaning and text; `confluence-html-editor` selects or preserves the native callout representation.
 
 - **Current**: This diagram reflects the current production architecture as of
   `{YYYY-MM-DD}`.

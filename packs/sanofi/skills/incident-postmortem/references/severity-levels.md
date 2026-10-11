@@ -1,42 +1,33 @@
 # Severity Levels
 
-Sanofi's incident severity classification. Based on **customer impact**,
-not engineering effort or internal inconvenience.
+Sanofi incident severity classification. Driven by **customer impact**, not engineering effort or internal inconvenience.
 
-Use the **highest** applicable severity. When in doubt, escalate up
-(SEV3 → SEV2, SEV2 → SEV1), not down. Reclassifying downward after the
-facts settle is acceptable only with a recorded reason; under-classifying
-in the moment delays the right level of response.
+Use the **highest** applicable severity. Doubt ⇒ escalate (SEV3 → SEV2, SEV2 → SEV1), never down. Downward reclassification after facts settle: only with a recorded reason; under-classifying in the moment delays the right response.
 
 ## SEV1 — Critical
 
-**Definition**: Major customer-facing outage, data loss, security breach,
-or regulatory-reporting failure. Business is materially impaired.
+**Definition:** major customer-facing outage, data loss, security breach, or regulatory-reporting failure. Business materially impaired.
 
 **Characteristics** (any one qualifies):
 
-- Complete or near-complete unavailability of a core product surface
-  (login, checkout, prescription submission, clinical data entry).
-- Data loss, data corruption, or unintended data exposure (including PII,
-  PHI, or GxP-regulated records).
+- Complete or near-complete unavailability of a core product surface (login, checkout, prescription submission, clinical data entry).
+- Data loss, corruption, or unintended exposure (incl. PII, PHI, GxP-regulated records).
 - Security breach or credible suspected breach.
-- Regulatory-reporting failure (e.g., missed pharmacovigilance submission
-  window).
-- Revenue-critical path broken for > 5 minutes with no workaround.
+- Regulatory-reporting failure (e.g. missed pharmacovigilance submission window).
+- Revenue-critical path broken > 5 minutes with no workaround.
 
-**Response SLA**:
+**Response SLA:**
 
 - On-call paged immediately.
-- Incident Commander declared within 15 minutes.
-- Dedicated war room (Slack channel + video bridge) within 15 minutes.
+- Incident Commander declared ≤ 15 min.
+- Dedicated war room (Slack channel + video bridge) ≤ 15 min.
 - Communications lead assigned.
-- Status-page update within 30 minutes of detection.
+- Status-page update ≤ 30 min of detection.
 - Stakeholders notified per incident-comms plan (execs on SEV1).
 
-**Post-mortem**: **Required within 5 business days** of incident closure.
-Reviewed by engineering leadership.
+**Post-mortem:** **required within 5 business days** of incident closure; reviewed by engineering leadership.
 
-**Examples**:
+**Examples:**
 
 - User authentication completely down for 20 minutes.
 - Prescription-submission API rejecting all valid requests.
@@ -46,70 +37,60 @@ Reviewed by engineering leadership.
 
 ## SEV2 — High
 
-**Definition**: Significant degradation or partial outage. A key feature
-is broken for a meaningful user segment, or performance is severely
-degraded. Business continues but is measurably harmed.
+**Definition:** significant degradation or partial outage. Key feature broken for a meaningful user segment, or performance severely degraded. Business continues but measurably harmed.
 
 **Characteristics** (any one qualifies):
 
-- Error rate elevated well above baseline (typically > 1% sustained) for
-  a user-facing surface.
-- Latency degraded to unusable levels (p95 > 10× baseline) for a core
-  flow.
-- A major feature broken for a subset of users (e.g., EU region,
-  enterprise tier, a specific integration).
-- Partial data-processing failure with no data loss but delays to a
-  business process.
+- Error rate well above baseline (typically > 1% sustained) on a user-facing surface.
+- Latency unusable (p95 > 10× baseline) on a core flow.
+- Major feature broken for a subset of users (e.g. EU region, enterprise tier, a specific integration).
+- Partial data-processing failure: no data loss, but delays a business process.
 - Recurring SEV3 incidents over short windows (cumulative impact).
 
-**Response SLA**:
+**Response SLA:**
 
-- On-call response within 30 minutes.
+- On-call response ≤ 30 min.
 - Incident Commander declared for the duration.
 - Slack incident channel opened.
-- Status-page update within 60 minutes if customer-visible.
+- Status-page update ≤ 60 min if customer-visible.
 
-**Post-mortem**: **Required within 5 business days** of incident closure.
+**Post-mortem:** **required within 5 business days** of incident closure.
 
-**Examples**:
+**Examples:**
 
-- Checkout fails for ~8% of requests for 1.5 hours (the example used in
-  the template).
+- Checkout fails for ~8% of requests for 1.5 hours (the template's example).
 - Clinical dashboard loads taking 30s instead of 2s for enterprise tier.
 - One regional deployment intermittently failing over a 4-hour window.
 - Notification emails delayed by 6+ hours (business process disrupted).
 
 ## SEV3 — Moderate
 
-**Definition**: Minor degradation, contained blast radius, workaround
-exists. Detected by monitoring or reported by a small number of users.
+**Definition:** minor degradation, contained blast radius, workaround exists. Detected by monitoring or reported by few users.
 
 **Characteristics** (any one qualifies):
 
-- Elevated error rate slightly above baseline, contained to a non-core
-  flow.
-- Small user subset affected with available workaround.
+- Error rate slightly above baseline, contained to a non-core flow.
+- Small user subset affected, workaround available.
 - Background job failing with automatic retry succeeding within SLA.
 - Cosmetic or non-blocking bug on a core surface.
 
-**Response SLA**:
+**Response SLA:**
 
-- Responded to during the same business day.
+- Responded to same business day.
 - Tracked in the normal issue tracker (no dedicated war room).
 
-**Post-mortem**: **Optional**. Strongly recommended when:
+**Post-mortem:** **optional**; strongly recommended when:
 
-- The same pattern has caused multiple SEV3s (recurrence signal).
-- A near-miss — would have been SEV2 but for luck (timing, traffic level).
-- A new failure mode not seen before (learning signal).
-- Humans or customers detected it instead of monitoring (monitoring
-  failure).
-- On-call intervention was needed (rollback, traffic reroute).
+- Same pattern caused multiple SEV3s (recurrence signal).
+- Near-miss: would have been SEV2 but for luck (timing, traffic level).
+- New failure mode not seen before (learning signal).
+- Humans or customers detected it instead of monitoring (monitoring failure).
+- On-call intervention needed (rollback, traffic reroute).
 - A stakeholder requests one.
 
 The last three triggers follow the Google SRE book's postmortem criteria.
 
-**Examples**:
+**Examples:**
 
 - Internal admin dashboard throws errors on a filter rarely used.
 - Nightly data-export job retries once before succeeding.
@@ -118,18 +99,11 @@ The last three triggers follow the Google SRE book's postmortem criteria.
 
 ## Classification rules
 
-1. **Customer impact drives severity**, not engineering embarrassment or
-   on-call fatigue.
-2. **"Degraded" is SEV2, not SEV3**, when degradation is measurable by
-   customers (slow, flaky, partial).
-3. **Security and compliance are force multipliers**: a SEV3-sized outage
-   with a PII leak is a SEV1. A SEV2-sized outage that also missed a
-   regulatory report is SEV1.
-4. **Reclassify explicitly**. If the scope widens mid-incident, the IC
-   re-declares severity (e.g., "this just became SEV1, paging leadership
-   now"). Do not silently let SEV creep happen without a decision.
-5. **Do not classify down to avoid paperwork.** If SEV2 criteria apply,
-   the post-mortem is required even if it is inconvenient.
+1. **Customer impact drives severity**, not engineering embarrassment or on-call fatigue.
+2. **"Degraded" is SEV2, not SEV3**, when customers can measure the degradation (slow, flaky, partial).
+3. **Security and compliance are force multipliers:** SEV3-sized outage + PII leak ⇒ SEV1; SEV2-sized outage + missed regulatory report ⇒ SEV1.
+4. **Reclassify explicitly.** Scope widens mid-incident → IC re-declares severity (e.g. "this just became SEV1, paging leadership now"). NEVER let SEV creep silently without a decision.
+5. **NEVER classify down to avoid paperwork.** SEV2 criteria apply ⇒ post-mortem required, however inconvenient.
 
 ## Decision flow
 
@@ -146,5 +120,4 @@ Any SEV1 criterion met? (check all independently)
          └── No, narrow impact with workaround → SEV3
 ```
 
-When the flow gives an ambiguous answer, pick the higher severity and let
-the incident review reclassify later.
+Ambiguous flow result ⇒ pick the higher severity; incident review reclassifies later.

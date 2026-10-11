@@ -1,6 +1,6 @@
 # AWS Defaults and Sources
 
-Check an absent property against these defaults before reporting it. Rows were read from the cited primary documents on 2026-10-08. Re-verify before relying on anything not listed.
+Check an absent property against these defaults before reporting it. Rows read from the cited primary documents on 2026-10-08; anything not listed → re-verify before relying on it.
 
 | Area | Current behavior | Control impact | Source |
 |------|------------------|----------------|--------|
