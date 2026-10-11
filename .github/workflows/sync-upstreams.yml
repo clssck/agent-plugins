@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths:
       - "packs/**"
+      - "rule-sources/**"
       - "sources.json"
       - "scripts/**"
       - ".github/workflows/sync-upstreams.yml"

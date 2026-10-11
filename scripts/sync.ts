@@ -2,9 +2,11 @@
 // Keeps this repository self-contained. In order:
 //   1. pin    – move every upstream in sources.json to the latest commit of its ref
 //   2. fetch  – copy each upstream into upstream/<name>/ at its pinned commit
-//   3. check  – fail if anything in packs/ or upstream/ would not load in OMP
-//   4. readme – regenerate README.md
+//   3. rules  – render rule-sources/<pack>/*.md into packs/<pack>/rules/
+//   4. check  – fail if anything in packs/ or upstream/ would not load in OMP
+//   5. readme – regenerate README.md
 // Run by .github/workflows/sync-upstreams.yml; set GITHUB_TOKEN when running locally.
+// `--local` runs only rules and check: no network, no token.
 
 import { YAML } from "bun";
 import { cp, mkdir, mkdtemp, readdir, rename, rm, stat } from "node:fs/promises";
@@ -68,6 +70,11 @@ const LICENSE_FILE = /^(licen[cs]e|copying|notice)(\.|$)/i;
 const STAGING_PREFIX = ".sync-";
 /** Bump whenever buildUpstream's output changes for an unchanged sources.json entry, so every pack is rebuilt. */
 const BUILD_FORMAT = 2;
+/** Rule sources; packs/<pack>/rules/ is generated from rule-sources/<pack>/. */
+const RULE_SOURCES_DIR = path.join(ROOT, "rule-sources");
+/** Shared regex fragments, one per file, referenced from rule frontmatter as {{<name>}}. */
+const FRAGMENTS_DIR = path.join(RULE_SOURCES_DIR, "fragments");
+const FRAGMENT_REF = /\{\{([\w-]+)\}\}/g;
 
 const token = process.env.GITHUB_TOKEN;
 
@@ -256,7 +263,62 @@ export async function fetchUpstreams(sources: Sources): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// 3. check
+// 3. rules
+// ---------------------------------------------------------------------------
+
+/**
+ * Render rule-sources/<pack>/*.md into packs/<pack>/rules/, replacing each {{name}} in the frontmatter
+ * with rule-sources/fragments/<name>.regex. Conditions are YAML single-quoted, so `'` is doubled.
+ * In GitHub Actions a stale generated rule is an error: the workflow commits only upstream changes.
+ */
+export async function renderRules(errors: string[]): Promise<void> {
+	const fragments = new Map<string, string>();
+	for (const entry of await entries(FRAGMENTS_DIR)) {
+		if (!entry.isFile() || !entry.name.endsWith(".regex")) continue;
+		const text = await Bun.file(path.join(FRAGMENTS_DIR, entry.name)).text();
+		fragments.set(entry.name.slice(0, -".regex".length), text.replace(/\r?\n$/, "").replaceAll("'", "''"));
+	}
+	const packNames = (await entries(path.join(ROOT, "packs"))).filter(entry => entry.isDirectory()).map(entry => entry.name);
+	for (const entry of await entries(RULE_SOURCES_DIR)) {
+		if (entry.isDirectory() && entry.name !== "fragments" && !packNames.includes(entry.name)) {
+			errors.push(`rule-sources/${entry.name}/ has no matching packs/${entry.name}/`);
+		}
+	}
+	for (const pack of packNames) {
+		const sourceDir = path.join(RULE_SOURCES_DIR, pack);
+		const targetDir = path.join(ROOT, "packs", pack, "rules");
+		const names = (await entries(sourceDir)).filter(entry => entry.isFile() && entry.name.endsWith(".md")).map(entry => entry.name);
+		for (const name of names) {
+			const source = await Bun.file(path.join(sourceDir, name)).text();
+			const end = source.startsWith("---") ? source.indexOf("\n---", 3) : -1;
+			if (end === -1) {
+				errors.push(`rule-sources/${pack}/${name} must start with YAML frontmatter closed by ---`);
+				continue;
+			}
+			const head = source.slice(0, end).replace(FRAGMENT_REF, (ref, key: string) => {
+				const fragment = fragments.get(key);
+				if (fragment === undefined) errors.push(`rule-sources/${pack}/${name}: unknown fragment ${ref}`);
+				return fragment ?? ref;
+			});
+			const rendered = head + source.slice(end);
+			const target = path.join(targetDir, name);
+			const current = (await Bun.file(target).exists()) ? await Bun.file(target).text() : undefined;
+			if (rendered === current) continue;
+			if (process.env.GITHUB_ACTIONS) {
+				errors.push(`packs/${pack}/rules/${name} is stale; run \`bun scripts/sync.ts --local\` and commit it`);
+			} else {
+				await Bun.write(target, rendered);
+				console.log(`rendered packs/${pack}/rules/${name}`);
+			}
+		}
+		for (const entry of await entries(targetDir)) {
+			if (!names.includes(entry.name)) errors.push(`packs/${pack}/rules/${entry.name} has no source; rules are edited in rule-sources/${pack}/`);
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+// 4. check
 // ---------------------------------------------------------------------------
 
 /** OMP scans rules/, agents/, and commands/ one level deep; nested files are silently ignored. */
@@ -323,8 +385,7 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 	};
 }
 
-export async function check(sources: Sources): Promise<Pack[]> {
-	const errors: string[] = [];
+export async function check(sources: Sources, errors: string[]): Promise<Pack[]> {
 	const packs: Pack[] = [];
 	for (const entry of await entries(path.join(ROOT, "packs"))) {
 		if (!entry.isDirectory()) continue;
@@ -346,16 +407,19 @@ export async function check(sources: Sources): Promise<Pack[]> {
 		}
 	}
 
-	if (errors.length > 0) {
-		console.error(`${errors.length} problem(s) would stop packs from loading in OMP:`);
-		for (const error of errors) console.error(`  - ${error}`);
-		process.exit(1);
-	}
+	failOn(errors);
 	return packs.sort((a, b) => a.name.localeCompare(b.name));
 }
 
+function failOn(errors: string[]): void {
+	if (errors.length === 0) return;
+	console.error(`${errors.length} problem(s) would stop packs from loading in OMP:`);
+	for (const error of errors) console.error(`  - ${error}`);
+	process.exit(1);
+}
+
 // ---------------------------------------------------------------------------
-// 4. readme
+// 5. readme
 // ---------------------------------------------------------------------------
 
 /** Newest commit touching each directory under packs/, from one pass over history (newest first). */
@@ -494,9 +558,9 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		"",
 		"## Maintenance",
 		"",
-		"[`.github/workflows/sync-upstreams.yml`](./.github/workflows/sync-upstreams.yml) runs [`scripts/sync.ts`](./scripts/sync.ts) daily at 06:17 UTC and on pushes that change `packs/`, `sources.json`, or `scripts/`. It moves every upstream in [`sources.json`](./sources.json) to the latest commit of its branch, copies it into `upstream/`, regenerates this README, and commits the result. The run fails, and commits nothing, if any skill, rule, agent, or command would not load in OMP or two packs define the same skill. That check covers only loadability and names; it does not run or verify any skill's workflow.",
+		"[`.github/workflows/sync-upstreams.yml`](./.github/workflows/sync-upstreams.yml) runs [`scripts/sync.ts`](./scripts/sync.ts) daily at 06:17 UTC and on pushes that change `packs/`, `rule-sources/`, `sources.json`, or `scripts/`. It moves every upstream in [`sources.json`](./sources.json) to the latest commit of its branch, copies it into `upstream/`, regenerates this README, and commits the result. The run fails, and commits nothing, if any skill, rule, agent, or command would not load in OMP, two packs define the same skill, or a generated rule is out of date with its source. That check covers only loadability and names; it does not run or verify any skill's workflow.",
 		"",
-		"To run it locally: `GITHUB_TOKEN=$(gh auth token) bun scripts/sync.ts`.",
+		"To run it locally: `GITHUB_TOKEN=$(gh auth token) bun scripts/sync.ts`. `bun scripts/sync.ts --local` renders rules and runs the load check without network access.",
 		"",
 		"### Add an upstream",
 		"",
@@ -504,11 +568,17 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		"",
 		"### Add a pack of your own",
 		"",
-		"Create `packs/<name>/package.json` with `name` (matching the directory), `version`, and `\"omp\": {}` (list TypeScript extension modules under `omp.extensions`). Add `skills/<skill>/SKILL.md`, `rules/*.md`, `agents/*.md`, or `commands/*.md` as needed; OMP does not look inside subdirectories of `rules/`, `agents/`, or `commands/`.",
+		"Create `packs/<name>/package.json` with `name` (matching the directory), `version`, and `\"omp\": {}` (list TypeScript extension modules under `omp.extensions`). Add `skills/<skill>/SKILL.md`, `agents/*.md`, or `commands/*.md` as needed; OMP does not look inside subdirectories of `rules/`, `agents/`, or `commands/`.",
 		"",
-		"### Authored skill style",
+		"### Rules",
+		"",
+		"`packs/<pack>/rules/` is generated: edit `rule-sources/<pack>/*.md`, then run `bun scripts/sync.ts --local` and commit both. Shared regex fragments live in `rule-sources/fragments/<name>.regex` and are referenced in a rule's frontmatter as `{{<name>}}`; `shell-command-start` and `json-command-start` match the start of a shell command in raw and JSON-encoded tool arguments. A rule in `packs/<pack>/rules/` without a source fails the check.",
+		"",
+		"### Authored style",
 		"",
 		"Skills written here follow the style of OMP's stock skills: `name` and `description` frontmatter (`disable-model-invocation` is allowed to keep a skill manual-only), a `# Title`, a short purpose, `##` sections, and a final `## Checklist`. Write dense imperative prose with plain uppercase RFC 2119 keywords (MUST, NEVER, SHOULD, MAY), keep `SKILL.md` a small router (about 150 lines or fewer), and move detail into reference files behind relative links instead of duplicating it. Routing descriptions MUST retain the key task triggers and sibling boundaries: the model sees only the description before choosing a skill. Put detailed procedures and explanations in the body. Runtime description compression is a separate model call and can fail even when the pack loads correctly. Upstream and vendored packs are copied as published and need not follow this style.",
+		"",
+		"Agents and rules written here follow the same voice. An agent prompt opens with a role line and a `<system-conventions>` block stating the RFC 2119 contract with `NEVER`/`AVOID` as aliases for `MUST NOT`/`SHOULD NOT`, and repeats its `<critical>` rules at the start and the end. A rule opens with a bold one-line reason, then imperative bullets, and states what its trigger cannot see.",
 		"",
 		"## Compatibility",
 		"",
@@ -521,13 +591,20 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 
 if (import.meta.main) {
 	const sources = (await Bun.file(SOURCES_PATH).json()) as Sources;
-	await pin(sources);
-	await fetchUpstreams(sources);
-	const packs = await check(sources);
-	const readme = await renderReadme(sources, packs);
-	if (readme !== (await Bun.file(README_PATH).text())) {
-		await Bun.write(README_PATH, readme);
-		console.log("readme updated");
+	const local = process.argv.includes("--local");
+	if (!local) {
+		await pin(sources);
+		await fetchUpstreams(sources);
+	}
+	const errors: string[] = [];
+	await renderRules(errors);
+	const packs = await check(sources, errors);
+	if (!local) {
+		const readme = await renderReadme(sources, packs);
+		if (readme !== (await Bun.file(README_PATH).text())) {
+			await Bun.write(README_PATH, readme);
+			console.log("readme updated");
+		}
 	}
 	console.log(`${packs.length} packs, ${packs.reduce((total, pack) => total + pack.skills.length, 0)} skills: all load in OMP`);
 }
