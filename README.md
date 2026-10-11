@@ -27,7 +27,7 @@ Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 | Pack | Version | Source | Contents | Last updated |
 | --- | --- | --- | --- | --- |
-| `clssck-core` | `1.1.0` | this repo | 6 skills, 9 rules, 2 agents | [2026-10-11 19:14 UTC](https://github.com/clssck/agent-plugins/commit/ab1f4fc87a0949c3b55c4eaec762599d2e28d3e3) |
+| `clssck-core` | `1.1.0` | this repo | 7 skills, 9 rules, 2 agents | [2026-10-11 19:20 UTC](https://github.com/clssck/agent-plugins/commit/51e55957720f8b424c13b7cb99cfe3e5bd8baf05) |
 | `coco-airflow` | `0.1.0` | vendored, see [ATTRIBUTION](./packs/coco-airflow/ATTRIBUTION) | 18 skills | [2026-10-07 20:52 UTC](https://github.com/clssck/agent-plugins/commit/2f5fa8216c5b4c7268181df3ba906ac59b083dd1) |
 | `coco-blueprints` | `0.1.0` | vendored, see [ATTRIBUTION](./packs/coco-blueprints/ATTRIBUTION) | 3 skills, 12 commands | [2026-10-07 21:35 UTC](https://github.com/clssck/agent-plugins/commit/72964048bc39f552679da8adf0aea982c978f38e) |
 | `coco-bundled-skills` | `1.1.69` | vendored, see [ATTRIBUTION](./packs/coco-bundled-skills/ATTRIBUTION) | 74 skills | [2026-10-08 10:28 UTC](https://github.com/clssck/agent-plugins/commit/303a98463414aaa1a8049c1647f67453070bdbe8) |
@@ -47,6 +47,7 @@ Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).
 | [api-recon](https://github.com/clssck/agent-plugins/blob/943b7d36706c177dab54e3a8a4e775af9bb9eceb/packs/clssck-core/skills/api-recon/SKILL.md) | `clssck-core` | `1.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-11 19:03 UTC](https://github.com/clssck/agent-plugins/commit/943b7d36706c177dab54e3a8a4e775af9bb9eceb) |
 | [cli-creator](https://github.com/clssck/agent-plugins/blob/ab1f4fc87a0949c3b55c4eaec762599d2e28d3e3/packs/clssck-core/skills/cli-creator/SKILL.md) | `clssck-core` | `1.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-11 19:14 UTC](https://github.com/clssck/agent-plugins/commit/ab1f4fc87a0949c3b55c4eaec762599d2e28d3e3) |
 | [evidence-led-exploration](https://github.com/clssck/agent-plugins/blob/12750bc4dccb615ae2b34028cd2ee191194be0f7/packs/clssck-core/skills/evidence-led-exploration/SKILL.md) | `clssck-core` | `1.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-11 18:49 UTC](https://github.com/clssck/agent-plugins/commit/12750bc4dccb615ae2b34028cd2ee191194be0f7) |
+| [exploitation](https://github.com/clssck/agent-plugins/blob/51e55957720f8b424c13b7cb99cfe3e5bd8baf05/packs/clssck-core/skills/exploitation/SKILL.md) | `clssck-core` | `1.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-11 19:20 UTC](https://github.com/clssck/agent-plugins/commit/51e55957720f8b424c13b7cb99cfe3e5bd8baf05) |
 | [offensive-agent-guardrails](https://github.com/clssck/agent-plugins/blob/12750bc4dccb615ae2b34028cd2ee191194be0f7/packs/clssck-core/skills/offensive-agent-guardrails/SKILL.md) | `clssck-core` | `1.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-11 18:49 UTC](https://github.com/clssck/agent-plugins/commit/12750bc4dccb615ae2b34028cd2ee191194be0f7) |
 | [pentest-tradecraft](https://github.com/clssck/agent-plugins/blob/12750bc4dccb615ae2b34028cd2ee191194be0f7/packs/clssck-core/skills/pentest-tradecraft/SKILL.md) | `clssck-core` | `1.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-11 18:49 UTC](https://github.com/clssck/agent-plugins/commit/12750bc4dccb615ae2b34028cd2ee191194be0f7) |
 | [skill-authoring](https://github.com/clssck/agent-plugins/blob/6c8091559e6b1f11d55453abd86b4ce734a278cb/packs/clssck-core/skills/skill-authoring/SKILL.md) | `clssck-core` | `1.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-11 18:49 UTC](https://github.com/clssck/agent-plugins/commit/6c8091559e6b1f11d55453abd86b4ce734a278cb) |
@@ -256,4 +257,4 @@ Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-The root [LICENSE](./LICENSE) covers what is written here: `packs/` (clssck-core, sanofi), `rule-sources/`, and `scripts/`. Vendored packs and `upstream/` copies carry the license files their upstreams ship. Third-party adaptations and attributions are listed in [`licenses/`](./licenses/README.md).
+The root [LICENSE](./LICENSE) covers what is written here: `clssck-core`, `sanofi` under `packs/`, `rule-sources/`, and `scripts/`. Vendored packs and `upstream/` copies carry the license files their upstreams ship. Third-party adaptations and attributions are listed in [`licenses/`](./licenses/README.md).
