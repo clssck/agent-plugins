@@ -33,23 +33,28 @@ interface Commit {
 	date: string;
 }
 
-interface Skill {
+interface Item {
 	name: string;
-	/** Path of SKILL.md relative to the pack root. */
+	/** Path of the file relative to the pack root. */
 	file: string;
 }
 
 interface Pack {
 	name: string;
-	/** Directory relative to the repository root, e.g. `packs/bro`. */
+	/** Directory relative to the repository root, e.g. `packs/clssck-core`. */
 	dir: string;
+	/** The pack's `package.json` version. */
+	version: string;
 	upstream?: Upstream;
 	/** Upstream packs: pack path → upstream path of each copied entry, as recorded by fetch. */
 	origins?: Record<string, string>;
 	/** A pack under packs/ that ships an ATTRIBUTION file: vendored here rather than written here. */
 	attribution: boolean;
-	skills: Skill[];
-	counts: Record<"rules" | "agents" | "commands" | "extensions", number>;
+	skills: Item[];
+	rules: Item[];
+	agents: Item[];
+	commands: Item[];
+	extensions: number;
 }
 
 /** What fetch records in each generated upstream package.json. */
@@ -345,7 +350,7 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 	if (!manifest.version) errors.push(`${label}: package.json has no version`);
 	if (typeof manifest.omp !== "object") errors.push(`${label}: package.json needs an "omp" object, or OMP ignores the pack`);
 
-	const skills: Skill[] = [];
+	const skills: Item[] = [];
 	for (const entry of await entries(path.join(packDir, "skills"))) {
 		if (!entry.isDirectory()) continue;
 		const file = path.posix.join("skills", entry.name, "SKILL.md");
@@ -362,13 +367,18 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 		}
 	}
 
-	const agents = await flatMarkdown(packDir, "agents", /\.md$/, errors, label);
-	for (const file of agents) {
+	const item = (file: string, name?: unknown): Item => ({
+		name: typeof name === "string" && name.trim() ? name.trim() : path.posix.basename(file).replace(/\.[^.]+$/, ""),
+		file,
+	});
+	const agents: Item[] = [];
+	for (const file of await flatMarkdown(packDir, "agents", /\.md$/, errors, label)) {
 		const meta = frontmatter(await Bun.file(path.join(packDir, file)).text());
 		if (!meta?.name || !meta.description) errors.push(`${label}: ${file} needs name and description in its frontmatter`);
+		agents.push(item(file, meta?.name));
 	}
-	const rules = await flatMarkdown(packDir, "rules", /\.mdc?$/, errors, label);
-	const commands = await flatMarkdown(packDir, "commands", /\.md$/, errors, label);
+	const rules = (await flatMarkdown(packDir, "rules", /\.mdc?$/, errors, label)).map(file => item(file));
+	const commands = (await flatMarkdown(packDir, "commands", /\.md$/, errors, label)).map(file => item(file));
 	const extensions = manifest.omp?.extensions ?? [];
 	for (const extension of extensions) {
 		if (!(await Bun.file(path.join(packDir, extension)).exists())) errors.push(`${label}: extension ${extension} does not exist`);
@@ -377,11 +387,15 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 	return {
 		name: label,
 		dir,
+		version: typeof manifest.version === "string" ? manifest.version : "",
 		upstream,
 		origins: manifest.sync?.origins,
 		attribution: !upstream && (await Bun.file(path.join(packDir, "ATTRIBUTION")).exists()),
 		skills,
-		counts: { rules: rules.length, agents: agents.length, commands: commands.length, extensions: extensions.length },
+		rules,
+		agents,
+		commands,
+		extensions: extensions.length,
 	};
 }
 
@@ -422,14 +436,15 @@ function failOn(errors: string[]): void {
 // 5. readme
 // ---------------------------------------------------------------------------
 
-/** Newest commit touching each directory under packs/, from one pass over history (newest first). */
+/** Newest commit touching each file and directory under packs/ and upstream/, from one pass over history (newest first). */
 function localLastCommits(): Map<string, Commit> {
-	const log = Bun.spawnSync(["git", "log", "--format=%x00%H %cI", "--name-only", "--", "packs"], { cwd: ROOT });
+	const log = Bun.spawnSync(["git", "log", "--format=%x00%H %cI", "--name-only", "--", "packs", "upstream"], { cwd: ROOT });
 	const latest = new Map<string, Commit>();
 	for (const block of log.stdout.toString().split("\0").slice(1)) {
 		const [header, ...files] = block.trim().split("\n");
 		const [sha, date] = header.split(" ");
 		for (const file of files) {
+			if (!latest.has(file)) latest.set(file, { sha, date });
 			// Ancestors of an already-dated directory were dated by the same, newer commit.
 			for (let dir = path.posix.dirname(file); dir !== "." && !latest.has(dir); dir = path.posix.dirname(dir)) {
 				latest.set(dir, { sha, date });
@@ -474,7 +489,7 @@ export function upstreamPath(pack: Pack, packPath: string): string {
 }
 
 function describeContents(pack: Pack): string {
-	return Object.entries({ skills: pack.skills.length, ...pack.counts })
+	return Object.entries({ skills: pack.skills.length, rules: pack.rules.length, agents: pack.agents.length, commands: pack.commands.length, extensions: pack.extensions })
 		.filter(([, count]) => count > 0)
 		.map(([kind, count]) => `${count} ${count === 1 ? kind.slice(0, -1) : kind}`)
 		.join(", ");
@@ -483,35 +498,43 @@ function describeContents(pack: Pack): string {
 export async function renderReadme(sources: Sources, packs: Pack[]): Promise<string> {
 	const localCommits = localLastCommits();
 	const upstreamCommits = await upstreamLastCommits(packs);
-	const rows: string[] = [];
-	for (const pack of packs) {
-		for (const skill of pack.skills) {
-			const dir = path.posix.dirname(skill.file);
-			let repo: string;
-			let skillUrl: string;
-			let commit: Commit | undefined;
-			if (pack.upstream) {
-				const source = upstreamPath(pack, dir);
-				repo = pack.upstream.repo;
-				commit = upstreamCommits.get(`${pack.name}/${dir}`);
-				skillUrl = `https://github.com/${repo}/blob/${pack.upstream.sha}/${source}/SKILL.md`;
-			} else {
-				repo = sources.repository;
-				commit = localCommits.get(path.posix.join(pack.dir, dir));
-				// Link at the skill's own last commit so unrelated commits don't rewrite the row.
-				skillUrl = `https://github.com/${repo}/blob/${commit?.sha ?? "main"}/${pack.dir}/${skill.file}`;
-			}
-			const updated = commit
-				? `[${new Date(commit.date).toISOString().slice(0, 16).replace("T", " ")} UTC](https://github.com/${repo}/commit/${commit.sha})`
-				: "not committed yet";
-			rows.push(`| [${skill.name}](${skillUrl}) | \`${pack.name}\` | [${repo}](https://github.com/${repo}) | ${updated} |`);
+	const repo = sources.repository;
+	const stamp = (commit: Commit | undefined, at: string): string =>
+		commit
+			? `[${new Date(commit.date).toISOString().slice(0, 16).replace("T", " ")} UTC](https://github.com/${at}/commit/${commit.sha})`
+			: "—";
+	// Link each item at its own last commit so unrelated commits don't rewrite the row.
+	const source = (pack: Pack, item: Item) => {
+		if (pack.upstream) {
+			return {
+				at: pack.upstream.repo,
+				url: `https://github.com/${pack.upstream.repo}/blob/${pack.upstream.sha}/${upstreamPath(pack, item.file)}`,
+				commit: upstreamCommits.get(`${pack.name}/${path.posix.dirname(item.file)}`),
+			};
 		}
-	}
-	rows.sort((a, b) => a.localeCompare(b));
-	const skillCount = packs.reduce((total, pack) => total + pack.skills.length, 0);
-	const local = packs.filter(pack => !pack.upstream);
-	const authored = local.filter(pack => !pack.attribution).map(pack => `\`${pack.name}\``).join(", ");
-	const vendored = local.filter(pack => pack.attribution).map(pack => `\`${pack.name}\``).join(", ");
+		const commit = localCommits.get(path.posix.join(pack.dir, item.file));
+		return { at: repo, url: `https://github.com/${repo}/blob/${commit?.sha ?? "main"}/${pack.dir}/${item.file}`, commit };
+	};
+	const section = (kind: string, pick: (pack: Pack) => Item[]): string[] => {
+		const rows = packs
+			.flatMap(pack => pick(pack).map(item => ({ pack, item })))
+			.sort((a, b) => `${a.pack.name}/${a.item.name}`.localeCompare(`${b.pack.name}/${b.item.name}`))
+			.map(({ pack, item }) => {
+				const link = source(pack, item);
+				return `| [${item.name}](${link.url}) | \`${pack.name}\` | \`${pack.version}\` | [${link.at}](https://github.com/${link.at}) | ${stamp(link.commit, link.at)} |`;
+			});
+		if (rows.length === 0) return [];
+		return [`## ${kind}`, "", `| ${kind.slice(0, -1)} | Pack | Version | Source | Last updated |`, "| --- | --- | --- | --- | --- |", ...rows, ""];
+	};
+	const packRows = packs.map(pack => {
+		const at = pack.upstream ? pack.upstream.repo : repo;
+		const target = pack.upstream
+			? `[${pack.upstream.repo}@${pack.upstream.sha.slice(0, 7)}](https://github.com/${pack.upstream.repo}/tree/${pack.upstream.sha})`
+			: pack.attribution
+				? `vendored, see [ATTRIBUTION](./${pack.dir}/ATTRIBUTION)`
+				: "this repo";
+		return `| \`${pack.name}\` | \`${pack.version}\` | ${target} | ${describeContents(pack)} | ${stamp(localCommits.get(pack.dir), at)} |`;
+	});
 
 	return [
 		"<!-- Generated by scripts/sync.ts. Do not edit manually. -->",
@@ -522,7 +545,7 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		"",
 		"Every directory in `packs/` and `upstream/` is an OMP extension package: a `package.json` with an `omp` field, plus any of `skills/`, `rules/`, `agents/`, `commands/`, `hooks/`, `tools/`, `prompts/`, and `.mcp.json`. Linked packs appear under **OMP Extension Packages** in `/extensions`.",
 		"",
-		`\`packs/\` holds packs written here (${authored}) and packs vendored with the owner's permission (${vendored}), each of which ships its own \`LICENSE\` and \`ATTRIBUTION\`. \`upstream/\` holds vendored copies of the repositories in [\`sources.json\`](./sources.json) at their pinned commits, with the license files those repositories ship. The root [\`LICENSE\`](./LICENSE) covers only what is written here.`,
+		"`Version` is the pack's `package.json` version; `Last updated` is the newest commit touching the item (upstream items: at the pinned commit).",
 		"",
 		"## Install",
 		"",
@@ -535,57 +558,23 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		"",
 		"`omp plugin upgrade agent-plugins` pulls the latest commit; linked packs follow automatically because they point into omp's copy. `omp plugin disable <name>` / `enable <name>` toggles a pack, `omp plugin uninstall <name>` removes it, and `/extensions` toggles individual skills, rules, and agents.",
 		"",
+		"Packs that load are not guaranteed to work with your host: the vendored CoCo and Snowflake skills reference CoCo tools, the `cortex` CLI, and host path variables. When those are unavailable, stop and say so; NEVER improvise a substitute.",
+		"",
+		"Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).",
+		"",
 		"## Packs",
 		"",
-		"| Pack | Link | Source | Contents |",
-		"| --- | --- | --- | --- |",
-		...packs.map(pack => {
-			const source = pack.upstream
-				? `[${pack.upstream.repo}@${pack.upstream.sha.slice(0, 7)}](https://github.com/${pack.upstream.repo}/tree/${pack.upstream.sha})`
-				: pack.attribution
-					? `vendored, see [ATTRIBUTION](./${pack.dir}/ATTRIBUTION)`
-					: "this repo";
-			return `| \`${pack.name}\` | \`omp plugin link $AP/${pack.dir}\` | ${source} | ${describeContents(pack)} |`;
-		}),
+		"| Pack | Version | Source | Contents | Last updated |",
+		"| --- | --- | --- | --- | --- |",
+		...packRows,
 		"",
-		"## Skills",
-		"",
-		`${skillCount} skills across ${packs.filter(pack => pack.skills.length > 0).length} packs. “Last updated” is the newest commit that touched the skill's directory.`,
-		"",
-		"| Skill | Pack | Repository | Last updated |",
-		"| --- | --- | --- | --- |",
-		...rows,
-		"",
-		"## Maintenance",
-		"",
-		"[`.github/workflows/sync-upstreams.yml`](./.github/workflows/sync-upstreams.yml) runs [`scripts/sync.ts`](./scripts/sync.ts) daily at 06:17 UTC and on pushes that change `packs/`, `rule-sources/`, `sources.json`, or `scripts/`. It moves every upstream in [`sources.json`](./sources.json) to the latest commit of its branch, copies it into `upstream/`, regenerates this README, and commits the result. The run fails, and commits nothing, if any skill, rule, agent, or command would not load in OMP, two packs define the same skill, or a generated rule is out of date with its source. That check covers only loadability and names; it does not run or verify any skill's workflow.",
-		"",
-		"README.md is regenerated by the workflow on every run, so a local run leaves it alone. To update it locally: `GITHUB_TOKEN=$(gh auth token) bun scripts/sync.ts --readme`. `bun scripts/sync.ts --local` renders rules and runs the load check without network access or a token.",
-		"",
-		"### Add an upstream",
-		"",
-		"Append to `upstreams` in `sources.json`: `name` (the pack name), `repo` (`owner/name`), `ref` (branch), `sha` (any commit; the sync moves it), `description`, and `include`, which maps upstream paths to pack paths (usually `{ \"skills\": \"skills\" }`). Push, and the workflow does the rest.",
-		"",
-		"### Add a pack of your own",
-		"",
-		"Create `packs/<name>/package.json` with `name` (matching the directory), `version`, and `\"omp\": {}` (list TypeScript extension modules under `omp.extensions`). Add `skills/<skill>/SKILL.md`, `agents/*.md`, or `commands/*.md` as needed; OMP does not look inside subdirectories of `rules/`, `agents/`, or `commands/`.",
-		"",
-		"### Rules",
-		"",
-		"`packs/<pack>/rules/` is generated: edit `rule-sources/<pack>/*.md`, then run `bun scripts/sync.ts --local` and commit both. Shared regex fragments live in `rule-sources/fragments/<name>.regex` and are referenced in a rule's frontmatter as `{{<name>}}`; `shell-command-start` and `json-command-start` match the start of a shell command in raw and JSON-encoded tool arguments. A rule in `packs/<pack>/rules/` without a source fails the check.",
-		"",
-		"### Authored style",
-		"",
-		"Skills written here follow the style of OMP's stock skills: `name` and `description` frontmatter (`disable-model-invocation` is allowed to keep a skill manual-only), a `# Title`, a short purpose, `##` sections, and a final `## Checklist`. Write dense imperative prose with plain uppercase RFC 2119 keywords (MUST, NEVER, SHOULD, MAY), keep `SKILL.md` a small router (about 150 lines or fewer), and move detail into reference files behind relative links instead of duplicating it. Routing descriptions MUST retain the key task triggers and sibling boundaries: the model sees only the description before choosing a skill. Put detailed procedures and explanations in the body. Runtime description compression is a separate model call and can fail even when the pack loads correctly. Upstream and vendored packs are copied as published and need not follow this style.",
-		"",
-		"Agents and rules written here follow the same voice. An agent prompt opens with a role line and a `<system-conventions>` block stating the RFC 2119 contract with `NEVER`/`AVOID` as aliases for `MUST NOT`/`SHOULD NOT`, and repeats its `<critical>` rules at the start and the end. A rule opens with a bold one-line reason, then imperative bullets, and states what its trigger cannot see.",
-		"",
-		"## Compatibility",
-		"",
-		"A pack that loads in OMP is not guaranteed to work with your host or tools. Some skills target other agents: the Cortex Code (CoCo) and Snowflake packs reference CoCo tools, the `cortex` CLI, and host path variables. Before executing such a skill, the tool mapping, credentials, and real paths it relies on MUST be available; when they are not, stop and say so, and NEVER silently improvise a substitute.",
-		"",
+		...section("Skills", pack => pack.skills),
+		...section("Rules", pack => pack.rules),
+		...section("Agents", pack => pack.agents),
+		...section("Commands", pack => pack.commands),
 	].join("\n");
 }
+
 
 // ---------------------------------------------------------------------------
 
