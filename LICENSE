@@ -30,10 +30,11 @@ Exceptions:
   licenses/clssck-core/cli-creator/LICENSE.txt.
 - Reference files in packs/sanofi/skills/dbt/ adapted from dbt-labs/dbt-agent-skills
   remain under Apache-2.0; see licenses/sanofi/dbt/.
-- Attributions for material adapted from ARTEX are in licenses/clssck-core/.
 
-License texts and attributions for third-party material live in licenses/, never
-inside a skill directory.
+License texts, attributions, and provenance notes for third-party material
+adapted in the packs written here live in licenses/, never inside those skill
+directories; vendored packs and upstream/ copies keep the license files their
+upstreams ship.
 
 Everything else is a vendored copy of third-party work and remains under its
 own terms. The five coco-* packs under packs/ are copies of Snowflake Cortex

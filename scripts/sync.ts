@@ -526,6 +526,7 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		if (rows.length === 0) return [];
 		return [`## ${kind}`, "", `| ${kind.slice(0, -1)} | Pack | Version | Source | Last updated |`, "| --- | --- | --- | --- | --- |", ...rows, ""];
 	};
+	const authored = packs.filter(pack => !pack.upstream && !pack.attribution).map(pack => `\`${pack.name}\``).join(", ");
 	const packRows = packs.map(pack => {
 		const at = pack.upstream ? pack.upstream.repo : repo;
 		const target = pack.upstream
@@ -574,7 +575,7 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		...section("Commands", pack => pack.commands),
 		"## License",
 		"",
-		"The root [LICENSE](./LICENSE) covers what is written here: `packs/` (clssck-core, sanofi), `rule-sources/`, and `scripts/`. Vendored packs and `upstream/` copies carry the license files their upstreams ship. Third-party adaptations and attributions are listed in [`licenses/`](./licenses/README.md).",
+		`The root [LICENSE](./LICENSE) covers what is written here: ${authored} under \`packs/\`, \`rule-sources/\`, and \`scripts/\`. Vendored packs and \`upstream/\` copies carry the license files their upstreams ship. Third-party adaptations and attributions are listed in [\`licenses/\`](./licenses/README.md).`,
 		"",
 	].join("\n");
 }
