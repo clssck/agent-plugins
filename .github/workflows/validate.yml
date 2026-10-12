@@ -55,6 +55,11 @@ jobs:
           (cd "$RUNNER_TEMP/natives" && npm pack --silent "@oh-my-pi/pi-natives-${platform}@${version}" && tar -xzf ./*.tgz)
           cp "$RUNNER_TEMP"/natives/package/pi_natives.*.node packages/natives/native/
 
+      # --ignore-scripts skips OMP's prepare hook, which generates this loader dependency.
+      - name: Generate OMP tool views
+        working-directory: oh-my-pi
+        run: bun run gen:tool-views
+
       - name: Validate packs with OMP's extension loaders
         env:
           OMP_ROOT: ${{ github.workspace }}/oh-my-pi
