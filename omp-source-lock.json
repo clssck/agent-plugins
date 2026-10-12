@@ -1,0 +1,15 @@
+{
+  "repository": "can1357/oh-my-pi",
+  "ref": "main",
+  "snapshotCommit": "5d0aaffaf1f987503ce129a642fb6e30339615af",
+  "trees": {
+    ".omp/commands": "1b7b7b8390f2d6b458f7f9d61ffa0adece0590dd",
+    ".omp/skills": "09143f09618835ecd5ceb46d079b00497b9de4c9",
+    ".omp/tools": "b8f9f3c90780df887a22617cb5da8c72a52621f4"
+  },
+  "notification": {
+    "repository": "clssck/agent-plugins",
+    "assignee": "clssck",
+    "issueTitle": "OMP development snapshot is out of date"
+  }
+}

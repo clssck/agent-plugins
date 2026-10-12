@@ -5,5 +5,9 @@
   "description": "OMP extension packs. Install with `omp plugin install github:clssck/agent-plugins`, then link the packs you want.",
   "license": "MIT",
   "repository": "https://github.com/clssck/agent-plugins",
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.8",
+    "kitty-vt-wasm": "^0.2.0"
+  },
   "omp": {}
 }

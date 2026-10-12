@@ -11,6 +11,7 @@
 import { YAML } from "bun";
 import { cp, mkdir, mkdtemp, readdir, rename, rm, stat } from "node:fs/promises";
 import * as path from "node:path";
+import { githubGraphql as graphql, githubRepositoryField as repositoryField } from "./github";
 
 interface Upstream {
 	name: string;
@@ -45,6 +46,8 @@ interface Pack {
 	dir: string;
 	/** The pack's `package.json` version. */
 	version: string;
+	/** GitHub owner/repository parsed from package.json repository. */
+	repository?: string;
 	upstream?: Upstream;
 	/** Upstream packs: pack path → upstream path of each copied entry, as recorded by fetch. */
 	origins?: Record<string, string>;
@@ -54,6 +57,7 @@ interface Pack {
 	rules: Item[];
 	agents: Item[];
 	commands: Item[];
+	tools: Item[];
 	extensions: number;
 }
 
@@ -81,29 +85,6 @@ const RULE_SOURCES_DIR = path.join(ROOT, "rule-sources");
 const FRAGMENTS_DIR = path.join(RULE_SOURCES_DIR, "fragments");
 const FRAGMENT_REF = /\{\{([\w-]+)\}\}/g;
 
-const token = process.env.GITHUB_TOKEN;
-
-/** One GraphQL request; callers batch many lookups into it with aliases. */
-async function graphql<T>(query: string): Promise<T> {
-	if (!token) throw new Error("GITHUB_TOKEN is required: GitHub's GraphQL API has no anonymous access");
-	const response = await fetch("https://api.github.com/graphql", {
-		method: "POST",
-		headers: { Authorization: `Bearer ${token}`, "User-Agent": "clssck-agent-plugins" },
-		body: JSON.stringify({ query }),
-	});
-	const body = (await response.json()) as { data?: T; errors?: Array<{ message: string }> };
-	if (!response.ok || body.errors?.length || !body.data) {
-		throw new Error(`GitHub GraphQL ${response.status}: ${body.errors?.map(error => error.message).join("; ")}`);
-	}
-	return body.data;
-}
-
-/** GraphQL `repository(...)` selector; JSON string literals are valid GraphQL strings. */
-function repositoryField(repo: string): string {
-	const [owner, name] = repo.split("/");
-	return `repository(owner: ${JSON.stringify(owner)}, name: ${JSON.stringify(name)})`;
-}
-
 async function readJson<T>(file: string): Promise<T | undefined> {
 	const handle = Bun.file(file);
 	return (await handle.exists()) ? ((await handle.json()) as T) : undefined;
@@ -118,17 +99,47 @@ async function entries(dir: string) {
 	}
 }
 
-/** Same rules as OMP's frontmatter parser: `---` on the first line, YAML until the next `\n---`. */
+const PLAIN_SCALAR_KEY_VALUE = /^(\s*[A-Za-z_][\w-]*:\s+)(\S.*?)(\s*)$/;
+const FLOW_OR_EXPLICIT_VALUE_START = new Set(['"', "'", "[", "{", "|", ">", "!", "&", "*", "#"]);
+
+function quoteAmbiguousPlainScalars(metadata: string): string | undefined {
+	let changed = false;
+	const lines = metadata.split("\n").map(line => {
+		const match = line.match(PLAIN_SCALAR_KEY_VALUE);
+		if (!match) return line;
+		const [, prefix, rawValue, suffix] = match;
+		const value = rawValue.trimEnd();
+		if (!value.includes(": ") || FLOW_OR_EXPLICIT_VALUE_START.has(value[0])) return line;
+		changed = true;
+		return prefix + JSON.stringify(value) + suffix;
+	});
+	return changed ? lines.join("\n") : undefined;
+}
+
+function parseYamlRecord(metadata: string): Record<string, unknown> | undefined {
+	const parsed = YAML.parse(metadata.replaceAll("\t", "  "));
+	return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+		? (parsed as Record<string, unknown>)
+		: undefined;
+}
+
+/** Same lenient frontmatter rules as OMP: repair tabs and ambiguous plain scalars. */
 function frontmatter(content: string): Record<string, unknown> | undefined {
 	const text = content.replace(/\r\n?/g, "\n");
 	if (!text.startsWith("---")) return undefined;
 	const end = text.indexOf("\n---", 3);
 	if (end === -1) return undefined;
+	const metadata = text.slice(4, end);
 	try {
-		const parsed = YAML.parse(text.slice(4, end));
-		return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : undefined;
+		return parseYamlRecord(metadata);
 	} catch {
-		return undefined;
+		const quoted = quoteAmbiguousPlainScalars(metadata);
+		if (!quoted) return undefined;
+		try {
+			return parseYamlRecord(quoted);
+		} catch {
+			return undefined;
+		}
 	}
 }
 
@@ -336,9 +347,18 @@ async function flatMarkdown(packDir: string, sub: string, pattern: RegExp, error
 	return files;
 }
 
+function githubRepository(value: unknown): string | undefined {
+	if (typeof value !== "string") return undefined;
+	const prefix = "https://github.com/";
+	if (!value.startsWith(prefix)) return undefined;
+	const path = value.slice(prefix.length);
+	const slug = path.endsWith(".git") ? path.slice(0, -4) : path;
+	return slug.split("/").length === 2 ? slug : undefined;
+}
+
 async function inspectPack(dir: string, upstream: Upstream | undefined, errors: string[]): Promise<Pack | undefined> {
 	const packDir = path.join(ROOT, dir);
-	const manifest = await readJson<{ name?: string; version?: string; sync?: Partial<SyncRecord>; omp?: { extensions?: string[] } }>(
+	const manifest = await readJson<{ name?: string; version?: string; repository?: string; sync?: Partial<SyncRecord>; omp?: { extensions?: string[] } }>(
 		path.join(packDir, "package.json"),
 	);
 	if (!manifest) {
@@ -379,6 +399,17 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 	}
 	const rules = (await flatMarkdown(packDir, "rules", /\.mdc?$/, errors, label)).map(file => item(file));
 	const commands = (await flatMarkdown(packDir, "commands", /\.md$/, errors, label)).map(file => item(file));
+	const tools: Item[] = [];
+	for (const entry of await entries(path.join(packDir, "tools"))) {
+		if (entry.isFile()) {
+			if (!/\.(ts|js|sh|bash|py)$/.test(entry.name) || /\.d\.ts$/.test(entry.name)) continue;
+			tools.push(item(path.posix.join("tools", entry.name)));
+			continue;
+		}
+		if (!entry.isDirectory()) continue;
+		const file = path.posix.join("tools", entry.name, "index.ts");
+		if (await Bun.file(path.join(packDir, file)).exists()) tools.push(item(file, entry.name));
+	}
 	const extensions = manifest.omp?.extensions ?? [];
 	for (const extension of extensions) {
 		if (!(await Bun.file(path.join(packDir, extension)).exists())) errors.push(`${label}: extension ${extension} does not exist`);
@@ -388,6 +419,7 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 		name: label,
 		dir,
 		version: typeof manifest.version === "string" ? manifest.version : "",
+		repository: githubRepository(manifest.repository),
 		upstream,
 		origins: manifest.sync?.origins,
 		attribution: !upstream && (await Bun.file(path.join(packDir, "ATTRIBUTION")).exists()),
@@ -395,6 +427,7 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 		rules,
 		agents,
 		commands,
+		tools,
 		extensions: extensions.length,
 	};
 }
@@ -489,7 +522,7 @@ export function upstreamPath(pack: Pack, packPath: string): string {
 }
 
 function describeContents(pack: Pack): string {
-	return Object.entries({ skills: pack.skills.length, rules: pack.rules.length, agents: pack.agents.length, commands: pack.commands.length, extensions: pack.extensions })
+	return Object.entries({ skills: pack.skills.length, rules: pack.rules.length, agents: pack.agents.length, commands: pack.commands.length, tools: pack.tools.length, extensions: pack.extensions })
 		.filter(([, count]) => count > 0)
 		.map(([kind, count]) => `${count} ${count === 1 ? kind.slice(0, -1) : kind}`)
 		.join(", ");
@@ -510,10 +543,16 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 				at: pack.upstream.repo,
 				url: `https://github.com/${pack.upstream.repo}/blob/${pack.upstream.sha}/${upstreamPath(pack, item.file)}`,
 				commit: upstreamCommits.get(`${pack.name}/${path.posix.dirname(item.file)}`),
+				commitAt: pack.upstream.repo,
 			};
 		}
 		const commit = localCommits.get(path.posix.join(pack.dir, item.file));
-		return { at: repo, url: `https://github.com/${repo}/blob/${commit?.sha ?? "main"}/${pack.dir}/${item.file}`, commit };
+		return {
+			at: pack.repository ?? repo,
+			url: `https://github.com/${repo}/blob/${commit?.sha ?? "main"}/${pack.dir}/${item.file}`,
+			commit,
+			commitAt: repo,
+		};
 	};
 	const section = (kind: string, pick: (pack: Pack) => Item[]): string[] => {
 		const rows = packs
@@ -521,20 +560,23 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 			.sort((a, b) => `${a.pack.name}/${a.item.name}`.localeCompare(`${b.pack.name}/${b.item.name}`))
 			.map(({ pack, item }) => {
 				const link = source(pack, item);
-				return `| [${item.name}](${link.url}) | \`${pack.name}\` | \`${pack.version}\` | [${link.at}](https://github.com/${link.at}) | ${stamp(link.commit, link.at)} |`;
+				return `| [${item.name}](${link.url}) | \`${pack.name}\` | \`${pack.version}\` | [${link.at}](https://github.com/${link.at}) | ${stamp(link.commit, link.commitAt)} |`;
 			});
 		if (rows.length === 0) return [];
 		return [`## ${kind}`, "", `| ${kind.slice(0, -1)} | Pack | Version | Source | Last updated |`, "| --- | --- | --- | --- | --- |", ...rows, ""];
 	};
 	const authored = packs.filter(pack => !pack.upstream && !pack.attribution).map(pack => `\`${pack.name}\``).join(", ");
 	const packRows = packs.map(pack => {
-		const at = pack.upstream ? pack.upstream.repo : repo;
+		const at = pack.upstream?.repo ?? pack.repository ?? repo;
 		const target = pack.upstream
 			? `[${pack.upstream.repo}@${pack.upstream.sha.slice(0, 7)}](https://github.com/${pack.upstream.repo}/tree/${pack.upstream.sha})`
 			: pack.attribution
-				? `vendored, see [ATTRIBUTION](./${pack.dir}/ATTRIBUTION)`
+				? pack.repository && pack.repository !== repo
+					? `[${pack.repository}](https://github.com/${pack.repository}) via [ATTRIBUTION](./${pack.dir}/ATTRIBUTION)`
+					: `vendored, see [ATTRIBUTION](./${pack.dir}/ATTRIBUTION)`
 				: "this repo";
-		return `| \`${pack.name}\` | \`${pack.version}\` | ${target} | ${describeContents(pack)} | ${stamp(localCommits.get(pack.dir), at)} |`;
+		const commitAt = pack.upstream ? at : repo;
+		return `| \`${pack.name}\` | \`${pack.version}\` | ${target} | ${describeContents(pack)} | ${stamp(localCommits.get(pack.dir), commitAt)} |`;
 	});
 
 	return [
@@ -554,10 +596,13 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		"omp plugin install github:clssck/agent-plugins   # omp keeps its own copy of this repo",
 		"AP=~/.omp/plugins/node_modules/agent-plugins",
 		"omp plugin link $AP/packs/clssck-core              # link each pack you want",
+		"omp plugin link $AP/packs/omp-development",
 		"omp plugin link $AP/upstream/emilkowalski-skills",
 		"```",
 		"",
-		"`omp plugin upgrade agent-plugins` pulls the latest commit; linked packs follow automatically because they point into omp's copy. `omp plugin disable <name>` / `enable <name>` toggles a pack, `omp plugin uninstall <name>` removes it, and `/extensions` toggles individual skills, rules, and agents.",
+		"`omp plugin upgrade agent-plugins` pulls the latest commit; linked packs follow automatically because they point into omp's copy. The package name is required: bare `omp plugin upgrade` only upgrades marketplace packages. Run `omp plugin doctor` afterward to catch removed or renamed pack targets. Re-link only when adding, renaming, or removing a pack; routine re-links reset its enabled state and feature selection. `omp plugin disable <name>` / `enable <name>` toggles a pack, `omp plugin uninstall <name>` removes it, and `/extensions` toggles individual skills, rules, and agents.",
+		"",
+		"Upgrade note for existing installs: if a machine links `sanofi` without `clssck-core`, link `clssck-core` before upgrading. The `dbt-command-scope` and `dbt-test-arguments` guards moved to `clssck-core` in 1.2.0.",
 		"",
 		"Packs that load are not guaranteed to work with your host: the vendored CoCo and Snowflake skills reference CoCo tools, the `cortex` CLI, and host path variables. When those are unavailable, stop and say so; NEVER improvise a substitute.",
 		"",
@@ -573,6 +618,7 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		...section("Rules", pack => pack.rules),
 		...section("Agents", pack => pack.agents),
 		...section("Commands", pack => pack.commands),
+		...section("Tools", pack => pack.tools),
 		"## License",
 		"",
 		`The root [LICENSE](./LICENSE) covers what is written here: ${authored} under \`packs/\`, \`rule-sources/\`, and \`scripts/\`. Vendored packs and \`upstream/\` copies carry the license files their upstreams ship. Third-party adaptations and attributions are listed in [\`licenses/\`](./licenses/README.md).`,
