@@ -18,7 +18,7 @@ Recon measures what the front end STILL SENDS under mocked responses, not what t
 |Runtime|hook interfaces, fake responses, record outbound requests|destructive UI actions, bulk writes, exports of real data|
 |Data|empty or mock responses are expected|demanding real data; treating blank pages as blockers|
 
-**Target outside the authorized scope, or scope ambiguous → stop and ask.** NEVER proceed on assumption.
+**Target outside the authorized scope, or scope ambiguous → stop and ask.** NEVER proceed on assumption. **A missing or template entry credential (`<TOKEN>`, `TODO`, `replace-with`) → stop and report it**; recon maps the surface behind a gate you already hold, never a substitute for the credential.
 
 ## Layers and modes
 
@@ -62,6 +62,6 @@ Modes: `depth` (enumerate known routes and record traffic), `coverage` (drive UI
 
 ## Before every phase
 
-- Authorization and scope confirmed; the phase gate satisfied.
+- Authorization, scope, and the entry credential confirmed — template text or an absent token is a stop, not a puzzle; the phase gate satisfied.
 - Counted verification ready (files exist, line counts) — qualitative claims are not coverage.
 - Outputs land in `recon/`; nothing is written into the skill directory.
