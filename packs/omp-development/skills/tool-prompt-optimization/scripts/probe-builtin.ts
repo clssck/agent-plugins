@@ -4,13 +4,13 @@
  *
  * Instead of hand-writing a tool's JSON schema + outline, point this at a live
  * builtin tool name. It resolves the tool (direct constructor for availability-gated
- * `github`/`irc`, else the BUILTIN_TOOLS/HIDDEN_TOOLS factory map), pulls the EXACT wire
+ * `github`, else the BUILTIN_TOOLS/HIDDEN_TOOLS factory map), pulls the EXACT wire
  * schema the model sees (`toolWireSchema`) and the rendered prompt (`tool.description`),
  * derives an outline by blanking section bodies, then runs the same `probe()` panel.
  *
  * Usage:
  *   bun probe-builtin.ts --tool <name> [--no-summary] [--show]
- *     --tool <name>      builtin tool name (e.g. irc, github, read). Required.
+ *     --tool <name>      builtin tool name (e.g. github, read). Required.
  *     --no-summary       ablation: blank the one-line summary too (isolate schema-alone).
  *     --show             print resolved schema + outline + real prompt and exit (no API calls).
  *     --samples / --model / --max-tokens / --json  forwarded to probe().
@@ -20,7 +20,7 @@
 import { parseArgs } from "node:util";
 import { toolWireSchema } from "@oh-my-pi/pi-ai";
 import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { BUILTIN_TOOLS, GithubTool, HIDDEN_TOOLS, IrcTool, type Tool, type ToolFactory, type ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
+import { BUILTIN_TOOLS, GithubTool, HIDDEN_TOOLS, type Tool, type ToolFactory, type ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
 import { probe } from "./probe.ts";
 
 const OPEN_TAG = /^<[a-z_][\w-]*>$/i;
@@ -64,9 +64,9 @@ function deriveOutline(description: string, dropSummary: boolean): string {
 async function resolveTool(name: string): Promise<Tool> {
 	await Settings.init({ inMemory: true, cwd: process.cwd() });
 	const settings = Settings.isolated({});
-	// Enriched stub: we only read `.parameters` / `.description`, never `execute`, so the
-	// availability-gated factories (irc needs a registry + agent id; github needs `gh`) can
-	// still construct. Factory map bypasses the settings allowlist (`isToolAllowed`).
+	// We only read `.parameters` / `.description`, never `execute`. The factory map
+	// bypasses the settings allowlist (`isToolAllowed`), and github is constructed directly
+	// below to bypass its `gh` availability gate.
 	const session = {
 		cwd: process.cwd(),
 		hasUI: false,
@@ -74,15 +74,11 @@ async function resolveTool(name: string): Promise<Tool> {
 		getSessionSpawns: () => "*",
 		settings,
 		taskDepth: 0,
-		getAgentId: () => "Probe",
-		agentRegistry: {},
 	} as ToolSession;
-	// `github`/`irc` map to `*.createIf`, which gates on external availability (gh CLI) or a
-	// live agent registry. We only read `.parameters`/`.description`, so direct-construct those
-	// two — keeps the probe gh-independent. Everything else goes through the factory map.
+	// `github` maps to `createIf`, which gates on the gh CLI. Direct construction keeps this
+	// metadata-only probe gh-independent. Everything else goes through the factory map.
 	const direct: Record<string, (s: ToolSession) => Tool> = {
 		github: s => new GithubTool(s),
-		irc: s => new IrcTool(s),
 	};
 	const key = name.toLowerCase();
 	const directCtor = direct[key];

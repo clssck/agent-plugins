@@ -32,7 +32,7 @@ bun .omp/skills/tool-prompt-optimization/scripts/probe-builtin.ts --tool <name> 
 - `--show`: resolved schema, derived outline, real prompt; exits without API calls. Inspect before spending tokens.
 - `--no-summary`: direct summary-line-blank ablation.
 - `--samples` / `--model` / `--max-tokens` / `--json`: panel passthrough. Output ends with real prompt for in-place diff.
-- Factory-map bypasses settings allowlist: gated `irc`, `github`, … resolve. Construction availability gate (e.g. missing `gh` CLI) → manual inputs.
+- Factory-map resolution bypasses the settings allowlist. `github` also bypasses its `gh` availability gate through direct construction; any other unavailable tool requires manual inputs.
 
 ## Inputs
 
