@@ -1,3 +1,4 @@
+
 # RAG answer — grounded, cited answers (`SEARCH_PREVIEW` → `AI_COMPLETE`)
 
 The "ask a question, get a cited answer" surface over a Cortex Search service. Answers are per-question, so this

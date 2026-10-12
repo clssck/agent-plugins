@@ -1,8 +1,14 @@
 ---
 name: business-ontology-workflow
-description: "End-to-end Business Ontology workflow: define governed nodes, enrich with Cortex Sense and multiple extraction sources, bind approved nodes to existing Semantic Views, and consume via Cortex Analyst. Orchestrates $business-ontology, $cortex-sense, and $semantic_studio in a 3-phase sequence. Use when: rolling out governed business semantics, linking the ontology to existing Semantic Views, or onboarding stewards to the full define → enrich → generate path. Triggers: business ontology workflow, glossary to semantic view, define enrich generate, governed semantics workflow, glossary cortex sense integration."
+description: "End-to-end Business Ontology workflow: define governed nodes, enrich with Cortex Sense and multiple extraction sources, bind approved nodes to existing Semantic Views, and consume via Cortex Analyst. Orchestrates skill://business-ontology/SKILL.md, skill://cortex-sense/SKILL.md, and $semantic_studio in a 3-phase sequence. Use when: rolling out governed business semantics, linking the ontology to existing Semantic Views, or onboarding stewards to the full define → enrich → generate path. Triggers: business ontology workflow, glossary to semantic view, define enrich generate, governed semantics workflow, glossary cortex sense integration."
 parent_skill: business-ontology
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `semantic_studio`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
 
 # Business Ontology Workflow
 
@@ -34,9 +40,9 @@ On **pause**: stop and retain `workflow_inputs` in context. On **skip**: jump to
 
 | Phase | Outcome | Routes to |
 |---|---|---|
-| **Bootstrap** (optional, reverse entry) | Seed ontology + bindings from existing Semantic Views | `$business-ontology sv-ingest` |
-| **Define** | Domains, nodes, relationships | `$business-ontology create`, `$business-ontology import` |
-| **Enrich** | AI-proposed nodes and asset links | `$cortex-sense`, `$business-ontology import` |
+| **Bootstrap** (optional, reverse entry) | Seed ontology + bindings from existing Semantic Views | `skill://business-ontology/SKILL.md sv-ingest` |
+| **Define** | Domains, nodes, relationships | `skill://business-ontology/SKILL.md create`, `skill://business-ontology/SKILL.md import` |
+| **Enrich** | AI-proposed nodes and asset links | `skill://cortex-sense/SKILL.md`, `skill://business-ontology/SKILL.md import` |
 | **Generate** | Bind nodes to existing Semantic Views + Analyst consumption | `$semantic-view debug`, `$semantic_studio semantic_view` |
 
 **Two directions, one workflow.** Define → Enrich → Generate is the **forward** path
@@ -54,9 +60,9 @@ Known production gaps (simulated workarounds, missing batch APIs): `../reference
 
 | Mode | Trigger |
 |---|---|
-| Full workflow | `$business-ontology workflow` |
-| Single phase | `$business-ontology workflow bootstrap` · `define` · `enrich` · `generate` |
-| Reverse entry (SVs exist) | `$business-ontology workflow bootstrap` → `phase-0-bootstrap-from-sv/SKILL.md` |
+| Full workflow | `skill://business-ontology/SKILL.md workflow` |
+| Single phase | `skill://business-ontology/SKILL.md workflow bootstrap` · `define` · `enrich` · `generate` |
+| Reverse entry (SVs exist) | `skill://business-ontology/SKILL.md workflow bootstrap` → `phase-0-bootstrap-from-sv/SKILL.md` |
 
 ## Prerequisites
 
@@ -81,7 +87,7 @@ Check 1 (feature gate) passes.
 
 - **Do Semantic Views already exist for this domain?** If yes (or the user says "bootstrap from
   our SVs" / "we already have semantic views"), start at **Phase 0 Bootstrap** →
-  `phase-0-bootstrap-from-sv/SKILL.md`, which routes to `$business-ontology sv-ingest`. It seeds
+  `phase-0-bootstrap-from-sv/SKILL.md`, which routes to `skill://business-ontology/SKILL.md sv-ingest`. It seeds
   the ontology from the estate, then continues with Enrich/Generate for anything still ungoverned.
 - Full run → all three forward phases with gates between each.
 - `bootstrap` → `phase-0-bootstrap-from-sv/SKILL.md`
@@ -115,7 +121,7 @@ Wait for confirmation. On **adjust**, re-collect `workflow_inputs`.
 
 ## Step 0c — Bootstrap from Semantic Views (optional, reverse entry)
 
-Only when SVs already exist. Route to `phase-0-bootstrap-from-sv/SKILL.md` → `$business-ontology
+Only when SVs already exist. Route to `phase-0-bootstrap-from-sv/SKILL.md` → `skill://business-ontology/SKILL.md
 sv-ingest`. Run scan → drift, present the steward worklist, reconcile approved findings. Summarize
 what was seeded/bound.
 

@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Okta API Token Setup
 
 This workflow is referenced by Okta workflows when the user selects the Automated (API) or Self-service API method. Follow this flow to ensure the token is available before proceeding with the calling workflow.
@@ -19,11 +25,13 @@ If the token is already set, skip to the workflow steps.
 ## If Token is Not Set: Guide the User
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Do you have an Okta API token ready?",
     "header": "API Token",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, I have one", "description": "I have an API token ready to use"},
       {"label": "No, I need to create one", "description": "Guide me to create an Okta API token"}

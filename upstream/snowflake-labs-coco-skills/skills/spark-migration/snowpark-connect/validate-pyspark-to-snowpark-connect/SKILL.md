@@ -14,6 +14,12 @@ description: |
 parent_skill: snowpark-connect
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `bash_output`, `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Validate PySpark to Snowpark Connect Migration
 
 You are the top-level orchestrator. You survey the whole workload, weight every
@@ -87,7 +93,7 @@ Phase names to use: `survey`, `phase-a`, `phase-b`, `harvest`, `validation`,
    inline: keep the migration fix; drop `[TEST-PATCH]` I/O rewrites (lines
    referencing `SCOS_*` or validation-only plumbing). Conflicts a harvester cannot
    resolve are surfaced to the orchestrator/user (it does not guess).
-5. Never auto-clean schemas or worktrees. Ask once via `AskUserQuestion` before
+5. Never auto-clean schemas or worktrees. Ask once via `ask` before
    any teardown (Step 6 only).
 6. All worktrees start at `$BASE_SHA`. Each batch's `[MIGRATION-FIX]` commits land
    on the deliverable branch as that batch's harvester runs **during Step 4**
@@ -132,7 +138,7 @@ to one entrypoint at plan time). `manifest.summary` also records
 
 Read `manifest.summary.n_databricks_entrypoints` from `schemas/manifest.json`.
 **If it is 0, skip this step.** Otherwise ask the user **once**, up front, with a
-single `AskUserQuestion`:
+single `ask`:
 
 > "One or more entrypoints are Databricks-native and get a more accurate Phase A
 > baseline when run on a real cluster. Do you have a Databricks workspace `.env`
@@ -160,7 +166,7 @@ $RUN/validate.py runtime-detect --conv-root $CONVERSION_ROOT --env-file <path>
 
 By default the whole workload is validated. Some runs only need a specific set
 of entrypoints (one pipeline, a few files the user is iterating on). Ask **once**
-with a single `AskUserQuestion`:
+with a single `ask`:
 
 > "Mining found **N** entrypoints. Validate **all** of them, or just a
 > **subset**? For a subset, reply with the entrypoints you want — ids, file
@@ -447,7 +453,7 @@ plus `Output/` = migrated code with all `[MIGRATION-FIX]` commits applied.
 
 ### Step 6 — Cleanup gate
 
-Use `AskUserQuestion` **once** to ask whether to:
+Use `ask` **once** to ask whether to:
 - **(a) Drop ALL per-batch golden Snowflake schemas** (list each `run_id` from
   `batches_prepared.json`).
 - **(b) Tear down git worktrees and `validation-base/*` branches.** Keep the

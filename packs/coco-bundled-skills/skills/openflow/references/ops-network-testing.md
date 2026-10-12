@@ -3,6 +3,12 @@ name: openflow-ops-network-testing
 description: Test network connectivity from SPCS Openflow Runtimes to external endpoints. Use before deploying connectors to validate EAI configuration.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Network Connectivity Testing
 
 Test network connectivity from Openflow Runtimes to external data sources. Use this reference to validate EAI (External Access Integration) configuration before deploying connectors in SPCS, or when BYOC Deployments use custom networking setup.

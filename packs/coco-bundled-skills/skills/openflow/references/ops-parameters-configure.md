@@ -3,6 +3,12 @@ name: openflow-ops-parameters-configure
 description: Configure parameter values, export and import parameters. Use for setting values, migration, and backup.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Parameter Configuration
 
 Configure parameter values, export for backup, and import from files.

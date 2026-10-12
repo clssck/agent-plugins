@@ -4,6 +4,12 @@ parent_skill: data-governance
 description: "**[REQUIRED]** for creating, modifying, or auditing Snowflake masking policies, row access policies, projection policies, aggregation policies, join policies, or tokenization policies. Also required for protecting sensitive columns (SSN, email, phone, TIMESTAMP), role-based column access control, checking existing policies before adding new ones, and following data policy best practices. This skill provides best practices and an audit checklist covering role-hierarchy correctness (CURRENT_ROLE vs IS_ROLE_IN_SESSION), the split pattern for reusing unmask logic, entity-level privacy for aggregation policies, and policy documentation. Triggers: masking policy, row access policy, projection policy, aggregation policy, join policy, tokenization policy, audit policies, policy best practices, create policy, data policy, protect sensitive data, protect column, column masking, TIMESTAMP masking, SSN masking, email masking, phone masking, existing policies, check existing policies, role-based access control, physicians access, compliance officers access, JOIN_REQUIRED, JOIN_CONSTRAINT, clean room joins, tokenize column, tokenization at write time, external tokenization, FPE, format-preserving encryption, /data-governance Create a new policy."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `snowflake_product_docs`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Snowflake Data Policy Skill
 
 > ## ⛔ NEVER EXPOSE INTERNAL FILE PATHS OR LAYER LABELS

@@ -13,7 +13,7 @@ Share tables, views, or secure views via Snowflake Secure Data Sharing — the s
 
 Before setting up a share, clarify whether the provider wants a **Marketplace listing** (even a private one) or a **direct share with no listing at all**. These are different paths with different tradeoffs.
 
-Use `ask_user_question` to ask:
+Use `ask` to ask:
 > "Do you want to create a Marketplace listing (which can be private/targeted to specific accounts), or share directly with the partner account with no listing involved at all?"
 
 | | Direct Share | Private Listing |
@@ -52,7 +52,7 @@ SELECT CURRENT_ORGANIZATION_NAME() || '.' || CURRENT_ACCOUNT_NAME();
 
 **Step 2 — Create the share and grant access**
 
-> **STOP:** Before running this SQL, confirm with the provider using `ask_user_question`: share name, database, schema, table/view to share, and consumer account. Only proceed after explicit confirmation.
+> **STOP:** Before running this SQL, confirm with the provider using `ask`: share name, database, schema, table/view to share, and consumer account. Only proceed after explicit confirmation.
 
 ```sql
 -- Create the share

@@ -1,3 +1,4 @@
+
 # Agent spec — wiring an agent to a Cortex Sense context
 
 Single contract for the agent object that consumes a built Cortex Sense context. Used by `agent/SKILL.md` for both modes (create a new agent, retrofit an existing one). The generic agent lifecycle — versioning, aliases, profile, deletion — belongs to the `cortex-agent` skill family; this file covers **only** what is specific to Cortex Sense.

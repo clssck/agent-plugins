@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Sub-Skill: Domain Deep-Dive Generator
 
 This file is read and followed by the router skill (`SKILL.md`) when the user requests domain deep-dives.
@@ -7,8 +13,8 @@ This file is read and followed by the router skill (`SKILL.md`) when the user re
 ## Anti-Hallucination Protocol (Inherited from SKILL.md)
 
 Before generating ANY deep-dive content:
-1. **Use the Documentation Access Strategy** from SKILL.md. Prefer `cortex search docs` if available, then `web_fetch`, then mark `[VERIFY]`.
-2. **Query documentation:** For each subtopic in the domain, query at least 2 relevant topics (ideally 3-4). Use `cortex search docs "{subtopic keyword}"` when the Knowledge extension is available, or `web_fetch` against docs.snowflake.com as fallback.
+1. **Use the Documentation Access Strategy** from SKILL.md. Prefer `cortex search docs` if available, then `read`, then mark `[VERIFY]`.
+2. **Query documentation:** For each subtopic in the domain, query at least 2 relevant topics (ideally 3-4). Use `cortex search docs "{subtopic keyword}"` when the Knowledge extension is available, or `read` against docs.snowflake.com as fallback.
 3. **Ground all claims:** Every factual statement about Snowflake behavior (syntax, defaults, limits, availability) must come from a documentation query or fetched page. Include the source (query or URL) as a reference link.
 4. **Mark uncertainties:** If a specific detail cannot be confirmed from documentation, mark it with `[VERIFY]` inline.
 5. **No invented syntax:** Never generate SQL examples with made-up function names, parameters, or behaviors. If unsure, query the docs or mark `[VERIFY]`.

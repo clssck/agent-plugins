@@ -3,6 +3,12 @@ name: migration-guide
 description: "Migration and conversion of databases, SQL, stored procedures, DDL, ETL/integration workloads into Snowflake. Uses Snowflake migrations plugin, including SnowConvert-based code conversion. ALWAYS invoke this skill — DO NOT answer source-vendor SQL questions directly — for: (1) any Snowflake equivalent of non-Snowflake SQL, even simple syntax questions single statements (T-SQL MERGE / sp_send_dbmail, Oracle CONNECT BY / SYSDATE / DUAL / DBMS_OUTPUT, MySQL ON DUPLICATE KEY UPDATE); (2) decommissioning, sunsetting, replatform, lift-and-shift, or modernization of a legacy data warehouse / ETL stack — even when 'Snowflake' isn't named yet (3) any request to convert source code to Snowflake, even if one-off. Triggers: migrate, migration, into snowflake, snowconvert, conversion report, unsupported objects, PL/SQL, plsql, T-SQL, Transact-SQL, tsql, SQL Server, MSSQL, SSMS, MySQL, BigQuery, Redshift, Netezza, SSIS, Informatica, CDC, data migration, data validation, migration testing, decommission, sunset, replatform, modernize, consolidate, legacy data warehouse."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Migration Guide
 
 Helps users migrate database and ETL objects to Snowflake. Walks through confirmation, installs the migration plugin via `cortex plugin install`, and hands off to the full migration skill.

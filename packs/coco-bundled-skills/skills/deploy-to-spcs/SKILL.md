@@ -3,6 +3,12 @@ name: deploy-to-spcs
 description: "Deploy containerized apps to Snowpark Container Services. Use when: deploying Docker apps, creating SPCS services, pushing images to Snowflake registry, granting role access to SPCS service endpoints. Triggers: SPCS, Snowpark Container Services, deploy to Snowflake, container deployment, grant access to service, grant role access, service role, consumer access, SPCS service, service endpoints."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Deploy to Snowpark Container Services (SPCS)
 
 Deploy any containerized application to Snowflake using Snowpark Container Services. Works with any Docker-based app (Next.js, Python, Go, etc.).

@@ -3,6 +3,12 @@ name: openflow-ops-component-state
 description: Inspect and manage component state for processors and controller services. Use when troubleshooting stateful flows, resetting listing processors, or clearing CDC table state.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Component State Operations
 
 This reference covers inspecting and managing internal state for NiFi processors and controller services. Many components maintain state to track progress (e.g., listed files, CDC table positions, cache entries).

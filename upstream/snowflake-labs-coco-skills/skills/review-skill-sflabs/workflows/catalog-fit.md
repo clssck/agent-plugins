@@ -33,7 +33,7 @@ For each existing path, glob `*/SKILL.md`. Read each file's frontmatter and pars
 
 ### Step A2: Fetch bundled skills from docs
 
-`web_fetch https://docs.snowflake.com/en/user-guide/cortex-code/bundled-skills` and parse the published skill list.
+`read https://docs.snowflake.com/en/user-guide/cortex-code/bundled-skills` and parse the published skill list.
 
 Run this regardless of whether Step A1 succeeded — the contributor's local install may be older than what is currently shipping, and we want both views.
 
@@ -102,7 +102,7 @@ Indicators the skill is well-parameterized:
 
 - The body asks the user upfront for scope (which env, which account, which dimension)
 - The body offers output modes (summary, detailed, comparison)
-- The body uses `AskUserQuestion`-style decision points instead of branching on inferred intent
+- The body uses `ask`-style decision points instead of branching on inferred intent
 
 ### Step B2: Emit finding
 

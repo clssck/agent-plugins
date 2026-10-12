@@ -10,6 +10,12 @@ description: >
   demand coverage, CR tables, AI readiness report, score my account.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `get_page_context`, `snowsight_navigate`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # AI Readiness Score — Dispatcher
 
 This skill measures your account's AI readiness. It has two execution modes

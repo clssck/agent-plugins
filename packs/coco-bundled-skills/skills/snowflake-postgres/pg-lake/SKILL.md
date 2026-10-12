@@ -4,6 +4,12 @@ description: "pg_lake setup and usage on Snowflake Postgres instances: Postgres-
 parent_skill: snowflake-postgres
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Snowflake Postgres - pg_lake
 
 ## When to Load
@@ -131,7 +137,7 @@ The describe command writes sensitive values (IAM_USER_ARN, EXTERNAL_ID) to a se
 aws configure list-profiles
 ```
 
-If the right profile is obvious from the name (e.g., account ID in the profile name matches the role ARN), suggest it. Otherwise, use `ask_user_question` to let the user pick:
+If the right profile is obvious from the name (e.g., account ID in the profile name matches the role ARN), suggest it. Otherwise, use `ask` to let the user pick:
 
 ```
 Which AWS profile has access to account <ACCOUNT_ID from role ARN>?

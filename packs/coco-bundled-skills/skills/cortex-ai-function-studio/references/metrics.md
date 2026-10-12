@@ -107,7 +107,7 @@ The built-in metrics and their descriptions (use these when filling in the templ
 
 **⚠️ DO NOT suggest metrics not in this list** (e.g., do NOT suggest "bertscore", "bleu", "rouge", etc.). Only the 5 built-in metrics above and "Create custom metric" are valid options. If the user needs a metric not listed, guide them to option 6 (custom metric).
 
-**Snowsight `ask_user_question` options** — include ALL 6 options below in every `ask_user_question` call. Do NOT filter or omit options based on the task type. Use these exact labels (do NOT paraphrase or invent new metric names):
+**Snowsight `ask` options** — include ALL 6 options below in every `ask` call. Do NOT filter or omit options based on the task type. Use these exact labels (do NOT paraphrase or invent new metric names):
 - `"exact_match: Strict equality of outputs"`
 - `"fuzzy_match: Token-level overlap — moderate flexibility"`
 - `"contains_match: Expected answer appears in output"`

@@ -504,4 +504,4 @@ mv = registry.log_model(
 
 - `../datasets/SKILL.md` - Create and manage versioned datasets
 - `../model-registry/SKILL.md` - Register models with lineage
-- `../../data-governance/lineage/SKILL.md` - General data lineage (non-ML)
+- `skill://lineage/SKILL.md` - General data lineage (non-ML)

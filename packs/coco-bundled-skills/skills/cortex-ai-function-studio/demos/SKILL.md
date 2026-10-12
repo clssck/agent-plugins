@@ -3,6 +3,7 @@ name: demos
 description: "Interactive demos for custom AI functions. Use when: demo, example, walkthrough, show me, how does this work, try it, hands-on, tutorial."
 parent_skill: cortex-ai-function-studio
 ---
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 

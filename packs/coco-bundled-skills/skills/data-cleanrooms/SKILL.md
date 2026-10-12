@@ -6,6 +6,12 @@ allowed-tools:
   - bash
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `snowflake_product_docs`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Snowflake Data Clean Room (DCR) Collaboration API
 
 This skill helps you work with the Snowflake DCR Collaboration API (`snowflake_product_docs`: `https://docs.snowflake.com/en/user-guide/cleanrooms/v2/about`; if that tool is unavailable, `cortex search docs "<query>"` via bash) — a fully symmetric, multi-party collaboration environment for secure data analysis without sharing raw data.

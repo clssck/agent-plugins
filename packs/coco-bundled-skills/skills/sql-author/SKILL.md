@@ -3,6 +3,12 @@ name: sql-author
 description: "Use for ANY task that writes, fixes, runs, or debugs Snowflake SQL. Especially use when the user provides a failed query, a Snowflake SQL error, asks to repair SQL, asks for data from tables/views, or needs query validation."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # SQL Author
 
 Write or fix Snowflake SQL by grounding the answer in the actual schema and by validating the final statement before presenting it.

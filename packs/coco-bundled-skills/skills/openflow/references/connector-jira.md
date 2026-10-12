@@ -3,6 +3,12 @@ name: openflow-connector-jira
 description: Jira Cloud connector for syncing Atlassian Jira Cloud entities (issues, projects, users, comments, changelogs, worklogs, boards, sprints) to Snowflake using Jira API token (email + token basic auth). Use for Jira Cloud ingestion, and for migrating from the legacy single-flow `jira` connector to the current `jira-connector-core` + `jira-connector-agile` pair (parameter mapping, query rewrites).
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Jira Cloud Connector
 
 Syncs Atlassian Jira Cloud entities to Snowflake tables using Basic auth (email + API token).

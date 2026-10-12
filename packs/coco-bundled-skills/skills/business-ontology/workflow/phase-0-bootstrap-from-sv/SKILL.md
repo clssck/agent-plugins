@@ -1,6 +1,6 @@
 ---
 name: business-ontology-workflow-phase-0-bootstrap-from-sv
-description: "Phase 0 (Bootstrap from Semantic Views) of the Business Ontology workflow — the reverse entry point when Semantic Views already exist. Scans the SV estate, resolves each field's domain from column lineage, and proposes draft nodes, RELATED_SEMANTIC_VIEW bindings, and derives relationships for steward approval. Delegates to $business-ontology sv-ingest, then rejoins Enrich/Generate. Parent: business-ontology workflow."
+description: "Phase 0 (Bootstrap from Semantic Views) of the Business Ontology workflow — the reverse entry point when Semantic Views already exist. Scans the SV estate, resolves each field's domain from column lineage, and proposes draft nodes, RELATED_SEMANTIC_VIEW bindings, and derives relationships for steward approval. Delegates to skill://business-ontology/SKILL.md sv-ingest, then rejoins Enrich/Generate. Parent: business-ontology workflow."
 parent_skill: business-ontology-workflow
 ---
 
@@ -16,7 +16,7 @@ our models" / "find drift between glossary and our SVs". Otherwise skip straight
 
 ## This phase delegates — it does not re-implement
 
-All logic lives in the **`$business-ontology sv-ingest`** sub-skill (`../sv-ingest/SKILL.md`).
+All logic lives in the **`skill://business-ontology/SKILL.md sv-ingest`** sub-skill (`../sv-ingest/SKILL.md`).
 Route there and run its `scan → drift → propose → reconcile` flow.
 
 ```
@@ -63,7 +63,7 @@ phase_0_complete:
 
 ## Boundaries
 
-- Route to `$business-ontology sv-ingest` for implementation — do not duplicate its scripts or SQL here.
+- Route to `skill://business-ontology/SKILL.md sv-ingest` for implementation — do not duplicate its scripts or SQL here.
 - Require explicit steward approval before any approve call (no auto-approve).
 - `DESC SEMANTIC VIEW` is the source of truth for expressions.
 - Use only documented `SYSTEM$..._GLOSSARY_*` functions from `../../reference/API_CONTRACT.md`.

@@ -3,6 +3,12 @@ name: openflow-core-guidelines-cli
 description: CLI/terminal-surface tooling for Openflow — the nipyapi and curl NiFi-API layers and Authorship (custom flow) mode. Load on the CLI surface when work resolves to Gen1/canvas/custom (NiFi API required). Not applicable on the Snowsight (SQL-only) surface.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Openflow Guidelines — CLI / terminal surface
 
 Terminal-surface tooling that requires the NiFi API. Load this **only** on the CLI/Desktop surface, and only once the work has resolved to Gen1 connectors, canvas operations, or custom flow authoring (the "CLI + Gen1/canvas" cell of the capability x intent matrix in `SKILL.md`).

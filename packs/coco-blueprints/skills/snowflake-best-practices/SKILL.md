@@ -2,6 +2,13 @@
 name: snowflake-best-practices
 description: "Snowflake best practices, guidance, recommendations, setup, and configuration advice curated by Snowflake subject matter experts. Use when: user asks about Snowflake best practices, setup recommendations, configuration guidance, architecture decisions, security patterns, cost management, RBAC design, account strategy, naming conventions, or how to implement Snowflake features correctly. Triggers: best practice, recommendation, guidance, how should I, what's the best way, setup advice, configuration help, Snowflake architecture, blueprint."
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_product_docs`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. 
      Refer to the LICENSE file in the root of this repository for full terms. -->

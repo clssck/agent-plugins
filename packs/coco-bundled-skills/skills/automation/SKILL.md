@@ -3,6 +3,12 @@ name: automation
 description: "Schedule recurring Cortex Code runs as Snowflake AGENT TASKs via the `cortex automation` CLI (aka `/automation`): daily/hourly/weekly tasks, recurring reports, unattended cron jobs, and checking automation fire history. NOT the LangGraph Cortex Automations product (see cortex-automations)."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `snowsight_navigate`, `sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Cortex Code Automations: scheduled Cortex Code runs as Snowflake AGENT TASKs
 
 An "automation" here is a Snowflake AGENT TASK that runs Cortex Code unattended

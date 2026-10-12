@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Generic SAML SSO Setup
 
 This workflow provides SAML 2.0 configuration guidance for Identity Providers that don't have a dedicated workflow (i.e., not Okta or Microsoft Entra ID).
@@ -29,11 +35,13 @@ Store the IdP name for use in subsequent steps.
 After identifying the IdP, offer to research the official documentation to provide more tailored guidance.
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Would you like me to research the official {IdP_NAME} documentation to provide more specific guidance for configuring Snowflake SSO?",
     "header": "Research",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, research it", "description": "Look up IdP-specific SAML configuration details"},
       {"label": "No, use generic instructions", "description": "Continue with standard SAML setup guidance"}
@@ -44,7 +52,7 @@ AskUserQuestion(
 
 ### If "Yes, research it":
 
-Use the WebFetch tool to research the IdP's official SAML documentation. Look for:
+Use `web_search` to find the IdP's official SAML documentation, then `read` the official pages it returns (or the URLs below). Look for:
 
 1. **IdP's Snowflake integration guide** (if available):
    - Search for `{IdP_NAME} Snowflake SAML integration`
@@ -97,11 +105,13 @@ Provide these values to configure in your Identity Provider. Different IdPs use 
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Have you configured these values in your IdP?",
     "header": "IdP Config",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, done", "description": "I've configured the values in my IdP"},
       {"label": "Need help", "description": "I need more guidance"}
@@ -156,25 +166,34 @@ Parse the user's response to extract the values. Look for:
 
 ### If any values are missing:
 
-Prompt for the specific missing value(s):
+Prompt for each missing value — one question object per missing field in a single `ask` call, each with a unique `id`:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting missing IdP values",
   questions=[{
-    "question": "I couldn't find the {MISSING_FIELD} in your response. What is your {IdP_NAME} {MISSING_FIELD}?",
+    "id": "{FIELD_ID}",
+    "question": "I couldn't find the {MISSING_FIELD} in your response. Choose \"Other (type your own)\" and paste your {IdP_NAME} {MISSING_FIELD} ({EXAMPLE_FOR_FIELD}).",
     "header": "{MISSING_FIELD}",
-    "multiSelect": false,
     "options": [
-      {"label": "Enter {MISSING_FIELD}", "description": "{EXAMPLE_FOR_FIELD}"}
+      {"label": "Help me find it", "description": "Show where {IdP_NAME} displays the {MISSING_FIELD}"},
+      {"label": "Stop SSO setup", "description": "Exit without creating the security integration"}
     ]
   }]
 )
 ```
 
 Where:
+- `{FIELD_ID}`: `sso_url`, `issuer`, or `x509_cert`
 - For SSO URL: `"e.g., https://idp.example.com/sso/saml"`
 - For Issuer: `"e.g., https://idp.example.com or urn:idp:example"`
 - For Certificate: `"Base64 content only, no BEGIN/END lines"`
+
+Handle each answer:
+- Text typed via **Other (type your own)** → validate it with the Step 4 parse rules and store it as that field's value.
+- **Help me find it** → show the matching entry from "Common locations for IdP values" above, then re-ask for that field.
+- **Stop SSO setup** → stop; do not run Step 5.
+- Cancelled or empty → re-ask; never invent or default a value.
 
 Continue prompting until all three values are collected.
 
@@ -207,11 +226,13 @@ CREATE SECURITY INTEGRATION <idp_name>_saml_sso
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Security integration created. Ready to test SSO?",
     "header": "Next Step",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, test now", "description": "Guide me through testing SSO"},
       {"label": "Done for now", "description": "I'll test later"}
@@ -254,11 +275,13 @@ The user's `LOGIN_NAME` in Snowflake should match the SAML `NameID` sent by your
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Were you able to successfully test SSO?",
     "header": "Test Result",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, it works", "description": "SSO is working correctly"},
       {"label": "Test failed", "description": "I encountered an error"}

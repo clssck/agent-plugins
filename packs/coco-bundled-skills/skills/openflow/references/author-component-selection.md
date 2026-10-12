@@ -3,6 +3,12 @@ name: openflow-author-component-selection
 description: NiFi component reference - what each processor and controller service does. Load when you need to understand available tools.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Component Reference
 
 Understand the tools on the NiFi workbench. This reference describes what each component does and when to use it.

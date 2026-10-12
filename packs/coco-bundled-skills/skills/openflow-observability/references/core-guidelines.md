@@ -3,6 +3,12 @@ name: openflow-observability-core-guidelines
 description: Core context for Openflow diagnostics. Always load. Read-only diagnostic SQL is the default; mutating SQL is only allowed via the separate Openflow SQL Action Mode reference.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `get_page_context`, `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Core Guidelines
 
 This file establishes the rules all other diagnostic files follow.

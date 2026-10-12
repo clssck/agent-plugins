@@ -1,3 +1,4 @@
+
 # Step 2: Publish the Artifact (Desktop)
 
 Land on `<DB>.<SCHEMA>` (grant USAGE privilege on them to PUBLIC) then make
@@ -251,7 +252,7 @@ Let `<current_description>` come from:
 | `share-resync` / `share-resync-and-update-share-options` | `<existing_comment>` from step 1 `DESCRIBE` (may be empty) |
 
 Show the current description in chat (use `[none]` if empty), then call
-`ask_user_question` per
+`ask` per
 share_interactive_prompts.md
 § **Catalog description**. If the user picks **Replace** or **Add**, ask
 once in chat for the new or append text. **Do not** present keep / replace /
@@ -285,7 +286,7 @@ still set `update` (idempotent) or `skip` if nothing changed.
 Show `<id>`, `<fqn>`, the composed `<comment>` (or "[none]"), and
 `<comment_action>` (one of `set-on-create` / `skip-comment` /
 `update` / `skip`) in chat. Also note first-time create vs re-share update.
-Call `ask_user_question` per
+Call `ask` per
 share_interactive_prompts.md
 § **Publish confirm** before any CREATE / ALTER / file upload. If the user
 chooses **Edit description first**, revise `<comment>` and re-run this stop;
@@ -345,7 +346,7 @@ Branch by intent and `<artifact_type>`:
   > `already exists` or `object already exists`, a Cortex Extension with
   > this name was shared previously. Derive the URI as
   > `snow://skill_catalog/<DB>.<SCHEMA>.<EXTENSION_NAME>/`, show it in
-  > chat, and call `ask_user_question` per
+  > chat, and call `ask` per
   > share_interactive_prompts.md
   > § **Reshare combined stop** (use `<artifact_noun>` wording). Ask for role
   > names in chat if the **To a specific ROLE…** label is picked.

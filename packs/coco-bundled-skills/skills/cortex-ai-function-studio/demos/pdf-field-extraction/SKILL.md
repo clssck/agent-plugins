@@ -3,6 +3,7 @@ name: pdf-field-extraction-demo
 description: "Interactive demo: Extract structured fields from SEC 10-K filing PDFs using multimodal AI, create a custom composite metric for per-field scoring, and evaluate extraction accuracy with per-field analysis."
 parent_skill: demos
 ---
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 

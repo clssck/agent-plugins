@@ -5,6 +5,12 @@ description: "Unregister data offerings and templates from the DCR registry. Tri
 allowed-tools: snowflake_sql_execute
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Unregister Data Offerings and Templates
 
 Remove registered data offerings and templates from the account registry using `UNREGISTER_DATA_OFFERING` and `UNREGISTER_TEMPLATE`.

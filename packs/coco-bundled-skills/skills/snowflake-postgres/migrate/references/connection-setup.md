@@ -4,7 +4,7 @@ Steps 5-9 for connection configuration. See main SKILL.md for scope gathering (S
 
 ## Step 5: Ask for Connection Details
 
-Use `ask_user_question`:
+Use `ask`:
 
 ```
 question: "How would you like to provide connection details?"
@@ -31,7 +31,7 @@ uv run --project <SKILL_DIR> python <SKILL_DIR>/scripts/pg_connect.py --list
 Then:
 
 1. Identify likely matches from the output (provider hints in the name, host, user, dbname, sslmode, etc.).
-2. Use `ask_user_question` to present the likely saved connections as options.
+2. Use `ask` to present the likely saved connections as options.
 3. Always include a fallback option like:
    - `A different saved connection`
    - `Enter source details now`
@@ -83,7 +83,7 @@ The important contract is:
 
 ### If "Legacy environment file"
 
-Assume `~/.pg_migration_env` by default. If the user uses a different file, ask them to send the exact path in normal chat instead of using `ask_user_question` text/defaultValue fields.
+Assume `~/.pg_migration_env` by default. If the user uses a different file, ask them to send the exact path in normal chat instead of using `ask` free-text fields.
 
 If they need to create one, display the template at `migrate/references/pg_migration_env.template` (which also defines the `setup_connection` shell helper used by the legacy psql examples). Tell the user to:
 

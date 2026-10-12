@@ -1,8 +1,8 @@
 """Openflow CDC connector packing — minimal pure-compute helpers.
 
-The skill itself is the markdown reference `cdc-connector-packing.md`; the agent
-(CoCo) drives the workflow directly via `nipyapi`, `sql_execute`, `runSubagent`,
-and `ask_user_question`. Only the deterministic, agent-shouldn't-re-derive bits
+The skill itself is the markdown reference `cdc-connector-packing.md`; OMP
+follows that workflow with built-in `task` and `ask`, plus configured `nipyapi`
+and SQL capabilities. Only the deterministic, agent-shouldn't-re-derive bits
 ship as Python:
 
   - `config_loader`: YAML/JSON load, secret-ref detection, `${...}` token

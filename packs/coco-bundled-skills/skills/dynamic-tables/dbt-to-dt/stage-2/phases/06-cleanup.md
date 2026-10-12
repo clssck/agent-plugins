@@ -19,7 +19,7 @@ Drop shadow DTs after user confirms production deploy succeeded. Provide recomme
 SHOW DYNAMIC TABLES LIKE '%_inc_shadow' IN SCHEMA <test_db>.<test_schema>;
 ```
 
-### 2. Confirm with user via ask_user_question
+### 2. Confirm with user via ask
 
 ```
 Shadow DTs in <test_db>.<test_schema>:

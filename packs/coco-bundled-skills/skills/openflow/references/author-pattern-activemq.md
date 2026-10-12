@@ -3,6 +3,12 @@ name: openflow-author-pattern-activemq
 description: Blueprint for JMS messaging with ActiveMQ. Load when building flows that publish or consume messages from ActiveMQ brokers.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Pattern: ActiveMQ JMS Messaging
 
 Blueprint for building flows that publish and consume messages from ActiveMQ brokers (including Amazon MQ).

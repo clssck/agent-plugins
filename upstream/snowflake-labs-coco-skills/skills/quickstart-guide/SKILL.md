@@ -11,17 +11,23 @@ description: >-
   Do NOT use for general SQL help or non-Quickstart tutorials.
 tools:
   - snowflake_sql_execute
-  - web_fetch
+  - read
   - Bash
   - Read
   - Write
-  - ask_user_question
-prompt: "$quickstart-guide https://www.snowflake.com/en/developers/guides/getting-started-with-cortex-agents/"
+  - ask
+prompt: "skill://quickstart-guide/SKILL.md https://www.snowflake.com/en/developers/guides/getting-started-with-cortex-agents/"
 language: en
 status: Published
 author: Gilberto Hernandez
 type: snowflake
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`, `sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
 
 # Quickstart Guide
 
@@ -58,7 +64,7 @@ Retrieve the source markdown from GitHub. The Quickstart source lives at:
 
 **Fetch sequence:**
 
-1. **Get the folder listing.** Use `web_fetch` on:
+1. **Get the folder listing.** Use `read` on:
    `https://api.github.com/repos/Snowflake-Labs/sfquickstarts/contents/site/sfguides/src/<slug>`
    This returns a JSON array of file objects.
 
@@ -71,7 +77,7 @@ Retrieve the source markdown from GitHub. The Quickstart source lives at:
 
 4. **Verify the content.** Read the first ~20 lines of the fetched markdown. Check that the `id:` field in the frontmatter matches the URL slug. If it doesn't match, you may have the wrong Quickstart — try another variation.
 
-5. **Fallback.** If GitHub fetch fails entirely (repo restructured, file moved), fall back to `web_fetch` on the original URL the user pasted. Parse whatever structured content is available from the rendered page.
+5. **Fallback.** If GitHub fetch fails entirely (repo restructured, file moved), fall back to `read` on the original URL the user pasted. Parse whatever structured content is available from the rendered page.
 
 **If fetch fails completely:** Tell the learner the content couldn't be retrieved. Ask if they have the content locally or can provide an alternative URL.
 
@@ -110,7 +116,7 @@ Many Quickstarts have a companion GitHub repo containing SQL scripts, Python cod
 
 2. Present the finding to the learner: "This Quickstart has a companion repo at [url] containing [list key files — e.g., setup.sql, app.py, model.yaml]."
 
-3. Ask the learner via `ask_user_question`:
+3. Ask the learner via `ask`:
    - **Clone it** — "Download the full repo to my machine. I'll use the files directly." Best if you want to keep the code after the session.
    - **Reference it (lightweight)** — "Don't download anything. Access individual files from GitHub as needed." No git clone — files are fetched on demand during the build, same way the Quickstart markdown was fetched.
 
@@ -168,7 +174,7 @@ Ask permission before creating. Then create a schema named after the slug:
 CREATE SCHEMA IF NOT EXISTS LEARN_SNOWFLAKE_QUICKSTARTS.<slug_as_identifier>;
 ```
 
-**Choose mode** using `ask_user_question`:
+**Choose mode** using `ask`:
 - **Learner mode** — Step by step. I'll explain what we're building at each stage, execute it, recap, and check in before moving on.
 - **Builder mode** — Build everything at once. I'll execute all stages and give you a full summary at the end.
 
@@ -191,7 +197,7 @@ Execute each stage from the plan created in Step 3.
 For each stage:
 1. Explain what will be built and why
 2. Render the SQL/Python/code directly in the terminal with explanatory comments so the learner can read and understand it
-3. Use `ask_user_question` to give the learner agency before executing — e.g., "Run it", "Explain more", "I want to make changes"
+3. Use `ask` to give the learner agency before executing — e.g., "Run it", "Explain more", "I want to make changes"
 4. Execute via `sql_execute`
 5. Brief recap: what was created, key results (row counts, object status)
 6. **⚠️ STOPPING POINT** — pause between stages
@@ -253,7 +259,7 @@ After all stages complete:
 **Quickstart not found on GitHub:**
 - Try alternate slug formats (hyphens ↔ underscores)
 - Check if the Quickstart was recently renamed or archived
-- Fall back to web_fetch on the original URL
+- Fall back to read on the original URL
 
 **Learner's role lacks privileges:**
 - Present specific GRANT statements
@@ -278,10 +284,10 @@ After all stages complete:
 ## Examples
 
 ### Example 1: Basic usage
-User: $quickstart-guide https://www.snowflake.com/en/developers/guides/getting-started-with-cortex-agents/
+User: skill://quickstart-guide/SKILL.md https://www.snowflake.com/en/developers/guides/getting-started-with-cortex-agents/
 Assistant: Fetches the Cortex Agents Quickstart, checks environment, asks mode, and guides the learner through building a sales intelligence agent.
 
 ### Example 2: Legacy URL
-User: $quickstart-guide https://quickstarts.snowflake.com/guide/getting_started_with_dataengineering_ml_using_snowpark_python
+User: skill://quickstart-guide/SKILL.md https://quickstarts.snowflake.com/guide/getting_started_with_dataengineering_ml_using_snowpark_python
 Assistant: Detects legacy URL pattern, converts underscores to hyphens, fetches content, and delivers the Data Engineering with Snowpark experience.
 

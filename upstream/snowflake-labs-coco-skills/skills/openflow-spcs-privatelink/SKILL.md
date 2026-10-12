@@ -17,6 +17,12 @@ author: Snowflake Solutions Team
 type: snowflake
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 ## Overview
 
 Connect OpenFlow on SPCS to private data sources (RDS, on-prem DBs reachable via Direct Connect/VPN) through AWS PrivateLink. The flow:

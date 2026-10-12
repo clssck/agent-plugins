@@ -45,7 +45,7 @@ If the user requests all files at once, acknowledge the request and explain: "I'
    - Data models involved
 
 **Actions**:
-1. Ask clarifying questions (use `ask_user_question` tool)
+1. Ask clarifying questions (use `ask` tool)
 2. Explore codebase to understand context (use Task tool with `Explore`)
 3. Document answers in structured format
 

@@ -16,15 +16,21 @@ tools:
   - Bash
   - Grep
   - Glob
-  - ask_user_question
+  - ask
   - task_create
   - task_update
-prompt: "$spec-driven I want to build a new feature for user authentication"
+prompt: "skill://spec-driven/SKILL.md I want to build a new feature for user authentication"
 language: en
 status: stable
 author: Tianxia Jia
 type: snowflake
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `task_create`, `task_update`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
 
 # Spec-Driven Development Skill
 

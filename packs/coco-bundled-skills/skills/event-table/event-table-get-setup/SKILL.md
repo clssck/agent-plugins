@@ -4,6 +4,12 @@ description: "Get/show current Snowflake event table configuration and telemetry
 tools: ["snowflake_sql_execute"]
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Event Table Get Setup (Read-Only)
 
 This skill displays the current event table configuration and telemetry levels. It does NOT modify any settings.

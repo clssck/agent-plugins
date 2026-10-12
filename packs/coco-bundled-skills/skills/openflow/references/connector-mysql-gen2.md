@@ -3,6 +3,12 @@ name: openflow-connector-mysql-gen2
 description: Gen2 MySQL CDC connector deployed via SQL API. Covers creation, configuration, lifecycle management, and troubleshooting for connectors created from the OPENFLOW_MYSQL_CDC definition.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Gen2 MySQL CDC Connector
 
 Deploy and manage MySQL CDC connectors using the Openflow SQL API. This reference covers connectors created from the `OPENFLOW_MYSQL_CDC` definition. MariaDB is also supported as a source — use the same connector definition.

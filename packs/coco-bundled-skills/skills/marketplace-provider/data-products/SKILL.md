@@ -20,7 +20,7 @@ Help the provider identify, set up, and list the right data product through a gu
 
 Start with an open question. Detect intent from their answer before asking follow-ups.
 
-**Opening question** (use `ask_user_question` with type `text`):
+**Opening question** (use `ask` with type `text`):
 > "Tell me a bit about what you want to share or build on Snowflake Marketplace. What does your product do, and who is it for?"
 
 ---

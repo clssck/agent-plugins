@@ -3,6 +3,12 @@ name: find-authorizing-roles-workflow
 parent_skill: access-troubleshooter
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Workflow C: Find Authorizing Roles
 
 ## When to Load
@@ -28,11 +34,13 @@ If `<USERNAME>` is not yet known, run `SELECT CURRENT_USER();` and store as `<US
 ## C2: Choose Search Scope
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "Which roles should I search?",
         "header": "Search Scope",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "My roles only", "description": "Search only roles already granted to me (fast)"},
             {"label": "All account roles", "description": "Search all roles in the account (slower, may find roles I don't have yet)"}
@@ -114,11 +122,13 @@ Then proceed to **Step 3** in `SKILL.md`.
 **If only `isGranted: false` roles exist:**
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "Found roles that can authorize, but none are granted to you. What would you like to do?",
         "header": "Next Step",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "Grant an existing role to me", "description": "Request one of the found roles be granted to my user"},
             {"label": "Create a new role instead", "description": "Create a new least-privilege role"},
@@ -152,11 +162,13 @@ Compare with `SYSTEM$ANALYZE_ROLE_ACCESS` output. If additional roles are found,
 No existing role can authorize. Offer to create one:
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "No existing role can authorize this query. Would you like to create one?",
         "header": "No Roles Found",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "Create a new role", "description": "Create a least-privilege role for this query"},
             {"label": "Done", "description": "No further action needed"}

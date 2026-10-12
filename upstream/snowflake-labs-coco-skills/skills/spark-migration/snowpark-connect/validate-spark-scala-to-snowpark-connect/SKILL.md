@@ -11,8 +11,14 @@ description: |
   Triggers: validate scala scos, verify scala migration, run scala scos test suite,
   validate spark scala, check scala migration, test scala migration correctness.
 parent_skill: snowpark-connect
-allowed-tools: Read, Write, Bash, Task, AskUserQuestion
+allowed-tools: Read, Write, Bash, Task, ask
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `agent_output`, `snowflake.connector`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
 
 # Validate Spark Scala to Snowpark Connect Migration
 
@@ -279,7 +285,7 @@ narrowing is Step 1.6 only.
 
 By default the whole workload is validated. Some runs only need a specific set
 of entrypoints (one pipeline, a few files the user is iterating on). Ask **once**
-with a single `AskUserQuestion`:
+with a single `ask`:
 
 > "Survey found **N** entrypoints. Validate **all** of them, or just a
 > **subset**? For a subset, reply with the entrypoints you want — ids, file
@@ -459,7 +465,7 @@ uv run --project $SKILL_DIRECTORY/.. python -m streamlit run \
 
 ### Step 6 — Cleanup gate
 
-Use `AskUserQuestion` **once** to ask whether to:
+Use `ask` **once** to ask whether to:
 - **(a) Drop ALL per-batch golden Snowflake schemas** (list each `run_id` from
   `batches_prepared.json`).
 - **(b) Tear down git worktrees and `validation-base/*` branches.** Keep the

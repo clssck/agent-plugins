@@ -168,7 +168,7 @@ Append the matching line from `../reference/NOT_YET_IMPLEMENTED.md` exactly **on
 
 ## 5b. Promote to Business Ontology
 
-When the builder explicitly says "promote to glossary", "add to glossary", "push to ontology", "add this/these to the glossary", "suggest for the glossary", "add these concepts to glossary", "promote this domain to ontology", or any unambiguous phrasing that moves Cortex Sense content into Business Ontology — **do not record this as a correction**; route to `$business-ontology` instead.
+When the builder explicitly says "promote to glossary", "add to glossary", "push to ontology", "add this/these to the glossary", "suggest for the glossary", "add these concepts to glossary", "promote this domain to ontology", or any unambiguous phrasing that moves Cortex Sense content into Business Ontology — **do not record this as a correction**; route to `skill://business-ontology/SKILL.md` instead.
 
 **Pre-flight: check `ontology_available`.** If the session-level flag (see `../reference/CONTEXT_LOOKUP.md` "Ontology availability — session-level flag") is `false`, surface **once** and stop:
 ```
@@ -179,13 +179,13 @@ When the builder explicitly says "promote to glossary", "add to glossary", "push
 
 1. **Full manifest** — builder says "promote all", "promote this domain", "promote everything", or an unqualified "promote this to the ontology" with no specific item named:
    - Say: "Routing to Business Ontology to promote the `<domain>` context."
-   - Route to `$business-ontology` with the intent "promote Cortex Sense context for `<domain>`" and `target_domain_hint: <domain>`.
+   - Route to `skill://business-ontology/SKILL.md` with the intent "promote Cortex Sense context for `<domain>`" and `target_domain_hint: <domain>`.
    - BG `import/SKILL.md` Path D loads the manifest, extracts concepts + relationships, deduplicates against existing nodes, and presents the review/approve table.
 
 2. **Specific named items** — builder names a concept or relationship ("add ARR to ontology", "add ARR to glossary", "promote the revenue–GAAP_REVENUE relationship", "add DAU, MAU, ARR to ontology"):
    - Extract those entries from the already-loaded in-memory manifest (no new reads).
    - Say: "Routing to Business Ontology to add `<name(s)>`."
-   - Route to `$business-ontology` passing the extracted entries as structured inline data. BG `import/SKILL.md` Path C handles them directly (no AI extraction). For a single item, BG may route to `create/SKILL.md`; let BG's router decide.
+   - Route to `skill://business-ontology/SKILL.md` passing the extracted entries as structured inline data. BG `import/SKILL.md` Path C handles them directly (no AI extraction). For a single item, BG may route to `create/SKILL.md`; let BG's router decide.
 
 Cortex Sense does nothing further after the handoff. All draft, dedup, review, and approval logic lives in the BG skill.
 

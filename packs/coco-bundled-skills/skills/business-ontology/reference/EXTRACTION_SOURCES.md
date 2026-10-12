@@ -127,7 +127,7 @@ Snowflake account and remain available for scheduled offline enrichment after th
 **When:** account already has Semantic Views; builder says "bootstrap from SVs", "SV to ontology",
 "SV to ontology", or "scan semantic view estate".
 
-Route to `$business-ontology sv-ingest`. The scan → drift → reconcile flow produces term +
+Route to `skill://business-ontology/SKILL.md sv-ingest`. The scan → drift → reconcile flow produces term +
 association candidates from `SHOW / DESC SEMANTIC VIEW` + column lineage. See
 `../workflow/sv-ingest/SKILL.md`.
 

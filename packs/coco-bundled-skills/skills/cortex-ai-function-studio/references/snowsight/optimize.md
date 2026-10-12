@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `execute_sql`, `notebook_action`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 
@@ -11,15 +17,15 @@ Load this file when `environment == snowsight` at `optimize/SKILL.md` Step 4.5. 
 
 ## MANDATORY: Pin Optimize Todos
 
-**Immediately after loading this file**, call `system_todo_write` to pin the following steps. Mark Step 5 as `in_progress`. Do NOT skip any step — especially 6.2 and 6.3 (notebook cells).
+**Immediately after loading this file**, call `todo` with `op: "init"` to pin the following steps. Start Step 5 with `op: "start"`. Do NOT skip any step — especially 6.2 and 6.3 (notebook cells).
 
 ```
 1. Step 5: Run optimization SPROC (sync or async)
 2. Step 6.1: Collect results from SPROC output or experiment
 3. Step 6.2: Create notebook + add bar chart + Pareto frontier chart cells + run them
-4. Step 6.3: ask_user_question — user selects model from Pareto results
+4. Step 6.3: ask — user selects model from Pareto results
 5. Step 7: Deploy via CALL CREATE_AI_FUNCTION (NOT raw DDL) — show user for review first
-6. Step 8: ask_user_question — next steps (Evaluate / Re-optimize / Done)
+6. Step 8: ask — next steps (Evaluate / Re-optimize / Done)
 ```
 
 ## Step 5: Running the Optimization (Snowsight)
@@ -63,7 +69,7 @@ Generate `run_id` as `ai_func_opt_{FUNC_SHORT_NAME}_{timestamp_ms}`. Before cons
 
 1. Run `SELECT CURRENT_WAREHOUSE() AS WH;` via `execute_sql`.
 2. If the result is non-NULL, use it as `{warehouse}`.
-3. If the result is NULL, use `ask_user_question` to ask: `"No active warehouse detected. Which warehouse should I use for this optimization task?"` — use the user's response as `{warehouse}`.
+3. If the result is NULL, use `ask` to ask: `"No active warehouse detected. Which warehouse should I use for this optimization task?"` — use the user's response as `{warehouse}`.
 
 Submit the optimization as an async Task by executing the following SQL via `execute_sql` tool.
 
@@ -110,11 +116,11 @@ EXECUTE TASK {database}.{schema}.{run_id};
 
 If the Task creation or execution fails, show the error and stop. Common failure: the current role lacks a direct USAGE grant on the warehouse — Snowflake Tasks require an explicit grant.
 
-**⚠️ STOP after presenting the status summary (async path).** Do NOT proceed to Step 6 until the Task has reached `SUCCEEDED`. Query `TASK_HISTORY` at most **once per turn** — present the result and **end your turn with `ask_user_question`**. Never poll in a loop, never re-query automatically, never call `TASK_HISTORY` more than once per turn. The user will ask again when ready. The workflow resumes at Step 6 only when `STATE = 'SUCCEEDED'`.
+**⚠️ STOP after presenting the status summary (async path).** Do NOT proceed to Step 6 until the Task has reached `SUCCEEDED`. Query `TASK_HISTORY` at most **once per turn** — present the result and end with a plain chat reply. Never poll in a loop, never re-query automatically, never call `TASK_HISTORY` more than once per turn. The user will ask again when ready. The workflow resumes at Step 6 only when `STATE = 'SUCCEEDED'`.
 
 ### Status Checking (Async)
 
-After submitting the optimization as an async Task, present the user with a summary and instructions using `ask_user_question`:
+After submitting the optimization as an async Task, present the user with this summary and return instructions in chat:
 
 ```
 Optimization has been submitted as a background task.
@@ -127,9 +133,7 @@ Optimization has been submitted as a background task.
 Optimization typically takes 5–30 minutes depending on budget and number of models. You can close this session and come back anytime — just ask me to "check optimization status" and provide the **Task** ID above.
 ```
 
-Options: `["I'll come back later"]`
-
-**Your turn MUST end with `ask_user_question` above.** Do NOT check status automatically. Do NOT call `TASK_HISTORY`. Do NOT proceed to Step 6. The `ask_user_question` call is a hard turn boundary — nothing runs after it.
+**End with the summary as a plain chat reply.** Do NOT check status automatically. Do NOT call `TASK_HISTORY`. Do NOT proceed to Step 6; nothing else runs until the user explicitly asks to check status.
 
 ### Checking Optimization Status
 
@@ -137,7 +141,7 @@ Only check status when the user **explicitly asks** in a new message (e.g., "che
 
 - If `STATE = 'SUCCEEDED'`: proceed to Step 6 (collect results).
 - If `STATE = 'FAILED'` or `'CANCELLED'`: report the error and stop.
-- If `STATE` is `'SCHEDULED'`, `'EXECUTING'`, or not terminal: report the status and end your turn with `ask_user_question` (options: `["I'll check back later"]`). Do NOT re-query, do NOT poll again, do NOT offer to re-check automatically.
+- If `STATE` is `'SCHEDULED'`, `'EXECUTING'`, or not terminal: report the status and end with a plain chat reply. Do NOT re-query, do NOT poll again, do NOT offer to re-check automatically.
 
 For full details on task states and result retrieval, load `references/async_status.md`.
 
@@ -269,7 +273,7 @@ Run the newly added cells (see `references/snowsight/core.md` § Appending cells
 
 ### Step 6.3: Get User Selection
 
-Present the frontier candidates as a cost-quality summary (model name, score, relative cost) and use `ask_user_question` to let the user pick which optimized configuration to apply — one option per Pareto-optimal result (showing model name, score, and relative cost), plus a "Let me review the charts first" option.
+Present the frontier candidates as a cost-quality summary (model name, score, relative cost) and use `ask` to let the user pick which optimized configuration to apply — one option per Pareto-optimal result (showing model name, score, and relative cost), plus a "Let me review the charts first" option.
 
 ## Step 7: Apply Optimized Function
 
@@ -388,7 +392,7 @@ If evaluate → Load `evaluate/SKILL.md` with context:
 - Note: *"The evaluate workflow will use your test table: {test_table} for consistent results."*
 
 If the customer wants to re-optimize or is unsatisfied with the current improvement:
-**⚠️ STOP**: Use `ask_user_question` to let the user select the result to apply.
+**⚠️ STOP**: Use `ask` to let the user select the result to apply.
 
 Ask the user:
 ```

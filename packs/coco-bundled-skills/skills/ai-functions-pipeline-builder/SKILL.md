@@ -3,6 +3,12 @@ name: ai-functions-pipeline-builder
 description: "Build Snowflake-native document and file pipelines with Cortex AI functions. Turn a plain-language request into an incremental pipeline (stream → task → INCREMENTAL dynamic tables) from a use-case template or a custom composition of building blocks — ingest files from a stage and keep the outputs fresh as new files land. Composes one-off AI steps as part of building a pipeline. Routes to AI_EXTRACT (structured fields), AI_PARSE_DOCUMENT (full text/OCR), AI_COMPLETE (visual/chart/diagram analysis), AI_CLASSIFY (categorize/triage). Use when: building a document/file processing pipeline, an incremental ingestion pipeline over a stage, or an enterprise-search / corpus-intelligence / structured-extraction / customer-360 pipeline. Triggers: document pipeline, build a pipeline, incremental pipeline, ingestion pipeline, keep outputs fresh, process new files as they land, stream and task, dynamic tables, enterprise search, corpus intelligence, structured extraction, customer 360, invoice-processing pipeline, contract analysis at scale. For a one-off task over files you already have — a single file or a one-time batch with no ongoing pipeline: extract, parse/OCR, classify, or visually analyze — use the document-intelligence skill. For standalone AI functions over already-tabular text or image rows with no file, stage, or document, defer to cortex-ai-function-studio."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Pipeline Builder
 
 Turn a plain-language request into a Snowflake-native document pipeline — pick a proven **use-case template** or **compose a custom pipeline** from building blocks — or run a quick **one-off task** (extract, parse, classify, or analyze a file or batch). Pipelines build incrementally on the hybrid **stream → file-log → dynamic-tables** architecture.

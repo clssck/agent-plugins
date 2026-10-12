@@ -1,13 +1,13 @@
 {
   "name": "snowflake-labs-coco-skills",
-  "version": "0.0.0-g28b549f",
+  "version": "0.0.1-g28b549f",
   "private": true,
   "description": "Curated Agent Skills for Cortex Code (CoCo), Snowflake's CLI for building with AI.",
   "homepage": "https://github.com/Snowflake-Labs/coco-skills/tree/28b549f48da9994307081a9d4d2f16379f5a9c16",
   "repository": "https://github.com/Snowflake-Labs/coco-skills",
   "gitHead": "28b549f48da9994307081a9d4d2f16379f5a9c16",
   "sync": {
-    "build": "05fed46be760da28a927bce2308f54caa29c1fd1be5775c5661e18e2158974e4",
+    "build": "a1c1743b053eb57c13291db8091b2064a5d2711344f9ce2826c3da72ce41d21a",
     "origins": {
       "skills/check-agent-access": "skills/check-agent-access",
       "skills/dcr-v1-to-v2": "skills/dcr-v1-to-v2",
@@ -27,7 +27,22 @@
       "skills/spec-driven": "skills/spec-driven",
       "skills/swap-databases": "skills/swap-databases",
       "skills/well-architected-framework-assessment": "skills/well-architected-framework-assessment"
+    },
+    "compatibility": {
+      "profile": "coco",
+      "version": 2
     }
+  },
+  "ompSkillReferences": {
+    "requires": {
+      "coco-bundled-skills": [
+        "snowflake-notebooks"
+      ]
+    }
+  },
+  "ompCompatibility": {
+    "profile": "coco",
+    "version": 2
   },
   "omp": {}
 }

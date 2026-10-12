@@ -135,18 +135,16 @@ Columns needing descriptions: 35 of 45 total
 
 #### Invoke Semantic View Optimization Skill
 
-> ⚠️ **MANDATORY**: You MUST invoke the `semantic-view` skill using the Skill tool.
+> ⚠️ **MANDATORY**: You MUST read `skill://agent-studio/semantic-view/SKILL.md` and follow it.
 > 
 > **DO NOT** attempt to write `CREATE SEMANTIC VIEW` SQL manually.
 > **DO NOT** try to guess FastGen syntax.
 > 
 > The semantic-view skill handles all semantic view creation, including FastGen configuration and deployment.
 
-**Invoke the skill now:**
+**Load the skill now:**
 ```
-<invoke name="skill">
-<parameter name="command">semantic-view</parameter>
-</invoke>
+read skill://agent-studio/semantic-view/SKILL.md
 ```
 
 **Provide to the skill:**
@@ -203,11 +201,9 @@ Columns needing descriptions: 35 of 45 total
 
 > ⚠️ The semantic view needs to be attached to the share to be accessible to consumers.
 
-**Invoke the attach skill:**
+**Load the attach skill:**
 ```
-<invoke name="skill">
-<parameter name="command">attach-ai-products-to-share</parameter>
-</invoke>
+read skill://attach-ai-products-to-share/SKILL.md
 ```
 
 **Provide to the skill:**
@@ -241,7 +237,7 @@ Pass to Phase 2 (create_agent):
 ## Stopping Points
 
 - ✋ After Step 1: Confirm inputs and documentation
-- ✋ Step 3: MUST invoke `semantic-view` skill - Do NOT write SQL manually
+- ✋ Step 3: MUST read `skill://agent-studio/semantic-view/SKILL.md` - Do NOT write SQL manually
 - ✋ After Step 3: Review semantic model before deploy
 
 ---

@@ -13,6 +13,13 @@ description: |
   auth policies, audit my authentication, harden authentication, lock down authentication.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+> - Selected paths may require external capabilities not built into OMP: `sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Authentication Policy
 
 Manage Snowflake authentication policies — controls for how users authenticate, which clients they use, MFA requirements, PAT restrictions, and workload identity federation.
@@ -57,13 +64,13 @@ Load [references/property-reference.md](references/property-reference.md) on-dem
 
 1. **Safety protocols** — Never run DDL/DML without explicit user approval. When modifying or dropping an existing policy, capture current state (`DESC` + `GET_DDL`) before changes — skip this for create (no existing policy). Warn about account-level impact. Provide revert instructions after changes. Execute SQL in presented order.
 
-2. **Follow step order** — Execute steps sequentially as defined. Do not skip steps, pre-select options, or jump ahead based on the user's opening message. Route based on AskUserQuestion selections, not inferred intent.
+2. **Follow step order** — Execute steps sequentially as defined. Do not skip steps, pre-select options, or jump ahead based on the user's opening message. Route based on ask selections, not inferred intent.
 
 3. **Hard stops are mandatory** — Steps marked ⚠️ are gates. Do not proceed until the required user input is received. Once approved, proceed directly without re-asking.
 
-4. **Choices vs. free text** — When the user must choose between options (routing, conflict resolution, selecting from query results like databases or policies), use AskUserQuestion with a selectable list. Only collect as plain free text when creating new names (policy name, comment).
+4. **Choices vs. free text** — When the user must choose between options (routing, conflict resolution, selecting from query results like databases or policies), use ask with a selectable list. Only collect as plain free text when creating new names (policy name, comment).
 
-5. **Handling "Something else" or free text responses** — When the user selects "Something else" or replies with free text instead of choosing a presented option, try to map their intent to one of the existing options. If the mapping is clear, treat it as that selection and proceed. If the intent doesn't match any option, re-present the menu and ask the user to pick the closest one.
+5. **Handling "Other (type your own)" or free text responses** — When the user answers via "Other (type your own)" or replies with free text instead of choosing a presented option, try to map their intent to one of the existing options. If the mapping is clear, treat it as that selection and proceed. If the intent doesn't match any option, re-present the menu and ask the user to pick the closest one.
 
 ---
 
@@ -81,11 +88,13 @@ Load `references/property-reference.md` on-demand from any workflow before issui
 Ask what the user wants to do. **Do NOT load any workflow file yet** — just record the selection for Step 3.
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "What would you like to do with authentication policies?",
         "header": "Operation",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "Create a new policy", "description": "Create a new authentication policy from scratch"},
             {"label": "Modify an existing policy", "description": "Update properties of an existing authentication policy"},
@@ -128,11 +137,13 @@ Present the active role and the required privileges for the selected operation:
 Then ask:
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "Active role: [ROLE]. Required: [privileges for selected operation]. Good to continue?",
         "header": "Privilege Check",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "Yes, continue", "description": "Proceed with current role"},
             {"label": "Switch role first", "description": "I need to USE ROLE — help me switch"}
@@ -198,11 +209,13 @@ Once the workflow completes its final step, proceed to **Step 4**.
 ### Step 4: Repeat or Done
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "What would you like to do next?",
         "header": "Next Step",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "Start another operation", "description": "Return to the authentication policy main menu"},
             {"label": "Done", "description": "Exit"}
@@ -213,7 +226,7 @@ AskUserQuestion(
 
 | Selection | Action |
 |-----------|--------|
-| **Start another operation** | Go back to **Step 1** and present its exact AskUserQuestion again (the 5-option menu above). Do NOT infer the next operation, do NOT run any other commands or tools — just show Step 1's menu. |
+| **Start another operation** | Go back to **Step 1** and present its exact ask again (the 5-option menu above). Do NOT infer the next operation, do NOT run any other commands or tools — just show Step 1's menu. |
 | **Done** | Workflow complete — stop. Do not suggest further actions. |
 
 ---
@@ -268,10 +281,10 @@ The `FORCE` flag does NOT change precedence. It only allows setting a policy whe
 - ✋ Step 3: must load the workflow file — do not skip
 - ✋ `workflows/recommend.md`: existing-policy inventory branch (R2), lookback window (R3), per-group review of generated SQL (R6), routing decision (R7)
 - ✋ `workflows/create.md`: location (A1), property selection (A2a — including the exclusive "Recommend for me" option), multi-step property values (A2b), compatibility conflicts (A2c), policy name (A3), then A4 SQL approval
-- ✋ `workflows/modify.md`: AskUserQuestion at policy selection, ready-to-proceed confirmation, property selection, **B4c break-glass gate when modifying an account-attached policy**, then B5 SQL approval
+- ✋ `workflows/modify.md`: ask at policy selection, ready-to-proceed confirmation, property selection, **B4c break-glass gate when modifying an account-attached policy**, then B5 SQL approval
 - ✋ `workflows/attach-detach.md` D1: attach or detach, D2a: policy selection, D2b: scope, D2c: break-glass gate (now stricter), D3: conflict check, D4: approval
 - ✋ `workflows/attach-detach.md` D5: detach scope, D6: approval before execution
-- ✋ `workflows/drop.md`: AskUserQuestion at policy selection, then E3 SQL approval
+- ✋ `workflows/drop.md`: ask at policy selection, then E3 SQL approval
 - ✋ Any time an incompatible combination is detected: stop and explain before proceeding
 
 **Resume rule:** Upon user approval, proceed directly to the next step without re-asking.

@@ -3,6 +3,12 @@ name: openflow-ops-connection-inspection
 description: Inspect connections and their FlowFile contents. Use for debugging data flow, examining queued data, checking attributes and content without consuming FlowFiles.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Connection Inspection
 
 Inspect connections (the queues between components) and their FlowFile contents. These are non-destructive read operations - FlowFiles remain in the queue after inspection.

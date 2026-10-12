@@ -3,6 +3,13 @@ name: drop-authentication-policy-workflow
 parent_skill: manage-authentication-policy
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+> - Selected paths may require external capabilities not built into OMP: `sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Workflow E: Drop Policy
 
 ## When to Load
@@ -24,11 +31,13 @@ SHOW AUTHENTICATION POLICIES IN ACCOUNT;
 Present the results as a selectable list:
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "Which policy would you like to drop?",
         "header": "Select Policy",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             # One {"label": "<db>.<schema>.<policy_name>"} per row from SHOW AUTHENTICATION POLICIES
         ]

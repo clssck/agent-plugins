@@ -4,6 +4,12 @@ description: "Check whether the current role has sufficient privileges to run a 
 parent_skill: agent-studio-agent
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Agent Eval Permission Check
 
 Check all privileges required to run a Cortex Agent evaluation. Present missing permissions so the user can ask their account admin to grant them.
@@ -13,7 +19,7 @@ Check all privileges required to run a Cortex Agent evaluation. Present missing 
 ## Tool Restrictions
 
 - **Allowed:** `snowflake_sql_execute`
-- **Forbidden:** `bash`, `web_fetch`, file read/write
+- **Forbidden:** `bash`, `read`, file read/write
 
 ## Workflow
 

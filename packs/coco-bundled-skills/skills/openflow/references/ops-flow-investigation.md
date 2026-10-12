@@ -3,6 +3,12 @@ name: openflow-ops-flow-investigation
 description: Problem-oriented investigation workflows for diagnosing flow issues. Routes to appropriate tools based on symptoms. Use when flows aren't behaving as expected.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Flow Investigation
 
 Problem-oriented diagnostic workflows for investigating flow issues. This reference helps you choose the right tools based on what you're observing.

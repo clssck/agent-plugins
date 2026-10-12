@@ -2,6 +2,13 @@
 name: blueprint-builder
 description: "Guide users through constructing answer files for Snowflake Blueprint Manager blueprints. Use when: user wants to create or complete an answer file, configure a blueprint, or understand configuration questions. Triggers: create blueprint, build blueprint, configure blueprint, blueprint setup, fill out questionnaire, set up blueprint, set up my first Snowflake account, create my environment, establish my platform, create my account following best practices, configure my snowflake organization, set up my snowflake environment, initialize my snowflake platform, snowflake account best practices."
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. 
      Refer to the LICENSE file in the root of this repository for full terms. -->

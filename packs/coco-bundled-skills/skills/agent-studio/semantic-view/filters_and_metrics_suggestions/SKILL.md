@@ -4,6 +4,12 @@ description: "Suggest filters, metrics, and facts for a semantic view by analyzi
 parent_skill: semantic-view
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Filters & Metrics Suggestions
 
 A semantic view starts with raw columns, but users quickly need aggregations ("total revenue"), reusable filters ("only VIP customers"), and derived facts ("is SLA compliant?"). Defining these by hand means guessing what matters. The `filters_and_metrics_suggestions` tool (via `SYSTEM$CORTEX_ANALYST_SVA_TOOL`) solves this by mining actual Snowflake query history to surface the metrics, filters, and facts people already use in practice — so the view reflects real needs, not guesswork.

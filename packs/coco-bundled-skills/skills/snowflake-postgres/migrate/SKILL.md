@@ -31,7 +31,7 @@ In **chat-safe workflows you don't need this helper at all** — prefer the Pyth
 
 ## First Question: Interactive Scope Gathering
 
-**MANDATORY: Use `ask_user_question` for each fixed-choice step. Do NOT present all questions as a wall of text. For exact identifiers (database names, file paths), ask in normal chat after the relevant choice, or use the tool's automatic "Something else" path if available.**
+**MANDATORY: Use `ask` for each fixed-choice step. Do NOT present all questions as a wall of text. For exact identifiers (database names, file paths), ask in normal chat after the relevant choice, or accept a value the user types via `ask`'s automatic "Other (type your own)" entry.**
 
 ### Step 1: Ask About Assessment
 
@@ -287,7 +287,7 @@ Use background agents only for **read-mostly observation** during long-running m
 | Before Long Ops | **Monitor Progress** | Live dashboard / Manual / Background |
 | After Migration | **Validation Method** | Row counts / Checksums / pgCompare (multi-select) |
 
-**CRITICAL: Each fixed-choice prompt uses `ask_user_question` - NEVER dump all questions as text.**
+**CRITICAL: Each fixed-choice prompt uses `ask` - NEVER dump all questions as text.**
 
 ## Critical Migration Facts
 

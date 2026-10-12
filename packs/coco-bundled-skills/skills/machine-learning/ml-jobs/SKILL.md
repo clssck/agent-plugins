@@ -113,7 +113,7 @@ score = (idle_nodes * 10) + (max_nodes - active_nodes) + (3 if state == 'ACTIVE'
 
 #### 2c: Ask User for Confirmation
 
-**Use `ask_user_question` to confirm:**
+**Use `ask` to confirm:**
 1. **Instance type** (GPU/CPU) - include brief reasoning from script analysis
 2. **Compute pool** - recommend best match, include system pools as fallback
 3. **Stage** - ask if they have an existing stage or need to create one
@@ -223,7 +223,7 @@ SHOW EXTERNAL ACCESS INTEGRATIONS;
 
 #### 4c: ALWAYS Confirm EAI Selection with User
 
-**Use `ask_user_question` with `multiSelect: true`** to let user select all applicable EAIs.
+**Use `ask` with `multi: true`** to let user select all applicable EAIs.
 
 Present:
 1. ALL detected external access requirements (not just the first one)

@@ -3,6 +3,12 @@ name: view-authentication-policy-workflow
 parent_skill: manage-authentication-policy
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Workflow C: View/Describe Policy
 
 ## When to Load
@@ -16,11 +22,13 @@ Loaded from `manage-authentication-policy/SKILL.md` when user selects **View/des
 ## C2: Select View Type
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "What would you like to view?",
         "header": "View",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "List all policies", "description": "Show all authentication policies in the account"},
             {"label": "Account-level attachments", "description": "Show which policies are attached at the account level"},
@@ -83,11 +91,13 @@ SHOW AUTHENTICATION POLICIES IN ACCOUNT;
 Present the results as a selectable list:
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "Which policy would you like to inspect?",
         "header": "Select Policy",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             # One {"label": "<db>.<schema>.<policy_name>"} per row from SHOW AUTHENTICATION POLICIES
         ]

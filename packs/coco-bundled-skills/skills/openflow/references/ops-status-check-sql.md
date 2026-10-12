@@ -3,6 +3,12 @@ name: openflow-ops-status-check-sql
 description: Read-only health check for Openflow deployments, runtimes, and Gen2/SQL-managed connectors on the SQL surface (Snowsight, or CLI + Gen2). Lists objects, reads their state, and routes deeper diagnosis or actions to the right place. For Gen1/NiFi-canvas flow health use ops-status-check.md (nipyapi).
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Status Check (SQL surface)
 
 Read-only health check for Openflow **deployments, runtimes, and Gen2 (SQL-managed) connectors** using only Snowflake SQL. This is the Primary status path on the **Snowsight (SQL-only)** surface and for **Gen2 work on the CLI**. It answers "what do I have and is it healthy" and then routes anything deeper.

@@ -4,13 +4,19 @@ description: "Reverse-ingest Business Ontology nodes and RELATED_SEMANTIC_VIEW b
 parent_skill: business-ontology-workflow
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `semantic_studio`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Semantic View → Ontology ingest (`sv-ingest`)
 
 Read an existing **Semantic View estate** and propose **ontology nodes**,
 **`RELATED_SEMANTIC_VIEW` associations**, and **`derives` relationships** — resolving each
 field's domain and identity from **column lineage first**, SV name last. Routed from `../SKILL.md`.
 
-This is the **reverse** of `../workflow/SKILL.md` (which takes the ontology and cues the customer
+This is the **reverse** of `../SKILL.md` (which takes the ontology and cues the customer
 to *create* SVs). It is the **third ingress path** into the ontology, alongside CSV import
 (`../import/SKILL.md`) and Cortex Sense promotion.
 
@@ -44,7 +50,7 @@ Route from `../SKILL.md` when the user says:
 - "Find drift between glossary and semantic views"
 - "We already have SVs — start governance"
 
-For greenfield **define → enrich → generate**, use `../workflow/SKILL.md` instead.
+For greenfield **define → enrich → generate**, use `../SKILL.md` instead.
 
 ## Setup
 
@@ -362,9 +368,9 @@ Re-run `drift` until BLOCKER = 0 (or the steward logs accepted exceptions).
 
 | Situation | Entry | Then |
 |-----------|-------|------|
-| **SV exists, thin/no ontology** (most common) | **`sv-ingest scan → drift → reconcile`** | optional `$cortex-sense` to add evidence; `../workflow` for anything ungoverned |
-| **Ontology exists, no SV** | `../workflow` (define→enrich→**generate**) | `sv-ingest drift` afterward for continuous alignment |
-| **Sense-first discovery** | `$cortex-sense` → promote to glossary (`../import`) | then `sv-ingest` when SVs get built |
+| **SV exists, thin/no ontology** (most common) | **`sv-ingest scan → drift → reconcile`** | optional `skill://cortex-sense/SKILL.md` to add evidence; `..` for anything ungoverned |
+| **Ontology exists, no SV** | `..` (define→enrich→**generate**) | `sv-ingest drift` afterward for continuous alignment |
+| **Sense-first discovery** | `skill://cortex-sense/SKILL.md` → promote to glossary (`../import`) | then `sv-ingest` when SVs get built |
 
 - **Business Ontology** is the single source of governed meaning + asset links.
 - **Semantic View** is the single source of executable formulas (Analyst).
@@ -411,7 +417,7 @@ uv run --project <SKILL_DIR>/../.. python <SKILL_DIR>/../../scripts/sv_drift_rep
 | Skill | Relationship |
 |-------|--------------|
 | `../import` | Parallel ingress (CSV/Sense); dedup + `IMPORT_CONFLICT` with sv-ingest |
-| `../workflow` | Forward path (ontology→SV); sv-ingest is the reverse |
-| `$cortex-sense` | Optional; formula variants enrich drift context |
+| `..` | Forward path (ontology→SV); sv-ingest is the reverse |
+| `skill://cortex-sense/SKILL.md` | Optional; formula variants enrich drift context |
 | `$semantic-view` | Patch SV when governance wins a conflict |
 | `$semantic-view debug` | Validate Analyst after bindings |

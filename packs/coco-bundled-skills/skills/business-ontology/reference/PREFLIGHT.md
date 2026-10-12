@@ -56,7 +56,7 @@ If the snapshot shows `N_draft > 0`, surface once before the first phase:
 ```
 There are <N_draft> draft term(s) pending approval.
 Review them now, or continue to Phase 1?
-  review drafts — route to $business-ontology import (Step 4, resume drafts)
+  review drafts — route to skill://business-ontology/SKILL.md import (Step 4, resume drafts)
   continue       — proceed silently
 ```
 

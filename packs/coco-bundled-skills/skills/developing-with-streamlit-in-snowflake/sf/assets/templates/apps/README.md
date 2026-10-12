@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake.connector`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Snowflake-wired Dashboard Scaffolds
 
 Copyable starting points for Streamlit dashboards that read from Snowflake. Each directory is self-contained: copy it into the user's project, adapt the data layer, and deploy.

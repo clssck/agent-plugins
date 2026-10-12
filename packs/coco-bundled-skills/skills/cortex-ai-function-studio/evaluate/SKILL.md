@@ -3,6 +3,13 @@ name: evaluate-ai-function
 description: "Evaluate an AI function's performance against a labeled dataset using a Python stored procedure."
 parent_skill: cortex-ai-function-studio
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `execute_sql`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 
@@ -129,7 +136,7 @@ Store the column list from the DESCRIBE output — you will need it for column m
 
 After confirmation, **Load** `references/data_preparation.md` Step 5 to validate that all mapped columns exist in the relevant tables. Do NOT proceed if columns don't match.
 
-**⚠️ Column mismatch handling**: If any mapped column does not exist in the test table, you MUST present the mismatch to the user via `ask_user_question` (not prose text). Include the mismatched column names, the actual table columns, and remediation options. Do NOT silently remap or proceed — always surface the mismatch through `ask_user_question` so the user can decide.
+**⚠️ Column mismatch handling**: If any mapped column does not exist in the test table, you MUST present the mismatch to the user via `ask` (not prose text). Include the mismatched column names, the actual table columns, and remediation options. Do NOT silently remap or proceed — always surface the mismatch through `ask` so the user can decide.
 
 **Multi-key output handling:** If the user's test table has multiple truth columns that correspond to keys in a multi-key function output (e.g., separate `SENTIMENT`, `CONFIDENCE` columns instead of a single VARIANT), help them combine these into a single VARIANT `label_column` using `OBJECT_CONSTRUCT` in a view before evaluation. See `references/data_preparation.md` "Multi-Column Truth Aggregation" for the SQL pattern.
 
@@ -167,7 +174,7 @@ Note: The metric is selected at runtime when calling the SPROC, not at creation 
 
 **Load** `references/metrics.md` and present the metric selection prompt.
 
-**⚠️ In Snowsight, you MUST use `ask_user_question` with the exact options from `references/metrics.md`.** Do NOT infer the metric from the task type or prior context — always present the full 6-option menu and let the user choose. Do NOT skip this step even if the task seems obvious (e.g., do NOT auto-select "semantic_similarity", "bertscore", or any metric not in the list).
+**⚠️ In Snowsight, you MUST use `ask` with the exact options from `references/metrics.md`.** Do NOT infer the metric from the task type or prior context — always present the full 6-option menu and let the user choose. Do NOT skip this step even if the task seems obvious (e.g., do NOT auto-select "semantic_similarity", "bertscore", or any metric not in the list).
 
 **If user chooses "Create custom metric" (option 6):**
 **Load** `references/custom_metrics.md` with context:
@@ -254,7 +261,7 @@ Returns `VARIANT` — `{"score": <float 0.0-1.0>, ...}`. Extract `score` from th
 
 Generate `run_id` as `ai_func_eval_{FUNC_SHORT_NAME}_{timestamp_ms}`. Default `experiment_name` = `run_id`.
 
-Before constructing the Task DDL, **resolve the warehouse name**: run `SELECT CURRENT_WAREHOUSE() AS WH;` via `execute_sql`. If NULL, use `ask_user_question` to ask: `"No active warehouse detected. Which warehouse should I use for this evaluation task?"` — use the user's response as `{warehouse}`.
+Before constructing the Task DDL, **resolve the warehouse name**: run `SELECT CURRENT_WAREHOUSE() AS WH;` via `execute_sql`. If NULL, use `ask` to ask: `"No active warehouse detected. Which warehouse should I use for this evaluation task?"` — use the user's response as `{warehouse}`.
 
 ```sql
 USE {database}.{schema};

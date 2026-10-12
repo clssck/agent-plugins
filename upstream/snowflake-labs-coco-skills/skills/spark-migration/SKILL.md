@@ -198,7 +198,7 @@ List per-project configurations:
 python3 '<skill_directory>/scripts/config_manager.py' list '<skill_directory>/configurations'
 ```
 
-If configurations exist, display the numbered list and ask via `ask_user_question`:
+If configurations exist, display the numbered list and ask via `ask`:
 - **Use existing configuration** — user selects by name or number → load it
 - **Create new configuration** — proceed to step 1.3
 

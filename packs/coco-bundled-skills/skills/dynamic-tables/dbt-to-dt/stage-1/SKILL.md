@@ -7,11 +7,17 @@ allowed-tools:
   - Read
   - Write
   - Bash
-  - ask_user_question
+  - ask
   - spawn_teammate
   - agent_output
   - kill_agent
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `agent_output`, `cortex CLI`, `kill_agent`, `spawn_teammate`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
 
 # Stage 1 — CTAS → FULL DT
 
@@ -50,7 +56,7 @@ All models become FULL DT. No INC classification needed.
 
 ### 3. Phase 0: Test Strategy [you handle directly]
 
-Ask the user 5 questions via ask_user_question:
+Ask the user 5 questions via ask:
 
 1. "Where is testing happening? (a) dev schema (b) clone DB (c) parallel project (d) other"
 2. "Role / Database / Schema / Warehouse for validation objects?"
@@ -123,7 +129,7 @@ Read `stage-1/state/02-batch-plan.json`. It specifies `"dispatch": "all_parallel
 
      Summary: <N> PASS, <N> FAIL
      ```
-   - Use `ask_user_question` to ask about cleanup. DO NOT drop anything until user responds:
+   - Use `ask` to ask about cleanup. DO NOT drop anything until user responds:
      ```
      "Validation objects in <test_db>.<test_schema>: <N> val_* objects. Clean up now?"
      Options: (a) drop all (b) keep for inspection (c) skip

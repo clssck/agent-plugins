@@ -3,6 +3,12 @@ name: openflow-ops-layout
 description: Canvas layout and component positioning for Openflow/NiFi. Covers building new flows, organizing existing flows, and process group management.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Canvas Layout
 
 Intelligent positioning and organization of components on the NiFi canvas using `nipyapi.layout`.

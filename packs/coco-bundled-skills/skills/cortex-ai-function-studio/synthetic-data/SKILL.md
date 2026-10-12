@@ -3,6 +3,13 @@ name: synthetic-data
 description: "Generate synthetic data or pseudo-label input-only tables for AI function evaluation and optimization. Triggers: generate data, synthetic data, test data, create test cases, make training data, pseudo label, label my input-only table."
 parent_skill: cortex-ai-function-studio
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `execute_sql`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 

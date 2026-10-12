@@ -19,6 +19,12 @@ description: >-
   multiple listings — use `marketplace-listing-formatting` instead.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `snowflake_object_search`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Skill: get-marketplace-listing-details
 
 Present a **tight, recommendation-first** view of a single marketplace listing. The response answers four questions and nothing more:
@@ -231,7 +237,7 @@ Show the concrete substance, mapped to the need. Ground it in **both** the data 
 
 **Mandatory in every response.** The `### Get this listing` heading always appears last. Its body is the install card from `marketplace-install-formatting` whenever that skill exists in this session, and the marketplace URL only when it genuinely does not. The body is **exactly one** of the two forms below, never both:
 
-- **Default — delegate to `marketplace-install-formatting`.** Look for it in your **available-skills list** (that list is the source of truth for what exists — do **not** decide it is unavailable from memory or assumption). If it is listed, **or if you are unsure**, invoke it (the `skill` tool with `command: "marketplace-install-formatting"`) and use **exactly** what it returns as the body of this section — nothing else (no marketplace URL, no "click to install" line, no CTA prose). It emits the install card for the listing whose global name is in scope. **You must actually invoke it: not having loaded it into context yet is NOT a reason to fall back to the URL.** `marketplace-install-formatting` is the single source of truth for the install-card tag, so never hand-write the tag or reproduce its format from memory. If you catch yourself typing a `<marketplace_listing_install .../>` tag or a raw `https://app.snowflake.com/marketplace/...` link by hand, stop: invoke the skill and let it produce the card.
+- **Default — delegate to `marketplace-install-formatting`.** Look for it in your **available-skills list** (that list is the source of truth for what exists — do **not** decide it is unavailable from memory or assumption). If it is listed, **or if you are unsure**, `read skill://marketplace-install-formatting/SKILL.md` and emit exactly the install card it specifies as the body of this section — nothing else (no marketplace URL, no "click to install" line, no CTA prose). It emits the install card for the listing whose global name is in scope. **You must actually invoke it: not having loaded it into context yet is NOT a reason to fall back to the URL.** `marketplace-install-formatting` is the single source of truth for the install-card tag, so never hand-write the tag or reproduce its format from memory. If you catch yourself typing a `<marketplace_listing_install .../>` tag or a raw `https://app.snowflake.com/marketplace/...` link by hand, stop: read the skill and emit the card exactly as it specifies.
 
 - **Fallback — only when `marketplace-install-formatting` is genuinely not in your available-skills list** (e.g. you attempted to invoke it and it does not exist) — emit the marketplace URL as a clickable link:
 
@@ -253,7 +259,7 @@ Fix and re-check if any fail:
 4. **"How it solves your problem" is grounded** — real table/column names for shares (or an honest "data dictionary unavailable"), real capabilities for apps. No invented identifiers.
 5. **No opaque profile ids** anywhere (`profile_global_name` / `profile.profileGlobalName`).
 6. **No retrieval queries exposed** — no `SYSTEM$BULK_GET_LISTINGS`, `SYSTEM$GET_DATA_DICTIONARY_METADATA`, `PARSE_JSON`, or "queries run / how this was retrieved" sections. (Step 4's single value-illustrating query against the listing's real data is fine.)
-7. **Get-this-listing section is last** and contains the correct single form: if `marketplace-install-formatting` is available, you **invoked** it (a `skill` tool call) and its returned install card is the entire body — no hand-written tag, no marketplace URL, no CTA prose; otherwise the body is the marketplace URL. Never both, and never a URL when the install skill is available.
+7. **Get-this-listing section is last** and contains the correct single form: if `marketplace-install-formatting` is available, you read `skill://marketplace-install-formatting/SKILL.md` and the install card it specifies is the entire body — no hand-written tag, no marketplace URL, no CTA prose; otherwise the body is the marketplace URL. Never both, and never a URL when the install skill is available.
 
 ## Example response shape
 
@@ -280,8 +286,8 @@ most one short illustrative query.}
 
 ### Get this listing
 
-{If marketplace-install-formatting is available (preferred), invoke that skill and use
-the install card it returns as the entire body. Otherwise:
+{If marketplace-install-formatting is available (preferred), read `skill://marketplace-install-formatting/SKILL.md` and use
+the install card it specifies as the entire body. Otherwise:
 https://app.snowflake.com/marketplace/listing/<global_name>}
 ```
 
@@ -310,8 +316,8 @@ CREATE APPLICATION boilerplate.}
 
 ### Get this listing
 
-{If marketplace-install-formatting is available (preferred), invoke that skill and use
-the install card it returns as the entire body. Otherwise:
+{If marketplace-install-formatting is available (preferred), read `skill://marketplace-install-formatting/SKILL.md` and use
+the install card it specifies as the entire body. Otherwise:
 https://app.snowflake.com/marketplace/listing/<global_name>}
 ```
 
@@ -340,8 +346,8 @@ fabricated SQL against the app's data.}
 
 ### Get this listing
 
-{If marketplace-install-formatting is available (preferred), invoke that skill and use
-the install card it returns as the entire body. Otherwise:
+{If marketplace-install-formatting is available (preferred), read `skill://marketplace-install-formatting/SKILL.md` and use
+the install card it specifies as the entire body. Otherwise:
 https://app.snowflake.com/marketplace/listing/<global_name>}
 ```
 
@@ -370,8 +376,8 @@ customized_contact_info. No fabricated SQL.}
 
 ### Get this listing
 
-{If marketplace-install-formatting is available (preferred), invoke that skill and use
-the install card it returns as the entire body. Otherwise:
+{If marketplace-install-formatting is available (preferred), read `skill://marketplace-install-formatting/SKILL.md` and use
+the install card it specifies as the entire body. Otherwise:
 https://app.snowflake.com/marketplace/listing/<global_name> — the request / contact
 flow lives on that page.}
 ```

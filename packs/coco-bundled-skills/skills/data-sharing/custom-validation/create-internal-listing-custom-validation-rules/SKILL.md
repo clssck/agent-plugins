@@ -65,7 +65,7 @@ Start → Fetch Available Fields → Ask: table location → Ask: intent
           └─ Manage existing rules → Manage Rules (view / edit / delete)
 ```
 
-**Ask for table location first** — always ask this before determining intent. Use the ask_question tool:
+**Ask for table location first** — always ask this before determining intent. Use the ask tool:
 ```
 Where is your validation rules table?
 
@@ -209,7 +209,7 @@ CREATE TABLE IF NOT EXISTS <database>.<schema>.LISTING_VALIDATION_RULES (
 
 **Goal:** Collect the rule text for a single rule, auto-generate all other fields, and confirm with the user before inserting. Repeat for additional rules.
 
-**Ask user** (as plain text output — do not use the ask_question tool):
+**Ask user** (as plain text output — do not use the ask tool):
 ```
 Describe the rule you want to enforce (in plain language):
 ```

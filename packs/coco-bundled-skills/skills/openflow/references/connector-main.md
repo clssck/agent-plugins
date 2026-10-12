@@ -3,6 +3,12 @@ name: openflow-connector-main
 description: Deploy and configure Snowflake Openflow connectors. Use for connector deployment workflow and routing to connector-specific documentation.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Connectors
 
 Connectors are pre-built flows supplied and supported by Snowflake. This reference provides routing to connector-specific documentation and the standard deployment workflow.

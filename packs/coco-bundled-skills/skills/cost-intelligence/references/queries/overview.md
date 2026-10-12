@@ -1,3 +1,4 @@
+
 # Overview Queries
 
 Overall spending and cost breakdown queries to understand where money is being spent across Snowflake services and accounts.

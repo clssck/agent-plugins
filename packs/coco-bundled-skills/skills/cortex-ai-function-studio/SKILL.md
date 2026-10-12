@@ -2,6 +2,13 @@
 name: cortex-ai-function-studio
 description: "**[REQUIRED]** Use for ALL Snowflake AI function operations — running, authoring, or estimating cost for any AI_* function. **Must be invoked before writing any AI_SENTIMENT, AI_COMPLETE, AI_CLASSIFY, AI_SUMMARIZE_AGG, AI_EXTRACT, AI_FILTER, AI_TRANSLATE, AI_EMBED, AI_PARSE_DOCUMENT, AI_REDACT, AI_TRANSCRIBE, AI_SIMILARITY, or AI_COUNT_TOKENS SQL.** Also covers custom AI function creation, evaluation, and optimization. Triggers: run AI_SENTIMENT, use AI_COMPLETE, AI_CLASSIFY, AI_SUMMARIZE_AGG, AI_EXTRACT, AI_FILTER, AI_TRANSLATE, AI_EMBED, AI_PARSE_DOCUMENT, AI_REDACT, AI_TRANSCRIBE, AI_SIMILARITY, estimate tokens, count tokens, AI function cost, how many tokens will this use, token estimate, sentiment analysis, classify text, extract from text, filter rows, summarize text, analyze data with AI, explore AI functions, unstructured data, custom ai function, build my own llm function, evaluate ai function, optimize ai function, BYOM, bring your own model, SPCS inference, which AI function, built-in AI function, cortex function."
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `execute_sql`, `notebook_action`, `snowflake_product_docs`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 

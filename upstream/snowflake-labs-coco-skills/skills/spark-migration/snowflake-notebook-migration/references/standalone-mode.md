@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Standalone Mode
 
 This skill runs in standalone mode when the user invokes it directly with a GitHub URL, a local directory of notebooks, or a single notebook file — i.e. when the first message after load does **not** contain the orchestrator context pattern described in `references/orchestrator-mode.md`. Standalone mode targets **Snowpark Connect (SCOS)** only.
@@ -91,7 +97,7 @@ Snowflake Workspace upload is delegated to the `snowflake-notebooks` skill — s
 
 To offer upload:
 
-1. Ensure `snowflake-notebooks` is loaded in the foreground (`skill("snowflake-notebooks")`).
+1. Ensure `snowflake-notebooks` is loaded in the foreground (`read skill://snowflake-notebooks/SKILL.md`).
 2. Follow the `snowflake-notebooks` skill's upload workflow (Step 5) for the `cortex artifact create notebook` command and deeplink URL generation.
 
 This applies equally to single-file, local-directory, and GitHub-repo flows.

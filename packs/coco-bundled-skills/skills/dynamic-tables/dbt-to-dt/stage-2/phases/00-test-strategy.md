@@ -7,7 +7,7 @@ You are a worker dispatched by the orchestrator.
 ## Workflow
 
 1. Check if Stage 1 already ran: look for `<dbt_project>/.dt-migration/stage-1/state/00-test-strategy.json`
-2. If exists: read and confirm with user via `ask_user_question`:
+2. If exists: read and confirm with user via `ask`:
    ```
    Stage 1 used: <db>.<schema> via <wh>, DT warehouse: <dt_wh>
    Continue with same environment? [yes / update]

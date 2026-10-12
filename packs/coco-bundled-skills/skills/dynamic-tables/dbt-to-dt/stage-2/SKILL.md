@@ -7,11 +7,17 @@ allowed-tools:
   - Read
   - Write
   - Bash
-  - ask_user_question
+  - ask
   - spawn_teammate
   - agent_output
   - kill_agent
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `agent_output`, `cortex CLI`, `kill_agent`, `spawn_teammate`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
 
 # Stage 2 — FULL DT → INC Upgrade
 
@@ -21,8 +27,8 @@ Upgrade eligible FULL DTs to `refresh_mode='adaptive'`. One topological layer at
 
 1. **DO NOT enter plan mode.** This skill IS the plan. Follow the phases below.
 2. **Dispatch workers via `spawn_teammate` for Phases 1-5.** You are the orchestrator.
-3. **One layer per invocation.** After a layer completes, use `ask_user_question` to ask if user wants next layer.
-4. **Never drop objects without user approval.** Use `ask_user_question` and wait for response before any DROP.
+3. **One layer per invocation.** After a layer completes, use `ask` to ask if user wants next layer.
+4. **Never drop objects without user approval.** Use `ask` and wait for response before any DROP.
 
 ## On load — execute IMMEDIATELY (no reading, no exploring first):
 
@@ -128,6 +134,6 @@ Load in addition to shared references:
 Layer <N> complete. <promoted> promoted to INC, <dropped> kept as FULL.
 ```
 
-Use `ask_user_question`: "Ready to start Layer <N+1>? [yes / not now]"
+Use `ask`: "Ready to start Layer <N+1>? [yes / not now]"
 
 Cleanup: `cortex ctx team delete team-dbt-dt-stage2`

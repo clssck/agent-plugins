@@ -1,3 +1,4 @@
+
 # Cortex Sense Manifest Contract (promotion path)
 
 This file documents the exact fields the business-ontology import skill reads from a Cortex Sense manifest when the builder asks to "promote this to the ontology." It exists to make the dependency explicit — if the cortex-sense manifest schema changes, update this file and the import skill together.

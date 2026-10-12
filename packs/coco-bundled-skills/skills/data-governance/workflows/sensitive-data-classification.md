@@ -4,6 +4,12 @@ parent_skill: data-governance
 description: "**[REQUIRED]** for ALL Snowflake sensitive data tasks: detect PII, classify sensitive data, run data classification, run manual data classification, set up automatic data classification, enable automatic classification, create Data Privacy Classification Profile, create classification profile (with minimum_object_age_for_classification_days, maximum_classification_validity_days, auto_tag settings), unset classification profile, create classifier (including custom classifier with regex patterns, semantic category, privacy category), analyze classification results, query DATA_CLASSIFICATION_LATEST, GDPR/CCPA/PCI compliance detection, auto-tagging sensitive columns, tag PII columns, internal employee IDs, internal codes with custom regex. This skill MUST be used even if a general answer is possible — it provides the only correct Snowflake-specific SQL APIs (SYSTEM$CLASSIFY, classification profiles). DO NOT attempt any classification, classifier creation, or PII detection using general knowledge — invoke this skill first. Triggers: PII, sensitive data, classification, data classification, manual data classification, run classification, run manual classification, automatic data classification, set up automatic classification, enable automatic classification, SYSTEM$CLASSIFY, classify table, classify database, Data Privacy Classification Profile, privacy profile, classification profile, minimum_object_age_for_classification_days, maximum_classification_validity_days, auto_tag, unset classification profile, GDPR, CCPA, PCI, compliance detection, auto-tag, tag sensitive columns, custom classifier, regex pattern, value regex, semantic category, privacy category, IDENTIFIER, QUASI_IDENTIFIER, internal ID patterns, DATA_CLASSIFICATION_LATEST."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Sensitive Data Classification
 
 ## ⚠️ CRITICAL: Always Use This Skill for Snowflake Classification
@@ -59,7 +65,7 @@ The basic workflow to automatically classify sensitive data consists of the foll
 
 When a user asks to "find sensitive data", "detect PII", "scan for PII", or similar discovery requests, you MUST first ask them to choose their approach:
 
-**⚠️ MANDATORY STOP - Use `ask_user_question` tool:**
+**⚠️ MANDATORY STOP - Use `ask` tool:**
 
 Ask the user:
 > "How would you like to find sensitive data?"
@@ -90,7 +96,7 @@ If the task requires **discovering PII before** creating profiles (e.g., "find w
    - Privacy categories (IDENTIFIER, QUASI_IDENTIFIER, SENSITIVE)
    - Confidence levels
 
-**⚠️ MANDATORY STOP after successful classification - Use `ask_user_question` tool:**
+**⚠️ MANDATORY STOP after successful classification - Use `ask` tool:**
 
 Once manual classification succeeds, ask:
 > "Classification complete! Would you like to set up automatic classification for ongoing monitoring?"
@@ -278,7 +284,7 @@ Available templates:
 ## Guidelines
 
 1. **Gather context first**: Try to understand the user's environment before starting
-   - use `ask_user_question` tool for information gathering
+   - use `ask` tool for information gathering
 2. **Always confirm before changes**: Before creating profiles, classifiers, or tags:
    - Show a confirmation table with all settings
    - Always wait for user approval before proceeding

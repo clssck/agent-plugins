@@ -7,7 +7,7 @@ description: "**[REQUIRED]** Use for **ALL** Snowflake Task operations: creating
 
 ## Mandatory Rules
 
-**Before writing AI function SQL, read `../../sql/references/sql-authoring-rules.md`.**
+**Before writing AI function SQL, read `skill://cortex-ai-function-studio/references/ai-function-rules.md`.**
 
 Expert guidance for Snowflake Tasks: creating scheduled and triggered tasks, building task graphs (DAGs), managing task lifecycle, monitoring execution history, and troubleshooting failures.
 
@@ -40,7 +40,7 @@ When the user says "every N minutes" or "every N hours", always use an interval 
 
 **Stream-triggered tasks:** For tasks that process stream data, use a `WHEN` condition with `SYSTEM$STREAM_HAS_DATA` and no schedule unless the user explicitly requests one. Do not add a `SCHEDULE` clause to a stream-triggered task unless the user specifically asks for one — a task with only a `WHEN` condition is a valid, purely event-driven task. If the user does request one, follow the same scheduling guidance above for CRON vs. Interval schedules.
 
-If the task body SQL uses any AI or Cortex function, read `../../sql/references/sql-authoring-rules.md` first.
+If the task body SQL uses any AI or Cortex function, read `skill://cortex-ai-function-studio/references/ai-function-rules.md` first.
 
 ## Modifying Tasks
 

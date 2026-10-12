@@ -48,7 +48,7 @@ When a user asks about a command or feature not in this skill:
 
 ```bash
 # Option 1: Fetch the specific doc page
-web_fetch("https://docs.snowflake.com/en/user-guide/snowflake-postgres/<page>")
+read("https://docs.snowflake.com/en/user-guide/snowflake-postgres/<page>")
 
 # Option 2: Search if unsure which page
 web_search("site:docs.snowflake.com snowflake-postgres <topic>")

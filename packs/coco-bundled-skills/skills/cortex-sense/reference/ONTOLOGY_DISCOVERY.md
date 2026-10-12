@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_object_search`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Business Ontology Discovery
 
 Contract for how Cortex Sense incorporates Business Ontology state into the setup fast-pass.
@@ -184,7 +190,7 @@ Never block, warn, or slow down the main discovery flow because of an ontology f
 
 Three paths for pushing Cortex Sense findings back into the ontology:
 
-**1. Builder-driven from any Cortex Sense sub-skill (now live).** When a builder says "promote to glossary", "add to ontology", or any equivalent phrase during a `refine/` or `test/` session, Cortex Sense routes directly to `$business-ontology`. Cortex Sense passes the domain name (for a full manifest promotion) or specific concepts/relationships (for a partial promotion). `business-ontology/workflow/import/SKILL.md` Path D loads the manifest, deduplicates against existing ontology nodes, and presents the review/approve table. Cortex Sense adds no ontology logic itself — the Business Ontology skill owns the entire promotion flow.
+**1. Builder-driven from any Cortex Sense sub-skill (now live).** When a builder says "promote to glossary", "add to ontology", or any equivalent phrase during a `refine/` or `test/` session, Cortex Sense routes directly to `skill://business-ontology/SKILL.md`. Cortex Sense passes the domain name (for a full manifest promotion) or specific concepts/relationships (for a partial promotion). `business-ontology/workflow/import/SKILL.md` Path D loads the manifest, deduplicates against existing ontology nodes, and presents the review/approve table. Cortex Sense adds no ontology logic itself — the Business Ontology skill owns the entire promotion flow.
 
 **2. Steward-driven workflow (existing).** A steward can route to `business-ontology/workflow/phase-2-enrich/SKILL.md` directly for deeper enrichment: evidence-based asset associations (`SYSTEM$DRAFT_GLOSSARY_ASSET`), cross-domain conflict resolution, and a structured phase summary.
 

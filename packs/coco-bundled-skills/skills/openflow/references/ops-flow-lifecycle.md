@@ -3,6 +3,12 @@ name: openflow-ops-flow-lifecycle
 description: Start, stop, monitor, and manage Openflow flows. Use for flow lifecycle operations including status checks, bulletins, and force stop.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Flow Lifecycle Operations
 
 Start, stop, monitor, and manage flows. These operations apply to all process groups regardless of whether they are connectors or custom flows.

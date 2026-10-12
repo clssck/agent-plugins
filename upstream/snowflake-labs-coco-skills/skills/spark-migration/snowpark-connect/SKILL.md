@@ -201,7 +201,7 @@ to Snowflake Workspace `.ipynb` format. The offer is skipped entirely when:
 
 Every command this skill surfaces to the user runs on **macOS, Linux, and
 Windows**. Follow the authoring rules in
-[`skill_development/references/cross-platform.md`](../../../skill_development/references/cross-platform.md)
+`skill_development/references/cross-platform.md` *(reference not included in this pack)*
 — specifically:
 
 - **Primary entry point for every script: `uv run --project <SKILL_DIRECTORY> python <SKILL_DIRECTORY>/scripts/<name>.py`.**

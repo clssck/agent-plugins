@@ -7,7 +7,7 @@ description: "**[REQUIRED]** Use for **ALL** Snowflake Dynamic Table operations:
 
 ## Mandatory Rules
 
-**Before writing AI function SQL, read `../../sql/references/sql-authoring-rules.md`.**
+**Before writing AI function SQL, read `skill://cortex-ai-function-studio/references/ai-function-rules.md`.**
 
 Expert guidance for Snowflake Dynamic Tables: creating pipelines, configuring refreshes, monitoring health, troubleshooting issues, and optimizing performance.
 
@@ -64,7 +64,7 @@ Before any workflow, you MUST:
 
 1. **Load**: [references/sql-syntax.md](references/sql-syntax.md) - SQL command syntax
 2. **Load**: [references/monitoring-functions.md](references/monitoring-functions.md) - monitoring function router (database context rules + links to state, refresh analysis, and graph references)
-3. **Load** (if writing AI function SQL): [../../sql/references/sql-authoring-rules.md](../sql-author/SKILL.md) - AI function naming rules
+3. **Load** (if writing AI function SQL): [skill://cortex-ai-function-studio/references/ai-function-rules.md](../sql-author/SKILL.md) - AI function naming rules
 
 **⚠️ MANDATORY STOPPING POINT**: Do NOT proceed until you have loaded these references.
 

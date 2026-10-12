@@ -1,3 +1,4 @@
+
 # Eval Design for `compile-skill`
 
 How to tell whether a compiled fast path is good enough to ship. This document is the rubric — pin it, version-control it, do not re-derive it ad hoc.

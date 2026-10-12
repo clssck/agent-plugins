@@ -1,3 +1,4 @@
+
 # Not yet implemented
 
 The skill ships several capabilities as placeholders. **Each placeholder is surfaced to the builder once**, the first time it would otherwise mislead. Use the exact user-facing copy below — concise, parenthetical, never apologetic.

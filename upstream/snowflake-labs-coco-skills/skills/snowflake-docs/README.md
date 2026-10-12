@@ -20,7 +20,7 @@ The skill uses a [Cortex Search Service](https://docs.snowflake.com/en/user-guid
 The skill activates automatically for Snowflake documentation questions, or you can invoke it explicitly:
 
 ```
-$snowflake-docs How do I create a dynamic table?
+skill://snowflake-docs/SKILL.md How do I create a dynamic table?
 ```
 
 Trigger phrases include any question about Snowflake SQL syntax, features, best practices, configuration, or troubleshooting.

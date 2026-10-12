@@ -1,3 +1,4 @@
+
 # Sharing Skill
 
 Routes users to the correct Snowflake sharing or collaboration construct based on their intent. When the user's request matches a strong unambiguous trigger, the router loads the target skill immediately. When intent is ambiguous, it asks up to 2 questions to determine the right construct, then hands off with context.

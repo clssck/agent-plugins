@@ -650,9 +650,9 @@ SHOW AVAILABLE INTERNAL MARKETPLACE CONFIGS;
 - Check the `is_required` column — only attributes with `is_required: true` must be included in the manifest
 - Optional attributes (`is_required: false`) can be omitted unless the user explicitly wants to include them
 - Check whether each attribute has predefined options or is free-text:
-  - **Predefined options**: use `ask_user_question` with `options` listing each option's `display_name`. Use `multiSelect: true` if multiple values are allowed. Write the `display_name` (not `value`) into the manifest.
-  - **Free-text**: use `ask_user_question` with a text input and a sensible `defaultValue` if one can be inferred
-- Present each attribute as its own individual question (up to 4 per `ask_user_question` call). Do not collapse all attributes into a single text box.
+  - **Predefined options**: use `ask` with `options` listing each option's `display_name`. Use `multi: true` if multiple values are allowed. Write the `display_name` (not `value`) into the manifest.
+  - **Free-text**: OMP `ask` has no text input or default-value field; offer an inferred value as an option (the user types a different value via the auto-added "Other (type your own)"), or ask in normal chat when nothing can be inferred
+- Present each attribute as its own individual question (up to 4 per `ask` call). Do not collapse all attributes into a single text box.
 
 ### Manifest syntax
 

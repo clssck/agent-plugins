@@ -3,6 +3,12 @@ name: analyze-privileges-workflow
 parent_skill: access-troubleshooter
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Workflow B: Analyze Privileges
 
 ## When to Load
@@ -24,11 +30,13 @@ Ask the user for the SQL statement to analyze. Store as `<SQL_STATEMENT>`.
 ## B2: Choose Analysis Type
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "What kind of privilege analysis do you need?",
         "header": "Analysis Type",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "All required privileges", "description": "List every privilege needed to run this query"},
             {"label": "Missing privileges for current session", "description": "Show only what my current session is missing"},
@@ -125,11 +133,13 @@ CALL EXPLAIN_PRIVILEGES(
 Present the results and offer next steps:
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "Would you like to fix the missing privileges?",
         "header": "Next Step",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "Grant missing privileges to this role", "description": "Generate GRANT statements for the missing privileges"},
             {"label": "Check another role", "description": "Analyze a different role"},

@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `execute_sql`, `notebook_action`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 
@@ -13,7 +19,7 @@ Load this file when `environment == snowsight` at `create/SKILL.md` Step 8–9.
 
 **Supplements Steps 8 and 9 for Snowsight.** In Snowsight, the review block is shown in chat (not in a notebook cell). The notebook receives "Try It" cells only after the smoke test succeeds.
 
-After generating prompts in Step 8 (either Direct or [research preview] Agent Research mode), present the review block in chat following the same format as `create/SKILL.md` Step 8 (function name, model, inputs, outputs, system prompt, user prompt template). Then use `ask_user_question` with options: **"Ready to deploy"** / **"Cancel"**.
+After generating prompts in Step 8 (either Direct or [research preview] Agent Research mode), present the review block in chat following the same format as `create/SKILL.md` Step 8 (function name, model, inputs, outputs, system prompt, user prompt template). Then use `ask` with options: **"Ready to deploy"** / **"Cancel"**.
 
 **⚠️ Research mode gate (Snowsight).** Research mode here means you are about to pass a non-NULL `SQL_BODY` (param 8) to `CREATE_AI_FUNCTION`. Per `create/SKILL.md` Step 4, this is only permitted when the user EXPLICITLY asked for research mode, custom SQL, or SQL pre/post-processing. Before constructing `SQL_BODY`, re-read the chat and verify the user's explicit request — if you cannot quote it, fall back to Direct mode (param 8 = NULL).
 
@@ -21,7 +27,7 @@ After generating prompts in Step 8 (either Direct or [research preview] Agent Re
 
 ## Step 9: Deploy via Stored Procedure
 
-The review block was already presented in chat and the user confirmed via `ask_user_question`. This section covers deployment, smoke testing, and Try It cells.
+The review block was already presented in chat and the user confirmed via `ask`. This section covers deployment, smoke testing, and Try It cells.
 
 After user confirms, deploy by running this CALL via `execute_sql`. All 9 positional parameters are required. Always set database/schema context first.
 
@@ -166,4 +172,4 @@ After the smoke test passes, append cells to `{notebook_path}`:
 
 3. **Run the newly appended cells** with `notebook_action(action="run_notebook", ...)`.
 
-After Try It runs, proceed to `create/SKILL.md` Step 10. The final tool call of this turn MUST be `ask_user_question` (Evaluate / Test / Done).
+After Try It runs, proceed to `create/SKILL.md` Step 10. Use `ask` for the Evaluate / Test / Done choice, then continue with the selected path in the same turn.

@@ -49,6 +49,14 @@
       "ref": "main",
       "sha": "28b549f48da9994307081a9d4d2f16379f5a9c16",
       "description": "Curated Agent Skills for Cortex Code (CoCo), Snowflake's CLI for building with AI.",
+      "compatibility": "coco",
+      "skillReferences": {
+        "requires": {
+          "coco-bundled-skills": [
+            "snowflake-notebooks"
+          ]
+        }
+      },
       "include": {
         "skills": "skills"
       }

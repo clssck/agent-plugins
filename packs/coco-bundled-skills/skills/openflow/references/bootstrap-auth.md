@@ -3,6 +3,12 @@ name: openflow-bootstrap-auth
 description: Create nipyapi profiles for Openflow runtimes using PAT from Snowflake CLI config. Load when profiles are missing.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Authentication Setup
 
 Create nipyapi profiles for each runtime as instructed by the user. Each profile needs the runtime URL and a PAT.

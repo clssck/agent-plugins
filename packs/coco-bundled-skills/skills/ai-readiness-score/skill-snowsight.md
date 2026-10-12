@@ -8,6 +8,12 @@ description: >
   demand coverage, CR tables, AI readiness report, score my account.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `open_file`, `snowflake.connector`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # AI Readiness Score
 
 Creates a **Snowsight Workspace notebook** that measures your account's AI readiness.
@@ -67,7 +73,7 @@ If only one connection exists, auto-select it.
 
 ### Phase 2 — Ask sample size
 
-Use `ask_user_question` with one question:
+Use `ask` with one question:
 
 - **Sample size** — Options: `10%`, `30%` (default), `50%`, `Full scan (100%)`
 
@@ -143,7 +149,7 @@ Once connected, run all cells:
 
 **If a cell fails with `NO_DATABASE_CONTEXT`:**
 
-1. Use `ask_user_question` to ask the user:
+1. Use `ask` to ask the user:
    - Header: "Database"
    - Question: "The notebook needs a database context to create temporary objects. Which database and schema should it use? (format: DATABASE.SCHEMA)"
    - Type: text

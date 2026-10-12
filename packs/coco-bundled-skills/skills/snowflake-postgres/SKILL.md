@@ -90,7 +90,7 @@ This checks the instance state, auto-resumes if SUSPENDED, and waits up to 6 min
 
 ## Progress Tracking
 
-For multi-step operations, use `system_todo_write` to show progress:
+For multi-step operations, use OMP's `todo` tool to show progress:
 
 ```
 ┌──────────────────┬──────────────────────────────────────────────────────┐
@@ -103,9 +103,9 @@ For multi-step operations, use `system_todo_write` to show progress:
 ```
 
 **Rules:**
-- Mark `in_progress` BEFORE starting each step
-- Mark `completed` IMMEDIATELY after finishing
-- Add new todos if issues are discovered mid-workflow
+- `todo` `op: "start"` on each step BEFORE starting it
+- `todo` `op: "done"` IMMEDIATELY after finishing
+- `todo` `op: "append"` for new todos discovered mid-workflow
 
 ## Routing
 
@@ -126,7 +126,7 @@ After detecting intent, you MUST:
 | **DIAGNOSE** | "health check", "diagnose", "diagnostics", "insights", "pg_doctor", "cache hit", "bloat", "vacuum", "dead rows", "autovacuum", "locks", "blocking queries", "blocked", "waiting", "long running", "slow queries", "query performance", "outliers", "unused indexes", "table sizes", "disk usage", "storage", "connections", "connection count", "what's running", "active queries" | Load `diagnose/SKILL.md` → Execute diagnostics immediately |
 | **PG_LAKE** | "pg_lake", "postgres iceberg", "pg iceberg", "iceberg table in postgres", "POSTGRES_EXTERNAL_STORAGE", "postgres COPY to S3", "postgres export to S3", "move data between postgres and snowflake", "read pg_lake in snowflake", "pg to snowflake iceberg", "catalog integration for pg_lake", "expose pg_lake to snowflake", "SNOWFLAKE_POSTGRES catalog", "catalog linked database for pg_lake", "query postgres iceberg from snowflake" | Load `pg-lake/SKILL.md` → Follow its workflow (has its own stopping points — present plan first for SETUP) |
 | **MIRROR** | "create mirror", "postgres mirror", "mirror postgres to snowflake", "snowflake postgres mirroring", "managed cdc", "LIST_MIRRORS", "CREATE_MIRROR", "$live", "$changes", "replicate postgres tables into snowflake continuously" | Load `mirror/SKILL.md` → Follow its setup/query/operate/troubleshoot workflow |
-| **MIGRATE** | "migrate postgres", "pg migration", "postgres to snowflake", "move my postgres", "transfer postgres", "copy from postgres", "logical replication setup", "pg_dump migration", "migration assessment", "migration readiness", "cutover plan", "rollback plan", "resume my migration", "validate migration", "migration monitor", "migrate from RDS", "migrate from Aurora", "migrate from Azure postgres", "migrate from Cloud SQL", "migrate from Crunchy Bridge", "migrate from Neon", "migrate from Supabase" | Load `migrate/SKILL.md` → Follow its workflow (interactive scope gathering via `ask_user_question`; presents assessment / hybrid plan / cutover plan for approval before executing) |
+| **MIGRATE** | "migrate postgres", "pg migration", "postgres to snowflake", "move my postgres", "transfer postgres", "copy from postgres", "logical replication setup", "pg_dump migration", "migration assessment", "migration readiness", "cutover plan", "rollback plan", "resume my migration", "validate migration", "migration monitor", "migrate from RDS", "migrate from Aurora", "migrate from Azure postgres", "migrate from Cloud SQL", "migrate from Crunchy Bridge", "migrate from Neon", "migrate from Supabase" | Load `migrate/SKILL.md` → Follow its workflow (interactive scope gathering via `ask`; presents assessment / hybrid plan / cutover plan for approval before executing) |
 
 Generic Snowflake Iceberg, catalog integration, external volume, and storage integration requests belong to the `iceberg` skill unless the user is clearly working with Postgres-resident Iceberg / `pg_lake`. **Exception:** `CATALOG_SOURCE = SNOWFLAKE_POSTGRES` (the pg_lake-specific catalog integration path, covered by the READ-FROM-SNOWFLAKE workflow in `pg-lake/SKILL.md`) belongs here, not in the generic `iceberg` skill — that path reads Iceberg metadata from a pg_lake PG instance, not from a user-supplied REST catalog.
 
@@ -167,7 +167,7 @@ Agent-facing tools invoked directly from this skill. Sub-skills (`migrate/`,
 `SKILL.md` files; internal helpers under `scripts/shared/` (e.g.
 `pg_common.py`, `sf_session.py`) are not listed here.
 
-### Tool: ask_user_question
+### Tool: ask
 
 **Description:** Ask the user to choose from a fixed list of options.
 

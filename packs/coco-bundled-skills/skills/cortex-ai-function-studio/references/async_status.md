@@ -56,7 +56,7 @@ Before reading further, identify which case applies:
 
 ## Checking Task Status
 
-**⚠️ ONE query per user message. Present result. End turn with `ask_user_question`. Never loop.** Do NOT call `TASK_HISTORY` more than once per turn. Do NOT poll automatically or re-query if the state is non-terminal — the user will come back and ask again.
+**⚠️ ONE query per user message. Present the result, then end your turn with a plain chat reply. Never loop.** Do NOT call `TASK_HISTORY` more than once per turn. Do NOT poll automatically or re-query if the state is non-terminal — the user will come back and ask again.
 
 Async jobs run as Snowflake Tasks. Use `INFORMATION_SCHEMA.TASK_HISTORY()` to check status.
 
@@ -302,7 +302,7 @@ Your job is still running ({elapsed} so far).
 You can come back anytime and ask me to "check status of {run_id}".
 ```
 
-Use `ask_user_question` with a single option: **"I'll come back later"**. Do NOT offer a "Check again" button. Do NOT re-query `TASK_HISTORY`. End your turn immediately after presenting this message.
+Do NOT call `ask` here: tell the user the job is still running and to message you when they want another status check, then end your turn. Do NOT offer a "Check again" option. Do NOT re-query `TASK_HISTORY`.
 
 ### If state is FAILED or CANCELLED
 

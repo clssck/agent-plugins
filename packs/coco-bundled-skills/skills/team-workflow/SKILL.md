@@ -3,6 +3,12 @@ name: team-workflow
 description: "Multi-phase team orchestration for feature implementation. HIGHEST PRIORITY — load FIRST (before domain skills) when user requests teammates, teams, swarms, parallel agents, or the workflow auto-triggers (`/team`, `cortex --team`, ctrl+g)."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `agent_output`, `cortex CLI`, `list_teammates`, `spawn_teammate`, `task_update`, `team_create`, `team_delete`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Skill: team-workflow
 
 ## Setup
@@ -196,7 +202,7 @@ After ExitPlanMode returns and the user accepts the plan, use the initial all-te
 ## Main Agent Rules
 
 1. Complete Setup BEFORE doing anything else.
-2. Do NOT call `AskUserQuestion` before completing setup.
+2. Do NOT call `ask` before completing setup.
 3. Do NOT call `EnterPlanMode` manually — plan mode is activated by `team_create` during Setup. Only call `EnterPlanMode` in revision cycles (after a prior `ExitPlanMode`).
 4. `ExitPlanMode` is called exactly once per plan mode cycle.
 5. During plan mode, update `{plan_path}` only via `Write`, `Edit`, or `str_replace_editor`. No `apply_patch`. No mutating source files.

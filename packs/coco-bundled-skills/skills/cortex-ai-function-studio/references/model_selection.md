@@ -81,7 +81,7 @@ For each default model, check whether it appears in the available set (from Step
 
 ### Step 4: Present Options
 
-Present using `ask_user_question`. The dialog UI may cap visible choices and add its own `Other...` choice, so the **final** explicit option must always be **"See all models"**.
+Present using `ask`. OMP appends its own "Other (type your own)" entry after your options, so the **final** explicit option must always be **"See all models"**.
 
 **Format each option as:** `model-name` with a brief cost-tier note (e.g., "Ultra-budget", "Mid-range", "High-end").
 
@@ -125,7 +125,7 @@ Then return to **Step 4** and re-present the model options, **excluding the fail
 
 ## Model Validation & Auto-Correction
 
-When user provides a model name (including via "Something else" free-text input):
+When user provides a model name (including via "Other (type your own)" free-text input):
 
 1. **Validate**: Check if the model exists in the available models list (case-insensitive match)
 2. **Auto-correct** common issues:

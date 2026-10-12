@@ -5,11 +5,17 @@ language: en
 status: Published
 author: Post Go-Live
 type: snowflake
-tools: [snowflake_sql_execute, ask_user_question, visualize_data, task, read, write, bash]
+tools: [snowflake_sql_execute, ask, visualize_data, task, read, write, bash]
 prompt: "Run a Well-Architected Framework assessment for this account"
 summary: "Assess a Snowflake account against all five Well-Architected Framework pillars."
 description: "Use when running a Snowflake Well-Architected Framework (WAF) assessment for a customer account. Three-tier scale: On Track / Needs Improvement / Needs Attention. Results displayed inline; optional HTML export. Triggers: WAF assessment, well-architected, architecture review, WAF review, security assessment, pillar assessment, security and governance, reliability, cost optimization, operational excellence, performance."
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`, `visualize_data`, `wait_agent`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
 
 # Well-Architected Framework Assessment
 
@@ -47,16 +53,16 @@ SELECT PARSE_JSON(SYSTEM$BOOTSTRAP_DATA_REQUEST('ACCOUNT')):accountInfo:serviceL
 
 If this succeeds, map the returned value to the edition (e.g., `BUSINESS_CRITICAL` → Business Critical, `ENTERPRISE` → Enterprise, `STANDARD` → Standard, `VPS` → VPS). Use this as `EDITION` and skip the edition question below.
 
-If this fails (permission error, unsupported function, etc.), fall back to asking the user for their edition in the `ask_user_question` call below.
+If this fails (permission error, unsupported function, etc.), fall back to asking the user for their edition in the `ask` call below.
 
-Then use `ask_user_question` for the pillar selection (and edition only if auto-detection failed):
+Then use `ask` for the pillar selection (and edition only if auto-detection failed):
 
 ```
 (Only if edition auto-detection failed):
 Question 1:
   Header: "Edition"
   Question: "What Snowflake edition is this account?"
-  multiSelect: false
+  multi: false
   Options:
     - Standard
     - Enterprise
@@ -66,7 +72,7 @@ Question 1:
 Question (always):
   Header: "WAF Pillars"
   Question: "Which pillars would you like to assess? Select one or many."
-  multiSelect: true
+  multi: true
   Options (label only — leave description empty ""):
     - Security & Governance
     - Operational Excellence
@@ -82,9 +88,9 @@ Use the results to populate:
 
 > **Note:** All five pillars (Security & Governance, Operational Excellence, Cost Optimization, Performance, and Reliability) are currently active.
 
-Output the detected account information to the user (org name, account name, edition, selected pillars) and proceed directly to Step 2. (This skill uses `ask_user_question` checkpoints as its approval gates.)
+Output the detected account information to the user (org name, account name, edition, selected pillars) and proceed directly to Step 2. (This skill uses `ask` checkpoints as its approval gates.)
 
-✋ **STOP** — wait for `ask_user_question` response before proceeding.
+✋ **STOP** — wait for `ask` response before proceeding.
 
 ### Step 2: Load References, Dispatch Subagents & Collect Manual Input
 
@@ -114,16 +120,16 @@ This ensures the subagent template and all YAML metadata are available immediate
 
 #### 2b. Dispatch Subagents FIRST, Then Ask Manual Questions While They Run
 
-> **CRITICAL ORDERING:** Launch ALL subagents with `run_in_background: true` FIRST in a single tool-calling message. Only AFTER the subagents are dispatched and running in the background, proceed to ask manual questions via `ask_user_question`. The subagents execute SQL concurrently in the background while the user answers manual questions — minimizing total wall-clock time.
+> **CRITICAL ORDERING:** Launch ALL subagents with `run_in_background: true` FIRST in a single tool-calling message. Only AFTER the subagents are dispatched and running in the background, proceed to ask manual questions via `ask`. The subagents execute SQL concurrently in the background while the user answers manual questions — minimizing total wall-clock time.
 
 **Subagent dispatch (do this FIRST):**
 - In your FIRST tool-calling message for this step, launch ALL pillar subagents using the `runSubagent` tool with `run_in_background: true`.
-- Do NOT include `ask_user_question` in the same message as the subagent launches — send subagents first, then ask manual questions in the next message.
+- Do NOT include `ask` in the same message as the subagent launches — send subagents first, then ask manual questions in the next message.
 - Each subagent runs independently and returns a structured JSON result block.
 - The subagent receives the consolidated YAML but only processes checks with `type: automated`. It skips `type: manual` checks.
 
 **Manual questions (do this SECOND, while subagents run):**
-- After all subagents are dispatched and confirmed running, immediately ask manual questions via `ask_user_question`.
+- After all subagents are dispatched and confirmed running, immediately ask manual questions via `ask`.
 
 **After all manual questions are answered**, call `wait_agent` with all subagent IDs (**timeout: 600000ms — 10 minutes**) to collect their results. If any subagent times out, retry it once with `run_in_background: true` and `wait_agent` again (maximum 2 total attempts per pillar).
 
@@ -139,17 +145,17 @@ Use the template loaded from `references/subagent_prompt_template.md`. Before se
 
 > **Current state:** Security & Governance and Performance have no manual checks (all type: automated). Operational Excellence, Cost Optimization, and Reliability have manual checks. When only Security & Governance and/or Performance are selected, skip manual questions entirely.
 
-> **CRITICAL: SILENT COLLECTION.** Do NOT output ANY text about manual checks to the user — no lists, no summaries, no "let me collect them", no bullet points of check names, no intermediate narration. Go DIRECTLY to calling `ask_user_question`. The user should see ONLY the `ask_user_question` prompts and nothing else.
+> **CRITICAL: SILENT COLLECTION.** Do NOT output ANY text about manual checks to the user — no lists, no summaries, no "let me collect them", no bullet points of check names, no intermediate narration. Go DIRECTLY to calling `ask`. The user should see ONLY the `ask` prompts and nothing else.
 
-Immediately ask ALL manual questions from ALL pillars via `ask_user_question` calls (max 4 questions per call — if more than 4, use the minimum number of calls needed). Use the format `<Pillar Name>: <Control or Check Name>` as the question header (e.g., "Reliability: Cross-Region DR Confirmation", "Operational Excellence: IaC Tool Adoption"). Use the human-readable `name` field from the YAML — do NOT use IDs like `SEC-3` or `REL-5a`.
+Immediately ask ALL manual questions from ALL pillars via `ask` calls (max 4 questions per call — if more than 4, use the minimum number of calls needed). Use the format `<Pillar Name>: <Control or Check Name>` as the question header (e.g., "Reliability: Cross-Region DR Confirmation", "Operational Excellence: IaC Tool Adoption"). Use the human-readable `name` field from the YAML — do NOT use IDs like `SEC-3` or `REL-5a`.
 
 ✋ **STOP** — After all manual check answers are received, call `wait_agent` with all subagent IDs to collect their results. Proceed to Step 3 only when both manual results and subagent results are available.
 
 **Check type handling within each pillar:**
 
 **`type: manual`** — has `question`:
-- Ask question via `ask_user_question`
-- **Options MUST come from the YAML `question_options` field.** If the check has a `question_options` list, use EVERY entry in that list as an option in `ask_user_question` (each entry becomes one option label). Do NOT omit any options. Do NOT invent options that are not in the YAML.
+- Ask question via `ask`
+- **Options MUST come from the YAML `question_options` field.** If the check has a `question_options` list, use EVERY entry in that list as an option in `ask` (each entry becomes one option label). Do NOT omit any options. Do NOT invent options that are not in the YAML.
 - When presenting options, do NOT prefix them with letters (A, B, C, D) or numbers. Just use the option text directly as the label.
 - **Grading:** Match the user's selected option text against the control's `thresholds` field. Threshold values now reference the exact option text (or `|`-separated options for multi-option tiers). If the user's answer matches a threshold value exactly (or is one of the `|`-separated values), assign that tier. "I don't know" always maps to `needs_attention`.
 - For **mixed controls** (both manual and automated checks), grade only the manual check here. The control-level grade is determined in Step 3a by the main agent after merging manual and automated check results.
@@ -270,7 +276,7 @@ For **each assessed pillar**, output:
 - Leave the Remediation column blank only for on-track controls.
 - This column is the primary actionable output for the customer — never skip it.
 
-4. **Ask** the user ONCE (for all pillars combined, not per-pillar) if they want the check-level detail table using `ask_user_question`:
+4. **Ask** the user ONCE (for all pillars combined, not per-pillar) if they want the check-level detail table using `ask`:
 
 ```
 Header: "Check Detail"
@@ -280,7 +286,7 @@ Options:
   - "No" → Skip to summary line
 ```
 
-✋ **STOP** — wait for `ask_user_question` response before proceeding.
+✋ **STOP** — wait for `ask` response before proceeding.
 
 If **Yes**, output a **Check Detail** table (supporting evidence per control):
 
@@ -307,7 +313,7 @@ These values MUST match the canonical JSON from Step 3b (same counts used in the
 
 After presenting all results inline, ask the user:
 
-Use `ask_user_question`:
+Use `ask`:
 ```
 Header: "HTML Report"
 Question: "Would you like to generate a shareable HTML report file?"
@@ -316,11 +322,11 @@ Options:
   - "No" → Stop here
 ```
 
-✋ **STOP** — wait for `ask_user_question` response before proceeding.
+✋ **STOP** — wait for `ask` response before proceeding.
 
 If **No**: End the workflow. The inline output is the deliverable.
 
-If **Yes**: Ask where to save the file using `ask_user_question` with `type: "text"`:
+If **Yes**: Ask where to save the file using `ask` with `type: "text"`:
 ```
 Header: "Save Location"
 Question: "Where should the HTML report be saved?"
@@ -386,11 +392,11 @@ Confirm:
 
 ## Stopping Points
 
-- ✋ **Step 1** — Wait for `ask_user_question` (edition + pillar selection combined)
-- ✋ **Step 2b** — Wait for `ask_user_question` manual check answers, then call `wait_agent` to collect subagent results
+- ✋ **Step 1** — Wait for `ask` (edition + pillar selection combined)
+- ✋ **Step 2b** — Wait for `ask` manual check answers, then call `wait_agent` to collect subagent results
 - ✋ **Step 3** — Present full results inline in CoCo
-- ✋ **Step 3e** — Ask user if they want check-level detail table (use `ask_user_question`)
-- ✋ **Step 4** — Ask user if they want an HTML file (use `ask_user_question`)
+- ✋ **Step 3e** — Ask user if they want check-level detail table (use `ask`)
+- ✋ **Step 4** — Ask user if they want an HTML file (use `ask`)
 
 ## Troubleshooting
 

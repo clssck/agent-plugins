@@ -16,8 +16,8 @@ tools:
   - Grep
   - Bash
   - web_search
-  - web_fetch
-prompt: "$review-skill-sflabs ~/.snowflake/cortex/skills/my-skill"
+  - read
+prompt: "skill://review-skill-sflabs/SKILL.md ~/.snowflake/cortex/skills/my-skill"
 language: en
 status: Published
 author: Daniel Myers, Cortex Code DevRel
@@ -44,7 +44,7 @@ The review is advisory. Final acceptance is decided by reviewers on the pull req
 The skill takes one argument: a path to a skill directory containing a `SKILL.md`.
 
 ```
-$review-skill-sflabs <path>
+skill://review-skill-sflabs/SKILL.md <path>
 ```
 
 If no argument is provided, the skill uses the current working directory. If the path does not contain a `SKILL.md`, stop with a clear error.
@@ -108,7 +108,7 @@ A single rendered report per `references/report-template.md`. Includes verdict, 
 | Multiple findings overlap (e.g. tone violation that is also a hardcoded specific) | Emit each finding once, deduplicated by `check_id`; do not double-count in the verdict heuristic |
 | Contributor selects "Adapted" in duplicate search | Continue running the rest of the checks; do not short-circuit the report |
 | Sub-workflow file is missing | This is a `format-check` blocking finding; report it and skip the corresponding phase |
-| `web_search` or `web_fetch` returns an error | Mark the affected check as `skipped`, drop confidence to medium, continue |
+| `web_search` or `read` returns an error | Mark the affected check as `skipped`, drop confidence to medium, continue |
 
 ## Notes
 

@@ -14,7 +14,7 @@ This document covers the cutover process from source to Snowflake Postgres.
 
 ### 6.2 ⚠️ PROMPT: Cutover Approval
 
-**Before executing cutover, ASK the user with `ask_user_question`:**
+**Before executing cutover, ASK the user with `ask`:**
 
 ```
 Pre-cutover checklist complete. Ready to execute cutover.

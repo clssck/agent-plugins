@@ -1,9 +1,10 @@
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 
 # Cortex AI Function Studio
 
-A Cortex Code skill for the full lifecycle of custom AI functions: **create → evaluate → optimize**.
+An OMP/Cortex Code skill for the full lifecycle of custom AI functions: **create → evaluate → optimize**.
 
 ## Project Structure
 

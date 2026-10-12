@@ -4,6 +4,12 @@ description: "Build persistent document processing pipelines using Snowflake str
 parent_skill: ai-functions-pipeline-builder
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Document Processing Pipeline
 
 Build persistent document processing pipelines using a hybrid architecture: a stream+task for event-driven document ingestion, then dynamic tables for declarative AI processing.

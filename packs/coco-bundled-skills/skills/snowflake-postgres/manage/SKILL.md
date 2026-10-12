@@ -4,6 +4,12 @@ description: "Manage Snowflake Postgres instances: list, describe, create, suspe
 parent_skill: snowflake-postgres
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Snowflake Postgres - Manage
 
 > **Windows users:** see [references/windows.md](../references/windows.md) — install prereqs, credential file paths (`%APPDATA%\postgresql\` instead of `~/`), and command-flow notes differ on native Windows. WSL behaves as Linux.
@@ -71,7 +77,7 @@ Type yes to proceed, or tell me what to change.
 Type "options" to see all available configurations.
 ```
 
-**If user says "options":** Use `ask_user_question` to show what they can change:
+**If user says "options":** Use `ask` to show what they can change:
 ```
 What would you like to configure?
 
@@ -113,7 +119,7 @@ SELECT CURRENT_ROLE();
 ```sql
 SELECT CURRENT_AVAILABLE_ROLES();
 ```
-This returns a JSON array of roles the user can activate. Parse the list and present a picker via `ask_user_question`, ranking candidates so the user sees likely-to-work options first:
+This returns a JSON array of roles the user can activate. Parse the list and present a picker via `ask`, ranking candidates so the user sees likely-to-work options first:
 
 - `ACCOUNTADMIN` if present → labelled **Recommended**
 - Any role matching `*ADMIN*` (e.g. `SYSADMIN`, `SECURITYADMIN`) → labelled **Likely works**

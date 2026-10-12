@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `notebook_action`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 
@@ -61,6 +67,6 @@ After generating the metric code in Step 2, **skip Steps 3–4** (local testing)
    When you're done reviewing, let me know.
    ```
 
-   Then use `ask_user_question` with one option: **"Ready to create metric"** (description: "The metric looks good or I've finished editing — proceed to create the UDF").
+   Then use `ask` with one option: **"Ready to create metric"** (description: "The metric looks good or I've finished editing — proceed to create the UDF").
 
 **⚠️ STOP**: Wait for confirmation. Then re-read the Python cell via `notebook_action(action="get_cell_source_codes", ...)` — the user may have edited it. Use the cell's current content to create the UDF (Step 5 of `custom_metrics.md`). After the UDF is created, run the SQL smoke-test cell so the user can see results.

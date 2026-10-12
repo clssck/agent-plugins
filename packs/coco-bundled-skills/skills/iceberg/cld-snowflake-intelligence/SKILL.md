@@ -3,6 +3,12 @@ name: cld-snowflake-intelligence
 description: "Surface Iceberg tables from Catalog-Linked Databases (CLD) in Snowflake Intelligence. Use when: query iceberg with natural language, use snowflake intelligence with CLD, surface CLD tables in intelligence, text-to-SQL for iceberg, create agent to talk to CLD data, build conversational interface for iceberg tables."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # CLD to Snowflake Intelligence
 
 Surface CLD Iceberg tables in Snowflake Intelligence for natural language querying.

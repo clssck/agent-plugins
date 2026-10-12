@@ -4,6 +4,12 @@ description: Openflow data integration operations. Openflow is a Snowflake NiFi-
 skill_version: "2026-07-01"
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `get_page_context`, `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Openflow
 
 ## Surface Detection & Session Start (Always First)
@@ -111,7 +117,7 @@ Status, control, diagnosis, and list routing is surface- and generation-aware (r
 | Status, check, how is it doing, what's running, health, is it working | Check Status | **SQL surface (Snowsight, or Gen2 on CLI):** `references/ops-status-check-sql.md`. **Gen1/NiFi-canvas (CLI/Desktop):** `references/ops-status-check.md` |
 | Start, stop, pause, resume, turn on, turn off, enable, disable | Control Flow | **Gen2 / SQL-managed:** the connector's own ref (`references/connector-postgres-gen2.md` / `references/connector-mysql-gen2.md`) — SQL lifecycle. **Gen1 (CLI/Desktop):** `references/ops-status-check.md`. **Gen1 on Snowsight:** not available here; direct to the Openflow UI or Cortex Code Desktop/CLI |
 | Upgrade, update, new version, stale, outdated | Upgrade Connector | `references/connector-upgrades.md` |
-| Errors, bulletins, any problems, warnings, what's wrong, why is it failing | Diagnose | **Gen2 on SQL surface:** read state via `references/ops-status-check-sql.md`, then for log/metric root cause **invoke the `openflow-observability` skill**. **Gen1 (CLI/Desktop):** `references/ops-status-check.md`. **Gen1 on Snowsight:** Openflow UI or Cortex Code Desktop/CLI |
+| Errors, bulletins, any problems, warnings, what's wrong, why is it failing | Diagnose | **Gen2 on SQL surface:** read state via `references/ops-status-check-sql.md`, then for log/metric root cause **read `skill://openflow-observability/SKILL.md`**. **Gen1 (CLI/Desktop):** `references/ops-status-check.md`. **Gen1 on Snowsight:** Openflow UI or Cortex Code Desktop/CLI |
 | List, show me, what connectors exist, what's deployed | List | **SQL surface (Snowsight, or Gen2 on CLI):** `references/ops-status-check-sql.md`. **Gen1/NiFi-canvas (CLI/Desktop):** `references/ops-status-check.md` |
 | Setup, first time, connect, missing profile, missing cache, discover infrastructure (CLI only) | CLI Bootstrap | `references/bootstrap-cli.md` |
 | Deploy Openflow, create deployment, greenfield, no deployments yet, new account, install Openflow | Deploy Openflow | `references/deploy-prereqs.md` |

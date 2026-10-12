@@ -3,6 +3,12 @@ name: snowflake-workspace
 description: "MANDATORY for Snowflake workspace operations. Workspace lifecycle (CREATE/ALTER/DROP/RENAME), file MOVEMENT (upload, download, list, remove, copy) via the `cortex ws` CLI subcommand, RBAC (GRANT READ/WRITE), shared-workspace publishing (`ALTER WORKSPACE ... COMMIT` to make uploads visible to other users), dropped-user recovery (DROPPED_USER$), replication setup, account-wide audit. Git-backed (git-synced) workspaces are a PRIVATE workspace connected to a git repo: they are created ONLY in the Snowsight UI (Projects » Workspaces » From Git repository) — there is no CREATE WORKSPACE DDL/CLI for them; a shared workspace CANNOT be git-backed (collaborate via each user's own git-backed workspace + git push/pull, not RBAC grants); and there is no reliable public way to tell whether a workspace is git-backed via SQL/CLI (DESCRIBE/SHOW WORKSPACES don't report it — check in the Snowsight UI). Use when the user uploads, downloads, lists, removes, or copies files in a Snowflake workspace; creates/alters/drops a workspace; shares or revokes access; recovers content from a dropped user; sets up workspace replication; or asks anything referencing snow://workspace URIs, USER$ schemas, LOCAL schema workspaces, DEFAULT$/My Workspace, secondary replicas, or workspace administration. Triggers: workspace, workspaces, snow://workspace, USER$, DEFAULT$, personal workspace, shared workspace, git-backed workspace, git-synced workspace, connect workspace to git, LOCAL workspace, ALTER WORKSPACE, GRANT WORKSPACE, list workspace, files in workspace, what's in my workspace, secondary replica, read-only replica, dropped user."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 ## Recognition: when this skill applies
 
 If the user names a Snowflake object using any of these shapes, it is **likely a workspace** — not a table/view/share — treat it as a workspaces operation and load this skill:

@@ -1,3 +1,4 @@
+
 # Snowflake Notebooks - Architecture Diagram
 
 > **Last Updated**: 2026-06-25

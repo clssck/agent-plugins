@@ -1,6 +1,6 @@
 ---
 name: business-ontology-workflow-phase-2-enrich
-description: "Phase 2 (Enrich) of the Business Ontology workflow — Cortex Sense promotion, evidence-driven asset associations, cross-domain conflict resolution, and optional schema / dbt extraction. Routes to $cortex-sense and $business-ontology import. Parent: business-ontology workflow."
+description: "Phase 2 (Enrich) of the Business Ontology workflow — Cortex Sense promotion, evidence-driven asset associations, cross-domain conflict resolution, and optional schema / dbt extraction. Routes to skill://cortex-sense/SKILL.md and skill://business-ontology/SKILL.md import. Parent: business-ontology workflow."
 parent_skill: business-ontology-workflow
 ---
 
@@ -30,7 +30,7 @@ When `cortex_sense_manifest` is provided:
 LIST <cortex_sense_manifest> PATTERN = '.*manifest.*';
 ```
 
-Route to `$business-ontology import`:
+Route to `skill://business-ontology/SKILL.md import`:
 
 ```yaml
 source_type: cortex_sense_promotion
@@ -52,7 +52,7 @@ Approve relationship candidates:
 CALL SYSTEM$APPROVE_ALL_GLOSSARY_RELATIONSHIPS();
 ```
 
-For deeper discovery first, route to `$cortex-sense setup` or `$cortex-sense refine` per the manifest contract in `../../reference/CORTEX_SENSE_MANIFEST_CONTRACT.md`.
+For deeper discovery first, route to `skill://cortex-sense/SKILL.md setup` or `skill://cortex-sense/SKILL.md refine` per the manifest contract in `../../reference/CORTEX_SENSE_MANIFEST_CONTRACT.md`.
 
 ## Step 1b — Additional extraction sources (optional)
 
@@ -62,7 +62,7 @@ the bridge path until the Cortex Sense backend (Source F) is available.
 
 For each source key:
 1. Invoke the script as described in EXTRACTION_SOURCES.md.
-2. Pass the output to `$business-ontology import` Path C (structured inline data).
+2. Pass the output to `skill://business-ontology/SKILL.md import` Path C (structured inline data).
 3. The import sub-skill deduplicates against existing terms, presents the candidate review table,
    and handles draft/approve.
 

@@ -54,15 +54,15 @@ Check if a **top-level product skill** provides the telemetry format. These are 
 
 **Known external skills with telemetry format:**
 
-| Product | Skill Command | What It Provides |
+| Product | Skill file | What It Provides |
 |---------|--------------|------------------|
-| Dynamic Tables | `dt-alerting` | Event Table Schema Reference for DT refresh events, states, alerting queries |
+| Dynamic Tables | `skill://dynamic-tables/dt-alerting/SKILL.md` | Event Table Schema Reference for DT refresh events, states, alerting queries |
 
-**Action:** Use the `skill` tool to load the external skill by name. Do NOT use `read` — you must use the `skill` tool.
+**Action:** Load the external skill file with `read` (OMP has no separate `skill` tool). Use only its **Event Table Schema Reference** and **Step 3: Query Refresh Events** sections as the format source; do not run its setup steps (LOG_LEVEL changes, event table or alert creation) unless the user asked for alerting.
 
 Example for Dynamic Tables:
 ```
-skill(command="dt-alerting")
+read skill://dynamic-tables/dt-alerting/SKILL.md
 ```
 
 **If the skill loads successfully:** Use its telemetry format definitions. Proceed to Step 5 (Generate SQL Query).

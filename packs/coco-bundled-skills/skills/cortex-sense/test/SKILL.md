@@ -98,11 +98,11 @@ If the builder uses "promote to glossary", "add to ontology", "push to glossary"
 
 **Route based on what the builder is pointing at:**
 
-1. **Something from "From Cortex Sense context"** — extract `entity_key` and the document body (`markdown` if non-empty, else `cam_content` — see `../reference/CONTEXT_LOOKUP.md` content contract) from the last rendered CortexSense document; route to `$business-ontology` with that content as pasted text (BG `import/SKILL.md` Path B — AI extraction) and `target_domain_hint: <domain>`. Say: "Routing to Business Ontology to add `<entity_key>` as a candidate term."
+1. **Something from "From Cortex Sense context"** — extract `entity_key` and the document body (`markdown` if non-empty, else `cam_content` — see `../reference/CONTEXT_LOOKUP.md` content contract) from the last rendered CortexSense document; route to `skill://business-ontology/SKILL.md` with that content as pasted text (BG `import/SKILL.md` Path B — AI extraction) and `target_domain_hint: <domain>`. Say: "Routing to Business Ontology to add `<entity_key>` as a candidate term."
 
 2. **Something from "From Business Ontology"** — the term is already in the ontology. Reply: "That term is already in the Business Ontology. To update it, use the Business Ontology skill directly." Do not route.
 
-3. **"Promote all" / "promote this domain"** with no specific document referenced — full manifest promotion. Say: "Routing to Business Ontology to promote the `<domain>` context." Route to `$business-ontology` with the domain name and `target_domain_hint: <domain>`; BG `import/SKILL.md` Path D loads the manifest and handles the rest.
+3. **"Promote all" / "promote this domain"** with no specific document referenced — full manifest promotion. Say: "Routing to Business Ontology to promote the `<domain>` context." Route to `skill://business-ontology/SKILL.md` with the domain name and `target_domain_hint: <domain>`; BG `import/SKILL.md` Path D loads the manifest and handles the rest.
 
 4. **Ambiguous "add this to ontology"** with no clear prior document — ask once: "Which item do you want to add — the last lookup result, or the full `<domain>` context?"
 

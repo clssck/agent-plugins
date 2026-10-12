@@ -17,6 +17,7 @@ description: "Install, update, and configure the Databricks CLI. Use when the us
 ## Workflow
 
 > **Convention:** All placeholders in `<angle-brackets>` must be replaced with actual values from the user. Always ask the user for the value before running the command.
+> **Version invariant:** The default minimum is 0.205.0. When a caller specifies a higher minimum, use that version throughout detection, update, verification, troubleshooting, and completion; never report success below the caller's minimum.
 
 ### Step 1: Detect OS and Existing Installation
 
@@ -30,7 +31,7 @@ description: "Install, update, and configure the Databricks CLI. Use when the us
    databricks -v 2>/dev/null || echo "NOT_INSTALLED"
    ```
 
-2. **If already installed** at version 0.205.0+:
+2. **If already installed** at version 0.205.0+ and at or above any caller-specified minimum:
 
    **⚠️ MANDATORY STOPPING POINT**: Ask the user what they want to do before proceeding.
 
@@ -38,7 +39,7 @@ description: "Install, update, and configure the Databricks CLI. Use when the us
    - Reconfigure authentication (go to Step 4)
    - Reinstall from scratch (continue to Step 2)
 
-3. **If not installed or below 0.205.0**, continue to Step 2.
+3. **If not installed, below 0.205.0, or below a caller-specified minimum**, install or follow **Updating the CLI** before continuing.
 
 ### Step 2: Install the Databricks CLI
 
@@ -112,7 +113,7 @@ choco install databricks-cli
    databricks -v
    ```
 
-2. **Expected:** Version 0.205.0 or above.
+2. **Expected:** Version 0.205.0 or above, and at or above any caller-specified minimum.
 
 3. **If verification fails**, see Troubleshooting below.
 
@@ -270,7 +271,7 @@ choco upgrade databricks-cli
 | `command not found: databricks` | Binary not on PATH. Check install location and add to PATH. |
 | `/usr/local/bin is not writable` | Re-run the curl install with `sudo`. |
 | `Target path already exists` | Remove existing binary first: `rm /usr/local/bin/databricks`, then reinstall. |
-| Version below 0.205.0 | You have the legacy CLI. Uninstall it (`pip uninstall databricks-cli`) and install the new one. |
+| Version below the required minimum | For versions below 0.205.0, uninstall the legacy CLI (`pip uninstall databricks-cli`) and install the new one. Otherwise follow **Updating the CLI**, then verify again. |
 | `brew: command not found` | Install Homebrew first or use the curl method instead. |
 | Auth token expired | Re-run `databricks auth login --host <url>` to refresh. |
 | `Error: invalid token` | Token may be revoked. Generate a new one or re-authenticate with OAuth. |
@@ -278,6 +279,6 @@ choco upgrade databricks-cli
 
 ## Output
 
-- Databricks CLI installed and on PATH at version 0.205.0+
+- Databricks CLI installed and on PATH at version 0.205.0+ and at or above any caller-specified minimum
 - Authentication configured with a named profile in `~/.databrickscfg`
 - Verified connectivity to the Databricks workspace

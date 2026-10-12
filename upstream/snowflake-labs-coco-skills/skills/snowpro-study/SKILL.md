@@ -12,15 +12,21 @@ language: en
 status: beta
 authors: Andy Brown
 type: community
-prompt: "$snowpro-study Core Deep Dive Domain 2"
+prompt: "skill://snowpro-study/SKILL.md Core Deep Dive Domain 2"
 tools:
-  - web_fetch
+  - read
   - Write
   - Read
   - Bash
-  - ask_user_question
+  - ask
   - Glob
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
 
 # SnowPro Certification Study Skill — Router
 
@@ -43,11 +49,11 @@ cortex search docs "Snowflake architecture overview"
 **If the command returns meaningful results** (not an error or empty):
 - Use `cortex search docs "<query>"` as the PRIMARY documentation source for all content grounding
 - This is faster, more reliable, and avoids issues with dynamically rendered web pages
-- Supplement with `web_fetch` only when the search doesn't cover a specific topic
+- Supplement with `read` only when the search doesn't cover a specific topic
 
 **If the command fails or returns no results:**
 
-Prompt the user via `ask_user_question` to install the Cortex Knowledge Extension (CKE), which provides the best documentation grounding:
+Prompt the user via `ask` to install the Cortex Knowledge Extension (CKE), which provides the best documentation grounding:
 
 > "The Snowflake Documentation Knowledge Extension isn't available on this connection. The CKE provides the most accurate and reliable documentation grounding for study content. Would you like to install it?"
 
@@ -55,7 +61,7 @@ Options:
 1. **Install on current connection** — Install the CKE on the active Snowflake connection
 2. **Install on a different connection** — Let the user pick another existing connection to install on
 3. **Install on a new connection** — Guide the user through setting up a new connection and installing
-4. **Skip — use web fetch instead** — Fall back to `web_fetch` against docs.snowflake.com (less reliable, slower)
+4. **Skip — use web fetch instead** — Fall back to `read` against docs.snowflake.com (less reliable, slower)
 
 **If the user chooses to install (options 1-3):**
 - Guide them through CKE installation on the selected connection
@@ -63,7 +69,7 @@ Options:
 - Proceed with `cortex search docs` as the primary documentation source
 
 **If the user declines (option 4):**
-- Fall back to `web_fetch` against `https://docs.snowflake.com/en/...` URLs
+- Fall back to `read` against `https://docs.snowflake.com/en/...` URLs
 - Note in output: "Documentation sourced via web fetch (Knowledge extension not available)"
 
 **If web fetch also fails:**
@@ -87,14 +93,14 @@ This skill uses two types of documentation. Both should attempt `cortex search d
 | **Snowflake product docs** (features, SQL syntax, architecture, behavior) | `cortex search docs` (CKE) | `https://docs.snowflake.com/en/...` |
 | **Exam information** (certifications, exam guides, domains, weights, scheduling) | `cortex search docs` (CKE) | `https://learn.snowflake.com/en/certifications/...` |
 
-When `cortex search docs` does not return results for exam-specific queries (e.g., domain names, weights, question counts, prerequisites), fall back to `web_fetch` against `learn.snowflake.com` — NOT `docs.snowflake.com`.
+When `cortex search docs` does not return results for exam-specific queries (e.g., domain names, weights, question counts, prerequisites), fall back to `read` against `learn.snowflake.com` — NOT `docs.snowflake.com`.
 
 ### Priority Order for Documentation Access
 
 1. `cortex search docs` — Snowflake Documentation Knowledge extension (fastest, most reliable for both product docs and exam info)
 2. Cortex Agent with documentation tools — if Knowledge extension is unavailable
 3. Prompt user to install CKE (on current, different, or new connection)
-4. `web_fetch` — only if user declines CKE installation:
+4. `read` — only if user declines CKE installation:
    - Product documentation → `https://docs.snowflake.com/en/...`
    - Exam/certification information → `https://learn.snowflake.com/en/certifications/...`
 5. LLM knowledge with `[VERIFY]` markers — last resort only
@@ -125,7 +131,7 @@ When `cortex search docs` does not return results for exam-specific queries (e.g
 
 ### Discovery Process
 
-1. Fetch `https://learn.snowflake.com/en/certifications/` via `web_fetch`
+1. Fetch `https://learn.snowflake.com/en/certifications/` via `read`
 2. Parse all certification entries: name, exam code, tier (Core/Specialty/Advanced), cost, and exam guide URL
 3. For each certification, fetch its exam guide page to extract:
    - Domain names and approximate weights
@@ -177,24 +183,24 @@ If the fetched exam code differs from a previously cached version (e.g., GES-C01
 
 | User Input | Routed To |
 |------------|-----------|
-| `$snowpro-study` | Ask which cert + content type, then route |
-| `$snowpro-study Gen AI` | Ask content type, then route |
-| `$snowpro-study Gen AI Domain 3` | → Sub-skill: **snowpro-deepdive** |
-| `$snowpro-study Gen AI Domains 2-4` | → Sub-skill: **snowpro-deepdive** |
-| `$snowpro-study Core flashcards` | → Sub-skill: **snowpro-flashcards** |
-| `$snowpro-study Core flashcards Domain 1` | → Sub-skill: **snowpro-flashcards** |
-| `$snowpro-study Architect practice exam` | → Sub-skill: **snowpro-exam** |
-| `$snowpro-study Gen AI exam` | → Sub-skill: **snowpro-exam** (interactive) |
-| `$snowpro-study Gen AI progress` | → Sub-skill: **snowpro-exam** (trend report) |
-| `$snowpro-study Gen AI all` | Generate study plan here, then route to each sub-skill |
+| `skill://snowpro-study/SKILL.md` | Ask which cert + content type, then route |
+| `skill://snowpro-study/SKILL.md Gen AI` | Ask content type, then route |
+| `skill://snowpro-study/SKILL.md Gen AI Domain 3` | → Sub-skill: **snowpro-deepdive** |
+| `skill://snowpro-study/SKILL.md Gen AI Domains 2-4` | → Sub-skill: **snowpro-deepdive** |
+| `skill://snowpro-study/SKILL.md Core flashcards` | → Sub-skill: **snowpro-flashcards** |
+| `skill://snowpro-study/SKILL.md Core flashcards Domain 1` | → Sub-skill: **snowpro-flashcards** |
+| `skill://snowpro-study/SKILL.md Architect practice exam` | → Sub-skill: **snowpro-exam** |
+| `skill://snowpro-study/SKILL.md Gen AI exam` | → Sub-skill: **snowpro-exam** (interactive) |
+| `skill://snowpro-study/SKILL.md Gen AI progress` | → Sub-skill: **snowpro-exam** (trend report) |
+| `skill://snowpro-study/SKILL.md Gen AI all` | Generate study plan here, then route to each sub-skill |
 
 ### Routing Logic
 
 1. Run certification discovery (cache-first)
 2. Identify which certification the user wants (match by name, abbreviation, or exam code)
-3. If ambiguous, ask using `ask_user_question` with the discovered cert list as options
+3. If ambiguous, ask using `ask` with the discovered cert list as options
 4. Identify what content type(s) to generate
-5. If ambiguous, ask using `ask_user_question`:
+5. If ambiguous, ask using `ask`:
    - Study Plan (handled here)
    - Domain Deep-Dive(s) → read and follow `DEEPDIVE.md`
    - Flashcards → read and follow `FLASHCARDS.md`
@@ -260,13 +266,13 @@ Study plans are generated directly by this router skill (they are lightweight an
 
 ## How to Study
 
-Use `$snowpro-study` for any of the following:
-1. **Deep-dive on a domain** — `$snowpro-study {cert} Domain {N}`
-2. **Flashcards** — `$snowpro-study {cert} flashcards`
-3. **Practice exam** — `$snowpro-study {cert} practice exam`
-4. **Interactive quiz** — `$snowpro-study {cert} exam`
-5. **Score history** — `$snowpro-study {cert} progress`
-6. **Full study package** — `$snowpro-study {cert} all`
+Use `skill://snowpro-study/SKILL.md` for any of the following:
+1. **Deep-dive on a domain** — `skill://snowpro-study/SKILL.md {cert} Domain {N}`
+2. **Flashcards** — `skill://snowpro-study/SKILL.md {cert} flashcards`
+3. **Practice exam** — `skill://snowpro-study/SKILL.md {cert} practice exam`
+4. **Interactive quiz** — `skill://snowpro-study/SKILL.md {cert} exam`
+5. **Score history** — `skill://snowpro-study/SKILL.md {cert} progress`
+6. **Full study package** — `skill://snowpro-study/SKILL.md {cert} all`
 ```
 
 ### "How to Study" Section — Expanded Template
@@ -280,16 +286,16 @@ The study plan's "How to Study" section must include ALL of the following conten
 
 | Command | What It Does |
 |---------|--------------|
-| `$snowpro-study {cert} Domain 1` | Generate a deep-dive markdown file for a single domain |
-| `$snowpro-study {cert} Domains 1-3` | Generate deep-dives for multiple domains at once |
-| `$snowpro-study {cert} flashcards` | Generate flashcards for all domains (choose format when prompted) |
-| `$snowpro-study {cert} flashcards Domain 2` | Generate flashcards for a specific domain only |
-| `$snowpro-study {cert} practice exam` | Generate a full-length mock exam (written to file or interactive) |
-| `$snowpro-study {cert} Domain 3 questions` | Generate practice questions for a single domain only |
-| `$snowpro-study {cert} exam` | Take an interactive quiz in-session (choose mode when prompted) |
-| `$snowpro-study {cert} Domain 4 quiz` | Interactive quiz for a single domain |
-| `$snowpro-study {cert} progress` | View your score history and trend analysis |
-| `$snowpro-study {cert} all` | Generate the full package: study plan + all deep-dives |
+| `skill://snowpro-study/SKILL.md {cert} Domain 1` | Generate a deep-dive markdown file for a single domain |
+| `skill://snowpro-study/SKILL.md {cert} Domains 1-3` | Generate deep-dives for multiple domains at once |
+| `skill://snowpro-study/SKILL.md {cert} flashcards` | Generate flashcards for all domains (choose format when prompted) |
+| `skill://snowpro-study/SKILL.md {cert} flashcards Domain 2` | Generate flashcards for a specific domain only |
+| `skill://snowpro-study/SKILL.md {cert} practice exam` | Generate a full-length mock exam (written to file or interactive) |
+| `skill://snowpro-study/SKILL.md {cert} Domain 3 questions` | Generate practice questions for a single domain only |
+| `skill://snowpro-study/SKILL.md {cert} exam` | Take an interactive quiz in-session (choose mode when prompted) |
+| `skill://snowpro-study/SKILL.md {cert} Domain 4 quiz` | Interactive quiz for a single domain |
+| `skill://snowpro-study/SKILL.md {cert} progress` | View your score history and trend analysis |
+| `skill://snowpro-study/SKILL.md {cert} all` | Generate the full package: study plan + all deep-dives |
 
 ### Domain Deep-Dives
 
@@ -300,7 +306,7 @@ Deep-dives are detailed study guides for each domain, written to markdown files 
 - Exam traps (common misconceptions that appear as distractors)
 - Reference links to source documentation
 
-Generate one at a time (`$snowpro-study {cert} Domain 1`) or a range (`$snowpro-study {cert} Domains 1-3`).
+Generate one at a time (`skill://snowpro-study/SKILL.md {cert} Domain 1`) or a range (`skill://snowpro-study/SKILL.md {cert} Domains 1-3`).
 
 ### Flashcards
 
@@ -351,12 +357,12 @@ Once you have 2+ recorded attempts, the skill generates a trend report showing:
 - Strengths and weaknesses analysis
 - Readiness assessment with a suggested next action
 
-View your history anytime with `$snowpro-study {cert} progress`.
+View your history anytime with `skill://snowpro-study/SKILL.md {cert} progress`.
 
 ### Recommended Study Workflow
 
 1. **Read** the study resources linked in each domain section above
-2. **Deep-dive** each domain in order: `$snowpro-study {cert} Domain 1`, then 2, etc.
+2. **Deep-dive** each domain in order: `skill://snowpro-study/SKILL.md {cert} Domain 1`, then 2, etc.
 3. **Generate flashcards** for each domain after completing its deep-dive
 4. **Study flashcards daily** in Anki using spaced repetition
 5. **Take domain quizzes** as you complete each domain to identify gaps
@@ -372,7 +378,7 @@ View your history anytime with `$snowpro-study {cert} progress`.
 ### Content Sourcing for Study Plans
 
 1. Use the topics extracted from the exam guide page (already in cache)
-2. Fetch 1-2 relevant Snowflake documentation pages per domain via `web_fetch` to find accurate resource links
+2. Fetch 1-2 relevant Snowflake documentation pages per domain via `read` to find accurate resource links
 3. Prefer official docs over third-party sources
 
 ---

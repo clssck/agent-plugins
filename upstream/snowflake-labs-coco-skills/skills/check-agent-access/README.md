@@ -8,7 +8,7 @@ The skill discovers all Cortex Agents in your account, reads each agent's live s
 
 ## Usage
 
-Invoke with `$check-agent-access` or let Cortex Code activate it automatically when you say something like:
+Invoke with `skill://check-agent-access/SKILL.md` or let Cortex Code activate it automatically when you say something like:
 
 ```
 Audit which Cortex Agents the PUBLIC role can access and fix any gaps.

@@ -11,8 +11,14 @@ description: |
   Triggers: validate java scos, verify java migration, run java scos test suite,
   validate spark java, check java migration, test java migration correctness.
 parent_skill: snowpark-connect
-allowed-tools: Read, Write, Bash, Task, AskUserQuestion
+allowed-tools: Read, Write, Bash, Task, ask
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `agent_output`, `snowflake.connector`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
 
 # Validate Spark Java to Snowpark Connect Migration
 
@@ -369,7 +375,7 @@ uv run --project $SKILL_DIRECTORY/.. python -m streamlit run \
 
 ### Step 6 — Cleanup gate
 
-Use `AskUserQuestion` **once** to ask whether to:
+Use `ask` **once** to ask whether to:
 - **(a) Drop ALL per-batch golden Snowflake schemas** (list each `run_id` from
   `batches_prepared.json`).
 - **(b) Tear down git worktrees and `validation-base/*` branches.** Keep the

@@ -1,3 +1,4 @@
+
 # Organizational Listing Provider Skill
 
 Create and publish organizational listings to share data products across accounts within your Snowflake organization via Internal Marketplace.
@@ -31,7 +32,7 @@ When user says something like **"share my agent to internal marketplace"** or **
    1. Who should have access? (all accounts / specific accounts / access must be requested)
    2. What email should I use for support and approver contacts?
    ```
-3. **Check for required custom attributes** — run `SHOW AVAILABLE INTERNAL MARKETPLACE CONFIGS` and filter for `props = custom_attribute_type`. If any have `is_required: true`, collect their values using `ask_user_question` before proceeding.
+3. **Check for required custom attributes** — run `SHOW AVAILABLE INTERNAL MARKETPLACE CONFIGS` and filter for `props = custom_attribute_type`. If any have `is_required: true`, collect their values using `ask` before proceeding.
 4. **Auto-generate** listing with minimal fields:
    - Title: create a meaningful title that describes the data product and all objects included
    - Description: auto-generated a helpful description on what this data product can do, what objects it includes, and what use cases it can help address
@@ -287,10 +288,10 @@ GRANT USAGE ON SCHEMA <database_name>.<schema_name> TO ROLE <your_role> WITH GRA
    
    - Filter to only rows where `props` = `custom_attribute_type` — ignore rows with other types (e.g., `notification_integration_name`)
    - If no filtered rows have `is_required: true` → **skip silently**, do not mention custom attributes to the user
-   - If any rows have `is_required: true` → use the `ask_user_question` tool to collect values. Present each required attribute as its own individual question (up to 4 per call):
-     - **Single/multi-select attributes** (predefined options exist): use `options` with each option's `display_name` as the label. Use `multiSelect: true` if the attribute allows multiple values.
-     - **Free-text attributes** (no predefined options): use a text input with a sensible `defaultValue` if one can be inferred
-     - If there are more than 4 required attributes, batch them in groups of up to 4 per `ask_user_question` call
+   - If any rows have `is_required: true` → use the `ask` tool to collect values. Present each required attribute as its own individual question (up to 4 per call):
+     - **Single/multi-select attributes** (predefined options exist): use `options` with each option's `display_name` as the label. Use `multi: true` if the attribute allows multiple values.
+     - **Free-text attributes** (no predefined options): OMP `ask` has no text input or default-value field; offer an inferred value as an option (the user types a different value via the auto-added "Other (type your own)"), or ask in normal chat when nothing can be inferred
+     - If there are more than 4 required attributes, batch them in groups of up to 4 per `ask` call
    - **List ALL valid options** from the result for constrained attributes — do not summarize or truncate
    - When writing values to the manifest, use the `display_name` field (not `value`) for each selected option
    - **Do not ask about optional attributes** (`is_required: false`) unless the user explicitly requests them

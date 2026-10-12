@@ -159,7 +159,7 @@ If evidence is sparse, state the most probable hypothesis and what additional in
 
 ### Step 6: Next Steps (skill-backed only)
 
-After presenting the report, use `ask_user_question` and offer **only** options that load an existing workflow. Do **not** offer freeform “fix the data.”
+After presenting the report, use `ask` and offer **only** options that load an existing workflow. Do **not** offer freeform “fix the data.”
 
 Present options as **user-facing click labels** (action-oriented, plain language). **Copy the click labels below verbatim** for the default top 6 — do not paraphrase, reorder, or replace any item (e.g. do **not** substitute “trace upstream lineage” for #6; lineage belongs earlier in the investigation, not as a post-report swap-in). Offer in **this priority order**. Default ask shows the **top 6** + “No thanks”; reveal 7–11 only if the user asks “what else?” or the case clearly fits.
 

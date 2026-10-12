@@ -19,12 +19,18 @@ tools:
   - Edit
   - Glob
   - Grep
-prompt: "$manage-zerocopy-sapbdc create a connector and publish with minimal CSN"
+prompt: "skill://manage-zerocopy-sapbdc/SKILL.md create a connector and publish with minimal CSN"
 language: en
 status: Custom
 author: Amit Tapas & Kevin Poskitt
 type: snowflake
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_object_search`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
 
 # SAP BDC <=> Snowflake Zero-Copy Integration
 
@@ -112,19 +118,19 @@ What would you like to do with the SAP BDC <=> Snowflake zero-copy connector?
 ## Examples
 
 ### Example 1: Create and enroll a connector
-User: `$manage-zerocopy-sapbdc create a new zero-copy connector and enroll it with SAP BDC`
+User: `skill://manage-zerocopy-sapbdc/SKILL.md create a new zero-copy connector and enroll it with SAP BDC`
 Assistant: Asks for database/schema/connector name, runs CREATE ZEROCOPY CONNECTOR, provides the account URL for SAP for Me registration, then connects with invitation link.
 
 ### Example 2: Consume a data product
-User: `$manage-zerocopy-sapbdc mount the Workforce Persons data product from SAP`
+User: `skill://manage-zerocopy-sapbdc/SKILL.md mount the Workforce Persons data product from SAP`
 Assistant: Lists available shares, creates a catalog-linked database, confirms tables are accessible and semantic views are generated.
 
 ### Example 3: Publish Snowflake data to SAP
-User: `$manage-zerocopy-sapbdc publish my ANALYTICS_DB.SALES schema to SAP BDC`
+User: `skill://manage-zerocopy-sapbdc/SKILL.md publish my ANALYTICS_DB.SALES schema to SAP BDC`
 Assistant: Enables share-back, validates Iceberg V3 tables, generates MINIMAL CSN Interop v1.0 (SDK-compatible, no options, no reviews), creates share, publishes data product.
 
 ### Example 4: Troubleshoot
-User: `$manage-zerocopy-sapbdc my connector is stuck in CONNECT_ERROR`
+User: `skill://manage-zerocopy-sapbdc/SKILL.md my connector is stuck in CONNECT_ERROR`
 Assistant: Runs DESC ZEROCOPY CONNECTOR, checks privileges, validates invitation link, provides remediation steps.
 
 ## Stopping Points

@@ -3,6 +3,12 @@ name: openflow-ops-extensions
 description: Manage custom NAR extensions in Openflow runtimes. Use for uploading NARs, Python processor initialization, and version management.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Extension Operations
 
 This reference covers managing custom NAR (NiFi Archive) extensions in Openflow runtimes. A custom NAR may contain Java or Python components.

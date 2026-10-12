@@ -19,7 +19,7 @@ For each gated step, the validator:
 1. Reads the key from the project config (`view-section snowpark_api`)
 2. If `"no"` → log "Skipping `<step>` (configured as disabled). You can run it later using the `<sub-skill-name>` skill." and continue to the next step
 3. If `"yes"` → load the bundled SKILL.md and follow it inline, passing the orchestrator context (see [example-workflows.md](example-workflows.md))
-4. If unset → ask the user via `ask_user_question`, then persist the answer to the project config via `config_manager.py save`
+4. If unset → ask the user via `ask`, then persist the answer to the project config via `config_manager.py save`
 
 ## EWI Fixer Sub-keys
 

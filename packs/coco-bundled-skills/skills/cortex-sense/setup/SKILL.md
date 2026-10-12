@@ -4,12 +4,18 @@ description: "Set up Cortex Sense for a new use case. CoCo runs a background sca
 parent_skill: cortex-sense
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_object_search`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Setup
 
 ## HARD RULES (read first — these override anything below on conflict)
 
 - **NEVER save/persist the manifest until the builder explicitly confirms** by typing `build` / `ok` / `go` / `yes` (or an equivalent affirmation). Rendering the summary is **not** confirmation. The only path to save is the `build` branch in §9, which leads to §10.
-- **Present scope only as the scope box** from `../reference/SUMMARY_FORMAT.md` — plain text inside a single code fence. Never a generic markdown table, never an `AskUserQuestion` / multiple-choice UI.
+- **Present scope only as the scope box** from `../reference/SUMMARY_FORMAT.md` — plain text inside a single code fence. Never a generic markdown table, never an `ask` / multiple-choice UI.
 - **The interaction model is: summary box → builder types free-form text → echo + re-render.** Classify every edit per `../reference/INSTRUCTIONS.md`. Do not ask the builder to pick internal buckets or choose from menus.
 
 ## When to load
@@ -452,7 +458,7 @@ If neither heuristic finds anything: `Scope looks clean — no obvious staging o
 
 ## What this skill never does
 
-- Use `AskUserQuestion` / any multiple-choice or picker UI for scope decisions — the three-section summary box plus free-form text is the entire interaction model
+- Use `ask` / any multiple-choice or picker UI for scope decisions — the three-section summary box plus free-form text is the entire interaction model
 - Open with a menu of scoping modes ("how much of your data should this context cover?")
 - Offer hand-curated "common starting points" (`sales_ops`, `finance_reporting`, …)
 - Render a 9-row checkbox grid of internal sources

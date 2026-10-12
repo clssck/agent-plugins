@@ -7,7 +7,7 @@
   "repository": "https://github.com/greensock/gsap-skills",
   "gitHead": "aed9cfd3277740755f6bfc1155c7aa645403b760",
   "sync": {
-    "build": "6fbc247ca68fa2a2f113a6e3399eb60f3b96564b4f130d365e570e884ba6619a",
+    "build": "2019c4902d50cde57e4eba899bb2db86d5d1dc12bc14ff1b0c919a5a46f0dd9c",
     "origins": {
       "examples/nuxt": "examples/nuxt",
       "examples/react": "examples/react",

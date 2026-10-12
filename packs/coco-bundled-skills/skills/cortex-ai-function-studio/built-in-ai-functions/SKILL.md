@@ -3,6 +3,13 @@ name: built-in-ai-functions
 description: "**[REQUIRED]** Use for ALL operations using Snowflake's built-in AI_* functions — including running functions, estimating token costs, and authoring batch SQL. Triggers: run AI_SENTIMENT, use AI_COMPLETE, use AI_CLASSIFY, use AI_SUMMARIZE_AGG, use AI_EXTRACT, use AI_FILTER, use AI_TRANSLATE, use AI_EMBED, use AI_PARSE_DOCUMENT, use AI_REDACT, use AI_TRANSCRIBE, use AI_SIMILARITY, estimate tokens, count tokens, AI function cost, how many tokens, token estimate, AI_COUNT_TOKENS, which AI functions can I use, AI function access/privileges, classify text, sentiment analysis, summarize, translate."
 parent_skill: cortex-ai-function-studio
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_product_docs`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License.
      Refer to the LICENSE file in the root of this repository for full terms. -->
@@ -88,9 +95,9 @@ If the user asks for, or describes a task that maps to, a function **not** in th
 
 ### Step 2: Look Up Documentation
 
-**MANDATORY — do not skip.** Call `snowflake_product_docs` with a query like `"AI_CLASSIFY function syntax and examples"` to get the latest documentation for the identified function. Use `web_fetch` on the returned URL if more detail is needed.
+**MANDATORY — do not skip.** Call `snowflake_product_docs` with a query like `"AI_CLASSIFY function syntax and examples"` to get the latest documentation for the identified function. Use `read` on the returned URL if more detail is needed.
 
-**You MUST call `snowflake_product_docs` before drafting any SQL.** Answering from training-data memory is explicitly prohibited by `../references/ai-function-rules.md`. If `snowflake_product_docs` is unavailable, use `web_fetch` to the Snowflake docs URL for that function.
+**You MUST call `snowflake_product_docs` before drafting any SQL.** Answering from training-data memory is explicitly prohibited by `../references/ai-function-rules.md`. If `snowflake_product_docs` is unavailable, use `read` to the Snowflake docs URL for that function.
 
 ### Step 3: Draft SQL
 

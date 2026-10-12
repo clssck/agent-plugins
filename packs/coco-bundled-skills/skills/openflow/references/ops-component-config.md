@@ -3,6 +3,12 @@ name: openflow-ops-component-config
 description: Set properties on processors and controller services. Load when configuring component properties.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Component Configuration
 
 Set properties on processors and controller services.

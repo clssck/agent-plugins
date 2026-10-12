@@ -5,6 +5,12 @@ description: >
   without notebooks. Use when notebook tools are not available.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `bash_output`, `cortex CLI`, `snowflake.connector`, `snowflake_sql_execute`, `sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # AI Readiness Score — CLI Mode
 
 Begin with Phase 0 as soon as this skill loads — no additional user input is needed
@@ -75,7 +81,7 @@ Before doing anything else, print this overview so the user knows what's coming:
 
 **Phase 1 — Ask scan mode:**
 
-Use `ask_user_question` with one question:
+Use `ask` with one question:
 
 - **Header:** "Sample size"
 - **Question:** "How much query history should I scan?"
@@ -146,7 +152,7 @@ If both `python3` and `uv` fail, you may run the queries from `scripts/cr_tables
 
 **If the script fails with `NO_DATABASE_CONTEXT`:**
 
-1. Use `ask_user_question` to ask the user:
+1. Use `ask` to ask the user:
    - Header: "Database"
    - Question: "No database context is set. Which database and schema should I use? (format: DATABASE.SCHEMA)"
    - Type: text

@@ -52,7 +52,7 @@ Read `manifest.yml` and the setup script (path from `artifacts.setup_script`, de
 
 Check manifest for existing `restricted_callers_rights` block. Note if it's absent — it is **recommended** for any agent that requires caller grants (see Step 4a).
 
-For tool type reference (tool YAML schema, `cortex_analyst_text_to_sql`, `cortex_search`, `generic` procedure tools), load [`../../../cortex-agent/create-cortex-agent/TOOL_CREATION.md`](../../agent-studio/agent/edit/SKILL.md).
+For tool type reference (tool YAML schema, `cortex_analyst_text_to_sql`, `cortex_search`), read `skill://agent-studio/agent/edit/SKILL.md`; it does not cover `generic` procedure tools — use the `GetMetadata` example in Step 4 for that shape.
 
 ### Step 3: Analyze Caller Grants
 
@@ -129,7 +129,7 @@ restricted_callers_rights:
 
 > **Semantic view data path**: Always point semantic views at app-owned versioned-schema views (e.g. `core.teams`), NOT at shared-data tables (e.g. `data.teams`). Cortex Analyst resolves table paths at semantic view creation time — if the path resolves to the package database, consumers cannot execute the generated SQL because they have no access to the package database, only to the installed app.
 
-> **Creating a semantic view**: When the agent's `cortex_analyst_text_to_sql` tool needs a new semantic view (i.e., one does not already exist), do NOT write the DDL from memory — **invoke the `semantic-view` skill** (specifically `creation/SKILL.md`) for correct syntax, table/relationship/facts/dimensions/metrics structure, and validation tooling. (The semantic view may already exist — from shared content, a consumer-owned database, or a prior setup step — in which case just reference it.) Key DDL rules (common mistakes cause parse errors):
+> **Creating a semantic view**: When the agent's `cortex_analyst_text_to_sql` tool needs a new semantic view (i.e., one does not already exist), do NOT write the DDL from memory — **read `skill://agent-studio/semantic-view/creation/SKILL.md`** for correct syntax, table/relationship/facts/dimensions/metrics structure, and validation tooling. (The semantic view may already exist — from shared content, a consumer-owned database, or a prior setup step — in which case just reference it.) Key DDL rules (common mistakes cause parse errors):
 > - `TABLES`: `schema.table PRIMARY KEY (col)` — **no `AS alias`**
 > - `RELATIONSHIPS`: `rel_name AS source(fk) REFERENCES target(pk)` — **not `FOREIGN KEY`**
 > - `FACTS`: `table.FACT_NAME AS display_name` — alias is required
@@ -269,7 +269,7 @@ After writing the files, the app must be deployed to take effect:
 - Run `deploy-test/SKILL.md` to upload and install the updated version
 
 Once deployed, test the agent interactively using the Cortex Agent adhoc testing skill:
-→ Load `../../../cortex-agent/adhoc-testing-for-cortex-agent/SKILL.md`
+→ Read `skill://agent-studio/agent/test/SKILL.md`
 
 Or run a quick SQL smoke test — one targeted question **per tool** from the consumer account. Use a plain string literal (`PARSE_JSON` is not a constant and causes a compilation error):
 

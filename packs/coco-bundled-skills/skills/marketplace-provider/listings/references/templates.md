@@ -1,3 +1,4 @@
+
 # Listings — SQL/YAML Templates & Field Reference
 
 This file contains the full SQL templates, YAML manifest reference, and valid value lookup for creating Marketplace listings via SQL. Used by Path A and Path C of the listings skill.

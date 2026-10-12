@@ -3,6 +3,12 @@ name: document-intelligence
 description: "Document intelligence over files, PDFs, images, and stage documents with Snowflake Cortex AI functions — extract fields, parse/OCR text, classify by type, and visually analyze charts/diagrams, for a single file or a one-time batch. Also fine-tunes arctic-extract for domain-specific extraction. Use when: extracting structured fields from PDFs/forms/invoices, parsing or OCR-ing a document, classifying/triaging documents by type, analyzing a chart/blueprint/engineering drawing, or any one-off AI task over files already on a stage. Triggers: extract from PDF, extract fields, extract data from files, structured extraction, parse document, read document, get text from PDF, extract text from image, OCR, scan, digitize, classify documents, categorize files, sort documents, triage files, document type, invoice, contract, receipt, form, blueprint, drawing, engineering drawing, technical drawing, diagram, schematic, chart, graph, plot, my files, my documents, files on stage, AI_EXTRACT, AI_PARSE_DOCUMENT, AI_CLASSIFY, AI_COMPLETE vision, fine-tune, fine-tuning, custom model, train arctic-extract, improve extraction accuracy, FINETUNE. To build a document pipeline — chaining multiple AI functions into one flow, or keeping outputs fresh as new files land (stream → task → dynamic tables) — use the ai-functions-pipeline-builder skill instead."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Document Intelligence
 
 Extract, parse, classify, and visually analyze documents and files on Snowflake stages with Cortex AI functions — for a single file or a one-time batch — and fine-tune arctic-extract for domain-specific extraction. To **build a pipeline** — chain several AI functions into one flow, or keep outputs fresh as new files land — hand off to the `ai-functions-pipeline-builder` skill.

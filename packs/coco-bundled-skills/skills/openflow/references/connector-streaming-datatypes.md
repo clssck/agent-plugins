@@ -3,6 +3,12 @@ name: openflow-connector-streaming-datatypes
 description: Switch a streaming connector's record format from JSON to Avro or Protobuf (inline schema text, embedded Avro schema, Confluent Schema Registry, Protobuf message-name resolution). Load when incoming Kafka/Kinesis messages are Avro- or Protobuf-encoded.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Streaming Connectors — Data Type Switching
 
 ## Scope

@@ -20,15 +20,20 @@ tools:
   - Edit
   - Grep
   - Glob
-  - ask_user_question
-  - skill
-prompt: "$ontology-stack-builder Build an ontology stack on MY_DB.MY_SCHEMA using tables TABLE_A, TABLE_B, TABLE_C"
+  - ask
+prompt: "skill://ontology-stack-builder/SKILL.md Build an ontology stack on MY_DB.MY_SCHEMA using tables TABLE_A, TABLE_B, TABLE_C"
 language: en
 status: Published
 author: Tianxia Jia
 type: snowflake
 demo-url: https://medium.com/snowflake/ontology-on-snowflake-from-architecture-to-deployment-with-a-cortex-code-skill-197866ce9c9f
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `snowflake_object_search`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
 
 # Ontology Stack Builder
 
@@ -121,15 +126,15 @@ Phase 7: END-TO-END VALIDATION
 
 **These gates override ALL other instructions.** Never proceed past a gate without explicit user approval.
 
-**⚠️ MANDATORY STOPPING POINT — GLOBAL RULE**: After each phase output, you MUST STOP and use `ask_user_question` to get explicit user confirmation before proceeding to the next phase. Each phase gate below includes the specific `ask_user_question` to use. DO NOT skip gates. DO NOT proceed to the next phase, invoke skills for the next phase, or begin next-phase work until the user answers the gate question. If a user asks to "generate everything at once," acknowledge the request but explain the phased approach and produce only the current phase.
+**⚠️ MANDATORY STOPPING POINT — GLOBAL RULE**: After each phase output, you MUST STOP and use `ask` to get explicit user confirmation before proceeding to the next phase. Each phase gate below includes the specific `ask` to use. DO NOT skip gates. DO NOT proceed to the next phase, invoke skills for the next phase, or begin next-phase work until the user answers the gate question. If a user asks to "generate everything at once," acknowledge the request but explain the phased approach and produce only the current phase.
 
-**⚠️ CRITICAL — SKILL DELEGATION TRANSITIONS**: Phases 4.5, 5, and 6 delegate to native skills (`semantic-view`, `cortex-agent`). When a delegated skill completes successfully, there is a strong temptation to continue directly to the next phase. **You MUST resist this.** After a delegated skill finishes, ALWAYS stop and present the current phase's gate question via `ask_user_question` before doing ANY work for the next phase. The gate exists precisely because the user needs to review what the skill produced before moving on.
+**⚠️ CRITICAL — SKILL DELEGATION TRANSITIONS**: Phases 4.5, 5, and 6 delegate to native skills (`semantic-view`, `cortex-agent`). When a delegated skill completes successfully, there is a strong temptation to continue directly to the next phase. **You MUST resist this.** After a delegated skill finishes, ALWAYS stop and present the current phase's gate question via `ask` before doing ANY work for the next phase. The gate exists precisely because the user needs to review what the skill produced before moving on.
 
 ## Phase Details
 
 ### Phase 1: Gather Inputs
 
-Collect from the user using `ask_user_question`:
+Collect from the user using `ask`:
 
 1. **Snowflake location**: `DATABASE.SCHEMA` where tables exist or will be created
 2. **Source tables**: List of existing table names to introspect (or "I'll provide an OWL file")
@@ -140,7 +145,7 @@ Collect from the user using `ask_user_question`:
 Then ask the critical path decision:
 
 ```
-ask_user_question: "Do you want a Knowledge Graph structure?"
+ask: "Do you want a Knowledge Graph structure?"
 Options:
   - "Yes - KG path": Creates KG_NODE/KG_EDGE tables, enables graph analytics
   - "No - Direct table path": Maps ontology directly to existing tables, no graph structure
@@ -163,7 +168,7 @@ cortex semantic-views describe {DATABASE}.{SCHEMA}.{SEMANTIC_VIEW_NAME}
 Then prompt the user:
 
 ```
-ask_user_question: "I found N existing semantic view(s) in {DATABASE}.{SCHEMA}: [list names].
+ask: "I found N existing semantic view(s) in {DATABASE}.{SCHEMA}: [list names].
   Do any of these already cover your source tables?"
 Options:
   - "Yes — use my existing semantic view as the base": Reuses the existing semantic view as the
@@ -196,10 +201,10 @@ Store all inputs as session variables. If user provides only some inputs, ask fo
 
 If any are missing, ask the user for them. Do NOT present the gate with incomplete inputs.
 
-**⚠️ MANDATORY STOPPING POINT**: Present a summary of all collected inputs and the chosen path. You MUST use `ask_user_question`:
+**⚠️ MANDATORY STOPPING POINT**: Present a summary of all collected inputs and the chosen path. You MUST use `ask`:
 
 ```
-ask_user_question: "Here are the collected inputs. Is everything correct?"
+ask: "Here are the collected inputs. Is everything correct?"
 Options:
   - "Yes, proceed to Phase 2"
   - "No, I need to change something"
@@ -326,10 +331,10 @@ And proposed relations:
 
 If any check fails, fix the issue before presenting to the user. Do NOT ask the user to approve an incomplete ontology.
 
-**⚠️ MANDATORY STOPPING POINT**: You MUST use `ask_user_question`:
+**⚠️ MANDATORY STOPPING POINT**: You MUST use `ask`:
 
 ```
-ask_user_question: "Please review the proposed ontology above. Want to proceed, or make changes?"
+ask: "Please review the proposed ontology above. Want to proceed, or make changes?"
 Options:
   - "Looks good, proceed to Phase 3"
   - "I want to add/remove/change classes or relations"
@@ -399,10 +404,10 @@ Entity
 
 If the visualizer was used, re-read the JSON files to pick up user edits.
 
-**⚠️ MANDATORY STOPPING POINT**: You MUST use `ask_user_question`:
+**⚠️ MANDATORY STOPPING POINT**: You MUST use `ask`:
 
 ```
-ask_user_question: "The visualizer is running. Please review the ontology structure. Ready to proceed to SQL generation (Phase 4)?"
+ask: "The visualizer is running. Please review the ontology structure. Ready to proceed to SQL generation (Phase 4)?"
 Options:
   - "Yes, proceed to Phase 4"
   - "No, I need to make changes first"
@@ -449,7 +454,7 @@ Generate `05_view_generator_sp.sql`:
 **Optional — KG path only:**
 Ask the user:
 ```
-ask_user_question: "Generate inference engine stored procedures?"
+ask: "Generate inference engine stored procedures?"
 Options:
   - "Yes": Generates SP_INFER_TRANSITIVE, SP_INFER_INVERSE, SP_RUN_ONTOLOGY_INFERENCE, 
     SP_CHECK_CARDINALITY_SINGLE, SP_CHECK_REFERENTIAL — enables rule-based inference and data quality checks
@@ -466,7 +471,7 @@ If yes, generate `06_inference_engine.sql`:
 
 **KG path only**: Ask the user about SQL graph traversal tools:
 ```
-ask_user_question: "Generate SQL graph traversal tools for the agent?"
+ask: "Generate SQL graph traversal tools for the agent?"
 Options:
   - "Yes": Generates 4 SQL UDF tools (EXPAND_DESCENDANTS_TOOL, GET_ANCESTORS_TOOL,
     GET_HIERARCHY_PATH_TOOL, GET_DIRECT_CHILDREN_TOOL) — zero infrastructure, pure SQL
@@ -515,10 +520,10 @@ Before presenting the gate, self-validate that ALL expected objects are present 
 
 Cross-check: count the CREATE VIEW/TABLE/PROCEDURE statements in each file against the expected counts derived from `classes.json` and `relations.json`. If anything is missing, fix the generation before presenting to the user. Do NOT ask the user to approve incomplete SQL.
 
-**⚠️ MANDATORY STOPPING POINT — DO NOT EXECUTE SQL**: Present the completeness summary and all generated SQL files. You MUST use `ask_user_question` to get explicit approval before executing any SQL:
+**⚠️ MANDATORY STOPPING POINT — DO NOT EXECUTE SQL**: Present the completeness summary and all generated SQL files. You MUST use `ask` to get explicit approval before executing any SQL:
 
 ```
-ask_user_question: "Phase 4 SQL generation complete. I've generated the SQL files listed above. Ready to deploy to Snowflake?"
+ask: "Phase 4 SQL generation complete. I've generated the SQL files listed above. Ready to deploy to Snowflake?"
 Options:
   - "Yes, deploy all SQL"
   - "No, I need to review/change something first"
@@ -613,10 +618,10 @@ Without re-launching, the graph will show all nodes as unmapped (red). After re-
 
 Open the visualizer and confirm that concrete classes show as green (mapped) or blue (covered), NOT red (unmapped). If everything is still red, the manifest was not loaded — check the `--deployed-objects` path and re-launch.
 
-**Only after Steps A, B, C are done**, present the gate question using `ask_user_question`:
+**Only after Steps A, B, C are done**, present the gate question using `ask`:
 
 ```
-ask_user_question: "Phase 4 deployment complete. All Layer 1-3 objects are deployed. The visualizer is showing the coverage mapping. Ready to proceed to Phase 4.5 (Base Semantic View)?"
+ask: "Phase 4 deployment complete. All Layer 1-3 objects are deployed. The visualizer is showing the coverage mapping. Ready to proceed to Phase 4.5 (Base Semantic View)?"
 Options:
   - "Yes, proceed to Phase 4.5"
   - "No, I need to fix something first"
@@ -697,10 +702,10 @@ Record: description, table count, dimension/fact/metric counts, and key dimensio
 - [ ] At least 2 business questions returned non-empty results via audit
 - [ ] `base_semantic_view` FQN is recorded for use in Phase 6
 
-**⚠️ MANDATORY STOPPING POINT — DO NOT PROCEED TO PHASE 5**: When the `semantic-view` skill finishes (or the existing semantic is confirmed), you MUST STOP HERE. Do NOT begin Phase 5, do NOT describe VW_ONT_* views, do NOT start building ontology-layer semantic views. You MUST use `ask_user_question`:
+**⚠️ MANDATORY STOPPING POINT — DO NOT PROCEED TO PHASE 5**: When the `semantic-view` skill finishes (or the existing semantic is confirmed), you MUST STOP HERE. Do NOT begin Phase 5, do NOT describe VW_ONT_* views, do NOT start building ontology-layer semantic views. You MUST use `ask`:
 
 ```
-ask_user_question: "Base semantic view is ready ({base_semantic_view}). Ready to proceed to Phase 5 (Ontology Semantic Views)?"
+ask: "Base semantic view is ready ({base_semantic_view}). Ready to proceed to Phase 5 (Ontology Semantic Views)?"
 Options:
   - "Yes, proceed to Phase 5"
   - "No, I need to fix the base semantic view"
@@ -717,8 +722,8 @@ Options:
 Ask the user which **ontology-layer** semantic views to create:
 
 ```
-ask_user_question: "Which ontology-layer semantic views should I create? (The base semantic view over source tables is already ready from Phase 4.5.)"
-multiSelect: true
+ask: "Which ontology-layer semantic views should I create? (The base semantic view over source tables is already ready from Phase 4.5.)"
+multi: true
 Options:
   - "KG Semantic View": Concrete entity views (V_{CLASS}) and relationship views (V_{REL}) for fast direct queries
     [Only available if KG path chosen]
@@ -816,10 +821,10 @@ Record for each: description, table count, dimension/fact/metric counts, and key
 
 If any semantic view is missing or tests failed, fix before presenting the gate.
 
-**⚠️ MANDATORY STOPPING POINT — DO NOT PROCEED TO PHASE 6**: When the last `semantic-view` skill invocation finishes, you MUST STOP HERE. Do NOT invoke the `cortex-agent` skill, do NOT begin agent creation, do NOT start discovering deployed assets. You MUST use `ask_user_question`:
+**⚠️ MANDATORY STOPPING POINT — DO NOT PROCEED TO PHASE 6**: When the last `semantic-view` skill invocation finishes, you MUST STOP HERE. Do NOT invoke the `cortex-agent` skill, do NOT begin agent creation, do NOT start discovering deployed assets. You MUST use `ask`:
 
 ```
-ask_user_question: "All semantic views are deployed. Please review and test them. Ready to proceed to Phase 6 (Agent creation)?"
+ask: "All semantic views are deployed. Please review and test them. Ready to proceed to Phase 6 (Agent creation)?"
 Options:
   - "Yes, proceed to Phase 6"
   - "No, I need to fix a semantic view"
@@ -924,7 +929,7 @@ If KG path, check what graph tools were deployed in Phase 4:
 - **SPCS graph analytics tools**: If user also wants advanced graph algorithms (centrality, community detection), offer SPCS:
 
 ```
-ask_user_question: "Include SPCS graph analytics tools in the agent? (SQL hierarchy tools are already deployed)"
+ask: "Include SPCS graph analytics tools in the agent? (SQL hierarchy tools are already deployed)"
 Options:
   - "Yes": Adds centrality, community detection, shortest path tools (requires SPCS container service)
   - "No": Agent uses semantic view tools + SQL graph traversal tools only
@@ -1072,10 +1077,10 @@ Context: Test the agent {DATABASE}.{SCHEMA}.{ONTOLOGY_NAME}_AGENT
 
 If agent is missing, has wrong tool count, or tests failed, fix before presenting the gate.
 
-**⚠️ MANDATORY STOPPING POINT — DO NOT PROCEED TO PHASE 7**: When the `cortex-agent` skill finishes, you MUST STOP HERE. Do NOT begin validation, do NOT run validation queries. You MUST use `ask_user_question`:
+**⚠️ MANDATORY STOPPING POINT — DO NOT PROCEED TO PHASE 7**: When the `cortex-agent` skill finishes, you MUST STOP HERE. Do NOT begin validation, do NOT run validation queries. You MUST use `ask`:
 
 ```
-ask_user_question: "The Cortex Agent is deployed. Please test it with the questions above. Ready to proceed to Phase 7 (Validation)?"
+ask: "The Cortex Agent is deployed. Please test it with the questions above. Ready to proceed to Phase 7 (Validation)?"
 Options:
   - "Yes, proceed to Phase 7"
   - "No, I need to fix the agent"
@@ -1116,10 +1121,10 @@ Present a summary table of all deployed objects with row counts and status.
 
 If any layer fails validation, report the specific failure and attempt to fix (re-execute SQL, re-deploy view, etc.) before presenting the gate. Do NOT present a "deployment complete" gate with known failures.
 
-**⚠️ MANDATORY STOPPING POINT — FINAL GATE**: You MUST use `ask_user_question`:
+**⚠️ MANDATORY STOPPING POINT — FINAL GATE**: You MUST use `ask`:
 
 ```
-ask_user_question: "End-to-end validation complete. All layers are deployed and verified. Is the deployment complete?"
+ask: "End-to-end validation complete. All layers are deployed and verified. Is the deployment complete?"
 Options:
   - "Yes, deployment is complete"
   - "No, there are issues to address"

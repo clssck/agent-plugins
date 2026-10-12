@@ -15,8 +15,14 @@ description: >
   an existing skill FROM the catalog, use find-skill-and-plugin instead. 
   Does not handle consumer/install flows. Does not handle sharing across accounts.
 argument-hint: "[local skill or plugin path | DB.SCHEMA.EXTENSION FQN]"
-tools: ["ask_user_question"]
+tools: ["ask"]
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
 
 ## (CoCo Desktop Only) When to Use
 
@@ -100,7 +106,7 @@ Skill workspace hints: `…/versions/live/.snowflake/cortex/skills/<folder>/` or
 
 ## Interactive prompts
 
-Every fixed-choice stop uses `ask_user_question` with locked labels in
+Every fixed-choice stop uses `ask` with locked labels in
 share_interactive_prompts.md.
 
 Audience state (both artifact types): `<share_choice>` (1/2/3),
@@ -110,7 +116,7 @@ Audience state (both artifact types): `<share_choice>` (1/2/3),
 
 - Do not route to generic catalog browse when intent is share / unshare.
 - Do not present stopping-point choices as markdown lists when
-  `ask_user_question` is available.
+  `ask` is available.
 - Do not handle install / consume flows.
 - Do not bounce the user to Skill Manager UI for unshare.
 - Do not silently change DISCOVERABLE or audience on content-only re-share.

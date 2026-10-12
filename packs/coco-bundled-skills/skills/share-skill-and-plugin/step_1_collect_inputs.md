@@ -1,3 +1,4 @@
+
 # Step 1: Collect Inputs and Detect Intent
 
 Resolve what the user wants: **first-time share**, **re-sharing an already
@@ -45,7 +46,7 @@ copy). **Detection order:**
 5. **Ambiguous** — both markers present in the same directory (root `SKILL.md`
    **and** a dot-prefixed dir with `plugin.json`), or neither marker and no
    explicit word → ⚠️ **MANDATORY STOPPING POINT** — call
-   `ask_user_question` per
+   `ask` per
    share_interactive_prompts.md
    § **Artifact type** (one picker: skill vs plugin). Set `<artifact_type>`
    from the pick.
@@ -142,7 +143,7 @@ Auto-detect by probing for the extension's existence:
      reshare confirmation + share options stop.
    - **More than one** entry in `<extension_matches>` → ⚠️ **MANDATORY
      STOPPING POINT** — list each match in chat, then call
-     `ask_user_question` per share_interactive_prompts.md
+     `ask` per share_interactive_prompts.md
      § **Multiple schema matches** (one option per FQN + Cancel). Set
      `<DB>` / `<SCHEMA>` from the pick, then see §3 below.
    - **Zero** entries in `<extension_matches>` and **all** candidates return
@@ -347,7 +348,7 @@ If they match, continue as **re-share** and complete §3.
 #### Ambiguous reshare (extension found by auto-detect probe)
 
 ⚠️ **MANDATORY STOPPING POINT** — show the existing FQN and catalog URI in
-chat, then call `ask_user_question` per
+chat, then call `ask` per
 share_interactive_prompts.md
 § **Reshare combined stop** (use "Different skill/plugin…" label with
 **`<artifact_noun>`**). **Do not** paste the option list as markdown.
@@ -390,7 +391,7 @@ ask nothing.
 #### Explicit reshare (user stated "reshare", "update my skill/plugin", etc.)
 
 After `DESCRIBE CORTEX EXTENSION` succeeds (§ SQL) and § **Re-share: renamed
-artifact?** kept re-share intent, call `ask_user_question` per
+artifact?** kept re-share intent, call `ask` per
 share_interactive_prompts.md
 § **Explicit reshare mode (A / B)**.
 
@@ -457,9 +458,9 @@ Carry forward:
   “does not exist”, or no `SKILL_SHARING%` schemas found) → no intent stop;
   confirm only **target** (`<artifact_dir>` or `<artifact_ws>`).
 - **Ambiguous share + auto-detected re-share** (DESCRIBE succeeded) → one
-  `ask_user_question` **Reshare** picker (§3); path/roles only as single chat
+  `ask` **Reshare** picker (§3); path/roles only as single chat
   follow-ups if still missing. Do **not** issue a second A/B stop.
-- **Explicit reshare** → one `ask_user_question` **Reshare mode** picker (§3)
+- **Explicit reshare** → one `ask` **Reshare mode** picker (§3)
   after DESCRIBE succeeds and rename check passes.
 - **Ambiguous artifact type** (both markers or neither) → one **Artifact type**
   picker before intent probing.
@@ -474,7 +475,7 @@ choices are resolved — and **before** loading the next step. Show the gathered
 details using
 share_interactive_prompts.md
 § **Pre-flight summary** (use the template matching `<artifact_type>`). Then
-call `ask_user_question` § **Confirm gathered details**. Do **not** proceed to
+call `ask` § **Confirm gathered details**. Do **not** proceed to
 step 2 or step 4 until the user picks **Yes, proceed**.
 
 ## Next

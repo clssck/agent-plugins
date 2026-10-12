@@ -11,6 +11,12 @@ description: >-
   EXPLAIN_PRIVILEGES, SYSTEM$ANALYZE_ROLE_ACCESS, SYSTEM$SUGGEST_ROLE_GRANTS.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Access Troubleshooter
 
 Debug authorization failures, analyze required privileges, and manage role-based access in Snowflake.
@@ -66,11 +72,11 @@ Load [references/function-reference.md](references/function-reference.md) on-dem
 
 2. **Fresh data only** — Do NOT use cached results from previous authorization analyses. Roles, grants, and privileges can change at any time. Always re-query the current state.
 
-3. **Follow step order** — Execute steps sequentially as defined. Do not skip steps, pre-select options, or jump ahead based on the user's opening message. Route based on AskUserQuestion selections, not inferred intent.
+3. **Follow step order** — Execute steps sequentially as defined. Do not skip steps, pre-select options, or jump ahead based on the user's opening message. Route based on ask selections, not inferred intent.
 
 4. **Hard stops are mandatory** — Steps marked with a checkpoint are gates. Do not proceed until the required user input is received. Once approved, proceed directly without re-asking.
 
-5. **Choices vs. free text** — When the user must choose between options (routing, resolution strategy, role selection), use AskUserQuestion with a selectable list. Only collect as plain free text when creating new names (role name).
+5. **Choices vs. free text** — When the user must choose between options (routing, resolution strategy, role selection), use ask with a selectable list. Only collect as plain free text when creating new names (role name).
 
 6. **EXPLAIN_PRIVILEGES first for diagnostics** — In the initial diagnostic phase, always use `EXPLAIN_PRIVILEGES` first to understand requirements and check session authorization. Subsequent steps (e.g., finding which roles can authorize, suggesting grants) may use `SYSTEM$ANALYZE_ROLE_ACCESS` or `SYSTEM$SUGGEST_ROLE_GRANTS` directly.
 
@@ -93,11 +99,13 @@ Load [references/function-reference.md](references/function-reference.md) on-dem
 Ask what the user wants to do. **Do NOT load any workflow file yet** — just record the selection for Step 2.
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "What would you like to do?",
         "header": "Privilege Analysis",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "Debug an authorization error", "description": "I got a permission error and need to diagnose and fix it"},
             {"label": "Analyze what privileges a query needs", "description": "Show all required or missing privileges for a SQL statement"},
@@ -134,11 +142,13 @@ Once the workflow completes its final step, proceed to **Step 3**.
 ### Step 3: Repeat or Done
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "What would you like to do next?",
         "header": "Next Step",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "Start another operation", "description": "Return to the privilege analysis main menu"},
             {"label": "Done", "description": "Exit"}
@@ -149,7 +159,7 @@ AskUserQuestion(
 
 | Selection | Action |
 |-----------|--------|
-| **Start another operation** | Go back to **Step 1** and present its exact AskUserQuestion again. Do NOT infer the next operation. |
+| **Start another operation** | Go back to **Step 1** and present its exact ask again. Do NOT infer the next operation. |
 | **Done** | Workflow complete — stop. Do not suggest further actions. |
 
 ---

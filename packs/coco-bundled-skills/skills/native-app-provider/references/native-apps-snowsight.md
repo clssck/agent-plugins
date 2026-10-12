@@ -1,3 +1,4 @@
+
 # Native Apps in Snowsight — Environment Reference
 
 Load when your system prompt mentions Snowsight. Governs all env-specific decisions for native-app work: when to push the user to a different environment, how to read package files, and what to refuse.

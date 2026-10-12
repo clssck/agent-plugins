@@ -3,6 +3,12 @@ name: openflow-author-building-flows
 description: Build custom NiFi flows with the inspect-modify-test cycle. Component CRUD operations, connecting processors, and iterative development.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Building Flows
 
 Create and modify custom NiFi flows using the inspect-modify-test cycle.

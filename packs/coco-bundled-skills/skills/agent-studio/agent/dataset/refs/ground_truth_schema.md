@@ -1,3 +1,4 @@
+
 # Ground-truth schema (reference)
 
 This is a reference file for the **`GROUND_TRUTH` JSON shape**, the **`ground_truth_invocations` trichotomy** (populated vs `[]` vs absent), and the **`track` column convention** used in all dataset tables. It is **not** a skill — every dataset-curation skill (`scratch`, `production`, `expand`) and the evaluator (`evaluate-cortex-agent`) link here when they touch the ground-truth structure.

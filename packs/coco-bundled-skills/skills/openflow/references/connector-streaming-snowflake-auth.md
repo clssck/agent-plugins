@@ -3,6 +3,12 @@ name: openflow-connector-streaming-snowflake-auth
 description: Configure Snowflake Private Key Auth (KEY_PAIR) for the PublishSnowpipeStreaming destination in a streaming connector (Kafka high-performance, Kinesis). Switches the processor from SNOWFLAKE_MANAGED to KEY_PAIR using a StandardPrivateKeyService controller. Load when changing how the streaming connector authenticates to Snowflake.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Streaming Connectors — Snowflake Private Key Authentication
 
 ## Scope

@@ -3,6 +3,12 @@ name: snowflake-apps-develop
 description: "Local development, testing, and iteration for Snowflake Apps. Use when the user wants to run locally, test, add features, or iterate on an existing app."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `bash_output`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Develop Snowflake App
 
 Local iteration on an existing Snowflake App. The template-specific mechanics — how to run it, what to verify, and framework-specific pitfalls — live in the project's own `README.md`.

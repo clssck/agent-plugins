@@ -3,6 +3,12 @@ name: snowflake-notebooks
 description: "Create and edit Workspace notebooks (.ipynb files) for Snowflake. Use when: creating workspace notebooks, editing notebooks, debugging notebook issues, converting code to notebooks, multi-step workflows that combine SQL queries with Python code execution and visualization, step-by-step data analysis requiring both SQL and Python, interactive data exploration with code and charts. Do NOT use for: static SQL-only dashboards (use dashboard skill), Streamlit apps, standalone Python scripts, or stored procedures. Triggers: notebook, .ipynb, snowflake notebook, workspace notebook, create notebook, edit notebook, jupyter, ipynb file, notebook cell, SQL cell, step-by-step analysis with SQL and Python, data exploration with code and visualization, combine SQL and Python."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Snowflake Workspace Notebooks
 
 Create and edit Workspace notebooks (.ipynb files) for Snowflake.

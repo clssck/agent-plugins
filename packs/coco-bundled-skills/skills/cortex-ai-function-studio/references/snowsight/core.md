@@ -1,3 +1,10 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+> - Selected paths may require external capabilities not built into OMP: `execute_sql`, `notebook_action`, `read_active_pane`, `snowflake_sql_execute`, `snowsight_navigate`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 
@@ -12,13 +19,13 @@ Per-workflow notebook recipes are in separate files under `references/snowsight/
 These survive context compaction by being short and at the top:
 
 0. **Snowsight Workspace notebooks are NOT standard Jupyter.** Kernel name, cell types, and `notebook_action` shapes are Snowflake-specific — copy snippets from § "Notebook Harness" verbatim, do not pull from training data. Telltale hallucinations: `"python3"`, `"streamlit"`, `cell_type: "code"`, `language_info`.
-1. **Never deploy without chat confirmation.** Create flow: generate prompts → present review block in chat → `ask_user_question("Ready to deploy")` → deploy via `CALL SNOWFLAKE.CORTEX.CREATE_AI_FUNCTION(...)` through `execute_sql`.
-2. **All user input goes through `ask_user_question`** — never a plain-text question or numbered menu. Validation: 2–6 options, no `"Other"`/`"Custom"` (auto-added), use `type: "text"` + `defaultValue` for free-form names.
-3. **Pin workflow steps with `system_todo_write`** right after reading this file (see next section).
+1. **Never deploy without chat confirmation.** Create flow: generate prompts → present the review block in chat → use OMP `ask` with **Ready to deploy** and **Cancel** options → deploy only after an explicit Ready response via `CALL SNOWFLAKE.CORTEX.CREATE_AI_FUNCTION(...)` through `execute_sql`.
+2. **All choices go through `ask`** — never a numbered menu. Validation: 2–5 options, a unique `id` per question, no `"Other"`/`"Custom"` (OMP auto-adds "Other (type your own)"); free-form names use candidate options plus Other, or plain chat when there are no candidates.
+3. **Pin workflow steps with `todo`** right after reading this file (see next section).
 4. **Try It cells run only after smoke test succeeds.**
-5. **Hand off Step 10 with `ask_user_question`** (Evaluate / Test / Done).
+5. **Hand off Step 10 with `ask`** (Evaluate / Test / Done).
 6. **After `add_cells`, set markdown cells and plot-only Python cells to `results_only`** via `notebook_action set_cell_view_mode` — default `code_and_results` shows raw markdown / matplotlib source. Editable cells (DDL, metric code, progress Python, preview SQL) stay default. See §7.
-7. **Async tasks: ONE status query per user message.** Query `TASK_HISTORY` once, present the status, end turn with `ask_user_question`. Never poll in a loop, never re-query automatically, never call `TASK_HISTORY` more than once per turn.
+7. **Async tasks: ONE status query per user message.** Query `TASK_HISTORY` once, present the status, then end with a plain chat reply. Never poll in a loop, re-query automatically, or call `TASK_HISTORY` more than once per user message.
 
 If a tool call fails, fix the payload using harness snippets and retry once or twice; after that, chat-based confirmation is an acceptable fallback — graceful degradation beats a stalled workflow.
 
@@ -30,28 +37,28 @@ If the notebook can't be created, appended to, or run after one or two harness-a
 
 **⚠️ Notebook is for DISPLAY ONLY — not for execution.** All stored procedure calls must be executed via the `execute_sql` tool in the agent's own execution context. The notebook is only for: Try It example calls (Create), result queries and charts (Evaluate), result charts and Pareto filtering (Optimize), data previews (Synthetic Data), and Bring your own Model Hugging Face token-secret helper cells. The only execution exception is the Bring your own Model notebook-based Model Registry import fallback documented in `byom/SKILL.md` Step 4, and only after `SYSTEM$IMPORT_MODEL` fails. Do NOT write to existing `.sql` files or Snowsight SQL worksheets either — always use a `.ipynb` notebook.
 
-## Pin the workflow with `system_todo_write` (MANDATORY first action)
+## Pin the workflow with `todo` (MANDATORY first action)
 
-Skill files get edited out of context as the conversation progresses; tool-call results are not durable. `system_todo_write` is the only mechanism that reliably survives context compaction — its state is re-rendered every turn.
+Skill files get edited out of context as the conversation progresses; tool-call results are not durable. `todo` is the only mechanism that reliably survives context compaction — its state is re-rendered every turn.
 
-**Immediately after reading this file and the relevant sub-skill, call `system_todo_write` to pin the workflow steps as todos.** Mark the first `in_progress`. Update statuses as you go — but **never** mark a step `completed` if you skipped a sub-step (e.g., do NOT mark "Deploy" complete without the chat confirmation + Ready to deploy).
+**Immediately after reading this file and the relevant sub-skill, call `todo` with `op: "init"` to pin the workflow steps as todos.** Start the first with `op: "start"`. Update as you go with `op: "start"`/`"done"` — but **never** mark a step done if you skipped a sub-step (e.g., do NOT mark "Deploy" done without the chat confirmation + Ready to deploy).
 
 **Example — Create workflow:**
 
 ```
 1. Create notebook from intent (in_progress)
 2. Collect inputs/outputs, mode, model, function name
-3. Present review block in chat, ask_user_question("Ready to deploy" / "Cancel") — STOP
+3. Present review block in chat, use OMP `ask` for Ready to deploy / Cancel — STOP until the answer returns
 4. Deploy via CALL SNOWFLAKE.CORTEX.CREATE_AI_FUNCTION(...) (references/snowsight/create.md) + smoke test
 5. Append Try It cells (3-5 rows from source table) to notebook + run them
-6. ask_user_question("Next step": Evaluate / Test / Done)
+6. Use OMP `ask` for the next step: Evaluate / Test / Done
 ```
 
 Apply the same pattern to Evaluate and Optimize workflows — pin each step from the sub-skill as a todo before starting.
 
 ## Notebook Harness (anti-hallucination — copy snippets verbatim)
 
-> Past Claude sessions have invented `"python3"`/`"streamlit"` kernel names, `cell_type: "code"`, and `language_info` blocks here — all valid in standard Jupyter, all **wrong in Snowsight Workspace notebooks**. Wrong kernel name → opaque `"notebook is taking longer than expected to load"` error → stalled workflow. Copy the snippets below verbatim; do not paraphrase or "improve" them.
+> Past agent sessions have invented `"python3"`/`"streamlit"` kernel names, `cell_type: "code"`, and `language_info` blocks here — all valid in standard Jupyter, all **wrong in Snowsight Workspace notebooks**. Wrong kernel name → opaque `"notebook is taking longer than expected to load"` error → stalled workflow. Copy the snippets below verbatim; do not paraphrase or "improve" them.
 
 ### 1. Notebook skeleton — pass to `write` verbatim
 
@@ -189,7 +196,7 @@ The Notebook Harness above covers the notebook operations needed for AI Function
 
 This skill depends on the following Snowsight-specific tools:
 
-**Required skill/tooling:** `notebooks-in-workspaces` skill, `write` (for creating .ipynb files), `notebook_action` (for `add_cells`, `get_cell_source_codes`, `get_notebook_state`, etc.), `bash` (for shell commands like `ls`), `read_active_pane`, `ask_user_question`
+**Required skill/tooling:** `notebooks-in-workspaces` skill, `write` (for creating .ipynb files), `notebook_action` (for `add_cells`, `get_cell_source_codes`, `get_notebook_state`, etc.), `bash` (for shell commands like `ls`), `read_active_pane`, `ask`
 
 **Do not invoke `notebook_manager.py` in Snowsight.** This workflow currently uses Snowsight Workspace tools directly (`write` and `notebook_action`). `notebook_manager.py` is not part of the active Snowsight notebook flow yet.
 
@@ -246,37 +253,38 @@ notebook_action(action="add_cells", params='{"notebook_path": "{notebook_path}",
 
 Before asking the user for context (function name, table name, database/schema), call **`read_active_pane`** first. It returns the content currently visible in the user's active Snowsight pane — typically a SQL worksheet, query results, or object explorer. If the active pane contains relevant SQL, table references, or query results, use that context instead of prompting. This avoids redundant questions when the answer is already on screen.
 
-## UX: Use `ask_user_question` for ALL user input (MANDATORY)
+## UX: Use `ask` for ALL user input (MANDATORY)
 
-Every time you need user input — picking options, confirming a config, providing a name, yes/no — the **final tool call of the turn must be `ask_user_question`**. Never end a turn with a plain-text question or numbered menu. If a sub-skill shows a chat-style prompt, translate it into `ask_user_question`.
+Use `ask` whenever the user must choose among materially different options or confirm a configuration. OMP `ask` returns the answer to the agent in the same turn; continue from that answer, and use a plain chat reply when the workflow must wait for a later user message. Never render a numbered menu. If a sub-skill shows a chat-style choice, translate it into `ask`; unconstrained free text with no candidates stays in normal chat.
 
 ### Tool shape
 
-```json
-{
-  "questions": [
+```python
+ask(
+  i="Collecting user decision",
+  questions=[
     {
+      "id": "next_step",
       "header": "Short title",
       "question": "Your question text",
-      "type": "options",
       "options": [
         {"label": "Option A", "description": "optional detail"},
         {"label": "Option B", "description": "optional detail"}
       ]
     }
   ]
-}
+)
 ```
 
-- 1–4 questions per call. `header` is a max-12-char chip (e.g., `"Next step"`, `"Database"`).
-- **`type: "options"`** — 2–6 options required, each with `label` (1–5 words) + `description`. Do **NOT** add `"Other"`/`"Custom"`/`"Specify"` options — `"Something else"` is auto-appended by the UI.
-- **`type: "text"`** — free-form input; always provide `defaultValue`. Use for names, FQNs, identifiers; combine multiple text questions in one call for forms (e.g., database + schema).
+- Every question needs a unique `id`; `header` is an optional short display chip (e.g., `"Next step"`, `"Database"`).
+- 2–5 options, each with a short `label` and tradeoff in `description`. Do **NOT** add `"Other"`/`"Custom"`/`"Specify"` options — OMP appends `"Other (type your own)"`. Use `multi: true` for multi-select and `recommended: <index>` for a default.
+- Free-form values (names, FQNs, identifiers): OMP `ask` has no text-input type. Offer known candidates (session defaults, active-pane values) as options and let the user type another value via `"Other (type your own)"`; with no candidates, ask in chat.
 
-If validation fails (e.g., 1 option, missing `defaultValue`, `"Other"` present), fix the payload and retry — don't rephrase as plain-text chat.
+If validation fails (duplicate labels or ids, a reserved label such as `"Other (type your own)"`), fix the payload and retry — don't rephrase as plain-text chat.
 
 ### Long content pattern
 
-The `ask_user_question` UI does not render long text well. When a stopping point involves presenting detailed content (configuration summaries, column lists, JSON schemas, research approaches, multi-line explanations, etc.), **do not put the full content into the `question` field**. Instead:
+The `ask` UI does not render long text well. When a stopping point involves presenting detailed content (configuration summaries, column lists, JSON schemas, research approaches, multi-line explanations, etc.), **do not put the full content into the `question` field**. Instead:
 
 1. **Print the content first** in a chat message, using the best formatting for the content type:
    - **Code block** (` ``` `) for JSON configs, SQL, or structured data
@@ -284,22 +292,22 @@ The `ask_user_question` UI does not render long text well. When a stopping point
    - **Tables** for column mappings, model comparisons, or parameter lists
    - **Numbered lists** with **bold headers** for multi-option presentations (e.g., research approaches)
 
-2. **Then call `ask_user_question`** with a short question that references the printed content. Examples:
+2. **Then call `ask`** with a short question that references the printed content. Examples:
    - `"Does the above configuration look good?"` → options: `"Yes, proceed"` / `"I want to edit"` / `"Cancel"`
    - `"Which option above would you like?"` → one short label per option
    - `"Confirm the settings above?"` → `"Yes"` / `"Edit"` options
 
-**Rule of thumb:** If the question text or any option description would exceed ~2 short sentences, print the detail in chat first and keep the `ask_user_question` call concise.
+**Rule of thumb:** If the question text or any option description would exceed ~2 short sentences, print the detail in chat first and keep the `ask` call concise.
 
-### Stopping-point checklist (every entry below MUST end the turn with `ask_user_question`)
+### Decision-point checklist (each constrained choice below MUST use `ask`; the answer returns in the same turn)
 
-- **prerequisites.md Target DB/Schema**: Use session defaults as options if set; otherwise two `type: "text"` questions for database + schema.
+- **prerequisites.md Target DB/Schema**: Use session defaults as options if set (the user types another value via "Other (type your own)"); otherwise ask for database + schema in chat.
 - **SKILL.md Step 1-2**: Workflow selection (Create / Evaluate / Optimize / Check Status / Demo)
 - **create/SKILL.md Step 3**: Input/output source (From Table / Manual Spec)
 - **create/SKILL.md Step 4**: Creation mode (Direct / [research preview] Agent Research)
-- **create/SKILL.md Step 5**: Research approach selection (one option per approach + Custom)
+- **create/SKILL.md Step 5**: Research approach selection (one option per approach; a custom approach arrives via the auto-added "Other (type your own)")
 - **create/SKILL.md Step 8** (Snowsight): "Ready to deploy" after chat review block — use 2-option `"Ready to deploy"` / `"Cancel"` (do NOT send a 1-option call)
-- **create/SKILL.md Step 10**: Next steps (Evaluate / Test / Done) — final tool call after Try It runs; one-line chat confirmation is fine, but the turn MUST end with this call
+- **create/SKILL.md Step 10**: Next steps (Evaluate / Test / Done) — ask after Try It runs, then continue from the returned answer; do not treat the call as a turn boundary
 - **evaluate/SKILL.md Step 2**: Test table source (generate data / use existing table)
 - **evaluate/SKILL.md Step 4**: Metric selection (exact_match / fuzzy_match / llm_judge / custom)
 - **custom_metrics.md Step 2–5**: Custom metric creation review (Ready to create metric)
@@ -307,7 +315,7 @@ The `ask_user_question` UI does not render long text well. When a stopping point
 - **evaluate/SKILL.md Step 6**: Next steps (Optimize / Done)
 - **optimize/SKILL.md Step 4.1**: Metric selection
 - **optimize/SKILL.md Step 4.2**: Budget (light / medium / heavy)
-- **optimize/SKILL.md Step 4.3**: Model selection — use `multiSelect: true`
+- **optimize/SKILL.md Step 4.3**: Model selection — use `multi: true`
 - **optimize/SKILL.md Step 5**: Execution mode (Sync / Async)
 - **optimize/SKILL.md Step 8**: Next steps (Evaluate / Re-optimize / Manage versions / Done)
 - **demos/SKILL.md Step 1**: Demo selection

@@ -3,6 +3,12 @@ name: snowflake-notebook-migration
 description: "Migrates Databricks (DBX) notebooks to Snowflake Workspace notebooks. Preserves original code, only fixes incompatible patterns, flags unsupported features as migration notes. Use when: migrating Databricks notebooks, converting DBX notebooks to Snowflake, fixing Databricks-specific patterns. Triggers: migrate databricks, convert dbx, databricks to snowflake, dbx notebook, migrate notebook, databricks migration."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Databricks Notebook Migration
 
 Migrate Databricks notebooks to Snowflake Workspace notebooks (`.ipynb`). This is a **migration, not a rewrite**. The goal is to preserve as much of the original notebook as possible while only fixing patterns that are incompatible with Snowflake.
@@ -25,10 +31,10 @@ Do NOT use this skill for creating new Snowflake notebooks from scratch — use 
 **Before creating the converted notebook, load the `snowflake-notebooks` skill:**
 
 ```
-skill("snowflake-notebooks")
+read skill://snowflake-notebooks/SKILL.md
 ```
 
-**IMPORTANT**: Use `skill("snowflake-notebooks")` in the foreground — **NEVER** spawn it as a background agent (`run_in_background=true`).
+**IMPORTANT**: Use `read skill://snowflake-notebooks/SKILL.md` in the foreground — **NEVER** spawn it as a background agent (`run_in_background=true`).
 
 **NEVER** use the Task tool, `run_in_background`, or subagents to perform notebook conversions. All conversions must run **inline, sequentially, in the foreground**. Subagents do not have the skill loaded and will not follow the naming convention, validation loop, or delete-after-convert rules.
 

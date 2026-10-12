@@ -1,3 +1,4 @@
+
 # Summary format
 
 Render this format whenever showing the current state of the domain context. Builder vocabulary, not internal source names. **Narrative summary, not a 9-row checklist.**

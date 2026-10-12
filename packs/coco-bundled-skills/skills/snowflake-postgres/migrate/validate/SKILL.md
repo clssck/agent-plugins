@@ -22,7 +22,7 @@ Main skill routes here for: "validate migration", "data validation", "compare da
 
 ## FIRST: Confirm Validation
 
-**MANDATORY: Ask before running any validation using `ask_user_question`:**
+**MANDATORY: Ask before running any validation using `ask`:**
 
 ```
 question: "Do you want to run data validation? This compares source and target data (row counts, checksums, etc.) and can take a long time on large tables."
@@ -40,11 +40,11 @@ options:
 
 ## Ask User for Verification Method
 
-**Present this prompt using `ask_user_question`:**
+**Present this prompt using `ask`:**
 
 ```
 question: "Which validation methods do you want to run?"
-multiSelect: true
+multi: true
 options:
   - label: "Row counts"
     description: "Quick SQL-based comparison of table row counts"

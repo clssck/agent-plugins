@@ -1,3 +1,4 @@
+
 # Vision (structured) — fields from images (`AI_COMPLETE` + JSON schema)
 
 When the value lives in an **image** — a photo, a scanned form, a chart a text parser can't read — extract

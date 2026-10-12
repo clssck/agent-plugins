@@ -1,8 +1,14 @@
 ---
 name: event-table
 description: "Manage Snowflake event tables and telemetry configuration. Use when: viewing/configuring event tables, checking telemetry setup, getting/setting telemetry levels, querying event table data, understanding telemetry formats. Triggers: event table, get event table, show event table, current event table, event table setup, event table configuration, telemetry, telemetry setup, telemetry configuration, telemetry levels, get telemetry, show telemetry, check telemetry, log level, trace level, metric level, logging setup, tracing setup, observability setup, event table format, telemetry format, log format, trace format, metric format."
-tools: ["snowflake_sql_execute", "ask_user_question"]
+tools: ["snowflake_sql_execute", "ask"]
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
 
 # Event Table Router Skill
 

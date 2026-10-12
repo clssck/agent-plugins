@@ -1,8 +1,14 @@
 ---
 name: event-table-modify-setup
 description: "Set up or verify Snowflake event table configuration and telemetry levels (LOG_LEVEL, LOG_EVENT_LEVEL, TRACE_LEVEL, METRIC_LEVEL). Use when: viewing event table setup, getting event table configuration, checking telemetry setup, getting telemetry levels, setting log/trace/metric/event levels, configuring observability. Triggers: event table, event table setup, event table configuration, get event table, show event table, current event table, which event table, telemetry, telemetry setup, telemetry configuration, telemetry levels, get telemetry, show telemetry, check telemetry, log level, log event level, trace level, metric level, logging setup, tracing setup, observability setup."
-tools: ["snowflake_sql_execute", "ask_user_question"]
+tools: ["snowflake_sql_execute", "ask"]
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
 
 # Event Table Setup Skill
 

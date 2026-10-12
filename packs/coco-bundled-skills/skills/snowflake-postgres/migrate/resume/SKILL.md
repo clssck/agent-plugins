@@ -146,7 +146,7 @@ Set the following fields:
 - `next_action: <description of next step>`
 - `paused_at: <ISO timestamp>` and `paused_after_phase: <phase name>` (only when pausing for a future session)
 
-Use `ask_user_question` to confirm:
+Use `ask` to confirm:
 ```
 question: "Which phase did you just complete?"
 header: "Pause"

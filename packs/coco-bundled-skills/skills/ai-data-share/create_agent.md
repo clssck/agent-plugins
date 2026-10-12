@@ -152,15 +152,13 @@ The agent must be created in one of these schemas to be included in the listing:
 
 ### Step 5: Create Agent Specification, BLOCKING, Must execute
 
-Using the inputs and context gathered from Phase 1 above, invoke the **cortex-agent** skill to create the agent.
+Using the inputs and context gathered from Phase 1 above, load the **agent-studio agent creation** skill to create the agent.
 
 ```
-<invoke name="skill">
-<parameter name="command">cortex-agent</parameter>
-</invoke>
+read skill://agent-studio/agent/creation/SKILL.md
 ```
 
-The cortex-agent skill will guide you through:
+The agent-studio agent creation skill will guide you through:
 1. Agent creation with proper configuration
 2. Prompt generation (orchestration and response)
 3. Tool configuration connected to the semantic view
@@ -173,9 +171,9 @@ The cortex-agent skill will guide you through:
 - Agent name: Derive from listing name or ask user
 - Domain context: Use `{docs}` and table information from Phase 1
 
-#### Fallback: DDL Reference (Only if cortex-agent skill fails)
+#### Fallback: DDL Reference (Only if agent-studio agent creation skill fails)
 
-> **NOTE:** This DDL is a **reference only** for when the `cortex-agent` skill encounters errors. 
+> **NOTE:** This DDL is a **reference only** for when the `agent-studio agent creation` skill encounters errors.
 > The primary method for creating agents is always the skill above. Only use this DDL as a last resort.
 
 ```sql
@@ -241,11 +239,9 @@ Before deploying the agent, verify:
 
 > ⚠️ The agent needs to be attached to the share to be accessible to consumers.
 
-**Invoke the attach skill:**
+**Load the attach skill:**
 ```
-<invoke name="skill">
-<parameter name="command">attach-ai-products-to-share</parameter>
-</invoke>
+read skill://attach-ai-products-to-share/SKILL.md
 ```
 
 **Provide to the skill:**

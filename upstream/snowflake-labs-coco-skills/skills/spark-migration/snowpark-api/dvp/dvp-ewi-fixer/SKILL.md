@@ -53,7 +53,7 @@ Every time this skill is invoked, you MUST execute the **full workflow from Step
 If running standalone (no pre-configured options), ask the following questions:
 
 1. **Ask** user for the path to the SMA output directory:
-   - Use `ask_user_question` tool with type "text"
+   - Use `ask` tool with type "text"
    - Question: "Path to SMA output directory (containing Output, Reports, Logs folders)"
    - This directory contains:
      - `Output/` - Converted .py/.ipynb/.scala files
@@ -61,7 +61,7 @@ If running standalone (no pre-configured options), ask the following questions:
      - `Logs/` - Conversion logs
 
 2. **Ask** user about EWI comment handling:
-   - Use `ask_user_question` tool
+   - Use `ask` tool
    - Question: "How should EWI comments be handled after fixing?"
    - Options:
      - **Mark**: Keep EWI comments but prefix with `[FIXED]` or `[NOT-FIXED]`
@@ -69,7 +69,7 @@ If running standalone (no pre-configured options), ask the following questions:
    - Store the user's choice for use in Step 8
 
 3. **Ask** user which EWIs to process:
-   - Use `ask_user_question` tool
+   - Use `ask` tool
    - Question: "Which EWIs should be processed?"
    - Options:
      - **Only pending**: Process only EWIs with status 'pending' (default - skips already processed)
@@ -101,7 +101,7 @@ from sma_api import git_init_if_needed, git_status, git_stash, git_ensure_branch
    **⚠️ CRITICAL**: `git_init_if_needed()` ensures the default branch is named `main` so the original SMA output is always preserved and accessible. Without this, there is no reference branch to diff against or revert to.
 
 2. **If the repo has uncommitted changes** (check `sma_api.git_is_clean("<sma_output_dir>")`):
-   Ask user via `ask_user_question`:
+   Ask user via `ask`:
    - **Stash changes**: `sma_api.git_stash("<sma_output_dir>")` (recover later with `git stash pop`)
    - **Commit changes**: Commit pending changes before proceeding
    - **Abort**: Stop and let user handle manually
@@ -695,7 +695,7 @@ Import and call functions directly. All functions receive `workload_path` as the
 - `update_summary_end(workload_path, total_ewis, auto_resolved_ewis, not_auto_resolved_ewis, total_files_fixed, total_not_auto_resolved_files, compilation_errors_fixed)` — Complete summary
 - `get_fix_summary(workload_path, fix_id)` — Get summary record
 
-See [references/DATABASE_SCHEMA.md](./references/DATABASE_SCHEMA.md) for full database documentation.
+See references/DATABASE_SCHEMA.md *(reference not included in this pack)* for full database documentation.
 
 ## Output
 - Modified `.py`, `.ipynb`, and `.scala` files in the SMA output directory (on `sma/migration-process` branch) with EWIs resolved **and verified to compile/execute correctly**

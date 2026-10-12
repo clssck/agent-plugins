@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Entra ID SSO Setup
 
 This workflow guides you through setting up SAML SSO and/or SCIM provisioning with Microsoft Entra ID.
@@ -7,11 +13,13 @@ This workflow guides you through setting up SAML SSO and/or SCIM provisioning wi
 ## Step 1: Ask Integration Type
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "What type of Entra ID integration do you want to set up?",
     "header": "Integration",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "SAML SSO", "description": "Single sign-on via Entra ID"},
       {"label": "SCIM Provisioning", "description": "Automatic user/group sync"},
@@ -37,11 +45,13 @@ Based on the selection, follow the appropriate section below, **one step at a ti
 ## Checkpoint: Confirm Prerequisites
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Do you have access to the Microsoft Entra admin center with the required role (Cloud Application Administrator or higher)?",
     "header": "Prerequisites",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, ready", "description": "I have access and required permissions"},
       {"label": "Need help", "description": "I'm not sure about my permissions"}
@@ -64,11 +74,13 @@ AskUserQuestion(
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Have you created the Snowflake application in Entra ID?",
     "header": "App Created",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, done", "description": "The app is created and ready"},
       {"label": "Having issues", "description": "I encountered a problem"}
@@ -96,11 +108,13 @@ AskUserQuestion(
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Have you saved the SAML configuration with the Entity ID and Reply URL?",
     "header": "SAML Config",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, saved", "description": "Configuration saved successfully"},
       {"label": "Having issues", "description": "I encountered a problem"}
@@ -126,11 +140,13 @@ AskUserQuestion(
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Do you have the certificate content and the Login URL / Microsoft Entra Identifier values?",
     "header": "IdP Values",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, I have them", "description": "Ready to share the values"},
       {"label": "Need help", "description": "I can't find these values"}
@@ -164,11 +180,13 @@ CREATE SECURITY INTEGRATION entra_saml_sso
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Snowflake security integration created. Ready to proceed with user assignment and testing?",
     "header": "Next Step",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, continue", "description": "Proceed to user assignment"},
       {"label": "Done for now", "description": "I'll complete setup later"}
@@ -192,11 +210,13 @@ AskUserQuestion(
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Were you able to successfully test SSO?",
     "header": "Test Result",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, it works", "description": "SSO is working correctly"},
       {"label": "Test failed", "description": "I encountered an error"}
@@ -212,11 +232,13 @@ AskUserQuestion(
 ## Checkpoint: Confirm Prerequisites
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "For SCIM provisioning, you'll need access to both Snowflake (with ACCOUNTADMIN role) and the Microsoft Entra admin center. Are you ready to begin?",
     "header": "Prerequisites",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, ready", "description": "I have access to both systems"},
       {"label": "Need help", "description": "I'm missing some access"}
@@ -246,11 +268,13 @@ CREATE SECURITY INTEGRATION entra_scim
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "SCIM integration created. Ready to generate the access token?",
     "header": "Next Step",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, continue", "description": "Generate the SCIM token"},
       {"label": "Having issues", "description": "I encountered a problem"}
@@ -277,11 +301,13 @@ SELECT SYSTEM$GENERATE_SCIM_ACCESS_TOKEN('ENTRA_SCIM');
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Do you have the SCIM token copied? You'll need to paste it in the Azure Portal in the next step.",
     "header": "Token Ready",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, copied", "description": "Token is saved and ready to use"},
       {"label": "Need to copy", "description": "Let me copy it first"}
@@ -306,11 +332,13 @@ AskUserQuestion(
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Did the test connection succeed in the Azure Portal?",
     "header": "Connection",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, success", "description": "Test connection passed"},
       {"label": "Test failed", "description": "I got an error"}
@@ -337,11 +365,13 @@ AskUserQuestion(
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Attribute mappings configured. Ready to assign users and start provisioning?",
     "header": "Mappings",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, continue", "description": "Proceed to user assignment"},
       {"label": "Need to adjust", "description": "I want to modify mappings"}
@@ -366,11 +396,13 @@ AskUserQuestion(
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Provisioning has been started. Would you like to verify users in Snowflake?",
     "header": "Verify",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, verify", "description": "Check users in Snowflake"},
       {"label": "Done for now", "description": "I'll verify later"}

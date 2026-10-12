@@ -1,3 +1,4 @@
+
 # Quota Shared Resources
 
 Methods for managing which resource domains/instances are attributed to the quota.

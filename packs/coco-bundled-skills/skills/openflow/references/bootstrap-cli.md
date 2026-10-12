@@ -3,6 +3,12 @@ name: openflow-bootstrap-cli
 description: One-time CLI/terminal environment bootstrap for Openflow — install tooling, discover infrastructure, create nipyapi profiles, write the local cache. CLI/Desktop surface only. Not used on the Snowsight (SQL-only) surface, which has nothing to provision.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Openflow CLI Bootstrap
 
 This reference provisions the local **CLI/Desktop** environment so nipyapi-based Openflow work can run: it verifies tooling, discovers infrastructure, creates nipyapi profiles, and writes the local cache. It is the bootstrap orchestrator that `references/core-session-cli.md` delegates to when the environment is not yet ready.

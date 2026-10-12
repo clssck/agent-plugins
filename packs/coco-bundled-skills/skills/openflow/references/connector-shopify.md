@@ -3,6 +3,12 @@ name: openflow-connector-shopify
 description: Configure, deploy, and manage the Snowflake Openflow Shopify connector, which replicates Shopify Admin GraphQL data (orders, products, customers, inventory, and any GraphQL object) into Snowflake via Bulk Operations, incremental polling, and Events-API soft-deletes. Use when the user asks to set up, deploy, configure, or troubleshoot the Shopify connector; sync a Shopify store to Snowflake; add or customize a Shopify object via the Object Definitions Override; configure OAuth2 (Client ID / Client Secret) authentication; grant Admin API scopes; or debug Shopify bulk loads, incremental sync, deletes, or rate limiting.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 <!--
 MAINTAINER NOTE:
 

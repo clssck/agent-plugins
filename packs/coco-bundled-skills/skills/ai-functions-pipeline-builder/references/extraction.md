@@ -1,3 +1,4 @@
+
 # Extraction Workflow
 
 Structured field and table extraction using AI_EXTRACT.

@@ -3,6 +3,12 @@ name: openflow-connector-googledrive
 description: Google Drive CDC connector for syncing Shared Drives to Snowflake with Cortex Search integration. Use for Google Drive unstructured data ingestion.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Google Drive CDC Connector
 
 Syncs files from Google Shared Drives to Snowflake with Cortex Search integration.

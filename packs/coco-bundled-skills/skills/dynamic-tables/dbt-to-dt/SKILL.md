@@ -48,6 +48,6 @@ Shared knowledge loaded by both stages:
 
 Stage 2 additionally loads:
 - `references/classification-rules.md` — operator matching for INC eligibility
-- `references/incremental-operators.md` (parent: `../../references/incremental-operators.md`)
+- `references/incremental-operators.md` (parent: `../references/incremental-operators.md`)
 - `references/validation-playbook.md` — INC validation checks + data equivalence
 - `references/cascade-rules.md` — cascade logic for INC upgrade decisions

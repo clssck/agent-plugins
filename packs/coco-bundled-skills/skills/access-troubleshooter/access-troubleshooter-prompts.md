@@ -118,7 +118,7 @@ My roles are: TEST_NO_ACCESS_ROLE, TEST_DB_ONLY_ROLE, TEST_SCHEMA_ONLY_ROLE, TES
 
 ### Expected Response
 
-Go to A5 - Resolution Options. Agent presents AskUserQuestion with three options:
+Go to A5 - Resolution Options. Agent presents ask with three options:
 - Grant missing privileges to an existing role
 - Find an existing role in the account
 - Create a new least-privilege role
@@ -174,7 +174,7 @@ None of my roles can access RESTRICTED_DATA.
 
 ### Expected Response
 
-Go to A5 - Resolution Options. Agent presents AskUserQuestion with three options:
+Go to A5 - Resolution Options. Agent presents ask with three options:
 - Grant missing privileges to an existing role
 - Find an existing role in the account
 - Create a new least-privilege role

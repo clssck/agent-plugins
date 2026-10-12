@@ -3,6 +3,12 @@ name: openflow-connector-streaming-dlq
 description: Dead Letter Queue (DLQ) handling for the streaming connectors (Kafka high-performance, Kinesis). Customizes an already-installed connector in place via nipyapi to route records that fail parsing (and, optionally, records that fail custom transformations) to a Kafka topic / Kinesis stream or to a Snowflake table. Load when configuring where failed/rejected records should be sent.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Streaming Connectors — Dead Letter Queue (DLQ)
 
 ## Scope

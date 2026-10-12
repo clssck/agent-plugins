@@ -3,6 +3,13 @@ name: cortex-ai-function-studio-byom
 summary: "Research-preview BYOM onboarding for CAIFS: shortlist verified Hugging Face models, validate GPU compute, deploy SPCS inference services, and compare BYOM against Cortex models."
 description: "Use when the user asks to bring their own model, use a Hugging Face/open-source/task-specific model, deploy a model service, use SPCS inference with AI_COMPLETE, compare BYOM cost/quality, or add BYOM as a research-preview model-selection option in Cortex AI Function Studio."
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `notebook_action`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 
@@ -150,7 +157,7 @@ If a matching secret is found, do **not** show the choice dialog below — tell 
 
 **Required pre-import choice (when no existing secret was auto-detected) — ask about a Hugging Face token secret before starting the import.** Snowflake imports from Hugging Face may be rate limited, so unauthenticated `SYSTEM$IMPORT_MODEL` jobs can take a long time or appear stalled. Authenticated Hugging Face downloads use higher rate limits and finish noticeably faster. The import **works without a token**, but it can be super slow. Before kicking off any import job, STOP and ask the user to choose exactly one option. This question is mandatory even when the verified catalog says `token_required: false`; `token_required` means the repository is not gated, but an HF token can still speed up downloads and avoid rate limits.
 
-**If `environment == snowsight`:** use `ask_user_question` to show a three-option dialog before the import review block. Do not replace this with a chat-only sentence and do not proceed directly to "Ready to import" until the user answers.
+**If `environment == snowsight`:** use `ask` to show a three-option dialog before the import review block. Do not replace this with a chat-only sentence and do not proceed directly to "Ready to import" until the user answers.
 
 1. **Yes, I already have an HF token secret in Snowflake** — ask them to provide the fully-qualified secret name, then verify the object/privilege if tooling permits and add it to the import YAML as `token_secret_object`.
 2. **Create a new secret from my Hugging Face token** — for users who have a Hugging Face token but no Snowflake secret yet. Point them to `https://huggingface.co/settings/tokens` to obtain a token, then have them run the `CREATE SECRET` statement below **themselves** (in their own SQL session, worksheet, or the notebook SQL cell), substituting their own token. Do **not** ask for or accept the raw token value in chat. After they confirm it ran, verify the secret exists if tooling permits (for example `SHOW SECRETS LIKE 'huggingface_token' IN SCHEMA {database}.{schema}` or `DESCRIBE SECRET {database}.{schema}.huggingface_token`), then add it to the import YAML as `token_secret_object` — identical to option 1 from that point on.
@@ -352,7 +359,7 @@ Once smoke test passes:
 - Evaluate on labeled data using `../evaluate/SKILL.md`.
 - Compare against Cortex candidates using `../optimize/SKILL.md` or evaluation tables.
 
-After the Bring your own Model service is wired into the AI function or confirmed as the function's model, ask the user what they want to do next with `ask_user_question`: **Evaluate**, **Optimize**, or **Done**. If the user selects Evaluate, load `../evaluate/SKILL.md`; if Optimize, load `../optimize/SKILL.md` and ensure the Bring your own Model service model remains included in the optimization candidate list.
+After the Bring your own Model service is wired into the AI function or confirmed as the function's model, ask the user what they want to do next with `ask`: **Evaluate**, **Optimize**, or **Done**. If the user selects Evaluate, load `../evaluate/SKILL.md`; if Optimize, load `../optimize/SKILL.md` and ensure the Bring your own Model service model remains included in the optimization candidate list.
 
 ## Stopping Points
 

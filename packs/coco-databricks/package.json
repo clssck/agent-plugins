@@ -1,6 +1,6 @@
 {
   "name": "coco-databricks",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Databricks development skills bundled with Snowflake Cortex Code (CoCo).",
   "license": "LicenseRef-CoCo-Bundled-Plugin-Permission",
@@ -15,5 +15,9 @@
     "dbt",
     "spark"
   ],
+  "ompCompatibility": {
+    "profile": "coco",
+    "version": 2
+  },
   "omp": {}
 }

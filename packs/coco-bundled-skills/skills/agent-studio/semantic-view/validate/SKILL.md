@@ -4,6 +4,12 @@ description: "Validate Cortex Analyst semantic view YAML using SYSTEM$WRITE_SEMA
 parent_skill: semantic-view
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Validate Semantic View
 
 Two **separate** workflows. Do **not** run VQR validation unless the user clearly asked for it (e.g. mentions VQRs, verified queries, or query compilation for stored examples). For VQR CRUD or single-SQL checks, use `vqr_management/SKILL.md`.

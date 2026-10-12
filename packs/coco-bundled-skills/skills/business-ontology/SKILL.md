@@ -15,7 +15,7 @@ The Business Ontology is where builders define canonical business nodes, describ
 
 `business ontology` · `business taxonomy` · `data dictionary` · `knowledge graph` · `domain model` · `semantic governance` · `metadata governance`
 
-> **Routing boundary:** Phrases about governing *what concepts mean* → this skill. Phrases about configuring *which tables/schemas Cortex sees* for a specific use case → `$cortex-sense`. Example: `"govern how Revenue is defined"` → here. `"add our Revenue table to Cortex Sense"` → cortex-sense.
+> **Routing boundary:** Phrases about governing *what concepts mean* → this skill. Phrases about configuring *which tables/schemas Cortex sees* for a specific use case → `skill://cortex-sense/SKILL.md`. Example: `"govern how Revenue is defined"` → here. `"add our Revenue table to Cortex Sense"` → cortex-sense.
 
 ## Intents
 

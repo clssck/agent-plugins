@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Sub-Skill: Flashcard Generator
 
 This file is read and followed by the router skill (`SKILL.md`) when the user requests flashcards.
@@ -7,7 +13,7 @@ This file is read and followed by the router skill (`SKILL.md`) when the user re
 ## Anti-Hallucination Protocol (Inherited from SKILL.md)
 
 Before generating flashcards:
-1. **Use the Documentation Access Strategy** from SKILL.md. Prefer `cortex search docs` if available, then `web_fetch`, then mark `[VERIFY]`.
+1. **Use the Documentation Access Strategy** from SKILL.md. Prefer `cortex search docs` if available, then `read`, then mark `[VERIFY]`.
 2. **Query documentation:** For each domain being carded, query at least 1 relevant topic to confirm facts (defaults, syntax, limits). Use `cortex search docs "{topic}"` when available.
 3. **Verify every "number" claim:** Any flashcard stating a specific value (e.g., "default temperature = 0", "max tokens = 8192", "context window = 32K") must be confirmed from documentation or marked `[VERIFY]`.
 4. **No invented distinctions:** If creating a card about "X vs. Y," ensure both X and Y actually exist and behave as described. Query the relevant docs.
@@ -17,7 +23,7 @@ Before generating flashcards:
 
 ## Format Selection
 
-Before generating, ask the user via `ask_user_question`:
+Before generating, ask the user via `ask`:
 
 | Option | Description |
 |--------|-------------|

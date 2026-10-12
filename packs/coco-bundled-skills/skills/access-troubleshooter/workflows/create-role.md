@@ -3,6 +3,12 @@ name: create-role-workflow
 parent_skill: access-troubleshooter
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Workflow D: Create Least-Privilege Role
 
 ## When to Load
@@ -37,11 +43,13 @@ Ask the user:
 2. Choose privilege scope:
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "Should the role have ALL required privileges or only the ones MISSING from your current primary role?",
         "header": "Privilege Scope",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "All required privileges", "description": "Complete access for this query (standalone role)"},
             {"label": "Only missing privileges", "description": "Minimal addition to complement your current access"}

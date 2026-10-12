@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `notebook_action`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 
@@ -78,4 +84,4 @@ Run the newly added cells (see `references/snowsight/core.md` § Appending cells
   • Failure analysis (only rows with score < 1)
 ```
 
-Then use `ask_user_question` for next steps (Optimize / Done).
+Then use `ask` for next steps (Optimize / Done).

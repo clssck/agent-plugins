@@ -41,7 +41,7 @@ Guides providers through every stage of getting started and growing on Snowflake
 
 ## Step 2 (Fallback Only): Ask If Genuinely Ambiguous
 
-Only if the user's message does NOT match any rule above (e.g., "help me with Marketplace" with zero context), use `ask_user_question`:
+Only if the user's message does NOT match any rule above (e.g., "help me with Marketplace" with zero context), use `ask`:
 
 - **Question:** "What would you like to work on today?"
 - **Options:**

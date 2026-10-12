@@ -10,3 +10,5 @@ Included skills:
 - sf-solutions
 
 The included registry references six industry accelerators sourced at runtime from Snowflake-Labs solution repositories.
+
+OMP compatibility: this committed redistribution is adapted in place by this repository's deterministic `coco@2` layer; the source release named above is never modified. Tool aliases are translated to OMP semantics, external capabilities are gated, and missing references are repaired or de-linked. `package.json` records the compatibility profile and version.

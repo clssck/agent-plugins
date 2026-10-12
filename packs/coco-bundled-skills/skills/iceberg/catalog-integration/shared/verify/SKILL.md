@@ -219,7 +219,7 @@ Verification status report indicating whether catalog integration is operational
 
 **If all verification checks passed**:
 
-**Load** `shared/next-steps/SKILL.md` (path: `../shared/next-steps/SKILL.md`)
+**Load** `shared/next-steps/SKILL.md` (path: `../next-steps/SKILL.md`)
 
 Present options to the user for accessing catalog tables:
 - Option A: Create individual Iceberg tables

@@ -1,7 +1,7 @@
 ---
 name: sharing
 description: "Router for Snowflake sharing and collaboration. Routes to Secure Data Sharing, Declarative Sharing, Native Apps, or Data Clean Rooms. Asks up to 2 questions when intent is ambiguous, then loads the target sub-skill. This skill should supersede invocation of product-specific skills unless the product is named explicitly — in particular, open-ended or comparison requests (alternatives, options, 'which should I use', 'manifests or native apps') must come here, not to a product skill. Triggers: share, sharing, listing, data product, how do I share, what's the best way to share, compare sharing options, alternative to a share, alternatives to sharing, what are my options for sharing, which sharing option, not sure how to share, manifests or native apps."
-tools: ["ask_user_question"]
+tools: ["ask"]
 ---
 
 # Sharing
@@ -90,7 +90,7 @@ Only ask if Q1 is cross-account. Present all four options together — do not as
 - **C — Run my code with my data only** — provider adds code and data; consumer runs it but cannot bring their own data
 - **D — Run my code with either party's data** — your code runs in the consumer's account accessing both parties' data
 
-In the `ask_user_question` picker, label each option with its product name:
+In the `ask` picker, label each option with its product name:
 - A: "Query my live data directly — Secure Data Sharing"
 - B: "Approved SQL/code only — Data Clean Rooms"
 - C: "My code, my data only — Declarative Sharing"
@@ -127,10 +127,10 @@ GRANT ROLE <role_name> TO USER <username>;
 
 ## Context Handoff
 
-**MANDATORY: After determining the route, you MUST invoke the target skill using the `skill` tool.** Do NOT attempt to execute the next steps yourself — load the sub-skill and let it guide the workflow.
+**MANDATORY: After determining the route, you MUST load the target skill with `read skill://<skill-name>/SKILL.md`.** Do NOT attempt to execute the next steps yourself — load the sub-skill and follow its workflow.
 
 ```
-skill command: "<skill-name>"
+read skill://<skill-name>/SKILL.md
 ```
 
 Skill names:
@@ -139,7 +139,7 @@ Skill names:
 - Native Apps → `native-app-provider`
 - Data Clean Rooms → `data-cleanrooms`
 
-When invoking the skill, pass the answers already collected as context in your message:
+When following the loaded skill, carry forward the answers already collected:
 
 ```
 Context from router:
@@ -147,7 +147,7 @@ Context from router:
 - consumer_capability: A_query_freely | B_approved_templates | C_code_my_data | D_code_either_data
 ```
 
-Tell the sub-skill: "The user has already provided the above context. Skip re-asking these questions and proceed to your next step."
+Treat these as already answered: skip the sub-skill's matching questions and proceed to its next step.
 
 ---
 

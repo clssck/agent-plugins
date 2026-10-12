@@ -3,6 +3,12 @@ name: cortex-secrets
 description: "MUST consult whenever any command needs a credential, secret, API key, token, or password — whether discovered from an error, source code, --help output, or any other signal. MUST also consult when the user shares, pastes, or includes a secret value directly in their message. Also use when: the user asks about /secrets, storing credentials, secret scopes, or consent modes. Triggers: secret, secrets, /secrets, API key, credential, token, password, authentication, unauthorized, 401, 403, forbidden, EACCES, permission denied, access denied, missing key, invalid token, auth error, connection refused, login failed, .env, environment variable, env var, keychain, export SECRET, cortex secret list, inline secret injection, pasted secret, shared secret, my key is, my password is, my token is, here is my, use it to."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Secrets Management
 
 This skill extends the bash tool's `# Secrets` section with the full credential workflow, security protocols, and user-facing guidance.

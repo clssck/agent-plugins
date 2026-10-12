@@ -56,9 +56,7 @@ This phase will:
 After creating semantic views or agents, use the **attach-ai-products-to-share** skill to properly attach them to the share, if they haven't been added already:
 
 ```
-<invoke name="skill">
-<parameter name="command">attach-ai-products-to-share</parameter>
-</invoke>
+read skill://attach-ai-products-to-share/SKILL.md
 ```
 
 The skill handles:

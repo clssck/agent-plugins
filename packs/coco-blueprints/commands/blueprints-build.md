@@ -39,7 +39,7 @@ This command invokes the `blueprint-builder` skill with the specified blueprint.
 
 ## Implementation
 
-$blueprint-builder Help me build the {{blueprint-name}} blueprint{{#if project}} for project {{project}}{{/if}}
+skill://blueprint-builder/SKILL.md Help me build the {{blueprint-name}} blueprint{{#if project}} for project {{project}}{{/if}}
 
 ## Example
 

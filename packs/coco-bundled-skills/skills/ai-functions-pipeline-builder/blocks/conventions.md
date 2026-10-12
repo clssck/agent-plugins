@@ -1,3 +1,4 @@
+
 # Block Conventions — the shared contract
 
 Every block in `blocks/` is a composable layer of a document pipeline. This file is the **contract

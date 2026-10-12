@@ -43,7 +43,7 @@ python scripts/prepare_target.py clean-schemas \
 
 ### 6.0 PROMPT: Monitor Restore Progress
 
-**Before starting restore, ASK the user with `ask_user_question`:**
+**Before starting restore, ASK the user with `ask`:**
 
 ```
 Ready to start restoring to Snowflake Postgres. This is typically the longest step.
@@ -133,7 +133,7 @@ Common errors and solutions:
 
 ### 6.5 PROMPT: Restore Complete
 
-**After restore completes, ASK the user with `ask_user_question`:**
+**After restore completes, ASK the user with `ask`:**
 
 ```
 The restore has completed. 

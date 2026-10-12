@@ -3,6 +3,13 @@ name: recommend-authentication-policy-workflow
 parent_skill: manage-authentication-policy
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+> - Selected paths may require external capabilities not built into OMP: `sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Workflow R: Recommend Policies (LOGIN_HISTORY-driven)
 
 ## When to Load
@@ -76,11 +83,13 @@ Branch on what you find:
 **State B — Policies exist but none attached at account level.** Some may be attached to specific users (per `POLICY_REFERENCES`). Surface the catalog and ask:
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "Found <N> policy/policies in your account; none attached at account level. How would you like to proceed?",
         "header": "Existing Policies",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "Continue with fresh recommendations", "description": "Generate recommendations based purely on LOGIN_HISTORY"},
             {"label": "Inspect existing policies first", "description": "Skip recommendations — load workflows/view.md to inspect what's already defined"},
@@ -94,11 +103,13 @@ AskUserQuestion(
 **State C — A policy is already attached at account level.** Modifying or replacing an account-attached policy is high-risk. Surface the policy name and scope, and ask:
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "Account-level policy <policy_name> is already attached for <scope>. How would you like to proceed?",
         "header": "Account Policy In Place",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "Recommend changes to <policy_name>", "description": "Generate recommendations and present them as proposed modifications; the modify.md break-glass gate will apply"},
             {"label": "Recommend fresh and compare", "description": "Generate recommendations from LOGIN_HISTORY without touching <policy_name>; compare side-by-side before deciding"},
@@ -123,11 +134,13 @@ AskUserQuestion(
 Wait for the user's selection before continuing.
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "How far back should I analyze login activity?",
         "header": "Lookback Window",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "30 days", "description": "Recent activity only — fastest, but may miss monthly batch jobs"},
             {"label": "60 days", "description": "Balanced view"},
@@ -340,11 +353,13 @@ Output structure (single message to the user):
 Then ask:
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "Review the SQL and impact preview above. How would you like to proceed?",
         "header": "Next Step",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "Apply the break-glass first, then person-user policy", "description": "Route into create.md + attach-detach.md for blocks 1 and 2 only — defer service users"},
             {"label": "Apply everything (with my approval at each step)", "description": "Walk through every block (break-glass → person → service) one at a time, with explicit approval per block"},

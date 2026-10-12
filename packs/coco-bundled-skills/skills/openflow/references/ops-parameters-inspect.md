@@ -3,6 +3,12 @@ name: openflow-ops-parameters-inspect
 description: Inspect parameter context hierarchy, ownership, and bindings. Use before configuring parameters to understand the structure.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Parameter Inspection
 
 Inspect parameter context hierarchy, ownership, and bindings.

@@ -88,7 +88,7 @@ For understanding `ModelVersion` methods and their signatures (e.g., `show_funct
 - Model file path (e.g., `.pkl`, `.ubj`, `.json`, `.pt`) OR confirm model variable in notebook kernel memory
 - Model name for Snowflake
 - Model version *(optional)* — user can provide a version (e.g., `v1`, `v2`) or skip to let `log_model()` auto-generate one
-- Database and Schema to register this model (Do not use ask_user_question tool for this one, just stop and wait for user response)
+- Database and Schema to register this model (Do not use ask tool for this one, just stop and wait for user response)
 - Framework (sklearn, xgboost, lightgbm, pytorch, tensorflow, huggingface/transformers, or other)
 - Sample input data or schema description (if needed)
 - Additional dependencies

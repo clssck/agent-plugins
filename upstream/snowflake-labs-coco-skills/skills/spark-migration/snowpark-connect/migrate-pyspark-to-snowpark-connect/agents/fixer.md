@@ -408,12 +408,16 @@ above:
 2. Delegate to the sibling sub-skill's fixer via `task()`:
    ```
    task(
-     subagent_type="general-purpose",
-     description="Fix single Scala cell",
-     prompt="<content of migrate-spark-scala-to-snowpark-connect/agents/fixer.md>\n\n"
-            "CELL_MODE=true\n"
-            "CELL_SOURCE=<cell.source>\n"
-            "CELL_ISSUES=<subset of analysis.json matching this cell AND language=='scala'>\n"
+     context="Fix one cross-language notebook cell with the sibling fixer's instructions.",
+     tasks=[{
+       "name": "fix-single-scala-cell",
+       "agent": "task",
+       "task": "<content of migrate-spark-scala-to-snowpark-connect/agents/fixer.md>\n\n"
+               "CELL_MODE=true\n"
+               "CELL_SOURCE=<cell.source>\n"
+               "CELL_ISSUES=<subset of analysis.json matching this cell AND language=='scala'>\n",
+       "solutionSpace": "Transform only the provided Scala cell; preserve every other cell and return only the transformed source."
+     }]
    )
    ```
 3. The Scala fixer returns the transformed cell source as its final textual

@@ -1,3 +1,4 @@
+
 # Snowflake-Native Tools Reference
 
 Cortex Code integrates directly with Snowflake, providing tools for SQL execution, object discovery, semantic analysis, and artifact management.

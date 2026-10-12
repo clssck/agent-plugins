@@ -2,6 +2,12 @@
 parent_skill: data-quality
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Workflow 2: Root Cause Analysis
 
 ## Trigger Phrases
@@ -112,11 +118,11 @@ Then load the lineage skill and run its root cause analysis workflow:
 - Pass the failing table(s) as the starting point — the user should not have to re-enter them
 - Frame the transition as: "These tables have quality issues — tracing upstream to find the source of the bad data"
 
-**Only pause and use `ask_user_question`** if:
+**Only pause and use `ask`** if:
 - The user has already said they don't want lineage tracing in this session, OR
 - There are more than 10 failing tables (ask which ones to prioritize)
 
-**After lineage investigation**, offer **only** options that load an existing workflow (use `ask_user_question`). Do **not** offer freeform “fix the data” — that is not a skill.
+**After lineage investigation**, offer **only** options that load an existing workflow (use `ask`). Do **not** offer freeform “fix the data” — that is not a skill.
 
 Present options as **user-facing click labels** (action-oriented, plain language). **Copy the click labels below verbatim** for the default top 6 — do not paraphrase, reorder, or replace any item (e.g. do **not** substitute “trace upstream lineage” for #6; lineage was already offered/run above). Offer in **this priority order**. Default ask shows the **top 6** + “No thanks”; reveal 7–11 only if the user asks “what else?” or the case clearly fits.
 

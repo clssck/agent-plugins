@@ -1,3 +1,4 @@
+
 # Document Intelligence
 
 Snowflake Cortex AI Functions for document and file analytics — extract, parse, classify, and visually analyze files, PDFs, images, and stage documents, for a single file or a one-time batch. Also fine-tunes arctic-extract for domain-specific extraction.

@@ -1,3 +1,4 @@
+
 # Snowsight URLs ↔ workspace FQNs
 
 `<host>/<org>/<account>/#/workspaces/ws/<DB>/<SCHEMA>/<WS>[/<path>]` — URL-encode every `$` → `%24` and space → `%20` per segment.

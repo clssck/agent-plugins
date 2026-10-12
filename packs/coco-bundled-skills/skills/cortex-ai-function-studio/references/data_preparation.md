@@ -166,7 +166,7 @@ After user confirms column mapping, verify all mapped columns exist in the relev
 - If `test_table` provided, validate same columns exist there too
 
 **If any column is missing:**
-Present the mismatch to the user using `ask_user_question` with remediation options:
+Present the mismatch to the user using `ask` with remediation options:
 ```
 Column mismatch detected:
 - Table ({table_name}) columns: [list]

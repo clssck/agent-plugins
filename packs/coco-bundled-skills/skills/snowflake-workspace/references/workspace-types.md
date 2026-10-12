@@ -1,3 +1,4 @@
+
 # Workspace Types
 
 Per-type semantics. The FQN classification is in `SKILL.md`.

@@ -3,6 +3,12 @@ name: openflow-ops-parameters-assets
 description: Manage parameter assets (JARs, certificates, drivers). Use for uploading, listing, and linking binary files to parameters. Supports multiple assets per parameter.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Parameter Asset Operations
 
 Manage assets (binary files like JARs, certificates, or drivers) attached to parameter contexts. A single parameter can reference **multiple assets** (useful for JMS, complex JDBC drivers, etc.).

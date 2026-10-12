@@ -11,6 +11,12 @@ description: >
   or user wants to know which table is the most trustworthy source for a given metric/concept.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Certified Object Recommender
 
 Given a user's data question, search for all candidate objects that could answer it, then score and rank them to recommend the best one(s).

@@ -27,7 +27,7 @@ to revoke" and stop.
 
 ## ⚠️ MANDATORY STOPPING POINT
 
-Show the full revoke list and FQN in chat, then call `ask_user_question` per
+Show the full revoke list and FQN in chat, then call `ask` per
 share_interactive_prompts.md
 § **Unshare confirm**. Do NOT run any REVOKE until the user confirms.
 

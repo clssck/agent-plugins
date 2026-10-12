@@ -3,6 +3,12 @@ name: openflow-ops-version-control
 description: Version control for flows. Setup Git registry clients (GitHub/GitLab), save versions, commit changes, and rollback mistakes.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Version Control
 
 Version control operations for flows built in Openflow.

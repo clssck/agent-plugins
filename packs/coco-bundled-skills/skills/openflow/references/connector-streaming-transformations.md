@@ -3,6 +3,12 @@ name: openflow-connector-streaming-transformations
 description: Add custom processing between the streaming source and Snowflake - filtering, field mapping/flattening/renaming/removing, topic-to-table mapping, content-based routing to multiple tables, default values, Groovy scripts. Covers ser/de minimization, PartitionRecord/RouteOnAttribute/QueryRecord/JoltTransformRecord. Load when modifying data in-flight.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Streaming Connectors — Custom Transformations
 
 ## Scope
@@ -457,7 +463,8 @@ Ask the user what transformation they need. Present options:
 > - **Default values** — fill in null or empty fields
 > - **Content-based routing** — route to different tables based on message content
 > - **Custom Groovy script** — anything that doesn't fit the above patterns
-> - **Something else** — describe what you need"
+>
+> (OMP's `ask` appends "Other (type your own)" automatically — the user describes any other need there; do not add a literal "Something else" option.)"
 
 If the user describes a transformation not listed above, validate it against the [Restriction Rules](#restriction-rules) before implementing. Key questions to ask:
 - Does it require accessing FlowFile content? (ser/de impact)

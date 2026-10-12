@@ -1,3 +1,4 @@
+
 # Vision (figures) — numbers locked in charts (`AI_COMPLETE`, page grain)
 
 Numeric or visual content that lives **only in figures, charts, or plots** and is invisible to text parsing

@@ -36,6 +36,12 @@ triggers:
   - add Snowflake Intelligence tile
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Set Up Snowflake SSO
 
 This skill helps you configure Single Sign-On (SSO) and user provisioning for Snowflake with your Identity Provider (IdP).
@@ -72,18 +78,20 @@ For all other methods (Self-service Curl commands and Manual UI guide), the agen
 **IMPORTANT: Step-by-step delivery**
 - Do NOT send all instructions at once
 - Present one logical section at a time
-- Use AskUserQuestion for confirmations between steps
+- Use ask for confirmations between steps
 
 **IMPORTANT: Error handling**
 - If an API command fails or returns an unexpected result, do NOT automatically run additional commands to diagnose or fix the issue
 - Instead, show the error to the user and ask how they would like to proceed:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "The command returned an error. How would you like to proceed?",
     "header": "Error",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Review the docs", "description": "I'll check the API documentation or IdP admin console to investigate"},
       {"label": "Run diagnostic commands", "description": "Let the agent run additional API commands to help diagnose the issue"},
@@ -145,11 +153,13 @@ SHOW SECURITY INTEGRATIONS;
 If SAML2 or SCIM integrations already exist, ask:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Existing SSO integrations were found. What would you like to do?",
     "header": "Existing SSO",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "View existing", "description": "Show current configuration details"},
       {"label": "Modify existing", "description": "Update an existing integration"},
@@ -166,11 +176,13 @@ If no integrations exist, proceed to Step 3.
 ### Step 3: Determine What the User Wants to Do
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "What would you like to configure?",
     "header": "Task",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "SSO Setup", "description": "Set up SAML SSO and/or SCIM provisioning"},
       {"label": "Advanced Scenarios", "description": "Allowed Interfaces or Auto Redirect"},
@@ -197,11 +209,13 @@ Based on the selection:
 ### Step 5: Select Identity Provider (IdP)
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Which Identity Provider (IdP) do you want to configure for Snowflake SSO?",
     "header": "IdP",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Microsoft Entra ID", "description": "Formerly Azure Active Directory"},
       {"label": "Okta", "description": "Okta Identity Cloud"},
@@ -272,11 +286,13 @@ After SSO setup is complete, present the advanced configuration options to the u
 Then ask:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Would you like to configure any of these advanced scenarios?",
     "header": "Advanced",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Allowed Interfaces", "description": "Restrict which interfaces users can access"},
       {"label": "Auto Redirect", "description": "Send users directly to IdP for authentication"},

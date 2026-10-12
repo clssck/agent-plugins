@@ -11,6 +11,12 @@ description: |
 parent_skill: spark-migration
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake.connector`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Deploy Code Bundle
 
 > **Bundled sub-skill of `spark-migration`.** Loaded on-demand by the parent
@@ -123,7 +129,7 @@ uv run --project <SKILL_DIRECTORY> \
 
 - Verdict `PASS` (both exist) → proceed to Step 0.6.
 - Verdict `SKIPPED` (no connection) → report and stop.
-- Verdict `MISSING` (exit 2) → **STOP and ask** via `ask_user_question` with two
+- Verdict `MISSING` (exit 2) → **STOP and ask** via `ask` with two
   options:
   1. **Use an existing database/schema** — user provides a name; restart this
      step with the new `<DATABASE>`/`<SCHEMA>`.
@@ -156,11 +162,11 @@ Read: `entrypoints` (+ argparse `args`/`main_call`), `source_roots`,
 - If `needs_wrapper` is **false** and exactly **one** entrypoint exists → **skip
   generation**; set `<ENTRYPOINT>` to that file and go to Step 0.7.
 - If `needs_wrapper` is **false** but there is **more than one** entrypoint → do NOT
-  guess: **ask the user** (via `ask_user_question`) which `__main__` file is the target,
+  guess: **ask the user** (via `ask`) which `__main__` file is the target,
   set `<ENTRYPOINT>` to their choice, and go to Step 0.7.
 - Otherwise continue.
 
-**2. Ask** (only what can't be safely inferred) via `ask_user_question`:
+**2. Ask** (only what can't be safely inferred) via `ask`:
 - the entry callable if multiple `__main__` candidates (as `module:Callable.method`,
   e.g. `main:MainApplication.main`),
 - the config path if multiple `config_candidates`,
@@ -192,7 +198,7 @@ stage→local file), and calls the existing entry with the argparse-equivalent a
 
 ### Step 0.7: Prepare the code_bundle.yml spec — may prompt
 
-**Ask the compute target** via `ask_user_question` (default **warehouse**):
+**Ask the compute target** via `ask` (default **warehouse**):
 - **warehouse** — runs on a virtual warehouse. `compute_options.runtime_version` is
   **required** (the script always emits it, default `3.10`); `query_warehouse` is
   **not** valid here — the executing session's warehouse is used (see Step 3).

@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Advanced SSO Scenarios
 
 This workflow helps configure advanced Snowflake access control scenarios:
@@ -23,18 +29,20 @@ Before prompting, scan the user's initial message and any prior context for alre
 3. **Interfaces**: Look for specific interfaces mentioned (e.g., "Snowflake Intelligence", "Streamlit")
 4. **Auth method**: Look for clues about whether all users use SSO or mixed auth
 
-**Skip any AskUserQuestion step where the answer is already clear from the user's message.** Proceed directly with the provided information. Only ask when genuinely ambiguous.
+**Skip any ask step where the answer is already clear from the user's message.** Proceed directly with the provided information. Only ask when genuinely ambiguous.
 
 ---
 
 ## Step 1: Select Advanced Scenario
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Which advanced scenario would you like to configure?",
     "header": "Scenario",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Allowed Interfaces", "description": "Restrict which Snowflake interfaces users can access (e.g., Snowflake Intelligence-only)"},
       {"label": "Auto Redirection", "description": "Automatically redirect unauthenticated users to your IdP (requires SSO)"},
@@ -51,11 +59,13 @@ AskUserQuestion(
 ### If "Allowed Interfaces" or "Both": Ask Configuration Method
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "How would you like to configure Allowed Interfaces?",
     "header": "Method",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Snowflake SQL", "description": "Configure directly in Snowflake (works with any IdP or no IdP)"},
       {"label": "Okta SCIM", "description": "Configure via Okta SCIM provisioning (syncs automatically)"},
@@ -87,11 +97,13 @@ Auto Redirection uses the `LOGIN_IDP_REDIRECT` account parameter to automaticall
 Ask the user about their authentication setup:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "How do your Snowflake users authenticate?",
     "header": "Auth method",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "All SSO", "description": "All users authenticate via IdP (SAML/SSO)"},
       {"label": "Mixed", "description": "Some users use SSO, others use username/password"},
@@ -117,11 +129,13 @@ AskUserQuestion(
 Then ask:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "How would you like to proceed?",
     "header": "Proceed",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Use Identifier-First", "description": "Help me set up identifier-first login instead"},
       {"label": "Continue with redirect", "description": "I understand the impact, proceed with IdP redirect anyway"}
@@ -174,11 +188,13 @@ If SAML integrations exist, list them for the user. They may choose to use the s
 ### 3c: Select Interfaces and Assign IdPs
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Which interfaces should automatically redirect to your IdP?",
     "header": "Interfaces",
-    "multiSelect": true,
+    "multi": true,
     "options": [
       {"label": "SNOWFLAKE_INTELLIGENCE", "description": "Snowflake Intelligence (ai.snowflake.com)"},
       {"label": "STREAMLIT", "description": "Streamlit applications"},
@@ -191,11 +207,13 @@ AskUserQuestion(
 For each selected interface, ask which IdP to use:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Which SAML integration should handle {INTERFACE_NAME} authentication?",
     "header": "IdP",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       # Populate with discovered SAML2 integrations
       # For DEFAULT, also include: {"label": "NULL", "description": "Disable default redirect"}
@@ -229,11 +247,13 @@ Parse the `value` column from the result.
 > **Important:** Setting LOGIN_IDP_REDIRECT will replace the entire configuration. To add new interfaces without removing existing redirects, we need to include them in the new command.
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Existing IdP redirect config found. How would you like to proceed?",
     "header": "Existing",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Merge configs", "description": "Add new interfaces while preserving existing redirects"},
       {"label": "Replace entirely", "description": "Replace all existing redirects with new selection"},
@@ -302,11 +322,13 @@ Effect: Unauthenticated users accessing the selected interfaces will be redirect
 Confirm:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Ready to enable IdP redirect for the selected interfaces?",
     "header": "Confirm",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, enable it", "description": "Execute the ALTER ACCOUNT command"},
       {"label": "No, cancel", "description": "Do not make any changes"}

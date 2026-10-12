@@ -1,3 +1,4 @@
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved. -->
 
 # Cortex AI Function Studio — Agent Instructions
@@ -10,4 +11,4 @@ These conventions exist because a June 2026 audit found 43 silent failure patter
 
 ## Project overview
 
-See `.claude/CLAUDE.md` for project structure, key concepts, running scripts, and Snowflake naming conventions.
+See `PROJECT.md` (in this directory) for project structure, key concepts, running scripts, and Snowflake naming conventions.

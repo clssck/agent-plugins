@@ -3,6 +3,12 @@ name: grant-permissions-workflow
 parent_skill: access-troubleshooter
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Workflow E: Grant Missing Privileges
 
 ## When to Load
@@ -30,11 +36,13 @@ If arriving from another workflow with a role already known, go to **E2-ROLE**.
 If unclear, ask:
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "Do you want to analyze grants for a specific role or for a user (across all their roles)?",
         "header": "Grant Target",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "For a user", "description": "Analyze all roles granted to a user and suggest the best role to grant to"},
             {"label": "For a specific role", "description": "Check what a single role is missing and grant to it"}

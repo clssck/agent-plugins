@@ -11,8 +11,19 @@
 import { YAML } from "bun";
 import { cp, mkdir, mkdtemp, readdir, rename, rm, stat } from "node:fs/promises";
 import * as path from "node:path";
+import {
+	adaptCompatibility,
+	COMPATIBILITY_PROFILE,
+	COMPATIBILITY_VERSION,
+	lintCompatibility,
+	type CompatibilityProfile,
+} from "./compatibility";
 import { githubGraphql as graphql, githubRepositoryField as repositoryField } from "./github";
 
+interface OmpSkillReferences {
+	requires?: Record<string, string[]>;
+	optional?: string[];
+}
 interface Upstream {
 	name: string;
 	repo: string;
@@ -21,6 +32,10 @@ interface Upstream {
 	description: string;
 	/** Upstream path → pack path, e.g. `{ "skills": "skills" }`. */
 	include: Record<string, string>;
+	/** Versioned local transformation applied after copying, without modifying the source repository. */
+	compatibility?: CompatibilityProfile;
+	/** Cross-pack and optional skill:// targets used by this pack. */
+	skillReferences?: OmpSkillReferences;
 }
 
 interface Sources {
@@ -53,6 +68,8 @@ interface Pack {
 	origins?: Record<string, string>;
 	/** A pack under packs/ that ships an ATTRIBUTION file: vendored here rather than written here. */
 	attribution: boolean;
+	/** Declared cross-pack and optional skill:// targets. */
+	skillReferences: OmpSkillReferences;
 	skills: Item[];
 	rules: Item[];
 	agents: Item[];
@@ -67,6 +84,7 @@ interface SyncRecord {
 	build: string;
 	/** Pack path → upstream path of every copied top-level entry. */
 	origins: Record<string, string>;
+	compatibility?: { profile: CompatibilityProfile; version: number };
 }
 
 const ROOT = path.resolve(import.meta.dir, "..");
@@ -78,7 +96,7 @@ const LICENSE_FILE = /^(licen[cs]e|copying|notice)(\.|$)/i;
 /** Prefix of fetch's staging directories inside upstream/; leftovers from an interrupted run are removed. */
 const STAGING_PREFIX = ".sync-";
 /** Bump whenever buildUpstream's output changes for an unchanged sources.json entry, so every pack is rebuilt. */
-const BUILD_FORMAT = 2;
+const BUILD_FORMAT = 8;
 /** Rule sources; packs/<pack>/rules/ is generated from rule-sources/<pack>/. */
 const RULE_SOURCES_DIR = path.join(ROOT, "rule-sources");
 /** Shared regex fragments, one per file, referenced from rule frontmatter as {{<name>}}. */
@@ -123,9 +141,29 @@ function parseYamlRecord(metadata: string): Record<string, unknown> | undefined 
 		: undefined;
 }
 
-/** Same lenient frontmatter rules as OMP: repair tabs and ambiguous plain scalars. */
+function fallbackFrontmatter(metadata: string): Record<string, unknown> | undefined {
+	const result: Record<string, unknown> = {};
+	for (const line of metadata.split("\n")) {
+		const match = line.match(/^([\w-]+):\s*(.*)$/);
+		if (!match) continue;
+		const raw = match[2].trim();
+		let value: unknown = raw;
+		if (raw.length > 0) {
+			try {
+				const parsed = YAML.parse(raw);
+				if (parsed !== null && (typeof parsed !== "object" || Array.isArray(parsed))) value = parsed;
+			} catch {
+				// Match OMP: preserve an individually malformed value as its raw string.
+			}
+		}
+		result[match[1]] = value;
+	}
+	return Object.keys(result).length > 0 ? result : undefined;
+}
+
+/** Same lenient frontmatter rules as OMP: comments, tabs, ambiguous scalars, then key/value fallback. */
 function frontmatter(content: string): Record<string, unknown> | undefined {
-	const text = content.replace(/\r\n?/g, "\n");
+	const text = content.replace(/\r\n?/g, "\n").replace(/<!--[\s\S]*?-->/g, "");
 	if (!text.startsWith("---")) return undefined;
 	const end = text.indexOf("\n---", 3);
 	if (end === -1) return undefined;
@@ -134,12 +172,14 @@ function frontmatter(content: string): Record<string, unknown> | undefined {
 		return parseYamlRecord(metadata);
 	} catch {
 		const quoted = quoteAmbiguousPlainScalars(metadata);
-		if (!quoted) return undefined;
-		try {
-			return parseYamlRecord(quoted);
-		} catch {
-			return undefined;
+		if (quoted) {
+			try {
+				return parseYamlRecord(quoted);
+			} catch {
+				// Fall through to OMP's simple key/value recovery.
+			}
 		}
+		return fallbackFrontmatter(metadata);
 	}
 }
 
@@ -178,7 +218,17 @@ async function extractTarball(repo: string, sha: string, destination: string): P
 
 /** Hash of everything that shapes a generated pack; fetch rebuilds a pack whenever it changes. */
 export function buildId(upstream: Upstream): string {
-	const inputs = [BUILD_FORMAT, upstream.name, upstream.repo, upstream.sha, upstream.description, Object.entries(upstream.include)];
+	const inputs = [
+		BUILD_FORMAT,
+		upstream.name,
+		upstream.repo,
+		upstream.sha,
+		upstream.description,
+		Object.entries(upstream.include),
+		upstream.compatibility,
+		upstream.skillReferences,
+		upstream.compatibility ? COMPATIBILITY_VERSION : undefined,
+	];
 	return new Bun.CryptoHasher("sha256").update(JSON.stringify(inputs)).digest("hex");
 }
 
@@ -238,19 +288,33 @@ export async function buildUpstream(upstream: Upstream): Promise<void> {
 			claim(entry.name, entry.name);
 			await cp(path.join(checkout, entry.name), path.join(pack, entry.name));
 		}
+		if (upstream.compatibility) {
+			if (upstream.compatibility !== COMPATIBILITY_PROFILE) {
+				throw new Error(`${upstream.name}: unknown compatibility profile "${upstream.compatibility}"`);
+			}
+			const result = await adaptCompatibility(pack);
+			if (result.errors.length > 0) throw new Error(`${upstream.name}: ${result.errors.join("; ")}`);
+		}
 		const sync: SyncRecord = {
 			build: buildId(upstream),
 			origins: Object.fromEntries(Object.entries(origins).sort(([a], [b]) => a.localeCompare(b))),
+			...(upstream.compatibility
+				? { compatibility: { profile: upstream.compatibility, version: COMPATIBILITY_VERSION } }
+				: {}),
 		};
 		const manifest = {
 			name: upstream.name,
-			version: `0.0.0-g${upstream.sha.slice(0, 7)}`,
+			version: `${upstream.compatibility ? "0.0.1" : "0.0.0"}-g${upstream.sha.slice(0, 7)}`,
 			private: true,
 			description: upstream.description,
 			homepage: `https://github.com/${upstream.repo}/tree/${upstream.sha}`,
 			repository: `https://github.com/${upstream.repo}`,
 			gitHead: upstream.sha,
 			sync,
+			...(upstream.skillReferences ? { ompSkillReferences: upstream.skillReferences } : {}),
+			...(upstream.compatibility
+				? { ompCompatibility: { profile: upstream.compatibility, version: COMPATIBILITY_VERSION } }
+				: {}),
 			omp: {},
 		};
 		await Bun.write(path.join(pack, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`);
@@ -287,7 +351,7 @@ export async function fetchUpstreams(sources: Sources): Promise<void> {
  * with rule-sources/fragments/<name>.regex. Conditions are YAML single-quoted, so `'` is doubled.
  * In GitHub Actions a stale generated rule is an error: the workflow commits only upstream changes.
  */
-export async function renderRules(errors: string[]): Promise<void> {
+export async function renderRules(errors: string[], write = !process.env.GITHUB_ACTIONS): Promise<void> {
 	const fragments = new Map<string, string>();
 	for (const entry of await entries(FRAGMENTS_DIR)) {
 		if (!entry.isFile() || !entry.name.endsWith(".regex")) continue;
@@ -320,7 +384,7 @@ export async function renderRules(errors: string[]): Promise<void> {
 			const target = path.join(targetDir, name);
 			const current = (await Bun.file(target).exists()) ? await Bun.file(target).text() : undefined;
 			if (rendered === current) continue;
-			if (process.env.GITHUB_ACTIONS) {
+			if (!write) {
 				errors.push(`packs/${pack}/rules/${name} is stale; run \`bun scripts/sync.ts --local\` and commit it`);
 			} else {
 				await Bun.write(target, rendered);
@@ -347,6 +411,153 @@ async function flatMarkdown(packDir: string, sub: string, pattern: RegExp, error
 	return files;
 }
 
+interface SkillOwner {
+	pack: string;
+	baseDir: string;
+}
+
+async function nestedMarkdownFiles(dir: string): Promise<string[]> {
+	const files: string[] = [];
+	for (const entry of await entries(dir)) {
+		const file = path.join(dir, entry.name);
+		if (entry.isDirectory()) files.push(...(await nestedMarkdownFiles(file)));
+		else if (entry.isFile() && entry.name.endsWith(".md")) files.push(file);
+	}
+	return files;
+}
+
+function normalizedSkillReferences(pack: Pack, errors: string[]): OmpSkillReferences {
+	const value = pack.skillReferences as unknown;
+	if (!value || typeof value !== "object" || Array.isArray(value)) {
+		errors.push(`${pack.name}: ompSkillReferences must be an object`);
+		return {};
+	}
+	const raw = value as Record<string, unknown>;
+	for (const key of Object.keys(raw)) {
+		if (key !== "requires" && key !== "optional") errors.push(`${pack.name}: unknown ompSkillReferences field "${key}"`);
+	}
+	const references: OmpSkillReferences = {};
+	if (raw.requires !== undefined) {
+		if (!raw.requires || typeof raw.requires !== "object" || Array.isArray(raw.requires)) {
+			errors.push(`${pack.name}: ompSkillReferences.requires must map pack names to skill-name arrays`);
+		} else {
+			const requires: Record<string, string[]> = {};
+			for (const [provider, targets] of Object.entries(raw.requires as Record<string, unknown>)) {
+				if (!Array.isArray(targets) || targets.some(target => typeof target !== "string" || !/^[a-z0-9][a-z0-9_-]*$/.test(target))) {
+					errors.push(`${pack.name}: ompSkillReferences.requires.${provider} must be a skill-name array`);
+					continue;
+				}
+				requires[provider] = [...new Set(targets as string[])];
+				if (requires[provider].length !== targets.length) {
+					errors.push(`${pack.name}: ompSkillReferences.requires.${provider} contains duplicates`);
+				}
+			}
+			references.requires = requires;
+		}
+	}
+	if (raw.optional !== undefined) {
+		if (!Array.isArray(raw.optional) || raw.optional.some(target => typeof target !== "string" || !/^[a-z0-9][a-z0-9_-]*$/.test(target))) {
+			errors.push(`${pack.name}: ompSkillReferences.optional must be a skill-name array`);
+		} else {
+			const optional = [...new Set(raw.optional as string[])];
+			references.optional = optional;
+			if (optional.length !== raw.optional.length) {
+				errors.push(`${pack.name}: ompSkillReferences.optional contains duplicates`);
+			}
+		}
+	}
+	return references;
+}
+
+/** Validate skill:// links within a pack or through that pack's explicit dependency metadata. */
+async function validateSkillReferences(packs: Pack[], errors: string[]): Promise<void> {
+	const packByName = new Map(packs.map(pack => [pack.name, pack]));
+	const references = new Map(packs.map(pack => [pack.name, normalizedSkillReferences(pack, errors)]));
+	const skills = new Map<string, SkillOwner>();
+	for (const pack of packs) {
+		for (const skill of pack.skills) {
+			skills.set(skill.name.toLowerCase(), {
+				pack: pack.name,
+				baseDir: path.resolve(ROOT, pack.dir, path.dirname(skill.file)),
+			});
+		}
+	}
+
+	for (const pack of packs) {
+		const declared = references.get(pack.name)!;
+		for (const [providerName, targets] of Object.entries(declared.requires ?? {})) {
+			const provider = packByName.get(providerName);
+			if (!provider) {
+				errors.push(`${pack.name}: required skill provider "${providerName}" does not exist`);
+				continue;
+			}
+			if (provider === pack) errors.push(`${pack.name}: must not declare itself as a required skill provider`);
+			const provided = new Set(provider.skills.map(skill => skill.name.toLowerCase()));
+			for (const target of targets) {
+				if (!provided.has(target.toLowerCase())) {
+					errors.push(`${pack.name}: required target "${target}" is not provided by ${providerName}`);
+				}
+			}
+		}
+
+		const usedRequired = new Set<string>();
+		const usedOptional = new Set<string>();
+		const optional = new Set((declared.optional ?? []).map(target => target.toLowerCase()));
+		const packDir = path.join(ROOT, pack.dir);
+		const files = new Set(await nestedMarkdownFiles(path.join(packDir, "skills")));
+		for (const item of [...pack.agents, ...pack.commands, ...pack.rules]) files.add(path.join(packDir, item.file));
+		for (const file of files) {
+			const contents = await Bun.file(file).text();
+			for (const match of contents.matchAll(/\bskill:\/\/([a-z0-9][a-z0-9_-]*)(\/[^\s`<>"')\]}]+)?/gi)) {
+				const root = match[1]!.toLowerCase();
+				const rawPath = (match[2] ?? "").replace(/[.,;:!?'"()\]}]+$/, "");
+				const source = path.relative(packDir, file).split(path.sep).join("/");
+				const line = contents.slice(0, match.index ?? 0).split("\n").length;
+				const owner = skills.get(root);
+				if (!owner) {
+					if (optional.has(root)) usedOptional.add(root);
+					else errors.push(`${pack.name}: ${source}:${line}: unknown skill target "${root}"`);
+					continue;
+				}
+				if (owner.pack !== pack.name) {
+					const required = new Set((declared.requires?.[owner.pack] ?? []).map(target => target.toLowerCase()));
+					if (!required.has(root)) {
+						errors.push(`${pack.name}: ${source}:${line}: cross-pack target "${root}" requires ompSkillReferences.requires.${owner.pack}`);
+					} else {
+						usedRequired.add(`${owner.pack}:${root}`);
+					}
+				}
+				if (!rawPath || rawPath === "/") continue;
+				let relativePath: string;
+				try {
+					relativePath = decodeURIComponent(rawPath.slice(1).split(/[?#]/, 1)[0]!);
+				} catch {
+					errors.push(`${pack.name}: ${source}:${line}: invalid skill URI encoding in skill://${root}${rawPath}`);
+					continue;
+				}
+				const target = path.resolve(owner.baseDir, relativePath);
+				if (target !== owner.baseDir && !target.startsWith(`${owner.baseDir}${path.sep}`)) {
+					errors.push(`${pack.name}: ${source}:${line}: skill URI escapes "${root}": skill://${root}${rawPath}`);
+					continue;
+				}
+				if (!(await stat(target).catch(() => undefined))) {
+					errors.push(`${pack.name}: ${source}:${line}: skill://${root}${rawPath} does not exist in ${owner.pack}`);
+				}
+			}
+		}
+		for (const [provider, targets] of Object.entries(declared.requires ?? {})) {
+			for (const target of targets) {
+				if (!usedRequired.has(`${provider}:${target.toLowerCase()}`)) {
+					errors.push(`${pack.name}: unused required skill reference ${provider}/${target}`);
+				}
+			}
+		}
+		for (const target of declared.optional ?? []) {
+			if (!usedOptional.has(target.toLowerCase())) errors.push(`${pack.name}: unused optional skill reference ${target}`);
+		}
+	}
+}
+
 function githubRepository(value: unknown): string | undefined {
 	if (typeof value !== "string") return undefined;
 	const prefix = "https://github.com/";
@@ -358,9 +569,16 @@ function githubRepository(value: unknown): string | undefined {
 
 async function inspectPack(dir: string, upstream: Upstream | undefined, errors: string[]): Promise<Pack | undefined> {
 	const packDir = path.join(ROOT, dir);
-	const manifest = await readJson<{ name?: string; version?: string; repository?: string; sync?: Partial<SyncRecord>; omp?: { extensions?: string[] } }>(
-		path.join(packDir, "package.json"),
-	);
+	const manifest = await readJson<{
+		name?: string;
+		version?: string;
+		gitHead?: string;
+		repository?: string;
+		sync?: Partial<SyncRecord>;
+		ompCompatibility?: { profile?: CompatibilityProfile; version?: number };
+		ompSkillReferences?: OmpSkillReferences;
+		omp?: { extensions?: string[] };
+	}>(path.join(packDir, "package.json"));
 	if (!manifest) {
 		errors.push(`${dir}: missing package.json`);
 		return undefined;
@@ -369,18 +587,52 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 	if (manifest.name !== path.basename(dir)) errors.push(`${dir}: package.json name must be "${path.basename(dir)}"`);
 	if (!manifest.version) errors.push(`${label}: package.json has no version`);
 	if (typeof manifest.omp !== "object") errors.push(`${label}: package.json needs an "omp" object, or OMP ignores the pack`);
+	if (upstream) {
+		const expectedVersion = `${upstream.compatibility ? "0.0.1" : "0.0.0"}-g${upstream.sha.slice(0, 7)}`;
+		if (manifest.version !== expectedVersion) errors.push(`${label}: generated version must be ${expectedVersion}`);
+		if (manifest.gitHead !== upstream.sha) errors.push(`${label}: package.json gitHead does not match sources.json`);
+		if (githubRepository(manifest.repository) !== upstream.repo) {
+			errors.push(`${label}: package.json repository does not match sources.json`);
+		}
+		if (manifest.sync?.build !== buildId(upstream)) {
+			errors.push(`${label}: generated output is stale; rebuild it from sources.json`);
+		}
+		const syncCompatibility = manifest.sync?.compatibility;
+		if (upstream.compatibility) {
+			if (
+				syncCompatibility?.profile !== upstream.compatibility ||
+				syncCompatibility?.version !== COMPATIBILITY_VERSION
+			) {
+				errors.push(`${label}: sync metadata must record OMP compatibility ${upstream.compatibility}@${COMPATIBILITY_VERSION}`);
+			}
+		} else if (manifest.sync?.compatibility) {
+			errors.push(`${label}: unexpected compatibility metadata in generated output`);
+		}
+		if (JSON.stringify(manifest.ompSkillReferences ?? {}) !== JSON.stringify(upstream.skillReferences ?? {})) {
+			errors.push(`${label}: generated ompSkillReferences does not match sources.json`);
+		}
+	}
+	const compatibility = upstream?.compatibility ?? manifest.ompCompatibility?.profile;
+	if (compatibility) {
+		if (compatibility !== COMPATIBILITY_PROFILE) errors.push(`${label}: unknown OMP compatibility profile "${compatibility}"`);
+		if (manifest.ompCompatibility?.profile !== compatibility || manifest.ompCompatibility.version !== COMPATIBILITY_VERSION) {
+			errors.push(`${label}: package.json must record OMP compatibility ${compatibility}@${COMPATIBILITY_VERSION}`);
+		}
+		for (const error of await lintCompatibility(packDir)) errors.push(`${label}: ${error}`);
+	}
 
 	const skills: Item[] = [];
 	for (const entry of await entries(path.join(packDir, "skills"))) {
-		if (!entry.isDirectory()) continue;
+		if (!entry.isDirectory() && !entry.isSymbolicLink()) continue;
 		const file = path.posix.join("skills", entry.name, "SKILL.md");
 		const handle = Bun.file(path.join(packDir, file));
 		if (!(await handle.exists())) continue;
 		const meta = frontmatter(await handle.text());
 		if (!meta) errors.push(`${label}: ${file} must start with YAML frontmatter`);
-		else if (!meta.description) errors.push(`${label}: ${file} has no description, so OMP skips it`);
 		else if (meta.enabled === false) continue;
-		else {
+		else if (typeof meta.description !== "string" || !meta.description.trim()) {
+			errors.push(`${label}: ${file} has no description, so OMP skips it`);
+		} else {
 			const name = typeof meta.name === "string" && meta.name.trim() ? meta.name.trim() : entry.name;
 			if (/[\\/]/.test(name)) errors.push(`${label}: ${file} name "${name}" contains a path separator`);
 			else skills.push({ name, file });
@@ -394,7 +646,14 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 	const agents: Item[] = [];
 	for (const file of await flatMarkdown(packDir, "agents", /\.md$/, errors, label)) {
 		const meta = frontmatter(await Bun.file(path.join(packDir, file)).text());
-		if (!meta?.name || !meta.description) errors.push(`${label}: ${file} needs name and description in its frontmatter`);
+		if (
+			typeof meta?.name !== "string" ||
+			!meta.name.trim() ||
+			typeof meta.description !== "string" ||
+			!meta.description.trim()
+		) {
+			errors.push(`${label}: ${file} needs non-empty name and description strings in its frontmatter`);
+		}
 		agents.push(item(file, meta?.name));
 	}
 	const rules = (await flatMarkdown(packDir, "rules", /\.mdc?$/, errors, label)).map(file => item(file));
@@ -423,6 +682,7 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 		upstream,
 		origins: manifest.sync?.origins,
 		attribution: !upstream && (await Bun.file(path.join(packDir, "ATTRIBUTION")).exists()),
+		skillReferences: manifest.ompSkillReferences ?? {},
 		skills,
 		rules,
 		agents,
@@ -444,7 +704,7 @@ export async function check(sources: Sources, errors: string[]): Promise<Pack[]>
 		if (pack) packs.push(pack);
 	}
 
-	// OMP keeps one skill per name; a second pack defining it is silently shadowed.
+	// Duplicate skill names are host-order dependent, so reject the ambiguous installation here.
 	const owners = new Map<string, string>();
 	for (const pack of packs) {
 		for (const skill of pack.skills) {
@@ -454,13 +714,15 @@ export async function check(sources: Sources, errors: string[]): Promise<Pack[]>
 		}
 	}
 
+	await validateSkillReferences(packs, errors);
+
 	failOn(errors);
 	return packs.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function failOn(errors: string[]): void {
 	if (errors.length === 0) return;
-	console.error(`${errors.length} problem(s) would stop packs from loading in OMP:`);
+	console.error(`${errors.length} pack compatibility problem(s):`);
 	for (const error of errors) console.error(`  - ${error}`);
 	process.exit(1);
 }
@@ -527,6 +789,12 @@ function describeContents(pack: Pack): string {
 		.map(([kind, count]) => `${count} ${count === 1 ? kind.slice(0, -1) : kind}`)
 		.join(", ");
 }
+function describeRequirements(pack: Pack): string {
+	const providers = Object.entries(pack.skillReferences.requires ?? {}).map(
+		([provider, skills]) => `\`${provider}\` (${skills.map(skill => `\`${skill}\``).join(", ")})`,
+	);
+	return providers.length > 0 ? providers.join("; ") : "—";
+}
 
 export async function renderReadme(sources: Sources, packs: Pack[]): Promise<string> {
 	const localCommits = localLastCommits();
@@ -576,7 +844,7 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 					: `vendored, see [ATTRIBUTION](./${pack.dir}/ATTRIBUTION)`
 				: "this repo";
 		const commitAt = pack.upstream ? at : repo;
-		return `| \`${pack.name}\` | \`${pack.version}\` | ${target} | ${describeContents(pack)} | ${stamp(localCommits.get(pack.dir), commitAt)} |`;
+		return `| \`${pack.name}\` | \`${pack.version}\` | ${target} | ${describeRequirements(pack)} | ${describeContents(pack)} | ${stamp(localCommits.get(pack.dir), commitAt)} |`;
 	});
 
 	return [
@@ -601,17 +869,20 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		"```",
 		"",
 		"`omp plugin upgrade agent-plugins` pulls the latest commit; linked packs follow automatically because they point into omp's copy. The package name is required: bare `omp plugin upgrade` only upgrades marketplace packages. Run `omp plugin doctor` afterward to catch removed or renamed pack targets. Re-link only when adding, renaming, or removing a pack; routine re-links reset its enabled state and feature selection. `omp plugin disable <name>` / `enable <name>` toggles a pack, `omp plugin uninstall <name>` removes it, and `/extensions` toggles individual skills, rules, and agents.",
+		"Packs are linked independently. If the catalog's \`Requires\` column names another pack, link that provider too; repository checks validate every declared cross-pack skill target.",
 		"",
 		"Upgrade note for existing installs: if a machine links `sanofi` without `clssck-core`, link `clssck-core` before upgrading. The `dbt-command-scope` and `dbt-test-arguments` guards moved to `clssck-core` in 1.2.0.",
 		"",
-		"Packs that load are not guaranteed to work with your host: the vendored CoCo and Snowflake skills reference CoCo tools, the `cortex` CLI, and host path variables. When those are unavailable, stop and say so; NEVER improvise a substitute.",
+		"Packs that load are not guaranteed to work with every host capability. Generated CoCo upstreams are adapted on deterministic staged copies and record pinned build provenance; committed \`packs/coco-*\` are adapted in place in this repository. In both cases source repositories and named source releases remain untouched. Foreign question, skill, task, todo, and fetch interfaces become OMP semantics; external capabilities are gated; missing links are repaired or de-linked; and \`skill://\` references are validated against pack-scoped dependency declarations. When a required capability or host path is unavailable, stop and report it; NEVER improvise a substitute.",
+		"",
+		"CI also runs each pack through the pinned OMP extension providers with its declared dependency closure, plus the fatal task-agent parser and extension loader. This proves discovery and schema compatibility, not the business behavior of every skill workflow.",
 		"",
 		"Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).",
 		"",
 		"## Packs",
 		"",
-		"| Pack | Version | Source | Contents | Last updated |",
-		"| --- | --- | --- | --- | --- |",
+		"| Pack | Version | Source | Requires | Contents | Last updated |",
+		"| --- | --- | --- | --- | --- | --- |",
 		...packRows,
 		"",
 		...section("Skills", pack => pack.skills),
@@ -631,15 +902,16 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 
 if (import.meta.main) {
 	const sources = (await Bun.file(SOURCES_PATH).json()) as Sources;
-	const local = process.argv.includes("--local");
+	const checkOnly = process.argv.includes("--check");
+	const local = process.argv.includes("--local") || checkOnly;
 	if (!local) {
 		await pin(sources);
 		await fetchUpstreams(sources);
 	}
 	const errors: string[] = [];
-	await renderRules(errors);
+	await renderRules(errors, !checkOnly && !process.env.GITHUB_ACTIONS);
 	const packs = await check(sources, errors);
-	if (process.env.GITHUB_ACTIONS || process.argv.includes("--readme")) {
+	if (!checkOnly && (process.env.GITHUB_ACTIONS || process.argv.includes("--readme"))) {
 		const readme = await renderReadme(sources, packs);
 		if (readme !== (await Bun.file(README_PATH).text())) {
 			await Bun.write(README_PATH, readme);

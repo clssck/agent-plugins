@@ -3,6 +3,12 @@ name: openflow-connector-mongodb
 description: MongoDB CDC connector for replicating MongoDB collections to Snowflake using change streams. Use for MongoDB ingestion, snapshot + incremental replication, collection state monitoring, and recovery. Each collection lands as an `id` + `data` (VARIANT) table plus `_SNOWFLAKE_*` metadata columns; deletes are soft. Requires a replica set or sharded cluster (MongoDB 4.4+); standalone instances are not supported.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 <!--
 MAINTAINER NOTE:
 

@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `semantic_studio`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Not Implemented Yet — Business Ontology
 
 Single source of truth for everything the business-ontology skill does **not** yet support: planned skill features (TODOs), missing backend API surface, known API constraints and workarounds, backend data-model gaps, temporary storage, and production/integration gaps (with intent, workaround, owner/ticket, and impact). When a limitation is worked around or mentioned elsewhere, that doc should link here rather than restating the roadmap.

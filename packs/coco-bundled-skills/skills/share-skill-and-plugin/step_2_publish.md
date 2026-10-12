@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Step 2: Publish the Artifact
 
 Land on `<DB>.<SCHEMA>` (grant USAGE privilege on them to PUBLIC) then make
@@ -56,7 +62,7 @@ cortex skill catalog publish <artifact_dir>
      - Abort discards that open live version so **this** share can
        continue.
      - Cancel leaves it alone so the other process can finish.
-  3. Call `ask_user_question` per
+  3. Call `ask` per
      share_interactive_prompts.md
      § **Live version conflict** (locked labels).
   4. If the user chooses **Abort live version and continue sharing**:
@@ -84,7 +90,7 @@ When `<artifact_type> = plugin`:
 
 #### Collect share options first *(Option A only, before running the command)*
 
-Before invoking the CLI, call `ask_user_question` per
+Before invoking the CLI, call `ask` per
 share_interactive_prompts.md
 § **Locked audience labels**. If the user picks **To a specific ROLE…**,
 ask once in chat for comma-separated role names; split on commas, trim,
@@ -386,7 +392,7 @@ Let `<current_description>` come from:
 | `share-resync` / `share-resync-and-update-share-options` | `<existing_comment>` from step 1 `DESCRIBE` (may be empty) |
 
 Show the current description in chat (use `[none]` if empty), then call
-`ask_user_question` per
+`ask` per
 share_interactive_prompts.md
 § **Catalog description**. If the user picks **Replace** or **Add**, ask
 once in chat for the new or append text. **Do not** present keep / replace /
@@ -420,7 +426,7 @@ still set `update` (idempotent) or `skip` if nothing changed.
 Show `<id>`, `<fqn>`, the composed `<comment>` (or "[none]"), and
 `<comment_action>` (one of `set-on-create` / `skip-comment` /
 `update` / `skip`) in chat. Also note first-time create vs re-share update.
-Call `ask_user_question` per
+Call `ask` per
 share_interactive_prompts.md
 § **Publish confirm** before any CREATE / ALTER / file upload. If the user
 chooses **Edit description first**, revise `<comment>` and re-run this stop;
@@ -480,7 +486,7 @@ Branch by intent and `<artifact_type>`:
   > `already exists` or `object already exists`, a Cortex Extension with
   > this name was shared previously. Derive the URI as
   > `snow://skill_catalog/<DB>.<SCHEMA>.<EXTENSION_NAME>/`, show it in
-  > chat, and call `ask_user_question` per
+  > chat, and call `ask` per
   > share_interactive_prompts.md
   > § **Reshare combined stop** (use `<artifact_noun>` wording). Ask for role
   > names in chat if the **To a specific ROLE…** label is picked.
@@ -528,7 +534,7 @@ ALTER CORTEX EXTENSION <id> ADD LIVE VERSION <live_alias> FROM LAST;
 If `ADD LIVE VERSION` fails with `099106` / "already a live version" /
 "already has an uncommitted live version", treat it like Option A’s
 live-version conflict: explain the same way, then call
-`ask_user_question` per
+`ask` per
 share_interactive_prompts.md
 § **Live version conflict**. On **Abort…**, run
 `ALTER CORTEX EXTENSION <id> ABORT;` once, then retry

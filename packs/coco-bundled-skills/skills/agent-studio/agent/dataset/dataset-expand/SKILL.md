@@ -4,6 +4,12 @@ description: "Add questions to an existing evaluation source table or dataset. U
 parent_skill: agent-studio-agent-dataset
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Expand an existing evaluation dataset
 
 > Tool usage and dataset format: see parent `dataset/SKILL.md`. This skill delegates question authoring to `dataset-scratch` / `dataset-production` in `build-only` mode; those sub-skills load [`refs/ac_details.md`](../refs/ac_details.md) / [`refs/tea_details.md`](../refs/tea_details.md) / [`refs/ground_truth_schema.md`](../refs/ground_truth_schema.md) themselves when they need them.

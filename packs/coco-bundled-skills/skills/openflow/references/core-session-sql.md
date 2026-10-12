@@ -3,6 +3,12 @@ name: openflow-core-session-sql
 description: SQL-only session initialization for Openflow (Snowsight surface, or CLI + Gen2 work). Confirms the connection and Snowflake Object Model (SOM) availability via SQL. No nipyapi, cache, or profiles. For NiFi-API work (Gen1/canvas/custom) see core-session-cli.md.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Openflow Session Management (SQL-only surface)
 
 This reference initializes an Openflow session using **only Snowflake SQL** — no nipyapi, no local cache, no profiles, no terminal tooling. Use it for:

@@ -52,7 +52,7 @@ If the user is asking about clustering for a standard table, inform them this sk
 > 4. Do NOT proceed to the Entry Point or any section below.
 > **Your response ends after the redirect. Nothing else.**
 
-> **⚠️ ABSOLUTE RULE — Interactive Questions**: Throughout this skill, questions are defined in a structured choice box format with `question`, `header`, `options`, and `multiSelect` fields. You **MUST** present these to the user using the interactive question/selection UI tool (e.g., `AskQuestion`, `ask_question`, or equivalent) — **never** render them as plain markdown text. The user must be able to click/select their answer. If the tool supports a title, use the `header` field as the title. If `multiSelect` is true, allow multiple selections.
+> **⚠️ ABSOLUTE RULE — Interactive Questions**: Throughout this skill, questions are defined in a structured choice box format with `question`, `header`, `options`, and `multi` fields. You **MUST** present these with OMP's `ask` tool — **never** render them as plain markdown text. Give each question a unique `id`, pass `header` unchanged, convert each option string to `{"label": "<string>"}`, and pass `multi` unchanged. Never add an "Other"/"Something else" option: OMP appends "Other (type your own)" automatically, and the `If "Other (type your own)"` branches below handle it.
 
 > **⚠️ ABSOLUTE RULE — DDL Generation**: The `CREATE INTERACTIVE TABLE` DDL **must never be generated** until:
 > 1. A clustering key recommendation has been explicitly presented to the user (including the immutability warning), AND
@@ -69,7 +69,7 @@ Before starting, determine what the user needs:
     - question: "What would you like to do?"
     - header: "Intent"
     - options: ["Choose a clustering key for a new interactive table", "Validate or evaluate the clustering key on an existing interactive table", "Migrate a workload from a standard table to an interactive table"]
-    - multiSelect: false
+    - multi: false
 
 If **"Choose a clustering key for a new interactive table"**: proceed to **Collect the Interactive Table DDL** below.
 
@@ -77,7 +77,7 @@ If **"Validate or evaluate the clustering key on an existing interactive table"*
 
 If **"Migrate a workload from a standard table to an interactive table"**: proceed to **Migrate from Standard Table** below. **Do not ask how the user wants to provide a schema** — in a migration you already have (or will immediately collect) the standard table's schema through steps 1-2 of the migration workflow. Follow those steps before proceeding to workload analysis.
 
-If **"Something else"**: read their description and adapt. In particular, if the user's free-form description mentions **slow queries, performance issues, or timeout errors on an existing interactive table**, treat this as the "Validate or evaluate" path — ask for the table name (if not provided), then proceed to **Post-Creation Validation** to diagnose the clustering issue with data before recommending changes.
+If **"Other (type your own)"**: read their description and adapt. In particular, if the user's free-form description mentions **slow queries, performance issues, or timeout errors on an existing interactive table**, treat this as the "Validate or evaluate" path — ask for the table name (if not provided), then proceed to **Post-Creation Validation** to diagnose the clustering issue with data before recommending changes.
 
 ---
 
@@ -140,7 +140,7 @@ CREATE INTERACTIVE TABLE <database>.<schema>.<interactive_table_name>
     - question: "How would you like to provide the table schema?"
     - header: "Schema Source"
     - options: ["Paste the DDL (CREATE TABLE or CREATE INTERACTIVE TABLE statement)", "Give me the table name and I'll confirm the schema with you", "Describe the columns and data types manually"]
-    - multiSelect: false
+    - multi: false
 
 **Once received:**
 
@@ -158,14 +158,14 @@ CREATE INTERACTIVE TABLE <database>.<schema>.<interactive_table_name>
     - question: "What kind of data does this table hold?"
     - header: "Data Domain"
     - options: ["Events / clickstream", "Logs / audit trail", "Transactions / orders", "IoT / sensor readings"]
-    - multiSelect: false
+    - multi: false
 
 2. Based on their answer, propose a draft schema with likely columns and types. Then ask:
 
     - question: "Does this schema look right, or do you need to add/remove/change any columns?"
     - header: "Confirm Schema"
     - options: ["Looks good — proceed", "I need to make changes (describe below)"]
-    - multiSelect: false
+    - multi: false
 
 **⚠️ STOP**: Do not proceed until the user provides or confirms the schema.
 
@@ -193,7 +193,7 @@ Follow this sequence:
     - question: "What are the most critical queries or dashboards that need to be fast on this table?"
     - header: "Query Patterns"
     - options: ["I can share the exact SQL", "I can describe the query patterns verbally", "I'm not sure yet — help me figure it out"]
-    - multiSelect: false
+    - multi: false
 
 If **"I can share the exact SQL"**: ask them to paste the SQL (they may provide one or multiple queries). Once received, parse **all** provided queries to extract:
 
@@ -212,9 +212,9 @@ If **"I'm not sure yet — help me figure it out"**: use the columns from the DD
     - question: "Based on the table schema, here are the most likely query patterns. Which ones match your workload?"
     - header: "Likely Query Patterns"
     - options: [<pattern_1>, <pattern_2>, ...(inferred from DDL and data domain), "None of these — describe in comments"]
-    - multiSelect: true
+    - multi: true
 
-If **"Something else"**: read their description and adapt.
+If **"Other (type your own)"**: read their description and adapt.
 
 **⚠️ STOP**: Wait for the user's response before continuing.
 
@@ -222,19 +222,19 @@ If **"Something else"**: read their description and adapt.
 
 #### Primary filter columns
 
-**Regardless of table width**, use the internal column classification performed during DDL parsing (likely filter candidates vs. non-candidates). Present **only** the likely filter candidates (timestamps, IDs, categoricals) as selectable options. **Do not list non-candidate columns** (continuous metrics like `amount`/`price`/`temperature`, geo-coordinates, free-text, payloads, boolean flags with no filter relevance) — exclude them entirely from the displayed options. Include an "Other" option to catch anything missed. For wide tables (10+ columns), this filtering is critical to avoid overwhelming the user.
+**Regardless of table width**, use the internal column classification performed during DDL parsing (likely filter candidates vs. non-candidates). Present **only** the likely filter candidates (timestamps, IDs, categoricals) as selectable options. **Do not list non-candidate columns** (continuous metrics like `amount`/`price`/`temperature`, geo-coordinates, free-text, payloads, boolean flags with no filter relevance) — exclude them entirely from the displayed options. Do not add an "Other" option — the user names any missed column via OMP's auto-added "Other (type your own)". For wide tables (10+ columns), this filtering is critical to avoid overwhelming the user.
 
     - question: "Which columns do your queries filter on most often in the WHERE clause?"
     - header: "Filter Columns"
     - options: [<column_1>, <column_2>, <column_3>, ...(one option per candidate column from the DDL)]
-    - multiSelect: true
+    - multi: true
 
 **If the user selects more than 4 columns**, ask them to narrow down:
 
     - question: "You've selected several columns. To keep the clustering key effective, which 3-4 columns are the most critical filters — the ones that appear in the highest volume or most latency-sensitive queries?"
     - header: "Narrow Filter Columns"
     - options: [<list the selected columns as individual options>]
-    - multiSelect: true
+    - multi: true
 
 **⚠️ STOP**: Wait for the user's response before continuing.
 
@@ -245,7 +245,7 @@ If **"Something else"**: read their description and adapt.
     - question: "It sounds like your queries don't use WHERE filters. Are there columns used in JOINs, GROUP BY, or ORDER BY that are important for performance?"
     - header: "Alternative Columns"
     - options: ["Yes — please specify", "No — I'm not sure what to cluster on"]
-    - multiSelect: false
+    - multi: false
 
 If yes, treat those as the primary candidates. If the user still has no candidates, ask about the most common access pattern and suggest clustering by the most likely dimension (e.g., a timestamp if the data is time-series). CLUSTER BY is required for interactive tables — the agent must always recommend something.
 
@@ -258,7 +258,7 @@ For each column the user selected above, ask:
     - question: "How is `<column>` typically filtered?"
     - header: "Filter Type"
     - options: ["Equality — WHERE col = value", "Range — WHERE col BETWEEN x AND y or col > x", "IN list — WHERE col IN (val1, val2, ...)"]
-    - multiSelect: true
+    - multi: true
 
 **⚠️ STOP**: Wait for the user's response before continuing.
 
@@ -271,7 +271,7 @@ For each candidate column, ask:
     - question: "When you filter on `<column>`, roughly what percentage of the table does it return?"
     - header: "Filter Selectivity"
     - options: ["Very selective — less than 1% of the table (e.g., a single tenant out of thousands)", "Moderately selective — 1% to 20% of the table (e.g., one region out of a handful)", "Broad — more than 20% of the table (e.g., a boolean flag that matches half the rows)", "Not sure"]
-    - multiSelect: false
+    - multi: false
 
 If **"Not sure"**: skip selectivity from the scoring for this column. Rely on cardinality and filter frequency instead. If cardinality data is available later, infer selectivity from it (low cardinality with equality filter = likely selective).
 
@@ -284,14 +284,14 @@ If **"Not sure"**: skip selectivity from the scoring for this column. Rely on ca
     - question: "Are any of these columns usually filtered together in the same query?"
     - header: "Filter Pairing"
     - options: ["Yes — <column_x> and <column_y> are almost always used together", "Sometimes — they overlap in some queries", "No — each column is filtered independently in different queries"]
-    - multiSelect: false
+    - multi: false
 
 If **"No — each column is filtered independently"**: this is a strong signal for divergent access patterns. **Immediately ask the divergent access patterns question next** before continuing with other questions:
 
     - question: "It sounds like different queries filter on different columns. Do different dashboards or user groups query this table using completely different filter columns?"
     - header: "Divergent Access"
     - options: ["Yes — different teams filter on different columns", "No — it's more that different queries sometimes use different columns, but there's overlap"]
-    - multiSelect: false
+    - multi: false
 
 If **"Yes — different teams filter on different columns"**: proceed to the **Handle Divergent Access Patterns** section to collect per-pattern details. **Do NOT skip cardinality or string prefix checks.** After gathering the distinct patterns, you must still ask cardinality and string prefix questions for the columns involved in each pattern — these are required to determine correct column ordering (low-to-high cardinality) within each pattern's clustering key. If **"No — ...overlap"**: continue with the remaining questions for all candidate columns.
 
@@ -308,7 +308,7 @@ If multiple timestamp/date columns are candidates, ask this question **once per 
     - question: "What is the typical time range your queries filter on for `<timestamp_column>`?"
     - header: "Time Window"
     - options: ["Days to weeks — last 7 days, last 30 days, a specific day", "Hours — last 4 hours, a specific hour window", "Minutes or seconds — very narrow windows (e.g., a 30-second span)", "Months or quarters — Q1 2024, last 3 months", "Not commonly filtered on time"]
-    - multiSelect: false
+    - multi: false
 
 The key question is the **size of the time window**, not whether the filter is equality or range. Match the clustering expression granularity to the narrowest common query window:
 
@@ -322,7 +322,7 @@ If **"Months or quarters"**: use `DATE_TRUNC('month', ts)` or the matching granu
 
 If **"Not commonly filtered on time"**: the timestamp is not a filter column — remove it from clustering candidates.
 
-If **"Something else"**: read their description and adapt the truncation granularity accordingly.
+If **"Other (type your own)"**: read their description and adapt the truncation granularity accordingly.
 
 **⚠️ STOP**: Wait for the user's response before continuing.
 
@@ -333,7 +333,7 @@ If **"Something else"**: read their description and adapt the truncation granula
     - question: "For `<id_column>`, are your queries mostly looking up a single specific value?"
     - header: "Point Lookup"
     - options: ["Yes — mostly WHERE id = <single_value>", "No — we filter on ranges or IN lists, or it's just one of several filters"]
-    - multiSelect: false
+    - multi: false
 
 If **"Yes"**: this is an **anti-signal** for clustering. Clustering on unique/near-unique keys often costs more than it helps. Deprioritize it as a clustering candidate and suggest the user explore **Search Optimization Service (search indexes)** for point lookups on this column instead — search indexes are designed for exactly this pattern (single-value equality on high-cardinality columns). Configuring search indexes is outside this skill's scope, but flag it as a recommendation for the user to follow up on.
 
@@ -354,7 +354,7 @@ If there are **multiple VARCHAR candidates**, list each column as a selectable o
     - question: "Which of these VARCHAR columns have values that share a common prefix in the first 5 characters? For example: 'org_tenant_abc_001', 'org_tenant_abc_002' — first 14 characters are identical."
     - header: "String Prefix"
     - options: ["<column_1> has a common prefix", "<column_2> has a common prefix", ...(one option per VARCHAR candidate), "None — all values are distinct from the first few characters", "Not sure"]
-    - multiSelect: true
+    - multi: true
 
 For any columns identified as having a common prefix, apply the SUBSTRING/extraction guidance below to **each** of them individually — each column may need a different offset or technique based on where its values diverge.
 
@@ -363,14 +363,14 @@ If there is **only one VARCHAR candidate**, ask:
     - question: "For `<string_column>`, do the values share a common prefix? For example: 'org_tenant_abc_001', 'org_tenant_abc_002' — first 14 characters are identical."
     - header: "String Prefix"
     - options: ["Yes — most values start with the same prefix", "No — values are distinct from the first few characters", "Not sure"]
-    - multiSelect: false
+    - multi: false
 
 If **"Yes"** or **"Not sure"**: ask a follow-up to determine the prefix details:
 
     - question: "Can you help me check the string prefix?"
     - header: "Prefix Details"
     - options: ["Here are some sample values — (paste them)", "The common prefix is <prefix> (<N> characters long)", "Not sure — can you check from the data?"]
-    - multiSelect: false
+    - multi: false
 
 If **"Here are some sample values"**: examine the pasted values and determine the common prefix length.
 If **"The common prefix is..."**: use the provided prefix length to calculate the SUBSTRING offset.
@@ -412,7 +412,7 @@ The **only** way hash-based clustering prunes today is if the query contains the
     - question: "Do different dashboards or user groups query this table using completely different filter columns?"
     - header: "Access Patterns"
     - options: ["Yes — different teams filter on different columns", "No — most queries filter on the same columns"]
-    - multiSelect: false
+    - multi: false
 
 If **"Yes"**: a single clustering key may not serve all patterns. Recommend creating duplicate interactive tables clustered by alternate columns.
 
@@ -425,7 +425,7 @@ If **"Yes"**: a single clustering key may not serve all patterns. Recommend crea
     - question: "Are there any columns frequently used in JOINs or GROUP BY that we haven't discussed?"
     - header: "Join / GROUP BY"
     - options: ["Yes — please specify", "No"]
-    - multiSelect: false
+    - multi: false
 
 Join columns are secondary candidates after filter columns. GROUP BY columns are fallback signals only.
 
@@ -438,7 +438,7 @@ Join columns are secondary candidates after filter columns. GROUP BY columns are
     - question: "Do you have any special data-lifecycle requirements on this table — for example, a Storage Lifecycle Policy (SLP) that expires or archives data based on a specific column?"
     - header: "Lifecycle / SLP"
     - options: ["Yes — an SLP (or planned SLP) expires/archives data based on a column", "No special lifecycle requirements"]
-    - multiSelect: false
+    - multi: false
 
 If **"Yes"**: ask which column the SLP filters on and at what granularity (e.g., `event_date` at day level, `event_ts` at exact-time level). This is a **critical clustering signal** — the SLP column(s) must be part of the clustering key. Carry these answers into the analysis and apply the **"Align with Storage Lifecycle Policy (SLP)"** rule at recommendation time.
 
@@ -472,7 +472,7 @@ If no source table is accessible and the user could not estimate cardinality ear
     - question: "For `<column>`, roughly how many distinct values?"
     - header: "Cardinality"
     - options: ["Less than 10", "10 – 1,000", "1,000 – 100,000", "100,000 – 1 million", "More than 1 million"]
-    - multiSelect: false
+    - multi: false
 
 **⚠️ STOP**: Wait for the user's response before asking about the next column.
 
@@ -592,7 +592,7 @@ Usually **1–2 expressions**, occasionally **3** if the workload clearly suppor
     - question: "The analysis identified more columns than a clustering key can effectively support. Which columns are most critical for your highest-priority queries?"
     - header: "Narrow Candidates"
     - options: [<list all candidate columns as individual options>]
-    - multiSelect: true
+    - multi: true
 
 Use their response plus the scoring table to select the final 2-3 columns. Do not silently drop columns — explain which columns were excluded and why (e.g., "Removed `status` because its selectivity is too broad to improve pruning").
 
@@ -607,7 +607,7 @@ If the analysis reveals that different query patterns need different clustering 
     - question: "Please describe each distinct access pattern — for example, 'Dashboard A filters on customer_id and order_date', 'Dashboard B filters on region and product_category'."
     - header: "Divergent Patterns"
     - options: ["I'll describe them now (provide details below)", "I'm not sure — help me identify the patterns"]
-    - multiSelect: false
+    - multi: false
 
 **⚠️ STOP**: Wait for the user to describe each pattern before proceeding.
 
@@ -677,7 +677,7 @@ Then ask:
     - question: "Do you approve this clustering key? Remember — it cannot be changed after creation."
     - header: "Approve Clustering Key"
     - options: ["Yes — generate the CREATE statement", "I want to make changes (describe below)", "Start over with different assumptions"]
-    - multiSelect: false
+    - multi: false
 
 **⚠️ MANDATORY STOPPING POINT**: Do NOT generate the CREATE statement until the user selects "Yes — generate the CREATE statement". If the user selects "I want to make changes", follow the adjustment protocol below. If the user selects "Start over", restart from the Entry Point question.
 

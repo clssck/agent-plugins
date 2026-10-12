@@ -4,6 +4,12 @@ description: "Create a new evaluation dataset from scratch for a Cortex Agent. U
 parent_skill: agent-studio-agent-dataset
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Create Evaluation Dataset from Scratch
 
 > Tool usage and dataset format: see parent `dataset/SKILL.md`.

@@ -3,6 +3,12 @@ name: openflow-ops-flow-deploy
 description: Sub-reference for deploying flows from registries. Called from connector-main.md or author-main.md workflows. Not a direct entry point.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Flow Deployment
 
 Deploy flows from registries to the canvas. This is a sub-reference called from `connector-main.md` (step 5-6) or custom flow workflows.

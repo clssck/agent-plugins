@@ -9,7 +9,7 @@ Assists users with the Snowflake authentication-policy DDL (create / alter / dro
 
 ## When to use
 
-Invoked interactively by a Snowflake admin (via Claude Code) when they explicitly want to create, modify, view, attach, detach, or drop an authentication policy, or discuss restricting auth methods / client types / MFA / PAT expiry / workload identity. Not part of any CI flow; every run expects a human at the terminal to answer AskUserQuestion prompts and approve each DDL before execution.
+Invoked interactively by a Snowflake admin (via OMP) when they explicitly want to create, modify, view, attach, detach, or drop an authentication policy, or discuss restricting auth methods / client types / MFA / PAT expiry / workload identity. Not part of any CI flow; every run expects a human at the terminal to answer ask prompts and approve each DDL before execution.
 
 ## Architecture
 
@@ -17,7 +17,7 @@ This skill provides an interactive workflow for managing Snowflake authenticatio
 
 1. **Current state presentation** — Queries existing authentication policies using SHOW AUTHENTICATION POLICIES and DESCRIBE to present what's currently configured. Shows both account-level and user-level policy attachments.
 
-2. **Operation selection** — Presents available operations via AskUserQuestion:
+2. **Operation selection** — Presents available operations via ask:
    - Create a new authentication policy
    - Alter an existing policy
    - Drop a policy
@@ -31,7 +31,7 @@ This skill provides an interactive workflow for managing Snowflake authenticatio
    - Attach/detach account-level: APPLY AUTHENTICATION POLICY on Account
    - Attach/detach user-level: APPLY AUTHENTICATION POLICY on Account (global) OR on specific user
 
-   Uses AskUserQuestion to confirm privilege status. Offers to switch roles if needed.
+   Uses ask to confirm privilege status. Offers to switch roles if needed.
 
 4. **Policy configuration** — For CREATE/ALTER, guides user through parameter selection:
    - `CLIENT_TYPES` — allowed client types (SNOWFLAKE_UI, SNOWSQL, DRIVERS, etc.)
@@ -41,7 +41,7 @@ This skill provides an interactive workflow for managing Snowflake authenticatio
 
 5. **DDL generation and execution** — Generates the appropriate DDL (CREATE/ALTER/DROP/ALTER ACCOUNT SET/UNSET AUTHENTICATION POLICY) and presents for user approval before execution.
 
-Uses AskUserQuestion extensively for the interactive flow. References Snowflake DDL syntax for authentication policies.
+Uses ask extensively for the interactive flow. References Snowflake DDL syntax for authentication policies.
 
 ## Cost guards rationale
 
@@ -59,7 +59,7 @@ Experimental. Awaiting feedback from test users before moving this skill to beta
 
 ## Severity tier rationale
 
-**Tier 2 — High.** Blast radius is high in principle: the skill executes DDL against a live Snowflake account and can attach an account-level authentication policy that locks every user (including the admin running the skill) out of their preferred client or auth method. Reads are bounded (`SHOW AUTHENTICATION POLICIES`, `DESC`, `GET_DDL`, `CURRENT_ROLE()`) but writes include `CREATE / ALTER / DROP AUTHENTICATION POLICY` and `ALTER ACCOUNT | USER SET/UNSET AUTHENTICATION POLICY`. It is not Tier 1 because every DDL is gated behind an explicit user-approval AskUserQuestion, the modify/drop paths capture `GET_DDL` beforehand so the change can be reverted, and the workflow has no indirect side effects (no tickets, registry writes, Slack/JIRA, or merge gating).
+**Tier 2 — High.** Blast radius is high in principle: the skill executes DDL against a live Snowflake account and can attach an account-level authentication policy that locks every user (including the admin running the skill) out of their preferred client or auth method. Reads are bounded (`SHOW AUTHENTICATION POLICIES`, `DESC`, `GET_DDL`, `CURRENT_ROLE()`) but writes include `CREATE / ALTER / DROP AUTHENTICATION POLICY` and `ALTER ACCOUNT | USER SET/UNSET AUTHENTICATION POLICY`. It is not Tier 1 because every DDL is gated behind an explicit user-approval ask, the modify/drop paths capture `GET_DDL` beforehand so the change can be reverted, and the workflow has no indirect side effects (no tickets, registry writes, Slack/JIRA, or merge gating).
 
 ## Failure modes
 

@@ -3,6 +3,7 @@ name: redaction-demo
 description: "Interactive demo [Experimental]: Build a PII redaction function using [research preview] Agent Research mode — the agent searches the web for techniques, proposes SQL UDF architectures with pre/post-processing, and you pick the approach. Then optimize the full function body."
 parent_skill: demos
 ---
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 

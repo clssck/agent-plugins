@@ -32,66 +32,77 @@ Get the list of databases to discover (e.g., `databases: [HQ, ANALYTICS, RAW]`).
 **Launch a subagent to find business context in code:**
 
 ```
-Task(
-    subagent_type="Explore",
-    prompt="""
-    Search for data model documentation in the codebase:
+task(
+    context="Find business context for the configured warehouse databases without changing files.",
+    tasks=[{
+        "name": "find-warehouse-context",
+        "agent": "scout",
+        "task": """
+        Search for data model documentation in the codebase:
 
-    1. dbt models: **/models/**/*.yml, **/schema.yml
-       - Extract table descriptions, column descriptions
-       - Note primary keys and tests
+        1. dbt models: **/models/**/*.yml, **/schema.yml
+           - Extract table descriptions, column descriptions
+           - Note primary keys and tests
 
-    2. Gusty/declarative SQL: **/dags/**/*.sql with YAML frontmatter
-       - Parse frontmatter for: description, primary_key, tests
-       - Note schema mappings
+        2. Gusty/declarative SQL: **/dags/**/*.sql with YAML frontmatter
+           - Parse frontmatter for: description, primary_key, tests
+           - Note schema mappings
 
-    3. AGENTS.md or CLAUDE.md files with data layer documentation
+        3. AGENTS.md or CLAUDE.md files with data layer documentation
 
-    Return a mapping of:
-      table_name -> {description, primary_key, important_columns, layer}
-    """
+        Return a mapping of:
+          table_name -> {description, primary_key, important_columns, layer}
+        """,
+        "solutionSpace": "Source patterns and the output shape are fixed; repository contents are unknown.",
+    }],
 )
 ```
 
 ### Step 3: Parallel Warehouse Discovery
 
-**Launch one subagent per database** using the Task tool:
+**Construct one OMP `task` item per database, then launch them in one batch:**
 
 ```
-For each database in configured_databases:
-    Task(
-        subagent_type="general-purpose",
-        prompt="""
-        Discover all metadata for database {DATABASE}.
+task(
+    context="Discover Snowflake metadata for every database listed in ~/.astro/agents/warehouse.yml.",
+    tasks=[
+        {
+            "name": "discover-<database>",
+            "task": """
+            Discover all metadata for database {DATABASE}.
 
-        Use the CLI to run SQL queries:
-        # Scripts are relative to ../analyzing-data/
-        uv run scripts/cli.py exec "df = run_sql('...')"
-        uv run scripts/cli.py exec "print(df)"
+            Use the CLI to run SQL queries:
+            # Scripts are relative to ../analyzing-data/
+            uv run scripts/cli.py exec "df = run_sql('...')"
+            uv run scripts/cli.py exec "print(df)"
 
-        1. Query schemas:
-           SELECT SCHEMA_NAME FROM {DATABASE}.INFORMATION_SCHEMA.SCHEMATA
+            1. Query schemas:
+               SELECT SCHEMA_NAME FROM {DATABASE}.INFORMATION_SCHEMA.SCHEMATA
 
-        2. Query tables with row counts:
-           SELECT TABLE_SCHEMA, TABLE_NAME, ROW_COUNT, COMMENT
-           FROM {DATABASE}.INFORMATION_SCHEMA.TABLES
-           ORDER BY TABLE_SCHEMA, TABLE_NAME
+            2. Query tables with row counts:
+               SELECT TABLE_SCHEMA, TABLE_NAME, ROW_COUNT, COMMENT
+               FROM {DATABASE}.INFORMATION_SCHEMA.TABLES
+               ORDER BY TABLE_SCHEMA, TABLE_NAME
 
-        3. For important schemas (MODEL_*, METRICS_*, MART_*), query columns:
-           SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, COMMENT
-           FROM {DATABASE}.INFORMATION_SCHEMA.COLUMNS
-           WHERE TABLE_SCHEMA = 'X'
+            3. For important schemas (MODEL_*, METRICS_*, MART_*), query columns:
+               SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, COMMENT
+               FROM {DATABASE}.INFORMATION_SCHEMA.COLUMNS
+               WHERE TABLE_SCHEMA = 'X'
 
-        Return a structured summary:
-        - Database name
-        - List of schemas with table counts
-        - For each table: name, row_count, key columns
-        - Flag any tables with >100M rows as "large"
-        """
-    )
+            Return a structured summary:
+            - Database name
+            - List of schemas with table counts
+            - For each table: name, row_count, key columns
+            - Flag any tables with >100M rows as "large"
+            """,
+            "solutionSpace": "The queries and output fields are fixed; database contents are unknown.",
+        },
+        # Repeat this item for each configured database before invoking task.
+    ],
+)
 ```
 
-**Run all subagents in parallel** (single message with multiple Task calls).
+**The single batched call runs all database items in parallel.**
 
 ### Step 4: Discover Categorical Value Families
 
@@ -203,23 +214,21 @@ uv run cli.py concept import -p .astro/warehouse.md
 uv run cli.py concept learn customers HQ.MART_CUST.CURRENT_ASTRO_CUSTS -k ACCT_ID
 ```
 
-### Step 8: Offer CLAUDE.md Integration (Ask User)
+### Step 8: Offer OMP Project-Context Integration (Ask User)
+
+Resolve the target context file using OMP's project priority: `.omp/AGENTS.md`, then `.claude/CLAUDE.md`, then `AGENTS.md`, then `CLAUDE.md`. Use the first file that exists; if none exists, use `AGENTS.md`.
 
 **Ask the user:**
 
-> Would you like to add the Quick Reference table to your CLAUDE.md file?
+> Would you like to add the Quick Reference table to `{resolved context file}`?
 >
-> This ensures the schema mappings are always in context for data queries, improving accuracy from ~25% to ~100% for complex queries.
+> This makes the schema mappings available to future OMP sessions that load the project's context.
 >
 > Options:
-> 1. **Yes, add to CLAUDE.md** (Recommended) - Append Quick Reference section
+> 1. **Yes, append the Quick Reference** (Recommended) - Update `{resolved context file}`
 > 2. **No, skip** - Use warehouse.md and cache only
 
-**If user chooses Yes:**
-
-1. Check if `.claude/CLAUDE.md` or `CLAUDE.md` exists
-2. If exists, append the Quick Reference section (avoid duplicates)
-3. If not exists, create `.claude/CLAUDE.md` with just the Quick Reference
+**If user chooses Yes:** append the Quick Reference section to `{resolved context file}`, avoiding duplicates. Create `AGENTS.md` only when none of the four context files exists.
 
 **Quick Reference section to add:**
 
@@ -236,7 +245,7 @@ When querying the warehouse, use these table mappings:
 
 > Auto-generated by `/data:warehouse-init`. Run `/data:warehouse-init --refresh` to update.
 ```
-**If yes:** Append the Quick Reference section to `.claude/CLAUDE.md` or `CLAUDE.md`.
+**If yes:** Append the Quick Reference section to `{resolved context file}`.
 
 ## After Generation
 

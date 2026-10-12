@@ -3,6 +3,12 @@ name: workload-performance-analysis/ui-performance-explorer/summary
 description: "Analyze a pre-provided Performance Explorer page snapshot from the Snowflake Performance Explorer UI page and produce a condensed report covering overall health, what's working, what may be concerning, notable patterns, cross-dimensional insights, and a prioritized action plan."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `get_page_context`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 **Loaded only when source=UI_PERFORMANCE_EXPLORER (`performanceExplorerContext` payload present).**
 
 # Performance Explorer Summary

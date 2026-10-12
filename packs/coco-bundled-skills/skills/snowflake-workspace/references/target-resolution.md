@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Target workspace resolution
 
 `cortex ws` resolves the target itself for file ops — this reference is for SQL flows (lifecycle, RBAC, replication, recovery) that need a verified FQN, or partial-name lookups when `cortex ws` errors with "does not exist or not authorized".

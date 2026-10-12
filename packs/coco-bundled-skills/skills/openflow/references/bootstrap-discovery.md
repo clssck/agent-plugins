@@ -3,6 +3,12 @@ name: openflow-bootstrap-discovery
 description: CLI/terminal-surface discovery of Openflow deployments and runtimes. Load on the CLI path when the cache is missing or incomplete. The Snowsight/SQL-only equivalent is inline in core-session-sql.md.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Infrastructure Discovery (CLI / terminal surface)
 
 Discover Openflow deployments and runtimes, then write results to the nipyapi cache. This is the **CLI-surface** discovery path — it runs SQL discovery and maintains the local cache/profiles (`snow sql -c <connection>` for a deployment on a non-primary connection).

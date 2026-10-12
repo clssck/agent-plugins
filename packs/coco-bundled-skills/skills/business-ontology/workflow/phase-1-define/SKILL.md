@@ -1,6 +1,6 @@
 ---
 name: business-ontology-workflow-phase-1-define
-description: "Phase 1 (Define) of the Business Ontology workflow — stewards author or import canonical business meaning. Routes to $business-ontology import and create. Parent: business-ontology workflow."
+description: "Phase 1 (Define) of the Business Ontology workflow — stewards author or import canonical business meaning. Routes to skill://business-ontology/SKILL.md import and create. Parent: business-ontology workflow."
 parent_skill: business-ontology-workflow
 ---
 
@@ -45,7 +45,7 @@ target_domain_hint: <primary_domain>
 ai_extraction: true
 ```
 
-Route to `$business-ontology import` — the import sub-skill handles Path A (structured) or B
+Route to `skill://business-ontology/SKILL.md import` — the import sub-skill handles Path A (structured) or B
 (AI extraction). It also registers `import_source` in the ontology source registry
 (idempotent on stage URI). See `../source/SKILL.md`.
 
@@ -53,7 +53,7 @@ Route to `$business-ontology import` — the import sub-skill handles Path A (st
 
 For each key in `extraction_sources`, follow the invocation in
 `../../reference/EXTRACTION_SOURCES.md` for that source. Pass the resulting candidate JSON to
-`$business-ontology import` Path C (structured inline data). Merge all source outputs and
+`skill://business-ontology/SKILL.md import` Path C (structured inline data). Merge all source outputs and
 deduplicate before presenting the combined review table.
 
 After steward review, approve using production batch APIs:
@@ -74,7 +74,7 @@ CALL SYSTEM$GET_GLOSSARY_TERM_LIST('<primary_domain>', 'TERM');
 
 ## Step 3 — Author or extend nodes
 
-Route to `$business-ontology create` for at least one steward-authored item the user names (or a high-value metric in `<primary_domain>` such as `Operating Margin`).
+Route to `skill://business-ontology/SKILL.md create` for at least one steward-authored item the user names (or a high-value metric in `<primary_domain>` such as `Operating Margin`).
 
 Use `SYSTEM$CREATE_GLOSSARY_DOMAIN`, `SYSTEM$DRAFT_GLOSSARY_TERM`, and `SYSTEM$APPROVE_GLOSSARY_TERM` via the create sub-skill — do not hand-roll payloads; follow `../../reference/API_CONTRACT.md`.
 

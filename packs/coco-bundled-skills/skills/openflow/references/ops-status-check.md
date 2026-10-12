@@ -3,6 +3,12 @@ name: openflow-ops-status-check
 description: Quick status checks for Openflow flows. Primary tier reference for listing flows, checking health, and basic start/stop. For advanced lifecycle operations, see ops-flow-lifecycle.md.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Status Check
 
 Quick health checks and basic control for deployed flows. This is the Primary tier reference for everyday status operations.

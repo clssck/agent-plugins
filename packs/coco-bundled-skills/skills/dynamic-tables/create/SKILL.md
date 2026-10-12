@@ -8,7 +8,7 @@ parent_skill: dynamic-tables
 
 ## Mandatory Rules
 
-**Before writing AI function SQL, read `../../../sql/references/sql-authoring-rules.md`.**
+**Before writing AI function SQL, read `skill://cortex-ai-function-studio/references/ai-function-rules.md`.**
 
 Workflow for creating new dynamic tables with appropriate refresh mode, target lag, and warehouse configuration.
 
@@ -109,7 +109,7 @@ Main skill routes here when user wants to:
 
 **Goal:** Build the CREATE DYNAMIC TABLE statement
 
-If the SELECT query uses any AI or Cortex function, read `../../../sql/references/sql-authoring-rules.md` first.
+If the SELECT query uses any AI or Cortex function, read `skill://cortex-ai-function-studio/references/ai-function-rules.md` first.
 
 **Actions:**
 

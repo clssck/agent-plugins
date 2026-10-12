@@ -60,7 +60,7 @@ Preferred crisp follow-up patterns:
   1. Run:
      `uv run --project <SKILL_DIR> python <SKILL_DIR>/scripts/pg_connect.py --list`
   2. Identify likely source-connection matches from the output.
-  3. Present those likely matches via `ask_user_question`.
+  3. Present those likely matches via `ask`.
   4. Include fallback choices: `A different saved connection`, `Enter source details now`, `I need clarification`.
   5. Only if needed, ask for the exact saved connection name in normal chat.
 

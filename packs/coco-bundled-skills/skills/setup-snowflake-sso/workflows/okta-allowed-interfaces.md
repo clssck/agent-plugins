@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Configure Allowed Interfaces via Okta SCIM
 
 This workflow helps you configure which Snowflake interfaces users can access by setting the `allowedInterfaces` attribute in Okta. Changes sync automatically to Snowflake via SCIM.
@@ -35,11 +41,13 @@ Before starting, ensure you have:
 ## Checkpoint: Verify Prerequisites
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Do you have access to the Okta Admin Console and an existing Snowflake SCIM integration?",
     "header": "Prerequisites",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, ready", "description": "I have admin access and SCIM is configured"},
       {"label": "No SCIM yet", "description": "I need to set up SCIM provisioning first"}
@@ -55,11 +63,13 @@ If "No SCIM yet", inform the user they need to set up SCIM first and return to t
 ## Choose Configuration Method
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "How would you like to configure Allowed Interfaces in Okta?",
     "header": "Method",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Automated (API)", "description": "I'll let the agent run Okta API commands (requires Okta API token)"},
       {"label": "Self-service (Curl)", "description": "Give me curl commands to run myself (requires Okta API token)"},
@@ -105,11 +115,13 @@ curl -s -X GET "https://$OKTA_DOMAIN/api/v1/apps?q=snowflake&limit=20" \
 **For Automated:** Execute the command, parse the response, and present the apps to the user:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Which Snowflake integration is used for SCIM user provisioning?",
     "header": "Integration",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       # Populate with discovered Snowflake apps from the API response
       # Include app label and ID in each option
@@ -143,11 +155,13 @@ Look for `allowedInterfaces` in the response properties. If it exists, skip to P
 If `allowedInterfaces` is NOT found, inform the user and ask for confirmation:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "The 'allowedInterfaces' attribute does not exist in your Snowflake app schema. This attribute is required to control which interfaces users can access. Add it now?",
     "header": "Add attribute",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, add it", "description": "Add 'allowedInterfaces' attribute to the Snowflake Application User Profile"},
       {"label": "No, cancel", "description": "Do not make any changes"}
@@ -215,11 +229,13 @@ curl -s -X POST "https://$OKTA_DOMAIN/api/v1/meta/schemas/apps/{app_id}/default"
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Has the 'allowedInterfaces' attribute been added to the Snowflake Application User Profile?",
     "header": "Attribute",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, done", "description": "Attribute created successfully"},
       {"label": "Already exists", "description": "The attribute was already configured"},
@@ -264,11 +280,13 @@ To set or override the value for specific users, continue to Part 3.
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "How would you like to configure the allowedInterfaces value?",
     "header": "Config",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Set default for all", "description": "Configure a default value in attribute mappings (UI only)"},
       {"label": "Set per user", "description": "Configure values individually per user assignment"},
@@ -292,11 +310,13 @@ Now you can set the `allowedInterfaces` value for specific users assigned to the
 First, determine which interfaces the user should access:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Which interfaces should this user be allowed to access?",
     "header": "Interfaces",
-    "multiSelect": true,
+    "multi": true,
     "options": [
       {"label": "SNOWFLAKE_INTELLIGENCE", "description": "Snowflake Intelligence (ai.snowflake.com)"},
       {"label": "STREAMLIT", "description": "Streamlit applications"}
@@ -328,11 +348,13 @@ curl -s -X GET "https://$OKTA_DOMAIN/api/v1/users/{user_email}" \
 Store the `id` from the response as the **user_id**. Confirm the user identity with the admin before proceeding:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Found user: {user_name} ({user_email}). Update their allowedInterfaces attribute?",
     "header": "Confirm",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, update", "description": "Set allowedInterfaces for this user"},
       {"label": "No, cancel", "description": "Do not make any changes"}
@@ -374,11 +396,13 @@ curl -s -X POST "https://$OKTA_DOMAIN/api/v1/apps/{app_id}/users/{user_id}" \
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Has the user's 'Allowed Interfaces' value been updated?",
     "header": "User Updated",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, done", "description": "User assignment updated"},
       {"label": "Update more users", "description": "I want to configure additional users"},
@@ -409,11 +433,13 @@ To force immediate sync (Manual or if automatic sync hasn't occurred):
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Has the SCIM sync been triggered or completed?",
     "header": "Sync",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, synced", "description": "Force sync completed or waiting for automatic sync"},
       {"label": "Skip verification", "description": "I'll verify later"}
@@ -437,11 +463,13 @@ Look for the `ALLOWED_INTERFACES` property. It should show the interfaces you co
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Is the ALLOWED_INTERFACES value showing correctly in Snowflake?",
     "header": "Verify",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, correct", "description": "The setting synced successfully"},
       {"label": "Not synced yet", "description": "The value hasn't appeared yet"},

@@ -3,6 +3,12 @@ name: openflow-ops-tracked-modifications
 description: Preserve and restore local modifications when changing flow versions. Use when switching versions without committing or losing local changes.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Tracked Modifications
 
 Safely change flow versions while preserving local modifications.

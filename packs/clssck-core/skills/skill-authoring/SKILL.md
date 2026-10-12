@@ -26,7 +26,7 @@ The description is **retrieval surface**: the model sees only it before choosing
 - **Enumerations → tables.** Telegraphic where enumerating (`→`, `⇒`, `·`); normal dense prose in paragraphs. No hedging, ceremony, closing summaries.
 - **Examples are concrete and runnable** — bash/json fences, real commands — not abstract description. Adjacent Bad/Good pair removes a retry class.
 - **RFC 2119 keywords** (MUST, NEVER, SHOULD, AVOID, MAY) precise and sparse; bold when they lead a line. Prohibition without a stated substitute forces guessing; name the substitute.
-- **Router size:** SKILL.md ≤~150 lines. Detail → `references/*.md` in the same register, runnable helpers → `scripts/`, all linked by relative Markdown links; every file linked from SKILL.md. Scope splits point at sibling skills by name.
+- **Router size:** SKILL.md ≤~150 lines. Detail → `references/*.md` in the same register, runnable helpers → `scripts/`. Link every runtime entry point directly from SKILL.md; supporting test material MAY be linked from the reference or script it validates. Scope splits point at sibling skills by name.
 
 ## Boundaries and gates
 

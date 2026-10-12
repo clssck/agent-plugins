@@ -3,6 +3,13 @@ name: modify-authentication-policy-workflow
 parent_skill: manage-authentication-policy
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+> - Selected paths may require external capabilities not built into OMP: `sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Workflow B: Modify Existing Policy
 
 ## When to Load
@@ -26,11 +33,13 @@ SHOW AUTHENTICATION POLICIES IN ACCOUNT;
 Present the results as a selectable list:
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "Which policy would you like to modify?",
         "header": "Select Policy",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             # One {"label": "<db>.<schema>.<policy_name>"} per row from SHOW AUTHENTICATION POLICIES
         ]
@@ -52,11 +61,13 @@ SELECT GET_DDL('POLICY', '<db>.<schema>.<name>');
 Show current configuration to user. Save the DDL for revert capability. Then pause:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Current state is displayed above. Ready to specify your changes?",
     "header": "Confirm Ready",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, specify changes", "description": "Proceed to select properties to modify"},
       {"label": "No, review more details first", "description": "I need to review more before changing"}
@@ -72,11 +83,13 @@ AskUserQuestion(
 Ask which properties to modify:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Which properties do you want to modify? Select all that apply.",
     "header": "Properties to Modify",
-    "multiSelect": true,
+    "multi": true,
     "options": [
       {"label": "AUTHENTICATION_METHODS", "description": "Which auth methods are allowed"},
       {"label": "CLIENT_TYPES", "description": "Which client types can connect"},
@@ -91,9 +104,9 @@ AskUserQuestion(
 )
 ```
 
-For each selected property, ask for the new value via a follow-up AskUserQuestion. Only use values that appear in [references/property-reference.md](../references/property-reference.md) or official Snowflake documentation, never infer or guess values.
+For each selected property, ask for the new value via a follow-up ask. Only use values that appear in [references/property-reference.md](../references/property-reference.md) or official Snowflake documentation, never infer or guess values.
 
-**Sub-policy follow-ups** — when a modification enables or adds a sub-policy, ask about its properties in a separate AskUserQuestion:
+**Sub-policy follow-ups** — when a modification enables or adds a sub-policy, ask about its properties in a separate ask:
 
 - **PAT_POLICY:** Ask for `DEFAULT_EXPIRY_IN_DAYS`, `MAX_EXPIRY_IN_DAYS`, `NETWORK_POLICY_EVALUATION`, `REQUIRE_ROLE_RESTRICTION_FOR_SERVICE_USERS`
 - **WORKLOAD_IDENTITY_POLICY:** Ask for `ALLOWED_PROVIDERS` and account/issuer restrictions

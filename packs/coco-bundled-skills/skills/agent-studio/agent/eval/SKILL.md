@@ -4,6 +4,13 @@ description: "Evaluate Cortex Agents using Snowflake's native Agent Evaluations 
 parent_skill: agent-studio-agent
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Evaluate Cortex Agent
 
 Evaluate Cortex Agents using Snowflake's native Agent Evaluations.
@@ -218,21 +225,24 @@ If the user asks to create a new eval, skip directly to **Step 2**.
 
 > **Parent-mode:** If `<AGENT_VERSION>` was pre-filled by the parent, use it directly and skip the ASK. Otherwise, ASK the user as below.
 
-ASK the user:
+Use OMP `ask`:
 
-{
-  "questions": [
+ask(
+  i="Collecting user decision",
+  questions=[
     {
+      "id": "selection",
       "question": "Which version of your agent would you like to evaluate?",
-      "multiSelect": false,
+      "multi": false,
+      "recommended": 0,
       "options": [
-        { "label": "A) Default — evaluates the default agent version (recommended for production evals)" },
+        { "label": "A) Default — evaluates the default agent version (production evals)" },
         { "label": "B) Draft (LIVE version) — evaluates the current working draft version" },
         { "label": "C) Select a committed version - choose a specific numeric version or alias to evaluate" }
       ]
     }
   ]
-}
+)
 
 **STOP** for the user's answer.
 
@@ -259,11 +269,13 @@ Available versions:
 
 Then ASK the user which version to use. Build the options dynamically from the table above:
 
-{
-  "questions": [
+ask(
+  i="Collecting user decision",
+  questions=[
     {
+      "id": "selection",
       "question": "Which committed Agent Version would you like to evaluate?",
-      "multiSelect": false,
+      "multi": false,
       "options": [
         { "label": "Default (<version_name>)" },
         { "label": "<alias> (<version_name>)" },
@@ -271,7 +283,7 @@ Then ASK the user which version to use. Build the options dynamically from the t
       ]
     }
   ]
-}
+)
 
 The options should be:
 - First option: always `Default (<version_name>)` — the row where Default = Yes
@@ -316,11 +328,13 @@ The options should be:
 > **STOP** for the user's answer. If A → gather the custom metric details (name, score_ranges, prompt) using the same validation checklist as standalone mode below, then skip to Step 3. If B → skip to Step 3.
 
 Ask:
-{
-  "questions": [
+ask(
+  i="Collecting user decision",
+  questions=[
     {
+      "id": "selection",
       "question": "Which metrics would you like to evaluate? You could choose either 4 built-in metrics from snowflake or your own custom metric.",
-      "multiSelect": true,
+      "multi": true,
       "options": [
         { "label": "answer_correctness — Does the agent give correct answers?" },
         { "label": "logical_consistency — Is the agent's reasoning internally consistent?" },
@@ -330,17 +344,19 @@ Ask:
       ]
     }
   ]
-}
+)
 
 If the user selects a Custom metric, gather for each (do not assume values):
 - **Name**: identifier used as the results column (e.g. `relevance`)
 - **Model** (optional): which LLM judge to use. ASK via:
 
-{
-  "questions": [
+ask(
+  i="Collecting user decision",
+  questions=[
     {
+      "id": "selection",
       "question": "Which model should judge your custom metric?",
-      "multiSelect": false,
+      "multi": false,
       "options": [
         { "label": "Auto (Snowflake selects automatically)" },
         { "label": "claude-4-sonnet" },
@@ -351,7 +367,7 @@ If the user selects a Custom metric, gather for each (do not assume values):
       ]
     }
   ]
-}
+)
 
 If "Auto" → omit `model` from the custom metric YAML. Otherwise record the selected model string.
 
@@ -370,20 +386,23 @@ Validation checklist before moving on:
 
 **MANDATORY — immediately after metric selection, ask for metric version:**
 
-{
-  "questions": [
+ask(
+  i="Collecting user decision",
+  questions=[
     {
+      "id": "selection",
       "question": "Which metric version would you like to use for the built-in metrics?",
-      "multiSelect": false,
+      "multi": false,
+      "recommended": 0,
       "options": [
-        { "label": "A) auto — Snowflake selects the default version automatically, currently v1.0 (recommended)" },
+        { "label": "A) auto — Snowflake selects the default version automatically, currently v1.0" },
         { "label": "B) v1_0 — Run with v1.0 prompt, runs on Claude Sonnet 4" },
         { "label": "C) v2_0 — Run with v2.0 prompt, runs on Claude Sonnet 4.5 (or GPT 5.2 based on model allowlist)" },
         { "label": "D) v3_0 — Run with v3.0 prompt, runs on Claude Sonnet 4.6 (or GPT 5.4 based on model allowlist)" }
       ]
     }
   ]
-}
+)
 
 **STOP** for the user's answer.
 

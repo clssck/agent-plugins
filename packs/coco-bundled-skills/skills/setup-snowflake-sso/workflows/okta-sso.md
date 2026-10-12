@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Okta SSO Setup
 
 This workflow guides you through setting up SAML SSO and/or SCIM provisioning with Okta.
@@ -7,11 +13,13 @@ This workflow guides you through setting up SAML SSO and/or SCIM provisioning wi
 ## Step 1: Ask Integration Type
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "What type of Okta integration do you want to set up?",
     "header": "Integration",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "SAML SSO", "description": "Single sign-on via Okta"},
       {"label": "SCIM Provisioning", "description": "Automatic user/group sync"},
@@ -37,11 +45,13 @@ Based on the selection, follow the appropriate section below, **one step at a ti
 ## Checkpoint: Confirm Prerequisites
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Do you have access to the Okta Admin Console with administrator permissions?",
     "header": "Prerequisites",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, ready", "description": "I have access and required permissions"},
       {"label": "Need help", "description": "I'm not sure about my permissions"}
@@ -55,11 +65,13 @@ AskUserQuestion(
 ## Choose SAML Configuration Method
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "How would you like to configure Okta SAML SSO?",
     "header": "Method",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Automated (API)", "description": "I'll let the agent run Okta API commands (requires Okta API token)"},
       {"label": "Self-service (Curl)", "description": "Give me curl commands to run myself (requires Okta API token)"},
@@ -125,11 +137,13 @@ Store the `id` from the response — this is the **app_id** needed for subsequen
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Has the Snowflake application been added in Okta?",
     "header": "App Created",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, done", "description": "The app is added and ready"},
       {"label": "Having issues", "description": "I encountered a problem"}
@@ -176,11 +190,13 @@ curl -s -X GET "https://$OKTA_DOMAIN/api/v1/apps/{app_id}/sso/saml/metadata" \
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Do you have the SSO URL, Issuer, and Certificate from Okta?",
     "header": "IdP Values",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, I have them", "description": "Ready to proceed with the values"},
       {"label": "Need help", "description": "I can't find these values"}
@@ -214,11 +230,13 @@ CREATE SECURITY INTEGRATION okta_saml_sso
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Snowflake security integration created. Ready to proceed with user assignment and testing?",
     "header": "Next Step",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, continue", "description": "Proceed to user assignment"},
       {"label": "Done for now", "description": "I'll complete setup later"}
@@ -281,11 +299,13 @@ After assignment, test SSO:
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Were you able to successfully test SSO?",
     "header": "Test Result",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, it works", "description": "SSO is working correctly"},
       {"label": "Test failed", "description": "I encountered an error"}
@@ -303,11 +323,13 @@ AskUserQuestion(
 ## Checkpoint: Confirm Prerequisites
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "For SCIM provisioning, you'll need access to both Snowflake (with ACCOUNTADMIN role) and the Okta Admin Console. Are you ready to begin?",
     "header": "Prerequisites",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, ready", "description": "I have access to both systems"},
       {"label": "Need help", "description": "I'm missing some access"}
@@ -337,11 +359,13 @@ CREATE SECURITY INTEGRATION okta_scim
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "SCIM integration created. Ready to generate the access token?",
     "header": "Next Step",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, continue", "description": "Generate the SCIM token"},
       {"label": "Having issues", "description": "I encountered a problem"}
@@ -368,11 +392,13 @@ SELECT SYSTEM$GENERATE_SCIM_ACCESS_TOKEN('OKTA_SCIM');
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Do you have the SCIM token copied? You'll need to paste it in Okta in the next step.",
     "header": "Token Ready",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, copied", "description": "Token is saved and ready to use"},
       {"label": "Need to copy", "description": "Let me copy it first"}
@@ -396,11 +422,13 @@ AskUserQuestion(
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Did the API credentials test succeed in Okta?",
     "header": "Connection",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, success", "description": "Test connection passed"},
       {"label": "Test failed", "description": "I got an error"}
@@ -435,11 +463,13 @@ AskUserQuestion(
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Provisioning features enabled. Ready to configure attribute mappings?",
     "header": "Features",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, continue", "description": "Configure attribute mappings"},
       {"label": "Need to adjust", "description": "I want to modify settings"}
@@ -479,11 +509,13 @@ AskUserQuestion(
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Attribute mappings configured. Ready to assign users and start provisioning?",
     "header": "Mappings",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, continue", "description": "Proceed to user assignment"},
       {"label": "Need to adjust", "description": "I want to modify mappings"}
@@ -542,11 +574,13 @@ curl -s -X POST "https://$OKTA_DOMAIN/api/v1/apps/{app_id}/users" \
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Users assigned. Would you like to verify users in Snowflake?",
     "header": "Verify",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, verify", "description": "Check users in Snowflake"},
       {"label": "Done for now", "description": "I'll verify later"}

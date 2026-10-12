@@ -31,10 +31,10 @@
          ▼
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │  STEP 1: ASK SMA OUTPUT PATH & CONFIGURE OPTIONS                                │
-│  1. ask_user_question → "<sma_output_dir>"                                      │
+│  1. ask → "<sma_output_dir>"                                      │
 │     Expected structure: Output/, Reports/, Logs/                                │
 │                                                                                 │
-│  2. ask_user_question → "How should EWI comments be handled?"                   │
+│  2. ask → "How should EWI comments be handled?"                   │
 │     ┌────────────┐  ┌─────────────────────────────────────────────────────────┐ │
 │     │  Mark      │  │ Keep comments, prefix with [FIXED] or [NOT-FIXED]       │ │
 │     └────────────┘  └─────────────────────────────────────────────────────────┘ │
@@ -42,7 +42,7 @@
 │     │  Remove    │  │ Delete EWI comments after fixing                        │ │
 │     └────────────┘  └─────────────────────────────────────────────────────────┘ │
 │                                                                                 │
-│  3. ask_user_question → "Which EWIs should be processed?"                       │
+│  3. ask → "Which EWIs should be processed?"                       │
 │     ┌────────────────────────┐  ┌───────────────────────────────────────────────┐ │
 │     │ Only pending           │  │ Process only 'pending' EWIs (skip processed) │ │
 │     └────────────────────────┘  └───────────────────────────────────────────────┘ │

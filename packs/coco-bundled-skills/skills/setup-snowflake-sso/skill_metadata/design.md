@@ -35,14 +35,14 @@ This skill orchestrates SSO configuration for Snowflake across multiple Identity
 **Key constraints:**
 - Agent must NEVER install CLI tools, SDKs, or sign in to IdPs.
 - IdP API calls only when user explicitly opts into "Automated (API)" method.
-- Step-by-step delivery enforced (one section at a time, with AskUserQuestion confirmations).
+- Step-by-step delivery enforced (one section at a time, with ask confirmations).
 - Error handling requires showing errors to user and offering choices rather than auto-diagnosing.
 
 ## Cost guards rationale
 
 The skill is primarily conversational guidance with minimal SQL (2-3 queries for account info and integration checks). The bulk of "work" is presenting instructions and executing user-approved curl commands.
 
-- `cost_ceiling_usd`: 0.10 (long multi-turn conversation with many AskUserQuestion interactions)
+- `cost_ceiling_usd`: 0.10 (long multi-turn conversation with many ask interactions)
 - `max_tokens_per_call`: 6000 (sub-workflows are verbose with full curl command templates)
 - `max_calls_per_invocation`: 25 (many back-and-forth steps across the full SSO setup)
 - `p95_latency_ms_target`: 60000 (heavily interactive, human-paced workflow)

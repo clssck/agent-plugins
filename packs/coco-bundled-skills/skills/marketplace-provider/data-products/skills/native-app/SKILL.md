@@ -8,7 +8,7 @@ description: "Create a Native App data product for Snowflake Marketplace. Use wh
 > ⚠️ **MANDATORY — READ BEFORE PROCEEDING**
 >
 > **Do NOT build the app using content from this file.** The content below is Marketplace-specific reference context only.
-> You MUST invoke `skill(command: "native-app-provider")` as your next action before writing any SQL, manifest content, or setup scripts. Do not skip this step even if the build details here seem sufficient.
+> You MUST invoke `read skill://native-app-provider/SKILL.md` as your next action before writing any SQL, manifest content, or setup scripts. Do not skip this step even if the build details here seem sufficient.
 
 Full-featured applications with custom logic, Streamlit UIs, stored procedures, UDFs, and optional Snowpark Container Services (SPCS). Runs inside the consumer's account.
 
@@ -41,7 +41,7 @@ Before writing a line of code, review the [Enforced Requirements](https://docs.s
 
 ### Phase 2: Build
 
-**Stop here and invoke `skill(command: "native-app-provider")` before doing anything else.** Do not write manifest content, `setup.sql`, or setup scripts from this file.
+**Stop here and invoke `read skill://native-app-provider/SKILL.md` before doing anything else.** Do not write manifest content, `setup.sql`, or setup scripts from this file.
 
 That skill owns the full build flow: application package creation, `setup.sql`, `manifest.yml`, SPCS containers, Streamlit, event sharing, and versioning. Return here after the build completes for Phases 3–6 (testing, security scan, functional review, listing).
 

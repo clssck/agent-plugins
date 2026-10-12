@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Configure Allowed Interfaces via Entra ID SCIM
 
 This workflow helps you configure which Snowflake interfaces users can access by setting the `allowedInterfaces` attribute in Microsoft Entra ID. Changes sync automatically to Snowflake via SCIM.
@@ -16,11 +22,13 @@ Before starting, ensure you have:
 ## Checkpoint: Verify Prerequisites
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Do you have access to the Microsoft Entra admin center and an existing Snowflake SCIM integration?",
     "header": "Prerequisites",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, ready", "description": "I have admin access and SCIM is configured"},
       {"label": "No SCIM yet", "description": "I need to set up SCIM provisioning first"}
@@ -82,11 +90,13 @@ In Entra ID, the ability to edit the list of supported attributes is **locked do
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Have you opened the Snowflake attribute list editor?",
     "header": "Navigate",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, I'm there", "description": "I can see the target attribute list"},
       {"label": "Having other issues", "description": "I encountered a different problem"}
@@ -116,11 +126,13 @@ At the bottom of the attribute list, add the custom `allowedInterfaces` attribut
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Have you added the allowedInterfaces attribute to the target attribute list?",
     "header": "Attribute",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, saved", "description": "Attribute added and saved successfully"},
       {"label": "Having issues", "description": "I encountered a problem"}
@@ -155,11 +167,13 @@ Now create a mapping from a source attribute to the new target attribute.
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Have you created the allowedInterfaces attribute mapping?",
     "header": "Mapping",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, saved", "description": "Mapping added and saved successfully"},
       {"label": "Having issues", "description": "I encountered a problem"}
@@ -179,11 +193,13 @@ Now you'll set the `employeeType` attribute value for specific users.
 First, determine which interfaces the user should access:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Which interfaces should this user be allowed to access?",
     "header": "Interfaces",
-    "multiSelect": true,
+    "multi": true,
     "options": [
       {"label": "SNOWFLAKE_INTELLIGENCE", "description": "Snowflake Intelligence (ai.snowflake.com)"},
       {"label": "STREAMLIT", "description": "Streamlit applications"}
@@ -215,11 +231,13 @@ Build the value string from selections (comma-separated if multiple):
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Have you updated the user's employeeType with the allowed interfaces?",
     "header": "User Updated",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, done", "description": "User attribute updated"},
       {"label": "Update more users", "description": "I want to configure additional users"},
@@ -247,11 +265,13 @@ The change will sync to Snowflake on the next provisioning cycle. To force immed
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Have you triggered the provisioning sync?",
     "header": "Sync",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, synced", "description": "Provisioning triggered"},
       {"label": "Skip verification", "description": "I'll verify later"}
@@ -275,11 +295,13 @@ Look for the `ALLOWED_INTERFACES` property. It should show the interfaces you co
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Is the ALLOWED_INTERFACES value showing correctly in Snowflake?",
     "header": "Verify",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, correct", "description": "The setting synced successfully"},
       {"label": "Not synced yet", "description": "The value hasn't appeared yet"},

@@ -190,7 +190,7 @@ NEVER put a literal secret in `.tf`, `.tfvars`, or variable defaults. Pick by wh
 ```hcl
 # BAD: secret in code
 resource "aws_db_instance" "db" {
-  password = "my-secret-password"
+  password = "<plaintext-password>"
 }
 
 # BAD: data source read lands the value in state and plan

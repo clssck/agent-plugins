@@ -10,6 +10,12 @@ description: |
 parent_skill: spark-migration
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake.connector`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Deploy Notebook
 
 > **Bundled sub-skill of `spark-migration`.** Loaded on-demand by the parent
@@ -116,7 +122,7 @@ uv run --project <SKILL_DIRECTORY> \
 
 - Verdict `PASS` (both exist) → proceed to Step 1.
 - Verdict `SKIPPED` (no connection) → report and stop.
-- Verdict `MISSING` (exit 2) → **STOP and ask** via `ask_user_question` with two
+- Verdict `MISSING` (exit 2) → **STOP and ask** via `ask` with two
   options:
   1. **Use an existing database/schema** — user provides a name; restart this
      step with the new `<DATABASE>`/`<SCHEMA>`.

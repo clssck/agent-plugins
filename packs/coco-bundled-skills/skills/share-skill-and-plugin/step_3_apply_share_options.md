@@ -11,7 +11,7 @@ If `<intent> = share-resync`, **skip this step entirely**.
 combined stop, or in step 2 before plugin Option A CLI), skip this question
 entirely — use the stored values directly.
 
-Otherwise, call `ask_user_question` per
+Otherwise, call `ask` per
 share_interactive_prompts.md
 § **Locked audience labels**. Do not substitute synonyms or add a fourth
 choice. If the user picks **To a specific ROLE…**, ask once in chat for
@@ -47,7 +47,7 @@ OR a role not holding `OWNERSHIP` on the same object.
 ## ⚠️ MANDATORY STOPPING POINT
 
 If `<revoke_set>` is non-empty, show every role in chat, then call
-`ask_user_question` per
+`ask` per
 share_interactive_prompts.md
 § **Re-share REVOKE narrow confirm** before any REVOKE.
 

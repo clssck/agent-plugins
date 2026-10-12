@@ -4,6 +4,12 @@ description: "Phase 3 (Generate) of the Business Ontology workflow — bind appr
 parent_skill: business-ontology-workflow
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `semantic_studio`, `snowflake_multi_cortex_analyst`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Phase 3 — Generate and Consume
 
 Approved ontology meaning becomes **executable** Semantic Views. Engineers refine in Studio; business users consume through Cortex Analyst.

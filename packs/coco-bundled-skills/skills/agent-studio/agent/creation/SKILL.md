@@ -4,6 +4,12 @@ description: "Create a new Cortex Agent from scratch using the cortex agent-stud
 parent_skill: agent-studio-agent
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Create Cortex Agent
 
 > Tool usage: see parent `agent/SKILL.md`. This skill uses `cortex agent-studio agent-write` only; deploying to Snowflake belongs to the edit flow, not here.

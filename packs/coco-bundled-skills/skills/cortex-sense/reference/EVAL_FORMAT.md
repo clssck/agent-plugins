@@ -1,3 +1,4 @@
+
 # Eval format
 
 Contract for the eval files — the versioned definition (`eval.yaml` + `eval-<version_id>.yaml` snapshots), the results index (`eval_results.yaml`), and per-run detail files — covering storage, versioning, schema, answer-grading rules, efficiency metrics, and question-generation rules. Load this file in full before executing any eval verb.
@@ -327,7 +328,7 @@ It is **not** re-run for changes that don't affect the questions themselves:
 
 `run` step 2, `generate` step 6, and every definition edit call this. Apply the refresh rule above first; only (re)produce a baseline when it fires.
 
-1. **Isolate.** Launch the baseline in a fresh, isolated agent (use the Task tool, `subagent_type: shell` or `generalPurpose`) that has **no** cortex-sense access and none of this session's use-case context — cortex-sense is effectively uninstalled for that run. Pass it only: the confirmed questions, the `judge_prompt`, the target database/schema, and the manifest `warehouse`. This prevents the current session (which has already seen the context) from answering from memory.
+1. **Isolate.** Launch the baseline in a fresh, isolated subagent with OMP's `task` tool (one `tasks[]` entry using the default `task` agent, with `isolated: true`, a required batch `context`, plus `task` and `solutionSpace`). Give it **no** cortex-sense access and none of this session's use-case context: do not load `skill://cortex-sense` in it, and do not mention it in `context`. cortex-sense is effectively uninstalled for that run. Pass it only: the confirmed questions, the `judge_prompt`, the target database/schema, and the manifest `warehouse`. This prevents the current session (which has already seen the context) from answering from memory.
 2. **Answer, grade, fail honestly** per "Clean-room baseline (no leakage)" above — answer each question with everything *except* cortex-sense, grade with the same `judge_prompt`/`expected_answer`, record the same `metrics`, and mark any question that can't be answered from the non-cortex-sense sources `failed: true` / score 0. Do **not** assign baseline scores by reasoning about discoverability — that is a guess, not a baseline.
 3. **Write the detail file** `eval_<run_id>.yaml` with `mode: baseline` and `results[]` (reuse carried-over per-question results for unchanged questions when only some questions changed).
 4. **Set the `baseline` slot**: `run_id`, `run_at`, `mode: baseline`, `eval_version_id` (current), `question_fingerprint: <fp>`, `aggregate_accuracy`, `questions_scored`, `per_question`, metric aggregates, and `detail_file`. The `baseline` slot and its detail file are exempt from the `runs[]` caps. Save `eval_results.yaml`.

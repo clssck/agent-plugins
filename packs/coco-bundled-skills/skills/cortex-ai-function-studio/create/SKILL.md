@@ -3,6 +3,13 @@ name: create-ai-function
 description: "Create a new custom AI function. Supports table-based or manual input specification, single or variant outputs. Direct AI_COMPLETE calls or additional pre- and post-processing."
 parent_skill: cortex-ai-function-studio
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 
@@ -256,7 +263,7 @@ Use the target `database` and `schema` values that were already collected during
 
 #### Step 8: Generate Prompts and Confirm
 
-**If `environment == snowsight`:** Present the review below in chat (not in the notebook), then use `ask_user_question` with options **"Ready to deploy"** / **"Cancel"**. STOP and wait. After user confirms, follow `references/snowsight/create.md` Step 9 to deploy, then return here for Step 10.
+**If `environment == snowsight`:** Present the review below in chat (not in the notebook), then use `ask` with options **"Ready to deploy"** / **"Cancel"**. STOP and wait. After user confirms, follow `references/snowsight/create.md` Step 9 to deploy, then return here for Step 10.
 
 **Direct mode:**
 

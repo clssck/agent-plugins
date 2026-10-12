@@ -3,6 +3,12 @@ name: dbt-to-dt-advisor
 description: Single-model dbt-to-DT advisor. Stateless. Classifies one model and suggests a config block. Surfaces caveats. Does not run dbt or query Snowflake.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `execute_sql`, `read_active_pane`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # dbt-to-dt — Advisor
 
 Use when:
@@ -136,7 +142,7 @@ For project-wide migration including DAG analysis, source verification, conversi
 
 ## Surface-specific behavior
 
-- On **Snowsight non-sandbox**: use `ask_user_question` for structured interaction (e.g., asking the user to confirm which model they want assessed, or bridging to the orchestrator suggestion). `read_active_pane` is available as an alternative input channel to paste. `execute_sql` is available but the advisor does not use it — "no source verification" is a deliberate design choice, not a platform constraint.
+- On **Snowsight non-sandbox**: use `ask` for structured interaction (e.g., asking the user to confirm which model they want assessed, or bridging to the orchestrator suggestion). `read_active_pane` is available as an alternative input channel to paste. `execute_sql` is available but the advisor does not use it — "no source verification" is a deliberate design choice, not a platform constraint.
 - On **CLI**: file-path input and model-name input are fully supported. Markdown output renders directly.
 - On **all surfaces**: no filesystem writes, no Bash execution, no sub-agents. The advisor's reasoning is from SQL only.
 

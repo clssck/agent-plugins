@@ -11,7 +11,7 @@ Helps providers get more out of their Marketplace listings — improve discovera
 
 ## Step 1: What Would You Like to Improve?
 
-Use `ask_user_question` to identify the focus area:
+Use `ask` to identify the focus area:
 
 - **Listing discoverability** — improve how consumers find my listing
 - **Analytics & telemetry** — understand who's using my listing and how
@@ -85,7 +85,7 @@ Track listing performance using the `DATA_SHARING_USAGE` schema, available in yo
 
 ### Top 20 Provider Analytics Questions
 
-> **Before answering:** Use `ask_user_question` to identify which specific analytics question the provider wants answered. Then run only the relevant query below. **Do not present the full list unprompted.**
+> **Before answering:** Use `ask` to identify which specific analytics question the provider wants answered. Then run only the relevant query below. **Do not present the full list unprompted.**
 
 #### Q1: Who is actively querying my data? (best lead signal)
 ```sql
@@ -317,7 +317,7 @@ Streamlit in Snowflake apps run on one of two runtimes, and this determines the 
 >
 > Note: even on container runtime, a `QUERY_WAREHOUSE` is still required. The compute pool runs the app; the warehouse runs the app's SQL queries.
 
-Use `ask_user_question` to let the provider choose their deployment method: **Option A** (Snowsight UI, quickest), **Option B** (container-runtime SQL, reproducible), or **Option C** (warehouse-runtime SQL, fallback).
+Use `ask` to let the provider choose their deployment method: **Option A** (Snowsight UI, quickest), **Option B** (container-runtime SQL, reproducible), or **Option C** (warehouse-runtime SQL, fallback).
 
 #### Step 1: Container prerequisites (discover, do not assume)
 
@@ -368,7 +368,7 @@ GRANT USAGE ON INTEGRATION pypi_access_integration TO ROLE <provider_role>;
 
 **Option B: Container-runtime SQL deployment (recommended, reproducible):**
 
-Use `ask_user_question` to collect database, schema, warehouse, compute pool, and EAI (resolved in Step 1).
+Use `ask` to collect database, schema, warehouse, compute pool, and EAI (resolved in Step 1).
 
 > MANDATORY CHECKPOINT: Before executing, present the resolved SQL below with the provider's actual database, schema, warehouse, compute pool, and EAI filled in, and wait for explicit confirmation ("Yes, proceed") before running any DDL.
 

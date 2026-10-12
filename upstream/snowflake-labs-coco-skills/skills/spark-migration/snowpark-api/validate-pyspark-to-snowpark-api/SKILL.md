@@ -81,7 +81,7 @@ git branch -M main
 
 **If already a git repository:**
 - `git status --porcelain` — if clean, skip to branch creation
-- If uncommitted changes, ask the user via `ask_user_question`:
+- If uncommitted changes, ask the user via `ask`:
   - **Stash changes:** `git stash push -m "Pre-migration stash"` (recover later with `git stash pop`)
   - **Commit changes:** stage + commit pending changes before proceeding
   - **Abort:** stop and let the user resolve manually
@@ -150,7 +150,7 @@ uv run --project "<spark_migration_root>/snowflake-notebook-migration" \
 ```
 
 - Empty array → silently skip (no prompt). Go to V4.
-- Non-empty → `ask_user_question`:
+- Non-empty → `ask`:
   - **Yes, run Notebook Migration**
   - **No, skip for now** — persist `{"run_notebook_migration": "no"}` then go to V4.
 
@@ -186,9 +186,9 @@ Decision table for `run_ewi_fixer`:
 |---|---|
 | `no` | Log skip line; go to V5. |
 | `yes` | Use saved sub-keys (`run_ewi_fixer.ewi_comments`, `run_ewi_fixer.ewi_scope`); proceed to invocation. |
-| (unset) | `ask_user_question` "Run EWI Fixer?" — if no, log skip and go to V5; if yes, ask the two sub-questions (comments mode + scope) and persist. |
+| (unset) | `ask` "Run EWI Fixer?" — if no, log skip and go to V5; if yes, ask the two sub-questions (comments mode + scope) and persist. |
 
-**Sub-question A (comments):** `ask_user_question` — `mark` (keep with `[FIXED]`/`[NOT-FIXED]` prefix) or `remove` (delete after fix).
+**Sub-question A (comments):** `ask` — `mark` (keep with `[FIXED]`/`[NOT-FIXED]` prefix) or `remove` (delete after fix).
 
 **Sub-question B (scope):** `only_pending` / `retry_not_resolved` / `Specific EWI code` / `all_reset`. If "Specific EWI code", also ask for the code (e.g., `SPRKPY1002`) and store as `<ewi_specific_code>` (not persisted).
 

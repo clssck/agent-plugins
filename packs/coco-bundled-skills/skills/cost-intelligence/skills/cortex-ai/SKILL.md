@@ -1,3 +1,4 @@
+
 # Cortex AI Cost Skill
 
 Analyze credit and token usage for Snowflake's Cortex AI products.

@@ -12,11 +12,17 @@ description: >-
   marketplace/catalog. Discovery happens in-app: it runs
   `SHOW TERSE CORTEX EXTENSIONS IN ACCOUNT` and filters the results by the user's
   keyword or FQN, then always drives toward installation — confirming
-  the match (or asking which one, when several match) via ask_user_question and
+  the match (or asking which one, when several match) via ask and
   emitting a `coco://install_catalog_uri` deep link the user clicks to install
   natively. Do not use this for public Snowflake Marketplace datasets or apps;
   use marketplace-search for third-party data/product listings.
 ---
+
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `snowflake_object_search`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
 
 # Find Skill and Plugin (Desktop)
 
@@ -25,7 +31,7 @@ install them locally through CoCo Desktop. Discovery happens **in-app**: you run
 `SHOW TERSE CORTEX EXTENSIONS IN ACCOUNT` and filter the rows by the user's keyword or
 FQN.
 Once you've identified the extension (confirming the single match, or asking the
-user which one when several match, via `ask_user_question`), you construct its
+user which one when several match, via `ask`), you construct its
 `snow://skill_catalog/<DB>.<SCHEMA>.<NAME>` URI and install by emitting a
 `coco://install_catalog_uri?uri=...` **deep link** — when the user clicks it
 in-app, CoCo Desktop's native handler runs a `DESCRIBE` and installs directly
@@ -259,7 +265,7 @@ find a skill or plugin.
    Rank the surviving rows so the strongest matches come first: exact `name`
    match, then name-substring match, then description/author match.
 
-3. **Resolve to a single extension to install** using `ask_user_question` — the
+3. **Resolve to a single extension to install** using `ask` — the
    Search Workflow always ends in an install decision:
 
    - **No matches after filtering** — tell the user nothing in the catalog
@@ -276,12 +282,12 @@ find a skill or plugin.
      [Browser fallback](#browser-fallback).
    - **Exactly one match** — do not silently install. Present the match
      (`name`, `type`, FQN, and a one-line summary from `comment`) and use
-     `ask_user_question` to confirm the user wants to install it (e.g. options
+     `ask` to confirm the user wants to install it (e.g. options
      "Install it" / "No, don't install"). Only proceed on confirmation. **If the
      user declines**, do not install; ask whether they want to refine the
      search (re-run `SHOW TERSE` with a different keyword) or stop, and follow
      their choice.
-   - **Multiple matches** — use `ask_user_question` to ask **which one** to
+   - **Multiple matches** — use `ask` to ask **which one** to
      install. Provide one option per match, each labeled with the extension
      `name` and its `type`, with the FQN and a short `comment` snippet in the
      option description (cap at the top ~5–6 ranked matches; if more remain,
@@ -404,7 +410,7 @@ If `DESCRIBE` fails:
   streams, stages, tasks, and pipes). Search the catalog with
   `SHOW TERSE CORTEX EXTENSIONS IN ACCOUNT` and filter the rows client-side instead.
 - The Search Workflow must always end in an install decision: once a match is
-  identified, use `ask_user_question` to confirm the single match (or ask which
+  identified, use `ask` to confirm the single match (or ask which
   one when several match) and then emit the install deep link. Do not just list
   results and stop.
 - The deep link is the install mechanism on Desktop: emit

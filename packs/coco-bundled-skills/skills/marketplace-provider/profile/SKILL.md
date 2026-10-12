@@ -46,7 +46,7 @@ ORDER BY created_on DESC;
 
 ### A1: Collect Profile Metadata
 
-Use `ask_user_question` to ask how the provider wants to set up their profile:
+Use `ask` to ask how the provider wants to set up their profile:
 
 - **Auto-generate a draft** — Answer a few questions and I'll write the profile for you
 - **Guide me through the fields** — Walk me through what to fill in manually in Provider Studio
@@ -147,7 +147,7 @@ The provider has an existing approved or pending profile and wants to make chang
 
 ### B1: Identify What to Update
 
-Use `ask_user_question`:
+Use `ask`:
 
 > "What would you like to update on your profile?"
 
@@ -282,7 +282,7 @@ If `region` from Check 1 contains `'GOV'`:
 
 ### D2: Manual Checks
 
-Use `ask_user_question` for items that can't be verified via SQL:
+Use `ask` for items that can't be verified via SQL:
 
 **Provider & Consumer Terms:**
 > "Has an **ORGADMIN** in your account accepted the Snowflake Provider & Consumer Terms? *(Admin → Terms → Snowflake Marketplace → Accept Terms & Conditions)*"

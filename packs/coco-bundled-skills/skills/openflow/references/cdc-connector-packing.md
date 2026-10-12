@@ -3,6 +3,13 @@ name: openflow-cdc-connector-packing
 description: Pack many CDC (database) connectors onto a single Openflow runtime declaratively (plan-then-apply). Use for fleet/multi-tenant CDC deploys, bin packing, multi-connector setup. Covers PostgreSQL, MySQL, SQL Server (multidatabase), and Oracle. Sub-reference of the openflow skill.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `nipyapi`, `snowflake.connector`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # CDC Connector Packing
 
 Declarative deploy of N CDC (database) connectors onto a **pre-existing** Openflow runtime, plan-then-apply, idempotent. Covers PostgreSQL, MySQL, SQL Server (multidatabase), and Oracle (embedded + independent).
@@ -11,7 +18,7 @@ This reference productizes the parameter-context override pattern (§4 below) so
 
 > **Hard rule:** the workflow **never flattens or merges** parameter contexts and **never** renames the shared Source/Destination contexts. Only the per-connector Ingestion context is renamed (it is freshly created on every deploy). This preserves flow-upgrade safety. See §4.
 
-> **The skill is this markdown file** plus four pure-compute helpers under `references/assets/pack/` (`config_loader`, `aliases`, `sizing`, `schema.json`). The agent (CoCo) has `nipyapi`, `snowflake.connector`, `runSubagent`, and `ask_user_question` directly and executes everything else from the prose-with-inline-snippets in this file.
+> **The skill is this markdown file** plus four pure-compute helpers under `references/assets/pack/` (`config_loader`, `aliases`, `sizing`, `schema.json`). The OMP agent uses built-in `task` and `ask`; `nipyapi`, `snowflake.connector`, and SQL execution remain environment-provided capabilities and must pass the compatibility gate before use. Everything else is executed from the prose-with-inline-snippets in this file.
 
 ## Scope
 
@@ -80,11 +87,11 @@ The skill is invoked by the agent (CoCo) in a conversational session. There is n
 
 ### Config bootstrap — the agent's FIRST action when invoked
 
-> **The first `ask_user_question` is focused: about the input file, and only the input file.** Don't open the session by asking about auth strategy, DBs, table lists, runtime, or secrets. If a config file exists, those are already encoded in it; if it doesn't, the user picks an authoring path first (template-edit vs. interactive build) and the requirements questions come after — as a follow-up, not as part of the bootstrap question.
+> **The first `ask` is focused: about the input file, and only the input file.** Don't open the session by asking about auth strategy, DBs, table lists, runtime, or secrets. If a config file exists, those are already encoded in it; if it doesn't, the user picks an authoring path first (template-edit vs. interactive build) and the requirements questions come after — as a follow-up, not as part of the bootstrap question.
 
 When the user invokes the skill ("deploy my connectors", "pack these CDC sources onto runtime X", etc.), the agent's flow is:
 
-1. **First action — focused question on the input file:** ask via `ask_user_question`:
+1. **First action — focused question on the input file:** ask via `ask`:
 
    > "Do you have a packing config file (YAML or JSON)?
    > • **Yes — I'll give you the path.**
@@ -99,7 +106,7 @@ When the user invokes the skill ("deploy my connectors", "pack these CDC sources
 
 3. **If the user picks "start from a template"** → list the four templates with one-line descriptions, ask which topology fits, copy the chosen template into the user's cwd, and walk them through filling in placeholders interactively via `edit`/`write`. Then proceed to Step 0.
 
-4. **If the user picks "build one together"** → now the requirements questions are appropriate. Ask via `ask_user_question`s (one focused question at a time is friendlier than a 6-field megaprompt). Don't work from a hardcoded field list here — ask the **type-appropriate** fields per the relevant per-engine reference (`connector-cdc.md` for PG/MySQL, `connector-sqlserver.md`, `connector-oracle.md`), which are the single source of truth for what each connector needs. As a baseline: connector type, runtime name, Snowflake account/role/warehouse, source host + auth strategy + secret ref, then per-connector blocks. Engine-specific essentials live in those refs — e.g. for PostgreSQL you also need the **publication name** and the **object-identifier case-sensitivity** setting. Write the YAML to `connector_config.yaml` in the user's cwd as you go. Validate it against `schema.json` before declaring done. Then proceed to Step 0.
+4. **If the user picks "build one together"** → now the requirements questions are appropriate. Ask via `ask` (one focused question at a time is friendlier than a 6-field megaprompt). Don't work from a hardcoded field list here — ask the **type-appropriate** fields per the relevant per-engine reference (`connector-cdc.md` for PG/MySQL, `connector-sqlserver.md`, `connector-oracle.md`), which are the single source of truth for what each connector needs. As a baseline: connector type, runtime name, Snowflake account/role/warehouse, source host + auth strategy + secret ref, then per-connector blocks. Engine-specific essentials live in those refs — e.g. for PostgreSQL you also need the **publication name** and the **object-identifier case-sensitivity** setting. Write the YAML to `connector_config.yaml` in the user's cwd as you go. Validate it against `schema.json` before declaring done. Then proceed to Step 0.
 
    - **`packing.single.yaml`** — N connectors, 1 runtime, 1:1 source→destination (most common)
    - **`packing.runtime-a.yaml` + `runtime-b.yaml`** — N connectors split across 2 runtimes
@@ -266,9 +273,9 @@ Step 6   Verify                              (NiFi-side; opt-in source-count par
 Step 7   Report
 ```
 
-**Step 0a is the agent's first action.** Do not start Step 0 — or any of the runtime/Snowflake catalog reads in Step 1 — until the config file exists on disk. See §Config bootstrap above. The first `ask_user_question` in the session asks about the input file and offers three paths: the user has a config (default), they want to start from a template, or they want the agent to build one interactively. Once the path is chosen, follow-up questions (template selection, or per-field requirements during interactive build) are appropriate. The anti-pattern is the FIRST question of the session being a multi-field requirements megaprompt about auth / DBs / runtime / tables — that signals the agent didn't ask about the config file at all.
+**Step 0a is the agent's first action.** Do not start Step 0 — or any of the runtime/Snowflake catalog reads in Step 1 — until the config file exists on disk. See §Config bootstrap above. The first `ask` in the session asks about the input file and offers three paths: the user has a config (default), they want to start from a template, or they want the agent to build one interactively. Once the path is chosen, follow-up questions (template selection, or per-field requirements during interactive build) are appropriate. The anti-pattern is the FIRST question of the session being a multi-field requirements megaprompt about auth / DBs / runtime / tables — that signals the agent didn't ask about the config file at all.
 
-**Plan-mode is non-negotiable.** The agent **never** enters Step 5 without an explicit `yes` from `ask_user_question` at Step 4c. There is no `--auto-apply` flag. The auto-reviewer (Step 4b) cannot approve on the user's behalf — it can only block or annotate. Final approval is always the human's.
+**Plan-mode is non-negotiable.** The agent **never** enters Step 5 without an explicit `yes` from `ask` at Step 4c. There is no `--auto-apply` flag. The auto-reviewer (Step 4b) cannot approve on the user's behalf — it can only block or annotate. Final approval is always the human's.
 
 ### Step 0 — Parse + validate config
 
@@ -486,16 +493,21 @@ Action:   deploy 47 connectors  (3,247 tables → ~974 active)
 An **independent reviewer sub-agent** reads the generated `.plan.md` and audits it for correctness: after the full plan is generated, launch another agent to review the whole plan and confirm the details are right before the human approval gate.
 
 ```python
-verdict_json = runSubagent(
-    subagent_type="generalPurpose",
-    readonly=True,
-    # REVIEWER_PROMPT is the inline template in "Reviewer prompt template" below.
-    prompt=REVIEWER_PROMPT.format(
-        plan_md=open(plan_md_path).read(),
-        config=open(config_path).read(),
-        inventory_json=json.dumps(inventory_summary, default=str),
-    ),
+task(
+    context="Audit the generated connector plan without making API calls or changing files.",
+    tasks=[{
+        "name": "review-connector-plan",
+        "agent": "scout",
+        # REVIEWER_PROMPT is the inline template in "Reviewer prompt template" below.
+        "task": REVIEWER_PROMPT.format(
+            plan_md=open(plan_md_path).read(),
+            config=open(config_path).read(),
+            inventory_json=json.dumps(inventory_summary, default=str),
+        ),
+        "solutionSpace": "The 12 audit categories are fixed; findings depend on the supplied plan, config, and inventory.",
+    }],
 )
+# Treat the returned subagent result as verdict_json.
 ```
 
 **The reviewer is read-only**: no API calls, no state mutations, no plan rewrites. It only emits a verdict + findings.
@@ -552,7 +564,7 @@ So the default flow is: reviewer runs → agent silently fixes its own errors an
 | **APPROVED** | Approval question proceeds normally. *"Reviewer: ✅ APPROVED"* |
 | **CONCERNS, info-only** | Auto-pass — proceed to Step 4c with the standard prompt. The reviewer found nothing of severity `error` or `warning`; the findings are "checked, looks OK" annotations and don't warrant a separate human nudge. |
 | **CONCERNS, with `error` or `warning`** | Approval proceeds with nudge. *"Reviewer: ⚠ CONCERNS — review §Reviewer report before approving."* User decides. |
-| **BLOCKED** | **Approval blocked.** *"Reviewer: ⛔ BLOCKED — see §Reviewer report."* User's only choices are `no` / `show-detail` / `edit-config`. |
+| **BLOCKED** | **Approval blocked.** *"Reviewer: ⛔ BLOCKED — see §Reviewer report."* Omit the `yes` option from the Step 4c `ask` (offer only `no` / `show-detail` / `edit-config`, with `recommended: 0`). |
 
 The reviewer cannot auto-approve the deploy itself — `yes` at Step 4c is always the human's. The auto-pass on info-only CONCERNS just means the agent doesn't add a separate "the reviewer has concerns" beat to the chat when those concerns turn out to be the reviewer's checklist of "checked: clean" items. **Final approval of the apply is always the human's.**
 
@@ -597,18 +609,32 @@ Be specific: every finding must reference a concrete location in the plan
 After Step 4b appends the reviewer report, the agent presents the console summary plus the reviewer verdict line, and asks for approval:
 
 ```python
-choice = ask_user_question(
-    f"Plan written to: {plan_md_path}\n"
-    f"Reviewer: {verdict.verdict} — {verdict.summary}\n"
-    f"Action: deploy {len(cfg.connectors)} {cfg.connector_type} connectors to runtime {cfg.runtime!r}.\n\n"
-    f"Approve to apply?",
-    choices=["yes", "no", "show-detail", "edit-config"],
+choice = ask(
+    i="Collecting user decision",
+    questions=[{
+        "id": "selection",
+        "question": (
+            f"Plan written to: {plan_md_path}\n"
+            f"Reviewer: {verdict.verdict} — {verdict.summary}\n"
+            f"Action: deploy {len(cfg.connectors)} {cfg.connector_type} connectors to runtime {cfg.runtime!r}.\n\n"
+            "Approve to apply?"
+        ),
+        "header": "Apply plan",
+        "multi": false,
+        "recommended": 1,
+        "options": [
+            {"label": "yes", "description": "Apply the reviewed plan."},
+            {"label": "no", "description": "Exit and keep the plan for offline review."},
+            {"label": "show-detail", "description": "Inspect a plan or reviewer section before deciding."},
+            {"label": "edit-config", "description": "Edit configuration and restart from Step 0."},
+        ],
+    }],
 )
 ```
 
 - **yes** → proceed to Step 5. Allowed only when no Step 4a blockers AND no reviewer BLOCKED verdict remain.
 - **no** → exit; the `.plan.md` (with reviewer report) stays on disk for offline review.
-- **show-detail [target]** → expand a section (`show-detail tenant-019`, `show-detail blockers`, `show-detail reviewer`).
+- **show-detail** → ask which section to expand (`tenant-019`, `blockers`, `reviewer`), or accept a target the user typed via "Other (type your own)" as `show-detail <target>`; then re-ask the approval question.
 - **edit-config** → user edits config, agent re-runs from Step 0.
 
 The agent journals the approval in `<config>.journal.jsonl`:
@@ -888,7 +914,7 @@ for i, c in enumerate(cfg.connectors):
                  "details": result})
 ```
 
-> **Starting connectors is a separate, consented step — never automatic.** Plan approval at Step 4c approves *deployment and configuration*, not *activation*. Starting a connector immediately begins reading the production source and writing to Snowflake, which for a large fleet is a significant side effect users will reasonably want to review and time themselves. So after deploy + configure + `verify_config` succeed for the fleet, **STOP and ask** via `ask_user_question` before any `start_flow`:
+> **Starting connectors is a separate, consented step — never automatic.** Plan approval at Step 4c approves *deployment and configuration*, not *activation*. Starting a connector immediately begins reading the production source and writing to Snowflake, which for a large fleet is a significant side effect users will reasonably want to review and time themselves. So after deploy + configure + `verify_config` succeed for the fleet, **STOP and ask** via `ask` before any `start_flow`:
 >
 > - **Start all now** — activate every deployed connector.
 > - **Start a subset** — the user names which connectors to start; the rest stay stopped.
@@ -1042,7 +1068,7 @@ Steps follow the dotted convention `<phase>.<action>[.<sub>]`: `0.load`, `0.vali
 | Scenario | Behavior |
 |---|---|
 | Pre-flight fails — populate shared context, asset upload | Abort before per-connector work. No connectors deployed. Journal records the failure. Plan stays valid; rerun after fix. |
-| Single connector fails during deploy | Stop the loop. Successful connectors stay. End of Step 5: present partial-apply summary via `ask_user_question`: **retry** (re-invoke; resume self-heals) / **leave as-is** / **rollback** (drop newly-created PGs). |
+| Single connector fails during deploy | Stop the loop. Successful connectors stay. End of Step 5: present partial-apply summary via `ask`: **retry** (re-invoke; resume self-heals) / **leave as-is** / **rollback** (drop newly-created PGs). |
 | Single connector fails during populate / asset wire / start | Same partial-apply summary. The failed PG exists but is not started. Retry is cheap because the journal records exactly which sub-step succeeded. |
 | Many connectors fail with the same error class (>50% of in-flight) | Surface a **systemic-failure summary** instead of plowing on. Likely cause is a missing pre-flight (wrong role, secret not granted, network rule missing). Suggest the specific fix; exit non-zero. |
 | Worker fails mid-verify (PG started, snapshot stuck in FAILED) | Verify journals the failure. Apply does not roll back — the PG may be salvageable. Result file flags the diagnostic. **Never clear or manipulate Table State Service state manually** (no `clear_controller_state`, no disabling the Table State Service) — doing so corrupts connector state and cascades into further failures. To recover one or more affected tables, on the **running** connector remove those tables from the replicated set, let the change apply, then add them back; follow the documented table remove/re-add procedure in the per-engine reference. The agent walks the user through this interactively. |
@@ -1060,7 +1086,7 @@ The skill processes **one runtime per invocation**. For a customer deploying acr
 
 ### Partial-apply choice (post-failure UX)
 
-When a run aborts partway, the agent surfaces the failure and the `<config>.result.md` remediation block, then asks (`ask_user_question`):
+When a run aborts partway, the agent surfaces the failure and the `<config>.result.md` remediation block, then asks (`ask`):
 
 - **Retry** → re-run the workflow against the same config. Resume self-heals via the journal (stale-pg-id check re-deploys deleted PGs) and skips already-completed steps.
 - **Leave as-is** → no further action. Successful connectors keep running; the failed one is inert until a future retry.

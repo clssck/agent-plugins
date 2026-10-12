@@ -3,6 +3,12 @@ name: declarative-sharing
 description: "Data-as-a-product sharing via APPLICATION PACKAGE with TYPE=DATA (data apps). Bundles data with code objects — notebooks, UDFs, stored procedures, Cortex Agents, semantic views — plus versioning and app roles; the consumer installs once with no setup script, and their private data is not accessible. Use when the user explicitly wants declarative sharing or a data app, or to convert/combine existing data shares into a declarative share, or when a consumer migrates from a data share to a declarative app. NOT for open-ended or comparison questions (\"is there an alternative to creating shares\", \"what are my options\", \"which should I use\", \"manifests or native apps\") and NOT for generic 'share data' requests where the construct is unspecified — those go to the sharing router for disambiguation. Triggers: declarative sharing, declarative share, data app, data application, application package TYPE=DATA, convert share to declarative, migrate share to app, generate manifest from share, introspect share to yaml, combine shares into app, merge multiple shares, versioned share, future-proof share, consumer migrate from share to app, drop-in replacement for share"
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Declarative Sharing (Data Apps)
 
 Share data products with versioning, bundling, and app roles - without the complexity of full native apps.
@@ -393,7 +399,7 @@ ALTER APPLICATION <APP> UPGRADE;
 > - **Target account(s)**: `MYORG.MYACCOUNT` format
 > - **Listing title**
 
-**⚠️ MANDATORY**: Listing syntax is in `references/package-release.sql` (already loaded at Step 4). For advanced listing scenarios, invoke the `internal-marketplace-org-listing` skill.
+**⚠️ MANDATORY**: Listing syntax is in `references/package-release.sql` (already loaded at Step 4). For advanced listing scenarios, read `skill://internal-marketplace-org-listing/SKILL.md`.
 
 To find organization name: `SELECT CURRENT_ORGANIZATION_NAME();`
 

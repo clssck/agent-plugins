@@ -4,6 +4,12 @@ description: "Deploy models from Snowflake Model Registry to Snowpark Container 
 parent_skill: model-registry
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `bash_output`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # SPCS Inference Service Deployment
 
 Deploy a registered model to Snowpark Container Services for real-time inference.

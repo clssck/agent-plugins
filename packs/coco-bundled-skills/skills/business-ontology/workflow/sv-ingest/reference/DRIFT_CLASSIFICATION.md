@@ -1,6 +1,6 @@
 # Drift classification — ontology ↔ Semantic View
 
-Used by `$business-ontology sv-ingest drift` (and the workflow reverse/bootstrap path).
+Used by `skill://business-ontology/SKILL.md sv-ingest drift` (and the workflow reverse/bootstrap path).
 
 All findings are produced by `../../../scripts/sv_drift_report.py` and sorted BLOCKER → WARN → INFO.
 Every finding carries `resolvedDomain` + `domainSource` (how the domain was decided).

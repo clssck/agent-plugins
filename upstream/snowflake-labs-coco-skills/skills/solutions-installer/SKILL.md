@@ -19,8 +19,8 @@ tools:
   - Write
   - Glob
   - Grep
-  - WebFetch
-prompt: "$solutions-installer <solution-name>"
+  - read
+prompt: "skill://solutions-installer/SKILL.md <solution-name>"
 language: en
 status: beta
 authors: Sho Tanaka
@@ -28,12 +28,18 @@ type: snowflake
 categories: solutions, demo, installer
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_object_search`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Install Snowflake Industry Solutions
 
 Installs a pre-built industry solution from the [sf-solutions](https://github.com/Snowflake-Labs/sf-solutions) repository into the user's Snowflake account. Each solution contains a `manifest.json` describing its metadata and a `scripts/` directory with SQL setup/teardown files.
 
 # When to Use
-- User wants to install a solution: `$solutions-installer <solution-name>` where `<solution-name>` is a directory name in the [sf-solutions](https://github.com/Snowflake-Labs/sf-solutions) repository (e.g., `manufacturing-predictive-maintenance`)
+- User wants to install a solution: `skill://solutions-installer/SKILL.md <solution-name>` where `<solution-name>` is a directory name in the [sf-solutions](https://github.com/Snowflake-Labs/sf-solutions) repository (e.g., `manufacturing-predictive-maintenance`)
 - User wants to tear down / uninstall a solution
 - User wants to set up a demo environment for an industry use case
 - Do NOT use for editing the solutions catalog website
@@ -210,7 +216,7 @@ Features enabled: <features>
 
 Next steps:
   - See README: <slug>/README.md
-  - Teardown: $solutions-installer teardown <slug>
+  - Teardown: skill://solutions-installer/SKILL.md teardown <slug>
 ```
 
 
@@ -237,7 +243,7 @@ Next steps:
 # Examples
 
 ## Example 1: Install manufacturing predictive maintenance
-User: $solutions-installer manufacturing-predictive-maintenance
+User: skill://solutions-installer/SKILL.md manufacturing-predictive-maintenance
 Assistant:
 1. Finds repo at ~/project/sf-solutions/
 2. Reads manufacturing-predictive-maintenance/manifest.json
@@ -248,6 +254,6 @@ Assistant:
 
 
 ## Example 2: List available solutions
-User: $solutions-installer
+User: skill://solutions-installer/SKILL.md
 Assistant: Scans repo for manifest.json files, shows table of available solutions, asks user to pick one
 

@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Configure Allowed Interfaces (Snowflake SQL)
 
 This workflow helps you restrict which Snowflake interfaces users can access using direct SQL commands. This method works with any Identity Provider or without SSO.
@@ -27,11 +33,13 @@ This workflow helps you restrict which Snowflake interfaces users can access usi
 ## Step 1: Determine Scope
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "What would you like to configure?",
     "header": "Scope",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Single user", "description": "Restrict interfaces for one specific user"},
       {"label": "Multiple users", "description": "Restrict interfaces for several users"}
@@ -75,11 +83,13 @@ Look for the `ALLOWED_INTERFACES` property. Display the current value to the use
 ## Step 5: Select Interfaces to Allow
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Which interfaces should this user be allowed to access?",
     "header": "Interfaces",
-    "multiSelect": true,
+    "multi": true,
     "options": [
       {"label": "SNOWFLAKE_INTELLIGENCE", "description": "Snowflake Intelligence (ai.snowflake.com)"},
       {"label": "STREAMLIT", "description": "Streamlit applications"}
@@ -111,11 +121,13 @@ ALTER USER jane_smith SET ALLOWED_INTERFACES = (SNOWFLAKE_INTELLIGENCE, STREAMLI
 Confirm before executing:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Ready to update the user's allowed interfaces?",
     "header": "Confirm",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, update", "description": "Execute: ALTER USER <username> SET ALLOWED_INTERFACES = (...)"},
       {"label": "No, cancel", "description": "Do not make any changes"}

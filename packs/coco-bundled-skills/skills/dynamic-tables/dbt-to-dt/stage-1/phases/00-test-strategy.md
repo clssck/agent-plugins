@@ -8,7 +8,7 @@ This phase is **conversational**. No autonomous work happens until the user has 
 
 ## Workflow
 
-1. Ask the user 5 questions via `ask_user_question`:
+1. Ask the user 5 questions via `ask`:
 
    1. "Where is testing happening? (a) dev schema (b) clone DB (c) parallel project (d) other"
    2. "Role / Database / Schema / Warehouse for validation objects?"

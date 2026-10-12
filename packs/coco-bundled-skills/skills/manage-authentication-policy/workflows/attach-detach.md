@@ -3,6 +3,13 @@ name: attach-detach-authentication-policy-workflow
 parent_skill: manage-authentication-policy
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+> - Selected paths may require external capabilities not built into OMP: `sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Workflow D: Attach/Detach Policy
 
 ## When to Load
@@ -20,11 +27,13 @@ Loaded from `manage-authentication-policy/SKILL.md` when user selects **Attach/d
 ## D1: Attach or Detach?
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "Do you want to attach or detach an authentication policy?",
         "header": "Operation",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "Attach a policy", "description": "Apply an authentication policy to account or users"},
             {"label": "Detach a policy", "description": "Remove an authentication policy from account or users"}
@@ -47,11 +56,13 @@ AskUserQuestion(
 Run `SHOW AUTHENTICATION POLICIES IN ACCOUNT;` and present the results as a selectable list.
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "Which policy do you want to attach?",
         "header": "Select Policy",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             # One {"label": "<db>.<schema>.<policy_name>"} per row from SHOW AUTHENTICATION POLICIES
         ]
@@ -64,11 +75,13 @@ AskUserQuestion(
 ### D2b: Select Scope
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "Where should this policy be applied?",
         "header": "Attach Scope",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "Account — all users", "description": "Apply to all users in the account"},
             {"label": "Account — person users only", "description": "Apply to all person users"},
@@ -92,11 +105,13 @@ Account-wide attaches are the highest-risk operation in this skill — a misconf
 Ask the user to name a single trusted admin user that should always be able to log in (preferably one with `ACCOUNTADMIN` and a working password they have tested in the last 24 hours):
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
-        "question": "Account-wide attaches can lock out every user. Name the admin user that should keep unrestricted access (your 'break-glass' user). If you don't have one, pick 'Set one up'.",
+        "id": "selection",
+        "question": "Account-wide attaches can lock out every user. Type the admin user that should keep unrestricted access (your 'break-glass' user) via \"Other (type your own)\", or pick 'Set one up now' if you don't have one.",
         "header": "Break-Glass User",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             # If recommend.md was run earlier and a candidate is known, list it here
             {"label": "Set one up now", "description": "I don't have a dedicated break-glass user — guide me through creating the policy and assignment"},
@@ -106,7 +121,7 @@ AskUserQuestion(
 )
 ```
 
-If the user types a username (free text mapped to "Something else"), treat that as `<break_glass_user>` and continue.
+If the user types a username via "Other (type your own)", treat that as `<break_glass_user>` and continue.
 
 If the user picks **Cancel attach**: return to Step 4 in `SKILL.md`.
 
@@ -179,11 +194,13 @@ Check if a policy is already set at the target level:
 **If a policy is already set at the same level**, present:
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "A policy is already set at this level: <existing_policy_name>. How do you want to proceed?",
         "header": "Policy Conflict",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "UNSET existing, then attach new", "description": "Remove the current policy first, then set the new one"},
             {"label": "Use FORCE to replace", "description": "Overwrite the existing policy in one command"},
@@ -250,11 +267,13 @@ Wait for explicit approval. NEVER proceed without user confirmation.
 ### D5: Select Detach Scope
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "Where should the policy be detached from?",
         "header": "Detach Scope",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "Account — all users", "description": "Remove the account-wide authentication policy"},
             {"label": "Account — person users", "description": "Remove the policy for all person users"},

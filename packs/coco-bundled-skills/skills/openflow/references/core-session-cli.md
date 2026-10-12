@@ -3,6 +3,12 @@ name: openflow-core-session-cli
 description: CLI/terminal session initialization for Openflow (nipyapi cache, profiles, version). Load on the CLI surface when work requires the NiFi API (Gen1 connectors, canvas, custom flows). Not used on the Snowsight (SQL-only) surface — see core-session-sql.md.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Openflow Session Management (CLI / terminal surface)
 
 This reference handles nipyapi-based session initialization for the **CLI/Desktop surface**. Load it when the resolved work requires the NiFi API — Gen1 connectors, canvas operations, or custom flow authoring — i.e. the "CLI + Gen1/canvas" cell of the capability x intent matrix (see `SKILL.md` Surface Detection).

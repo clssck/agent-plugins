@@ -3,6 +3,12 @@ name: openflow-ops-flow-export
 description: Export and import flow definitions for backup, static analysis, or migration. Use when you need to download a flow as JSON/YAML for inspection, save a backup without VCS, or instantiate a flow from a definition file.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Flow Export and Import
 
 Export and import flow definitions as JSON/YAML files.

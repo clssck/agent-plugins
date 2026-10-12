@@ -1,3 +1,4 @@
+
 # Cortex Agents Cost Queries
 
 Queries for analyzing credit and token cost for Cortex Agents interactions.

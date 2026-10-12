@@ -3,6 +3,13 @@ name: create-authentication-policy-workflow
 parent_skill: manage-authentication-policy
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+> - Selected paths may require external capabilities not built into OMP: `sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Workflow A: Create New Policy
 
 ## When to Load
@@ -28,11 +35,13 @@ SELECT CURRENT_DATABASE() AS database, CURRENT_SCHEMA() AS schema;
 **If database is NULL:** Run `SHOW DATABASES;` and present results as a selectable list. Always include a "Create new database" option at the end:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Which database should the policy be created in?",
     "header": "Database",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       # One {"label": "<db_name>"} per row from SHOW DATABASES
       {"label": "Create new database", "description": "I need to create a new database first"}
@@ -46,11 +55,13 @@ After database is selected, run `USE DATABASE <selected_db>;`.
 **If schema is NULL (or after selecting database):** Run `SHOW SCHEMAS IN DATABASE <db>;` and present results. Always include a "Create new schema" option at the end:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Which schema in <db> should the policy be created in?",
     "header": "Schema",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       # One {"label": "<schema_name>"} per row from SHOW SCHEMAS IN DATABASE
       {"label": "Create new schema", "description": "I need to create a new schema first"}
@@ -73,11 +84,13 @@ Read [references/property-reference.md](../references/property-reference.md). Yo
 Present a single multi-select menu of all configurable properties. Unselected properties keep their defaults.
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Which properties do you want to configure? Unselected properties use defaults (ALL/OPTIONAL). Pick 'Recommend for me' if you're not sure.",
     "header": "Policy Properties",
-    "multiSelect": true,
+    "multi": true,
     "options": [
       {"label": "AUTHENTICATION_METHODS", "description": "Which auth methods are allowed (default: ALL)"},
       {"label": "CLIENT_TYPES", "description": "Which clients can connect (default: ALL)"},
@@ -100,33 +113,37 @@ If the user selects `Recommend for me`, treat it as exclusive — ignore any oth
 
 ### A2b: Configure Selected Properties
 
-Build a **single multi-step AskUserQuestion** with one step per selected property. Only include steps for properties the user selected in A2a.
+Build a **single multi-step ask** with one step per selected property. Only include steps for properties the user selected in A2a.
 
 ⚠️ Only present values that appear in [references/property-reference.md](../references/property-reference.md) including 'All' if present, or the official Snowflake documentation. Never infer or guess values.
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[
     # Include only steps for properties selected in A2a. Example for AUTHENTICATION_METHODS + CLIENT_TYPES + MFA_ENROLLMENT:
     {
+      "id": "selection_1",
       "question": "Which authentication methods should this policy allow?",
       "header": "Authentication Methods",
-      "multiSelect": true,
+      "multi": true,
       "options": [
         # Valid values from property-reference.md section 1: ALL, PASSWORD, SAML, OAUTH, KEYPAIR, PROGRAMMATIC_ACCESS_TOKEN, WORKLOAD_IDENTITY
       ]
     },
     {
+      "id": "selection_2",
       "question": "Which client types should be allowed to connect?",
       "header": "Client Types",
-      "multiSelect": true,
+      "multi": true,
       "options": [
         # Valid values from property-reference.md section 2: ALL, SNOWFLAKE_UI, DRIVERS, SNOWFLAKE_CLI, SNOWSQL
       ]
     },
     {
+      "id": "selection_3",
       "question": "What MFA enrollment level is required?",
       "header": "MFA Enrollment",
-      "multiSelect": false,
+      "multi": false,
       "options": [
         # Valid settable values from property-reference.md section 5: OPTIONAL, REQUIRED, REQUIRED_PASSWORD_ONLY
       ]
@@ -144,7 +161,7 @@ AskUserQuestion(
 
 **Immediately after A2b returns**, check selected values against the **Compatibility Rules** table in [references/property-reference.md](../references/property-reference.md) (already loaded in A2).
 
-If an incompatible combination is found, present each conflict and its resolution options via AskUserQuestion. Resolve one conflict at a time, re-validate after each. If the user chooses to go back, return to A2a.
+If an incompatible combination is found, present each conflict and its resolution options via ask. Resolve one conflict at a time, re-validate after each. If the user chooses to go back, return to A2a.
 
 ---
 

@@ -3,6 +3,12 @@ name: debug-authorization-error-workflow
 parent_skill: access-troubleshooter
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Workflow A: Debug Authorization Error
 
 ## When to Load
@@ -167,11 +173,13 @@ A role needs:
 **Then present resolution options:**
 
 ```python
-AskUserQuestion(
+ask(
+    i="Collecting user decision",
     questions=[{
+        "id": "selection",
         "question": "None of your current roles can run this query. How would you like to proceed?",
         "header": "Resolution",
-        "multiSelect": false,
+        "multi": false,
         "options": [
             {"label": "Grant missing privileges to an existing role", "description": "Add the missing privileges to one of your roles"},
             {"label": "Find an existing role in the account", "description": "Search for a role that already has these privileges"},

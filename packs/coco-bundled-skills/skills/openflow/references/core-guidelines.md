@@ -3,6 +3,12 @@ name: openflow-core-guidelines
 description: Core context and guidelines for Openflow operations. Always load this reference at the start of any Openflow session.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Openflow Core Guidelines
 
 Foundational context for all Openflow operations. The main skill handles routing; this reference provides the knowledge needed to execute any workflow correctly.

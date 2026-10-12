@@ -2,6 +2,12 @@
 parent_skill: data-quality
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Workflow 1: Schema Health Scoring
 
 ## Trigger Phrases
@@ -52,7 +58,7 @@ Issues Found: N tables with problems
 
 ### Step 4: Next Steps
 - If health = 100%: "All metrics passing. No action needed."
-- If health < 100%: Use `ask_user_question` to offer:
+- If health < 100%: Use `ask` to offer:
 
   > "Your schema health is X%. Would you like me to dig into what's failing and why?"
 

@@ -55,7 +55,7 @@ result = sma_api.git_ensure_ready("<workload_path>")
 ### Step 1: Ask User for Workload Path
 
 **Ask** user for the path to the SMA output directory:
-   - Use `ask_user_question` tool with type "text"
+   - Use `ask` tool with type "text"
    - Question: "Path to SMA output directory (containing Output, Reports, Logs folders)"
    - This directory contains:
      - `Output/` - Converted .py/.ipynb files

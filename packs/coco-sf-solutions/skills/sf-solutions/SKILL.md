@@ -1,6 +1,6 @@
 ---
 name: sf-solutions
-description: "Discover, install, and teardown Snowflake industry solution accelerators. Usage: $sf-solutions (list all), $sf-solutions retail (filter by industry), $sf-solutions:predictive-maintenance (install), $sf-solutions:predictive-maintenance teardown, $sf-solutions:predictive-maintenance next (post-install guidance). Triggers: solutions, industry, MLEU, manufacturing, predictive maintenance, supply chain, energy, utilities, logistics, IoT, OEE, GNN, retail, demand forecasting, LTV, customer lifetime value, healthcare, clinical, patient safety, next steps, what to do next."
+description: "Discover, install, and teardown Snowflake industry solution accelerators. Usage: skill://sf-solutions/SKILL.md (list all), skill://sf-solutions/SKILL.md retail (filter by industry), skill://sf-solutions/SKILL.md predictive-maintenance (install), skill://sf-solutions/SKILL.md predictive-maintenance teardown, skill://sf-solutions/SKILL.md predictive-maintenance next (post-install guidance). Triggers: solutions, industry, MLEU, manufacturing, predictive maintenance, supply chain, energy, utilities, logistics, IoT, OEE, GNN, retail, demand forecasting, LTV, customer lifetime value, healthcare, clinical, patient safety, next steps, what to do next."
 user-invocable: true
 metadata:
   author: Snowflake
@@ -55,16 +55,16 @@ Available Solutions:
 │   │ (from registry.json) │               │                             │
 └───┴──────────────────────┴───────────────┴─────────────────────────────┘
 
-To install: $sf-solutions:<solution-name>
-To remove:  $sf-solutions:<solution-name> teardown
-Filter by industry: $sf-solutions <industry-name>
+To install: skill://sf-solutions/SKILL.md <solution-name>
+To remove:  skill://sf-solutions/SKILL.md <solution-name> teardown
+Filter by industry: skill://sf-solutions/SKILL.md <industry-name>
 ```
 
 **STOP** after listing. Do not install anything unless explicitly requested.
 
 ## Step 3: Resolve Repository for a Solution
 
-When a solution name is provided (e.g., `$sf-solutions:predictive-maintenance`):
+When a solution name is provided (e.g., `skill://sf-solutions/SKILL.md predictive-maintenance`):
 
 1. Search registry.json for the solution name across all industries
 2. Identify the matching industry entry and its `repo` URL
@@ -147,7 +147,7 @@ Read and follow `references/teardown.md` from this skill's directory. It contain
 
 ## Step 7: Next Actions
 
-When `next` is specified (e.g., `$sf-solutions:ltv-prediction next`):
+When `next` is specified (e.g., `skill://sf-solutions/SKILL.md ltv-prediction next`):
 
 1. Resolve the repository using Steps 3 and 4 (registry lookup + locate/clone)
 2. Read the next actions guide with the Read tool:

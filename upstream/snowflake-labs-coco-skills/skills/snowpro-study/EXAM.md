@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Sub-Skill: Practice Exam Generator & Interactive Executor
 
 This file is read and followed by the router skill (`SKILL.md`) when the user requests practice exams, quizzes, or score history.
@@ -8,7 +14,7 @@ This file is read and followed by the router skill (`SKILL.md`) when the user re
 
 For practice exam questions — accuracy is CRITICAL. A wrong "correct answer" trains the user to fail.
 
-1. **Use the Documentation Access Strategy** from SKILL.md. Prefer `cortex search docs` if available, then `web_fetch`, then mark `[VERIFY]`.
+1. **Use the Documentation Access Strategy** from SKILL.md. Prefer `cortex search docs` if available, then `read`, then mark `[VERIFY]`.
 2. **Query before writing questions:** For each domain being tested, query at least 2 relevant topics covering the key concepts. Use `cortex search docs "{concept}"` when the Knowledge extension is available. Questions must be grounded in confirmed behavior.
 3. **Verify every correct answer:** The designated correct answer must be explicitly supported by documentation. If you cannot confirm it, do not include that question.
 4. **Verify distractors are wrong:** Each distractor must be confirmably incorrect — not just "probably wrong." If a distractor might actually be correct, it's a bad question. Remove it.
@@ -229,7 +235,7 @@ This approach:
 
 ### Exam Mode Selection
 
-After generating the exam file, ask the user via `ask_user_question`:
+After generating the exam file, ask the user via `ask`:
 
 | Mode | Behavior |
 |------|----------|
@@ -365,7 +371,7 @@ date,exam_type,exam_scope,overall_correct,overall_total,overall_pct,domain_1_cor
 
 Triggered by:
 - Automatic: after recording scores when history has 2+ entries
-- Manual: `$snowpro-study {cert} progress` / `scores` / `history`
+- Manual: `skill://snowpro-study/SKILL.md {cert} progress` / `scores` / `history`
 
 ```markdown
 ## Score Trend: SnowPro {Cert Name}

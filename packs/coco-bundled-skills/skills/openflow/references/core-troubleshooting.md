@@ -3,6 +3,12 @@ name: openflow-core-troubleshooting
 description: Error patterns and remediation for Openflow operations. Load when encountering errors, connectivity issues, or when investigation is blocked.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Troubleshooting Guide
 
 Error diagnosis and remediation for Openflow operations. This reference contains observed error patterns with their signatures and fixes.

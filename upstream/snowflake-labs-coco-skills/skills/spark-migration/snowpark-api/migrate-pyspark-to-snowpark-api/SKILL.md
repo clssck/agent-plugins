@@ -4,6 +4,12 @@ description: |
   Fresh PySpark → Snowpark API conversion via the SMA CLI. Bundled sub-skill of `snowpark-api`, loaded only after the parent has determined that the user wants a NEW SMA conversion (intent=migrate, language=Python). Owns SMA CLI detection, the SMA invocation itself, progress monitoring, and SMA output-layout resolution. Delegates the entire post-conversion tail to `validate-pyspark-to-snowpark-api`.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `bash_output`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Migrate PySpark to Snowpark API (SMA CLI)
 
 > **Bundled sub-skill** under `snowpark-api/`. This file is loaded via the
@@ -71,7 +77,7 @@ Three CLI-specific keys drive the optional flags:
 | `generate_checkpoints` | `Y` if `yes`, else `N` | `yes` (Y) |
 
 If all three keys are already set in the config, skip asking and use the saved
-values. Otherwise, ask only for the missing keys via `ask_user_question`,
+values. Otherwise, ask only for the missing keys via `ask`,
 then persist the answers:
 
 ```bash

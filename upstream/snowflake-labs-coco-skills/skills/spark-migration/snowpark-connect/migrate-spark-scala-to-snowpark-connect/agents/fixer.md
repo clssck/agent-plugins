@@ -299,12 +299,16 @@ above:
 2. Delegate to the sibling sub-skill's fixer via `task()`:
    ```
    task(
-     subagent_type="general-purpose",
-     description="Fix single Python cell",
-     prompt="<content of migrate-pyspark-to-snowpark-connect/agents/fixer.md>\n\n"
-            "CELL_MODE=true\n"
-            "CELL_SOURCE=<cell.source>\n"
-            "CELL_ISSUES=<subset of analysis.json matching this cell AND language=='python'>\n"
+     context="Fix one cross-language notebook cell with the sibling fixer's instructions.",
+     tasks=[{
+       "name": "fix-single-python-cell",
+       "agent": "task",
+       "task": "<content of migrate-pyspark-to-snowpark-connect/agents/fixer.md>\n\n"
+               "CELL_MODE=true\n"
+               "CELL_SOURCE=<cell.source>\n"
+               "CELL_ISSUES=<subset of analysis.json matching this cell AND language=='python'>\n",
+       "solutionSpace": "Transform only the provided Python cell; preserve every other cell and return only the transformed source."
+     }]
    )
    ```
 3. The Python fixer returns the transformed cell source as its final textual

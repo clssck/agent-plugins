@@ -1,6 +1,6 @@
 {
   "name": "coco-bundled-skills",
-  "version": "1.1.69",
+  "version": "1.1.70",
   "private": true,
   "description": "Snowflake Cortex Code (CoCo) bundled skills, redistributed with written permission from Snowflake.",
   "license": "LicenseRef-Snowflake-CoCo-Permission",
@@ -15,5 +15,15 @@
     "snowflake",
     "skills"
   ],
+  "ompSkillReferences": {
+    "optional": [
+      "marketplace-install-formatting",
+      "marketplace-listing-formatting"
+    ]
+  },
+  "ompCompatibility": {
+    "profile": "coco",
+    "version": 2
+  },
   "omp": {}
 }

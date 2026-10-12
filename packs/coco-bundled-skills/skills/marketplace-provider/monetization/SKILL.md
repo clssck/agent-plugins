@@ -111,7 +111,7 @@ Pricing plans and offers can be set up in two ways:
 
 ## Step 1: Identify Intent
 
-Use `ask_user_question` to ask:
+Use `ask` to ask:
 - **Question:** "What do you need help with today?"
 - **Options:**
   - Set up pricing plans and offers for a listing
@@ -119,7 +119,7 @@ Use `ask_user_question` to ask:
   - Check invoice status or billing history
   - Manage listing requests (trials, fulfillment)
 
-Then use `ask_user_question` to ask which setup path they prefer:
+Then use `ask` to ask which setup path they prefer:
 - **Question:** "How would you like to set this up?"
 - **Options:**
   - Provider Studio UI (guided, no SQL needed)

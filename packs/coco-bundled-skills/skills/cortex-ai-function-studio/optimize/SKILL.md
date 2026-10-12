@@ -3,6 +3,7 @@ name: optimize-ai-function
 description: "Optimize an AI function through automated function body optimization, including prompts, model references, and SQL pre/post-processing."
 parent_skill: cortex-ai-function-studio
 ---
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 
@@ -131,7 +132,7 @@ Store the column lists from both DESCRIBE outputs — you will need them for col
 
 After confirmation, **Load** `references/data_preparation.md` Step 5 to validate that all mapped columns exist in the relevant tables. Do NOT proceed if columns don't match.
 
-**⚠️ Column mismatch handling**: If any mapped column does not exist in the training or test table, you MUST present the mismatch to the user via `ask_user_question` (not prose text). Include the mismatched column names, the actual table columns, and remediation options. Do NOT silently remap or proceed — always surface the mismatch through `ask_user_question` so the user can decide.
+**⚠️ Column mismatch handling**: If any mapped column does not exist in the training or test table, you MUST present the mismatch to the user via `ask` (not prose text). Include the mismatched column names, the actual table columns, and remediation options. Do NOT silently remap or proceed — always surface the mismatch through `ask` so the user can decide.
 
 **Multi-key output handling:** If the user's training/test table has multiple truth columns that correspond to keys in a multi-key function output (e.g., separate `SENTIMENT`, `CONFIDENCE` columns instead of a single VARIANT), help them combine these into a single VARIANT `label_column` using `OBJECT_CONSTRUCT` in a view before optimization. See `references/data_preparation.md` "Multi-Column Truth Aggregation" for the SQL pattern.
 
@@ -185,7 +186,7 @@ How thorough should the optimization search be?
 4. heavy - ~18 iterations (thorough search, ~20-30 minutes)
 ```
 
-**Snowsight `ask_user_question` options** — use these exact labels (do NOT paraphrase):
+**Snowsight `ask` options** — use these exact labels (do NOT paraphrase):
 - `"ultra-light: ~2 iterations, ~5 min (quickest)"`
 - `"light: ~6 iterations, ~5-10 min (recommended)"`
 - `"medium: ~12 iterations, ~10-20 min (balanced)"`
@@ -205,7 +206,7 @@ Follow the model selection workflow in `references/model_selection.md` (Steps 1-
 
 **Bring your own Model inclusion rule:** If the function's current model is a Bring your own Model/SPCS service model (for example a fully-qualified service name used in `AI_COMPLETE`, an imported Model Registry service, or any existing Bring your own Model selected earlier in the workflow), it must be included in `models` even when the user also selects Cortex-hosted models. Do not replace Bring your own Model with only Cortex-hosted candidates. The optimization should compare the existing Bring your own Model candidate against the selected hosted models unless the user explicitly says to exclude Bring your own Model.
 
-**⚠️ STOP**: Show the model list and wait for the user's selection before proceeding. **In Snowsight, you MUST use `ask_user_question` with `multiSelect: true`.** Do NOT auto-select models or skip this menu — even in long sessions where earlier steps provided context.
+**⚠️ STOP**: Show the model list and wait for the user's selection before proceeding. **In Snowsight, you MUST use `ask` with `multi: true`.** Do NOT auto-select models or skip this menu — even in long sessions where earlier steps provided context.
 
 ```
 Which models would you like to optimize for? You can select one or more. The current Bring your own Model/service model will be included automatically unless you explicitly exclude it.
@@ -266,7 +267,7 @@ Experiment: {experiment_name}
 Confirm or edit?
 ```
 
-**In Snowsight, you MUST use `ask_user_question`** to confirm — do NOT auto-proceed or silently accept defaults. Present the review block in chat first (long content pattern), then call `ask_user_question` with options like `"Confirm and proceed"` / `"I want to edit"`.
+**In Snowsight, you MUST use `ask`** to confirm — do NOT auto-proceed or silently accept defaults. Present the review block in chat first (long content pattern), then call `ask` with options like `"Confirm and proceed"` / `"I want to edit"`.
 
 **If `environment == snowsight`:** Load `references/snowsight/optimize.md` and follow it from Step 5 through Step 8. That file contains the complete Snowsight optimize flow — execution, result collection, charting, deployment, and next steps. **Do not return to this file.**
 
@@ -449,7 +450,7 @@ PYTHONPATH=<SKILL_DIRECTORY>/scripts uv run --project <SKILL_DIRECTORY> python <
     --experiment {experiment_name} --connection {connection} --format table
 ```
 
-This prints the Pareto table directly (see 6.2). It never mixes score domains: when every frontier candidate was test-evaluated it shows test scores (pruned to the test-Pareto subset); otherwise it shows validation scores for the full frontier. Use `--format json` to get the same rows programmatically (e.g. to drive `ask_user_question`).
+This prints the Pareto table directly (see 6.2). It never mixes score domains: when every frontier candidate was test-evaluated it shows test scores (pruned to the test-Pareto subset); otherwise it shows validation scores for the full frontier. Use `--format json` to get the same rows programmatically (e.g. to drive `ask`).
 
 Sync and async runs persist to the experiment identically, so collection and presentation are **the same for both paths**: read the `is_frontier` runs from the experiment with `presentation.py`. (Sync `run.py` stdout additionally returns the same data under `result` for convenience — including `best_ddl` for body mode — but the experiment is the source of truth.)
 
@@ -508,7 +509,7 @@ The table is already the Pareto set (hypervolume-selected by the SPROC, test-Par
 
 **6.3. Get user selection:**
 
-**⚠️ STOP**: Use `ask_user_question` to let user select the result to apply. Each option should show the model name, score, and cost. For the selected row, fetch its optimized function body from the SEED/ITER run's `function_impl` parameter (`SHOW RUN PARAMETERS IN EXPERIMENT {experiment_name} RUN {selected_run}`); this is what gets deployed in Step 7. (Sync body-mode runs also expose `best_ddl` directly in the `run.py` output for the overall winner.)
+**⚠️ STOP**: Use `ask` to let user select the result to apply. Each option should show the model name, score, and cost. For the selected row, fetch its optimized function body from the SEED/ITER run's `function_impl` parameter (`SHOW RUN PARAMETERS IN EXPERIMENT {experiment_name} RUN {selected_run}`); this is what gets deployed in Step 7. (Sync body-mode runs also expose `best_ddl` directly in the `run.py` output for the overall winner.)
 
 ### Step 7: Apply Optimized Function
 
@@ -552,7 +553,7 @@ If evaluate → Load `evaluate/SKILL.md` with context:
 - Note: *"The evaluate workflow will use your test table: {test_table} for consistent results."*
 
 If the customer wants to re-optimize or is unsatisfied with the current improvement:
-**⚠️ STOP**: Use `ask_user_question` to let the user select the result to apply.
+**⚠️ STOP**: Use `ask` to let the user select the result to apply.
 
 Ask the user:
 ```

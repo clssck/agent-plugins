@@ -3,6 +3,12 @@ name: ml-development
 description: "**[REQUIRED]** for ALL data science, machine learning, data analysis, and statistical tasks. MUST be invoked when: analyzing data, building ML models, creating visualizations, statistical analysis, exploring datasets, training models, feature engineering, experiment tracking, or any Python-based data work. DO NOT attempt data science tasks without this skill."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake.connector`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Data Science Expert Skill
 
 You are now operating as a **Data Science Expert**. You specialize in solving problems using Python.
@@ -122,7 +128,7 @@ Use when operating on the CLI. Code is written as a local script. See your envir
 ### Step 1: Ask About Experiment Tracking (for model training)
 
 Check if the user has specified if they want to use experiment tracking.
-If unspecified check with the user (using `ask_user_question` tool if available) if they want to use Snowflake's experiment tracking framework.
+If unspecified check with the user (using `ask` tool if available) if they want to use Snowflake's experiment tracking framework.
 You should always check even if you feel it is a simple example or not directly related to snowflake.
 
 **MANDATORY ASK:**
@@ -136,7 +142,7 @@ Would you like to track this experiment using Snowflake's experiment tracking fr
 If the user mentions that they want to use experiment tracking you will need to do a few different things.
 
 **IF THE USER SAYS YES**
-You will need to ask a for the following information. Once again please use the `ask_user_question` tool if it is available.
+You will need to ask a for the following information. Once again please use the `ask` tool if it is available.
 Ask user for:
 
 1) Database and schema for storing runs
@@ -173,7 +179,7 @@ When the experiment is finished please share the URL with the user so that they 
 **⚠️ IMPORTANT:** This is about logging the model to Snowflake Model Registry, NOT local serialization.
 
 Check if the user has specified whether they want to log the trained model to Snowflake Model Registry.
-If unspecified, check with the user (using `ask_user_question` tool if available).
+If unspecified, check with the user (using `ask` tool if available).
 
 **MANDATORY ASK:**
 
@@ -185,7 +191,7 @@ Would you like to log the trained model to Snowflake Model Registry?
 
 **IF THE USER SAYS YES:**
 
-Collect the following information from the user (using `ask_user_question` tool if available):
+Collect the following information from the user (using `ask` tool if available):
 
 1. **Model name** — the name to register in the registry (e.g., `MY_CLASSIFIER`)
 2. **Model version** *(optional)* — version identifier (e.g., `v1`, `v2`), or skip to auto-generate

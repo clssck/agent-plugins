@@ -3,6 +3,7 @@ name: insurance-claim-routing-demo
 description: "Interactive demo: Generate pseudo-labels from a strong teacher model, build a cheap student function, and evaluate accuracy. Showcases pseudo-labeling and teacher-student distillation."
 parent_skill: demos
 ---
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 

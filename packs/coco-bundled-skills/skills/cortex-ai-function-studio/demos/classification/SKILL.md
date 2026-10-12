@@ -3,6 +3,7 @@ name: classification-demo
 description: "Quick Start demo: Build a toxicity classifier and evaluate it — the fastest way to experience the core create → evaluate workflow."
 parent_skill: demos
 ---
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 

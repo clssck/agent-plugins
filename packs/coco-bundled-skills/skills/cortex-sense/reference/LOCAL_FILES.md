@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Local files → stage
 
 The build reads content **from Snowflake internal/named stages**, never from the builder's local filesystem. So when a builder points at a local path — a checked-out dbt repo's `target/manifest.json`, a metrics spec PDF, a SQL workbook — CoCo must get that file onto a stage first, then record the resulting stage FQN in the manifest. Never silently ignore a local path, and never record a `file://` path in the manifest.

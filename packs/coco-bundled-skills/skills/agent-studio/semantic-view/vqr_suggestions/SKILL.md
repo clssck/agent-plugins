@@ -4,6 +4,12 @@ description: "Generate verified query (VQR) suggestions for a semantic view by a
 parent_skill: semantic-view
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # VQR Suggestions
 
 Verified queries (VQRs) teach Cortex Analyst how to answer specific questions correctly. Manually writing them is slow — this workflow uses the `verified_query_suggestions` tool (via `SYSTEM$CORTEX_ANALYST_SVA_TOOL`) to automatically suggest VQRs by mining either Cortex Analyst request history or Snowflake query history. The suggestions come pre-ranked by relevance and frequency, so the user can quickly review and add the most valuable ones.

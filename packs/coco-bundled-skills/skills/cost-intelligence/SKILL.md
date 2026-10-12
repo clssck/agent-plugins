@@ -3,6 +3,12 @@ name: cost-intelligence
 description: "Account-level cost analytics via SNOWFLAKE.ACCOUNT_USAGE. Credit usage by warehouse, user, service. Budgets, spending limits, custom budgets. Quotas, per-user spending limits, per-user credit caps, quota notifications, quota enforcement, exclude users from quota, quota shared resources. Resource monitors, suspend triggers. Anomaly detection, anomaly monitors, tag-based anomaly monitoring, costs, chargeback, storage, serverless, containers, data transfer, top user spend, query cost grouping. Cortex AI cost or usage including Cortex Agents, Snowflake Intelligence, Snowflake CoWork, AI function, Cortex Code, CoCo, Cortex Search, Cortex Analyst, Cortex REST API, model training/fine-tuning, and provisioned throughput. Cost insights, waste reduction, savings. Not for org-wide currency spend or multi-account billing (billing/organization-management) or warehouse DDL (warehouse)."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Cost Intelligence Skill
 
 > **⚠️ Native App costs**: If the user is asking about the cost of an **installed native app**, **do NOT continue with this skill**. Instead, load the `native-app-consumer` skill immediately — it has app-specific cost views (`APPLICATION_DAILY_USAGE_HISTORY`) and cost management instructions that this skill does not cover.

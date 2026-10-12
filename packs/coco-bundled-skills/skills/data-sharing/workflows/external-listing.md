@@ -1,3 +1,4 @@
+
 # Create External Listing
 
 Create external listings to share data on Snowflake Marketplace with any Snowflake account.

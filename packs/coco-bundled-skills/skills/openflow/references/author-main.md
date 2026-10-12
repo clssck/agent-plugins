@@ -3,6 +3,12 @@ name: openflow-author-main
 description: Flow authoring router. Load when building custom flows, creating processors, or making structural changes to flows.
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `nipyapi`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Flow Authoring
 
 Build custom NiFi flows for data integration needs not met by pre-built connectors.

@@ -3,6 +3,12 @@ name: business-ontology-validation
 description: "Per-phase and end-of-workflow validation steps for Business Ontology. SQL verification queries, acceptance criteria, and the final workflow-complete summary. Referenced from workflow phase files."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `semantic_studio`, `snowflake_multi_cortex_analyst`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Workflow Validation
 
 Run the section for the phase that just completed. These are read-only checks — they confirm the
@@ -91,7 +97,7 @@ workflow_complete:
   drift_blockers:        0         # must be 0 to mark complete
 ```
 
-If `drift_blockers > 0`, route to `$business-ontology sv-ingest reconcile` before marking
+If `drift_blockers > 0`, route to `skill://business-ontology/SKILL.md sv-ingest reconcile` before marking
 the workflow complete. Do not render `workflow_complete` with a non-zero blocker count.
 
 ---

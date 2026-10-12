@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Choices use OMP's `ask` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.
+<!-- omp-compat:end -->
+
 # Add Snowflake Intelligence Tile to IdP
 
 This workflow helps you add a Snowflake Intelligence tile to your identity provider's app launcher so users can easily access Snowflake Intelligence from their IdP dashboard.
@@ -23,11 +29,13 @@ Display the Snowflake Intelligence URL to the user before proceeding.
 ## Step 2: Select Identity Provider
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Which identity provider do you use?",
     "header": "IdP",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Okta", "description": "Okta identity provider"},
       {"label": "Microsoft Entra ID", "description": "Azure AD / Microsoft 365"}
@@ -43,11 +51,13 @@ AskUserQuestion(
 ### Choose Method
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "How would you like to add the Snowflake Intelligence tile to Okta?",
     "header": "Method",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Automated (API)", "description": "I'll let the agent run Okta API commands (requires Okta API token)"},
       {"label": "Self-service (Curl)", "description": "Give me curl commands to run myself (requires Okta API token)"},
@@ -103,11 +113,13 @@ curl -s -X POST "https://$OKTA_DOMAIN/api/v1/apps" \
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Has the Snowflake Intelligence bookmark app been created in Okta?",
     "header": "App Created",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, created", "description": "Bookmark app created successfully"},
       {"label": "Having issues", "description": "I encountered a problem"}
@@ -125,11 +137,13 @@ AskUserQuestion(
 Ask if the user wants to assign someone to the SI tile:
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Would you like to assign a user to the Snowflake Intelligence tile so they can see it in their Okta dashboard?",
     "header": "Assign user",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, assign a user", "description": "Assign a specific user to the SI tile"},
       {"label": "No, I'll assign later", "description": "Skip — you can assign users/groups in Okta Admin Console later"}
@@ -176,11 +190,13 @@ curl -s -X POST "https://$OKTA_DOMAIN/api/v1/apps/{si_app_id}/users" \
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Have users been assigned to the Snowflake Intelligence app?",
     "header": "Assigned",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, assigned", "description": "Users/groups assigned successfully"},
       {"label": "I'll assign later", "description": "Skip assignment for now"}
@@ -210,11 +226,13 @@ AskUserQuestion(
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Have you created the Snowflake Intelligence enterprise application?",
     "header": "App Created",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, created", "description": "Application created successfully"},
       {"label": "Having issues", "description": "I encountered a problem"}
@@ -234,11 +252,13 @@ AskUserQuestion(
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Have you configured the linked sign-on URL?",
     "header": "SSO Config",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, configured", "description": "Linked sign-on URL saved"},
       {"label": "Having issues", "description": "I encountered a problem"}
@@ -257,11 +277,13 @@ AskUserQuestion(
 ### Checkpoint
 
 ```python
-AskUserQuestion(
+ask(
+  i="Collecting user decision",
   questions=[{
+    "id": "selection",
     "question": "Have you assigned users to the Snowflake Intelligence application?",
     "header": "Assigned",
-    "multiSelect": false,
+    "multi": false,
     "options": [
       {"label": "Yes, assigned", "description": "Users/groups assigned successfully"},
       {"label": "I'll assign later", "description": "Skip assignment for now"}

@@ -3,6 +3,7 @@ name: cortex-ai-function-studio-byom-pricing
 summary: "Estimate BYOM/SPCS model cost from measured throughput and SPCS credit consumption instead of Cortex-hosted token pricing."
 description: "Use when estimating BYOM model cost, comparing BYOM against Cortex-hosted models, building Pareto frontiers involving SPCS services, or explaining BYOM/SPCS pricing after an AI function or service is created."
 ---
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 

@@ -4,6 +4,12 @@ description: "Debug and troubleshoot Cortex Agent requests using observability l
 parent_skill: agent-studio
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Debug Cortex Agent Request
 
 Investigate a failed or incorrect agent request, fix it when the user wants corrected behavior, and verify the live agent afterward.

@@ -4,6 +4,7 @@ Source release: CoCo 1.1.69+013424.801adc2b71d7 (darwin-arm64)
 Source directory: bundled_skills/
 Copyright: Snowflake Inc.
 Permission: See LICENSE in this plugin.
+OMP compatibility: this committed redistribution is adapted in place by this repository's deterministic `coco@2` layer; the source release named above is never modified. Tool aliases are translated to OMP semantics, external capabilities are gated, and missing references are repaired or de-linked. `package.json` records the compatibility profile and version.
 
 Included top-level skills:
 - access-troubleshooter
@@ -87,7 +88,9 @@ Removed from this pack: `manage-zerocopy-sapbdc` and `spark-migration`. Both are
 
 Portability deviations from the CoCo source payload:
 
-This pack flattens CoCo skill groups into `skills/<public-name>/`. To keep every bundled relative Markdown link usable, the import changes link syntax only: existing targets are remapped to their packaged relative path; targets omitted from the CoCo payload are de-linked while preserving their visible label and surrounding instruction text. No instruction text is otherwise rewritten.
+This pack flattens CoCo skill groups into `skills/<public-name>/`. To keep every bundled relative Markdown link usable, the original import remapped existing targets to their packaged relative path and de-linked targets omitted from the CoCo payload while preserving their visible label. The link accounting below records that import.
+
+CoCo-format packs, including this one, are passed through this repository's `coco@2` compatibility layer (`scripts/compatibility.ts`). This committed redistribution is adapted in place; generated upstream packs are adapted on deterministic staged copies. The layer maps foreign question, skill, task, todo, and fetch interfaces to OMP semantics, gates external capabilities behind explicit availability checks, repairs or de-links missing references, and validates `skill://` targets against pack-scoped dependency declarations. Cortex Code product-reference text remains verbatim where it describes Cortex Code itself. Source repositories and the source release named above are never modified. The packaged text therefore differs from the CoCo source beyond link syntax; package metadata records the compatibility profile and version.
 
 Link accounting: 132 transformed occurrences (98 remapped, 34 de-linked).
 

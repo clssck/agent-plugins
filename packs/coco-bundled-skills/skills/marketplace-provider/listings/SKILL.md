@@ -53,7 +53,7 @@ This returns full listing metadata including `review_state`, `rejection_reason`,
 
 ### A1: Gather Listing Details
 
-Collect everything in one round via `ask_user_question`:
+Collect everything in one round via `ask`:
 
 1. **Visibility** — Public Marketplace / Private (specific accounts) / Both
 2. **Pricing** — Free / Paid (on-platform) / Paid with Trial / Limited Trial (off-platform). For trial mechanics (types, `SYSTEM$IS_LISTING_TRIAL()`, expiry, extend/reset), see the **Trial Mechanics Guide** in `references/templates.md`. For providers with a **sales-led or offline deal motion**, see the **Custom & Offline Terms** section below.
@@ -152,7 +152,7 @@ Provider wants to modify an existing draft, published, or pending listing.
 
 ### B1: Identify What to Update
 
-Use `ask_user_question`:
+Use `ask`:
 - **Title / description / metadata** — Text fields, business needs, categories
 - **Data product** — Swap in new share (note: share is immutable per listing)
 - **Targeting / regions / accounts** — Change which regions or accounts can access

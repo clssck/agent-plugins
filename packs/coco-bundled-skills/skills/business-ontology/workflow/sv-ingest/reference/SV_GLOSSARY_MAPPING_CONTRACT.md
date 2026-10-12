@@ -1,3 +1,4 @@
+
 # Semantic View → Business Ontology mapping contract
 
 > **Status:** Skill-side contract. **Adds no new backend surface** — it uses only the
@@ -15,7 +16,7 @@ resolving domain/identity from **column lineage first**, SV name last.
 |------|--------|-------|
 | A | CSV / spreadsheet | `../../import` |
 | B | Cortex Sense manifest | `../../import` (cortex-sense promotion) |
-| **C (this)** | **Semantic View estate** | **`../` (`$business-ontology sv-ingest`)** |
+| **C (this)** | **Semantic View estate** | **`../` (`skill://business-ontology/SKILL.md sv-ingest`)** |
 
 ## Scan inputs (all read-only)
 

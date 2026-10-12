@@ -221,7 +221,7 @@ Certifying marks them with SNOWFLAKE.CORE.CERTIFICATION_STATUS = 'CERTIFIED',
 making them discoverable as trusted sources for future users.
 ```
 
-**If the user wants to certify**, invoke the `certify-object` skill with the confirmed object. The skill will handle permission checks, applying the tag, and verification.
+**If the user wants to certify**, read `skill://certify-object/SKILL.md` and follow it with the confirmed object. The skill will handle permission checks, applying the tag, and verification.
 
 **If the user declines**, the workflow ends after presenting the ranked results.
 

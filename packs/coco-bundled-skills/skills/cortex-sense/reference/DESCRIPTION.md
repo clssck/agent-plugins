@@ -80,7 +80,7 @@ Handling the reply:
 | A request to adjust ("make it shorter", "mention the playoff tables") | Regenerate with that constraint, re-render the confirm block, wait again. |
 | `skip` / "leave it" / "no description" | Skip the `ALTER`. Do **not** set `description_synced_version` — the marker stays absent or unchanged so the next save re-offers. Say nothing further about it. |
 
-Do not use `AskUserQuestion` here — it is a free-text gate, consistent with the rest of the builder flow.
+Do not use `ask` here — it is a free-text gate, consistent with the rest of the builder flow.
 
 ## Applying it
 

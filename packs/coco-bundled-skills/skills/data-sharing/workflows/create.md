@@ -1,3 +1,4 @@
+
 # Create Share
 
 Create Snowflake shares to securely share data with other Snowflake accounts. Shares provide read-only access to selected database objects without copying data.

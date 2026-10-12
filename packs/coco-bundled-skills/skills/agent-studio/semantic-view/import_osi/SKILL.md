@@ -4,6 +4,12 @@ description: "Import OSI (Open Semantic Interchange, also known as Ossie) YAML m
 parent_skill: semantic-view
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # OSI Import Skill
 
 Import [Open Semantic Interchange (OSI, also known as Ossie)](https://ossie.apache.org/) YAML models into Snowflake using `osi_write_model`.

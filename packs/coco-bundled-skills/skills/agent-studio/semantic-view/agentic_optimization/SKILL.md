@@ -4,6 +4,12 @@ description: "Run, resume, or inspect automated AI-driven optimization on a Cort
 parent_skill: semantic-view
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`, `snowflake_sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Agentic Optimization
 
 Agentic optimization is an asynchronous, server-side AI process that comprehensively analyzes a semantic view and proposes improvements (new VQRs, better descriptions, structural changes). The work runs inside Snowflake — this skill orchestrates it through four `SYSTEM$CORTEX_ANALYST_*_AGENTIC_OPTIMIZATION` procedures and only applies approved changes back to the model.

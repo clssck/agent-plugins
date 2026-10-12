@@ -3,6 +3,12 @@ name: developing-with-streamlit-in-snowflake
 description: "Use for Streamlit development tasks with a Snowflake angle: Snowflake-connected dashboards, Streamlit-in-Snowflake (SiS) deployment to warehouse / SPCS / Workspaces, applying Snowflake branding, st.connection('snowflake'), troubleshooting a local `streamlit run` against Snowflake (wrong role/user/database, 'Database not authorized', PAT-bound USE ROLE failure, stale st.connection cache), and operating an already-deployed STREAMLIT object (ALTER STREAMLIT SET QUERY_WAREHOUSE, RENAME, DROP, GRANT, SHOW STREAMLITS). Also use for general Streamlit authoring (widgets, layouts, caching, theming, custom components) — this skill routes general OSS questions to version-matched content from a detected Streamlit ≥1.57 install, or to a bundled OSS snapshot when no install is available. Triggers: streamlit, st., dashboard, app.py, theme, beautify, style, CSS, color, background, button, custom component, st.components, snowflake dashboard, monitor snowflake, streamlit on snowflake, streamlit in snowflake, SiS, scaffold, snowflake theme, st.connection snowflake, snow streamlit deploy, deploy this streamlit, redeploy, alter streamlit, show streamlits, drop streamlit, rename streamlit app, change query warehouse, streamlit app down, streamlit run wrong role, database not authorized, SNOWFLAKE_DEFAULT_CONNECTION_NAME."
 ---
 
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `cortex CLI`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Developing with Streamlit in Snowflake
 
 Entry-point skill for Streamlit work in a Snowflake context. Routes to one of two specialized sub-skills based on the user's prompt.

@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Teaching Guide
 
 How to deliver the learning experience once a Quickstart has been fetched and parsed.
@@ -12,10 +18,10 @@ The learner is an active participant, not a passive spectator. They build alongs
 
 Before each stage:
 - Explain what you're about to build and why it matters
-- If there's a design decision (e.g., "the Quickstart uses XS warehouse — do you want something larger?"), surface it with `ask_user_question`
+- If there's a design decision (e.g., "the Quickstart uses XS warehouse — do you want something larger?"), surface it with `ask`
 
 During each stage:
-- **CLI**: Render the code directly in the terminal with explanatory comments. Use `ask_user_question` to give the learner agency before executing — e.g., "Run it", "Explain more", "I want to make changes". Then execute via `sql_execute`.
+- **CLI**: Render the code directly in the terminal with explanatory comments. Use `ask` to give the learner agency before executing — e.g., "Run it", "Explain more", "I want to make changes". Then execute via `sql_execute`.
 - **Snowsight workspace**: Write code to `.sql` or `.py` files with explanatory comments. Prompt the learner to run the file.
 
 After each stage:

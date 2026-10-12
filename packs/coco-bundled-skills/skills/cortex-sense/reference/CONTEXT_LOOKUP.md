@@ -1,3 +1,9 @@
+<!-- omp-compat:start -->
+> **OMP compatibility**
+>
+> - Selected paths may require external capabilities not built into OMP: `sql_execute`. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report `blocked: missing <capability>`; never substitute an unrelated shell command or claim execution.
+<!-- omp-compat:end -->
+
 # Context lookup
 
 Single contract for querying what a built Cortex Sense context knows about a use case. Used by `test/SKILL.md` (interactive lookup) and `refine/SKILL.md` (pre-correction diagnostic). Both sub-skills reference this file instead of duplicating call logic.

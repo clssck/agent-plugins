@@ -100,7 +100,7 @@ WHERE slot_name LIKE 'migrate%';
 
 ### 4.3 ⚠️ PROMPT: Monitor Migration Progress
 
-**After subscription is created, ASK the user with `ask_user_question`:**
+**After subscription is created, ASK the user with `ask`:**
 
 ```
 The subscription has been created and initial data sync is starting.
@@ -184,7 +184,7 @@ SELECT * FROM pg_stat_subscription;
 
 ### 5.3 ⚠️ PROMPT: Replication Status Check
 
-**After initial sync completes and replication is running, ASK the user with `ask_user_question`:**
+**After initial sync completes and replication is running, ASK the user with `ask`:**
 
 ```
 Replication is now running. Current status:

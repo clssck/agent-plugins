@@ -58,7 +58,7 @@ watch -n 10 'ls -lh *.dump'
 
 ### 4.4 PROMPT: Monitor Dump Progress
 
-**After starting the dump, ASK the user with `ask_user_question`:**
+**After starting the dump, ASK the user with `ask`:**
 
 ```
 The database dump has started. This may take a while for large databases.

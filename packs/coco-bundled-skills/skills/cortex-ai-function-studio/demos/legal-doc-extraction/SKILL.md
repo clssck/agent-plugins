@@ -3,6 +3,7 @@ name: legal-doc-extraction-demo
 description: "Interactive demo: Build a legal contract field extractor and create a weighted composite metric that scores 4 fields independently. Showcases custom evaluation metrics for multi-field AI functions."
 parent_skill: demos
 ---
+
 <!-- Copyright (c) 2026 Snowflake Inc. All rights reserved.
      Licensed under the Snowflake Skills License. See LICENSE file. -->
 
