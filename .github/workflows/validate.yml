@@ -17,7 +17,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: oven-sh/setup-bun@v2
 
@@ -34,7 +34,7 @@ jobs:
           echo "repository=$(bun -e 'console.log((await Bun.file("omp-source-lock.json").json()).repository)')" >> "$GITHUB_OUTPUT"
 
       - name: Check out pinned OMP
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: ${{ steps.omp.outputs.repository }}
           ref: ${{ steps.omp.outputs.commit }}
