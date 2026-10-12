@@ -18,10 +18,18 @@
  * The heavy coding-agent import lives here; probe.ts stays pi-ai-only.
  */
 import { parseArgs } from "node:util";
-import { toolWireSchema } from "@oh-my-pi/pi-ai";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { BUILTIN_TOOLS, GithubTool, HIDDEN_TOOLS, type Tool, type ToolFactory, type ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
+import type { Tool, ToolFactory, ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
 import { probe } from "./probe.ts";
+
+const { toolWireSchema } = (await import(
+	Bun.resolveSync("@oh-my-pi/pi-ai", process.cwd()),
+)) as typeof import("@oh-my-pi/pi-ai");
+const { Settings } = (await import(
+	Bun.resolveSync("@oh-my-pi/pi-coding-agent/config/settings", process.cwd()),
+)) as typeof import("@oh-my-pi/pi-coding-agent/config/settings");
+const { BUILTIN_TOOLS, GithubTool, HIDDEN_TOOLS } = (await import(
+	Bun.resolveSync("@oh-my-pi/pi-coding-agent/tools", process.cwd()),
+)) as typeof import("@oh-my-pi/pi-coding-agent/tools");
 
 const OPEN_TAG = /^<[a-z_][\w-]*>$/i;
 const CLOSE_TAG = /^<\/[a-z_][\w-]*>$/i;

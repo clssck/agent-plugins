@@ -25,10 +25,15 @@
  * Programmatic: import { probe } from "./probe.ts"
  */
 import { parseArgs } from "node:util";
-import { completeSimple } from "@oh-my-pi/pi-ai";
 import type { Api, AssistantMessage, Model } from "@oh-my-pi/pi-ai";
 import type { GeneratedProvider } from "@oh-my-pi/pi-catalog/models";
-import { getBundledModel } from "@oh-my-pi/pi-catalog/models";
+
+const { completeSimple } = (await import(
+	Bun.resolveSync("@oh-my-pi/pi-ai", process.cwd()),
+)) as typeof import("@oh-my-pi/pi-ai");
+const { getBundledModel } = (await import(
+	Bun.resolveSync("@oh-my-pi/pi-catalog/models", process.cwd()),
+)) as typeof import("@oh-my-pi/pi-catalog/models");
 
 /** Default 3-model panel when the caller does not pin a model. */
 const DEFAULT_MODELS = ["fireworks/kimi-k2.7-code", "anthropic/claude-opus-4-8", "openai/gpt-5.5"];

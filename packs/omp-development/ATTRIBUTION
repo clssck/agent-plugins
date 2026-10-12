@@ -17,5 +17,6 @@ Packaging adaptations:
 - Retain the node:net debug-socket client so the tool loads on OMP 18.9.x; upstream's IpcConnection client requires OMP 18.10 or newer.
 - Pin commands that can write remotely to clssck/oh-my-pi and forbid writes to can1357/oh-my-pi.
 - Remove retired IRC references from the builtin prompt probe so it loads against current OMP tool exports.
+- Resolve prompt-probe runtime modules from the caller's OMP checkout and run the packaged entry points through `skill://` paths.
 
 This is a reviewed snapshot, not an automatic mirror. `omp-source-lock.json` records upstream Git object hashes for the copied assets plus the OMP docs and source files that define their loading contracts; CI opens or updates an assigned issue when any recorded object changes upstream.

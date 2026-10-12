@@ -9,24 +9,24 @@ Prompt/schema overlap: content reconstructible from `(name, JSON schema, blank o
 
 ## Run probe
 
-`scripts/probe.ts`: `@oh-my-pi/pi-ai` `completeSimple`; production-matching model/auth/provider behavior.
+[`probe.ts`](skill://tool-prompt-optimization/scripts/probe.ts): `@oh-my-pi/pi-ai` `completeSimple`; production-matching model/auth/provider behavior.
 
 ```bash
-bun .omp/skills/tool-prompt-optimization/scripts/probe.ts \
+bun "$(realpath skill://tool-prompt-optimization/scripts/probe.ts)" \
   --schema <file|json> --template <file|text> --name <tool_name>
 ```
 
 - Required: `--schema`, `--template` — file path or inline value.
 - No `--model`: panel `fireworks/kimi-k2.7-code`, `anthropic/claude-opus-4-8`, `openai/gpt-5.5` × `--samples` (default 3); requires `FIREWORKS_API_KEY` / `ANTHROPIC_API_KEY` / `OPENAI_API_KEY`.
 - `--model p/id,p/id`: override panel. Tune: `--samples N`, `--max-tokens`, `--json`.
-- Programmatic: `import { probe } from "./scripts/probe.ts"` → `{ prompt, results: [{ model, samples: [{ text, stopReason, usage, error }] }] }`.
+- Programmatic: import `probe` from the physical path returned by `realpath skill://tool-prompt-optimization/scripts/probe.ts` → `{ prompt, results: [{ model, samples: [{ text, stopReason, usage, error }] }] }`.
 
 ### Builtin shortcut — preferred for this repo
 
-`scripts/probe-builtin.ts` instantiates the live tool; gets exact `toolWireSchema`, `tool.description`, and derived outline:
+[`probe-builtin.ts`](skill://tool-prompt-optimization/scripts/probe-builtin.ts) instantiates the live tool; gets exact `toolWireSchema`, `tool.description`, and derived outline:
 
 ```bash
-bun .omp/skills/tool-prompt-optimization/scripts/probe-builtin.ts --tool <name> [--no-summary] [--show]
+bun "$(realpath skill://tool-prompt-optimization/scripts/probe-builtin.ts)" --tool <name> [--no-summary] [--show]
 ```
 
 - `--show`: resolved schema, derived outline, real prompt; exits without API calls. Inspect before spending tokens.

@@ -189,6 +189,23 @@ if (extensionPaths.length > 0) {
 }
 totals.push(extensionPaths.length + " " + (extensionPaths.length === 1 ? "extension" : "extensions"));
 
+const probePath = path.join(
+	ROOT,
+	"packs/omp-development/skills/tool-prompt-optimization/scripts/probe-builtin.ts",
+);
+const probeSmoke = Bun.spawnSync({
+	cmd: [process.execPath, probePath, "--tool", "github", "--show"],
+	cwd: OMP_ROOT,
+	stdin: "ignore",
+	stdout: "ignore",
+	stderr: "pipe",
+	env: process.env,
+});
+if (!probeSmoke.success) {
+	const stderr = new TextDecoder().decode(probeSmoke.stderr).trim();
+	problems.push("omp-development: packaged builtin prompt probe failed" + (stderr ? ": " + stderr : ""));
+}
+
 if (problems.length > 0) {
 	console.error("OMP loader (" + OMP_ROOT + ") disagrees with repository expectations:");
 	for (const problem of problems) console.error("  " + problem);
