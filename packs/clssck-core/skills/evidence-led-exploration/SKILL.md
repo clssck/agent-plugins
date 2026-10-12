@@ -1,6 +1,7 @@
 ---
 name: evidence-led-exploration
 description: Run ambiguous debugging, root-cause hunts, and research with an evidence ledger — claims linked to evidence, branches with owners and wake conditions, contradictions kept visible — and emit a handoff packet. Use when several explanations stay plausible, work will branch, span sessions, or fan out to parallel workers, or findings must survive context loss. Not for single lookups or known linear procedures; a domain skill's own method wins.
+disable-model-invocation: true
 ---
 
 # Evidence-Led Exploration
