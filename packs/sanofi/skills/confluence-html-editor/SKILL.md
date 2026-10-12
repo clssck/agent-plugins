@@ -28,7 +28,7 @@ Atlassian Rovo MCP required. Missing → report the missing access; NEVER fall b
 
 - omp registers MCP tools under names derived from the server name. NEVER hard-code a prefix; search the tool list for `Confluence`/`Atlassian` and use the names found.
 - Catalog is dynamic: primary tools are listed directly; the rest via `discover`, run through `executeRead` / `executeWrite` / `executeDestructive` (or single `execute`) as `name`, top-level `cloudId`, flat `inputs`.
-- MUST read the live tool schema and `getContentFormatGuide` before the first call. Unknown parameter names are silently dropped, not rejected: a misspelled `snapshotToken` or format field "succeeds" and is ignored. Names below are hints; contract and sources: [editing-workflow.md](references/editing-workflow.md#mcp-v2-call-contract).
+- MUST read the live tool schema and `getContentFormatGuide` before the first call. Unknown parameter names are silently dropped, not rejected: a misspelled `snapshotToken` or format field "succeeds" and is ignored. Names below are hints; contract and sources: [editing-workflow.md](skill://confluence-html-editor/references/editing-workflow.md#mcp-v2-call-contract).
 
 | Need | v2 tool (hint) | v1 name (not callable on v2) |
 |---|---|---|
@@ -84,7 +84,7 @@ uv run "$(realpath skill://confluence-html-editor/scripts/verify_confluence_adf.
    One clear correction, then verify again. Write damaged the page → `restoreConfluenceContentVersion` to the prior version, then report. NEVER loop speculative writes.
 7. **Report** link, version, changes, unresolved issues.
 
-MCP text results (`{"content":[{"type":"text","text":"..."}]}`) are accepted directly by `verify_confluence_adf.py`. Splitting a saved fetch into body and metadata: [editing-workflow.md](references/editing-workflow.md#page-audit-before-a-risky-edit).
+MCP text results (`{"content":[{"type":"text","text":"..."}]}`) are accepted directly by `verify_confluence_adf.py`. Splitting a saved fetch into body and metadata: [editing-workflow.md](skill://confluence-html-editor/references/editing-workflow.md#page-audit-before-a-risky-edit).
 
 ### Before publishing
 
@@ -98,9 +98,9 @@ Refetched · ADF verified for rich pages · no local paths, base64 images, CSS, 
 
 | File | Load when |
 |---|---|
-| [editing-workflow.md](references/editing-workflow.md) | New pages, audits, large or attachment-heavy updates, ADF checks, script options, MCP call contract |
-| [rich-page-design.md](references/rich-page-design.md) | Redesigns, new rich pages, page archetypes, quality gate |
-| [confluence-html-patterns.md](references/confluence-html-patterns.md) | Building components, round-trip behavior, rejected HTML, macro boundaries |
+| [editing-workflow.md](skill://confluence-html-editor/references/editing-workflow.md) | New pages, audits, large or attachment-heavy updates, ADF checks, script options, MCP call contract |
+| [rich-page-design.md](skill://confluence-html-editor/references/rich-page-design.md) | Redesigns, new rich pages, page archetypes, quality gate |
+| [confluence-html-patterns.md](skill://confluence-html-editor/references/confluence-html-patterns.md) | Building components, round-trip behavior, rejected HTML, macro boundaries |
 
 ## Scripts
 
@@ -108,17 +108,17 @@ Run each in the omp `bash` tool as `uv run "$(realpath skill://confluence-html-e
 
 | Script | Purpose |
 |---|---|
-| [check_confluence_html.py](scripts/check_confluence_html.py) | Validate a body fragment; diff against fetched HTML |
-| [review_confluence_publish.py](scripts/review_confluence_publish.py) | Pre-publish dry run: preservation, size, dropped headings |
-| [extract_confluence_fetch.py](scripts/extract_confluence_fetch.py) | Split a saved fetch into body and metadata files |
-| [verify_confluence_adf.py](scripts/verify_confluence_adf.py) | Confirm native nodes survived normalization |
-| [audit_confluence_page.py](scripts/audit_confluence_page.py) | Summarize HTML + ADF before risky edits |
+| [check_confluence_html.py](skill://confluence-html-editor/scripts/check_confluence_html.py) | Validate a body fragment; diff against fetched HTML |
+| [review_confluence_publish.py](skill://confluence-html-editor/scripts/review_confluence_publish.py) | Pre-publish dry run: preservation, size, dropped headings |
+| [extract_confluence_fetch.py](skill://confluence-html-editor/scripts/extract_confluence_fetch.py) | Split a saved fetch into body and metadata files |
+| [verify_confluence_adf.py](skill://confluence-html-editor/scripts/verify_confluence_adf.py) | Confirm native nodes survived normalization |
+| [audit_confluence_page.py](skill://confluence-html-editor/scripts/audit_confluence_page.py) | Summarize HTML + ADF before risky edits |
 
 ## Templates
 
 | Asset | Use |
 |---|---|
-| [rich-page-template.html](assets/rich-page-template.html) | Broad operational pages |
-| [status-report.html](assets/status-report.html) | Project or weekly status |
-| [runbook.html](assets/runbook.html) | Operator procedures, recovery |
-| [decision-record.html](assets/decision-record.html) | Decisions and tradeoffs |
+| [rich-page-template.html](skill://confluence-html-editor/assets/rich-page-template.html) | Broad operational pages |
+| [status-report.html](skill://confluence-html-editor/assets/status-report.html) | Project or weekly status |
+| [runbook.html](skill://confluence-html-editor/assets/runbook.html) | Operator procedures, recovery |
+| [decision-record.html](skill://confluence-html-editor/assets/decision-record.html) | Decisions and tradeoffs |

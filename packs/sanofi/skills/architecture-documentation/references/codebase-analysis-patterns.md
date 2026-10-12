@@ -127,7 +127,7 @@ one API Gateway, all using the same PostgreSQL database and Drizzle ORM, is ONE 
 ### Managed Orchestration Services
 
 Separate the provider platform from what you configure on it. Apply the boundary rule in
-[c4-abstractions-guide.md](c4-abstractions-guide.md): in-scope runtime or data-store
+[c4-abstractions-guide.md](skill://architecture-documentation/references/c4-abstractions-guide.md): in-scope runtime or data-store
 responsibility → container; merely consumed → external system.
 
 ```
@@ -240,7 +240,7 @@ producer.send({ topic })         -> Produces records to Topic [Kafka]
 name from config, IaC, or constants and name that container; NEVER draw one "Message Bus" hub
 that every producer and consumer connects to. If the name cannot be resolved, say so and leave
 the relationship unlabeled by queue rather than inventing one. See
-[c4-abstractions-guide.md](c4-abstractions-guide.md).
+[c4-abstractions-guide.md](skill://architecture-documentation/references/c4-abstractions-guide.md).
 
 ### Cache Operations
 

@@ -9,9 +9,9 @@ High-value tests that catch real data issues without burning warehouse credits o
 **Understand the model first.** By task:
 
 - **`tests` only:** inspect existing dbt YAML/properties and model `.sql` for grain, column types, nullability. Do not write or modify docs.
-- **`both`:** follow [`writing-documentation.md`](writing-documentation.md) first; use its output as the basis for tests.
+- **`both`:** follow [`writing-documentation.md`](skill://dbt/references/writing-documentation.md) first; use its output as the basis for tests.
 
-**`dbt_utils` check.** Confirm it is installed in `packages.yml` before any `dbt_utils.*` test. Absent → obtain authorized package-review approval before adding; follow the package-governance rules in [`general-dbt-guide.md`](general-dbt-guide.md).
+**`dbt_utils` check.** Confirm it is installed in `packages.yml` before any `dbt_utils.*` test. Absent → obtain authorized package-review approval before adding; follow the package-governance rules in [`general-dbt-guide.md`](skill://dbt/references/general-dbt-guide.md).
 
 ```yaml
 packages:

@@ -24,8 +24,8 @@ This skill holds platform facts only. Run omp `/review` on the diff for generic 
 
 | Task | `read` |
 |---|---|
-| Platform model, repo layout, naming, DAG config, TaskFlow, config/secrets, Datasets/Assets, sensors, alerting, access control, CI/CD, troubleshooting, Airflow 3 migration | [general-airflow-guide.md](references/general-airflow-guide.md) |
-| Running dbt from a DAG: `BashOperator` + `dbt_run.sh` or typed `DbtClient`, logs/artifacts, backfills, run vars | [orchestrating-dbt.md](references/orchestrating-dbt.md) |
+| Platform model, repo layout, naming, DAG config, TaskFlow, config/secrets, Datasets/Assets, sensors, alerting, access control, CI/CD, troubleshooting, Airflow 3 migration | [general-airflow-guide.md](skill://sanofi-airflow/references/general-airflow-guide.md) |
+| Running dbt from a DAG: `BashOperator` + `dbt_run.sh` or typed `DbtClient`, logs/artifacts, backfills, run vars | [orchestrating-dbt.md](skill://sanofi-airflow/references/orchestrating-dbt.md) |
 
 - **Read every reference covering an area the change touches, and only those.**
 - **Multi-area change order:** parse safety + DAG config → task logic → orchestration wiring → alerting/access/tags → deploy and run commands.
@@ -88,7 +88,7 @@ A change is not done until every applicable gate holds:
 | Sole leaf `cleanup` with `trigger_rule="all_done"` → run succeeds after upstream failure | Add a sibling leaf with default `all_success` downstream of the work task → run fails, cleanup still runs |
 | Failure callback raises | Catch and log inside the callback |
 
-Pattern and code: [general-airflow-guide.md](references/general-airflow-guide.md) (TaskFlow API, Alerting).
+Pattern and code: [general-airflow-guide.md](skill://sanofi-airflow/references/general-airflow-guide.md) (TaskFlow API, Alerting).
 
 ## Airflow 3 Traps
 
@@ -101,4 +101,4 @@ Pattern and code: [general-airflow-guide.md](references/general-airflow-guide.md
 | SQLAlchemy session / ORM models on the metadata DB inside a task | Task SDK (`airflow.sdk.Variable`, `Connection`) or the REST API (`/api/v2`) |
 | `SubDagOperator`, `sla`, `sla_miss_callback` | TaskGroups; Deadline Alerts (3.1+) |
 
-Import map, config renames, removed features, MWAA migration rules: [general-airflow-guide.md](references/general-airflow-guide.md) (Airflow 3 Migration).
+Import map, config renames, removed features, MWAA migration rules: [general-airflow-guide.md](skill://sanofi-airflow/references/general-airflow-guide.md) (Airflow 3 Migration).

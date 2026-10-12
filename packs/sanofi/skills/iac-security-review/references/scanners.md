@@ -1,6 +1,6 @@
 # Scanner Cross-Check
 
-Optional Checkov, Trivy, or KICS pass after the manual review. Scanner hits are leads, not findings: re-grade each with the evidence status and severity rules in [security-controls.md](security-controls.md) before it enters the report.
+Optional Checkov, Trivy, or KICS pass after the manual review. Scanner hits are leads, not findings: re-grade each with the evidence status and severity rules in [security-controls.md](skill://iac-security-review/references/security-controls.md) before it enters the report.
 
 ## Preconditions
 
@@ -32,7 +32,7 @@ Flags identical in POSIX shells and PowerShell; only Docker volume syntax differ
 
 ## Triage
 
-- **Absent-property hits:** Trivy documents that a resource lacking a property is treated as using the service default, and the check may fail. Re-check every such hit against [aws-defaults.md](aws-defaults.md). Common false positives: S3 encryption, S3 Block Public Access on new buckets, SQS SSE, Lambda outside a VPC.
+- **Absent-property hits:** Trivy documents that a resource lacking a property is treated as using the service default, and the check may fail. Re-check every such hit against [aws-defaults.md](skill://iac-security-review/references/aws-defaults.md). Common false positives: S3 encryption, S3 Block Public Access on new buckets, SQS SSE, Lambda outside a VPC.
 - **Mapping:** each kept hit → control ID (PE/AA/EN/NS/EP/LM/SM); merge with the matching manual finding; cite file:line from the source, not the scanner.
 - **Severity:** scanner severity ≠ report severity. Apply exposure × operations × authorization × impact.
 - **Record:** scanner, version, command → report appendix "Complementary scans".

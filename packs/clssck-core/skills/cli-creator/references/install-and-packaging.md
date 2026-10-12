@@ -1,6 +1,6 @@
 # Install and Packaging
 
-Per-runtime build, local install, and binary location for a CLI that must run by name from any directory. Runtime choice and the approval rules for PATH changes are in [SKILL.md](../SKILL.md).
+Per-runtime build, local install, and binary location for a CLI that must run by name from any directory. Runtime choice and the approval rules for PATH changes are in [SKILL.md](skill://cli-creator/SKILL.md).
 
 ## Contents
 

@@ -1,6 +1,6 @@
 # Streamlit in Snowflake: Runtime and Deployment
 
-Detail behind [SKILL.md](../SKILL.md): runtime matrix, BCR-2342 default change, source layouts, dependency files, sessions, secrets, `snow` CLI, security, contract tests. Snowflake syntax moves fast — check current documentation before changing runtime or deployment syntax: `read` the pages in [Sources](#sources), `web_search` for release notes newer than this file.
+Detail behind [SKILL.md](skill://snowflake-streamlit/SKILL.md): runtime matrix, BCR-2342 default change, source layouts, dependency files, sessions, secrets, `snow` CLI, security, contract tests. Snowflake syntax moves fast — check current documentation before changing runtime or deployment syntax: `read` the pages in [Sources](#sources), `web_search` for release notes newer than this file.
 
 ## Runtime choice
 

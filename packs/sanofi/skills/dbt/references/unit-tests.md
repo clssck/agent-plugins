@@ -71,11 +71,11 @@ unit_tests:
       rows: [{order_id: 1, amount: 5}]
 ```
 
-dbt cannot unit test whether the framework merged the rows correctly (dbt-labs/dbt-core issue 8664) → cover that with a data test or a dev diff against a full refresh ([snowflake-materializations.md](snowflake-materializations.md#late-arriving-and-multi-parent-changes)). Cover same-day dedup, merge logic, and late child rows with the `true` case.
+dbt cannot unit test whether the framework merged the rows correctly (dbt-labs/dbt-core issue 8664) → cover that with a data test or a dev diff against a full refresh ([snowflake-materializations.md](skill://dbt/references/snowflake-materializations.md#late-arriving-and-multi-parent-changes)). Cover same-day dedup, merge logic, and late child rows with the `true` case.
 
 ## Versioned Models
 
-A unit test runs against **all** versions by default. Pin with `versions: {include: [2]}` or `exclude: [1]`. A new version with changed columns usually needs its own case with different `expect` rows → scope each case to the versions it describes. See [contracts-and-versions.md](contracts-and-versions.md).
+A unit test runs against **all** versions by default. Pin with `versions: {include: [2]}` or `exclude: [1]`. A new version with changed columns usually needs its own case with different `expect` rows → scope each case to the versions it describes. See [contracts-and-versions.md](skill://dbt/references/contracts-and-versions.md).
 
 ## Snowflake Value Gotchas
 

@@ -1,6 +1,6 @@
 # Search Patterns and Templates
 
-Query-shaping, CQL/JQL, and answer templates for [SKILL.md](../SKILL.md). Decision flow lives there: Rovo `search` first → CQL/JQL when requested or target system clear → selective fetch → cited synthesis. Governing principle: shortest query that names the thing; every claim cited; gaps stated.
+Query-shaping, CQL/JQL, and answer templates for [SKILL.md](skill://search-company-knowledge/SKILL.md). Decision flow lives there: Rovo `search` first → CQL/JQL when requested or target system clear → selective fetch → cited synthesis. Governing principle: shortest query that names the thing; every claim cited; gaps stated.
 
 ## Query Terms
 

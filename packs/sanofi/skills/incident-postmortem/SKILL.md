@@ -12,19 +12,19 @@ Scope split: `/security` finds vulnerabilities; this skill records an incident t
 ## Writing a post-mortem
 
 1. **Gather facts** — dates, impact, affected users/systems, detection path, mitigation, recovery, evidence links. `read`/`grep`/`glob` over chat exports, alert history, deploy logs; `ask` for anything not in evidence.
-2. **Confirm severity** against [severity-levels.md](references/severity-levels.md); record live and final severity.
+2. **Confirm severity** against [severity-levels.md](skill://incident-postmortem/references/severity-levels.md); record live and final severity.
 3. **Build the UTC timeline** forward from before the trigger (avoids hindsight bias); source link per entry; fact separate from inference.
 4. **Root-cause analysis** — 5 Whys plus ALL contributing factors.
 5. **Went well / went wrong / got lucky.**
 6. **Action items** with required fields.
-7. **`write`** the document from [post-mortem-template.md](references/post-mortem-template.md).
+7. **`write`** the document from [post-mortem-template.md](skill://incident-postmortem/references/post-mortem-template.md).
 8. **Review gate.**
 
-Process detail, interview prompts, anti-patterns, sources: [full-guide.md](references/full-guide.md).
+Process detail, interview prompts, anti-patterns, sources: [full-guide.md](skill://incident-postmortem/references/full-guide.md).
 
 ## Reviewing an existing post-mortem
 
-Run Verification below plus the blameless self-check in [blameless-language.md](references/blameless-language.md#self-check); report each gap with its section.
+Run Verification below plus the blameless self-check in [blameless-language.md](skill://incident-postmortem/references/blameless-language.md#self-check); report each gap with its section.
 
 ## Timestamps
 
@@ -47,7 +47,7 @@ TTD = Detection − Start · TTA = Acknowledgement − Detection · TTM = Mitiga
 | Level | Post-mortem |
 |---|---|
 | SEV1 / SEV2 | REQUIRED within 5 business days of incident closure |
-| SEV3 | Optional; recommend when a trigger in [severity-levels.md](references/severity-levels.md#sev3--moderate) applies |
+| SEV3 | Optional; recommend when a trigger in [severity-levels.md](skill://incident-postmortem/references/severity-levels.md#sev3--moderate) applies |
 
 - **Check every SEV1 criterion independently**; security or compliance impact makes any size SEV1.
 - **NEVER classify down** to dodge the deadline.
@@ -85,11 +85,11 @@ Every item MUST have:
 
 - **REJECT actions relying on people "being careful" or training alone**; change the system.
 - **Record actions considered but not pursued**, with reason.
-- Optional tracker skeleton: [action-items-header.md](assets/action-items-header.md).
+- Optional tracker skeleton: [action-items-header.md](skill://incident-postmortem/assets/action-items-header.md).
 
 ## Language
 
-- **MUST be blameless**; read [blameless-language.md](references/blameless-language.md) before final drafting. NEVER name a person as a cause.
+- **MUST be blameless**; read [blameless-language.md](skill://incident-postmortem/references/blameless-language.md) before final drafting. NEVER name a person as a cause.
 - **NEVER invent timeline entries, owners, or numbers.** Estimates labelled `est.` with method; no basis → `unknown`.
 - **NEVER animated or judgemental wording** ("ridiculous", "careless", "!!!"); state verifiable data.
 - **NEVER turn the post-mortem into a runbook.**

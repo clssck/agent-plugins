@@ -1,6 +1,6 @@
 # Snowflake Materializations and Incremental Models
 
-dbt-snowflake defaults that change how a model should be materialized, plus the Sanofi incremental-model rules. Governing principle: a persisted relation keeps its history, grants, and Time Travel lineage across runs, so prefer strategies that update in place over drop/recreate or truncate. Layer defaults (which layer is `view`, `table`, `incremental`) stay in [general-dbt-guide.md](general-dbt-guide.md#layers-and-materializations).
+dbt-snowflake defaults that change how a model should be materialized, plus the Sanofi incremental-model rules. Governing principle: a persisted relation keeps its history, grants, and Time Travel lineage across runs, so prefer strategies that update in place over drop/recreate or truncate. Layer defaults (which layer is `view`, `table`, `incremental`) stay in [general-dbt-guide.md](skill://dbt/references/general-dbt-guide.md#layers-and-materializations).
 
 ## Tables, Transience, and Grants
 
@@ -64,7 +64,7 @@ A watermark on the driving table alone loses changes arriving on another parent:
 5. **Deletes:** an incremental run never removes rows absent from the batch. Handle source deletes explicitly (soft-delete flag, key-set `delete+insert`, or scheduled rebuild).
 6. **Set `on_schema_change`** explicitly (Sanofi default `append_new_columns`).
 7. **Schedule a periodic full refresh** or bounded backfill to repair drift, unless the layer is history-bearing with `full_refresh: false`; there, bounded backfill only.
-8. **Prove it:** unit-test the `is_incremental: true` branch with a late child row ([unit-tests.md](unit-tests.md#incremental-models)); in dev, add a late child row for an old parent, run incrementally, compare with a full-refresh build of a copy (`audit_helper.compare_relations`).
+8. **Prove it:** unit-test the `is_incremental: true` branch with a late child row ([unit-tests.md](skill://dbt/references/unit-tests.md#incremental-models)); in dev, add a late child row for an old parent, run incrementally, compare with a full-refresh build of a copy (`audit_helper.compare_relations`).
 
 Shape of a multi-parent key set (adapt names, windows, grain):
 

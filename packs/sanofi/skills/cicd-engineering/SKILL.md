@@ -11,9 +11,9 @@ Sanofi GitHub Actions rules and verified templates: workflows, quality and secur
 
 | File | Holds |
 | --- | --- |
-| [cicd-rules.md](references/cicd-rules.md) | Requirements by domain, review checklist, compliance gaps, troubleshooting |
-| [pipeline-templates.md](references/pipeline-templates.md) | Verified action pins; Node, Python, Terraform, SonarCloud, container, CD, CodeGuard workflows |
-| [security-hardening.md](references/security-hardening.md) | Supply chain, `pull_request_target`, injection, runners, OIDC trust policies, secrets, attestations, cache poisoning, sources |
+| [cicd-rules.md](skill://cicd-engineering/references/cicd-rules.md) | Requirements by domain, review checklist, compliance gaps, troubleshooting |
+| [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md) | Verified action pins; Node, Python, Terraform, SonarCloud, container, CD, CodeGuard workflows |
+| [security-hardening.md](skill://cicd-engineering/references/security-hardening.md) | Supply chain, `pull_request_target`, injection, runners, OIDC trust policies, secrets, attestations, cache poisoning, sources |
 
 Load only what the task needs.
 
@@ -46,10 +46,10 @@ Load only what the task needs.
 | **Installs** | Commit lockfiles; deterministic installs (`npm ci`, `uv sync --locked`). Python CI: `astral-sh/setup-uv` + `uv run`, not `setup-python` + `pip install`; keep a repo's existing tooling (poetry, pip-tools) and say how to adopt uv |
 | **SCA/SAST** | Every repo runs both in CI, blocking. CodeGuard preferred; SonarCloud adds quality gating; CodeQL fallback |
 | **Coverage** | Sonar imports reports via `sonar-project.properties`; scan waits for the gate (`sonar.qualitygate.wait=true`); the aggregate required check MUST depend on the Sonar job |
-| **Artifacts** | Build once; promote the same image digest dev → test → prod; NEVER rebuild per environment. Production images SHOULD carry a build-provenance attestation ([security-hardening.md §11](references/security-hardening.md#11-artifact-attestations-and-provenance)) |
+| **Artifacts** | Build once; promote the same image digest dev → test → prod; NEVER rebuild per environment. Production images SHOULD carry a build-provenance attestation ([security-hardening.md §11](skill://cicd-engineering/references/security-hardening.md#11-artifact-attestations-and-provenance)) |
 | **Deploy** | Render a new ECS task-definition revision with the digest, deploy it, wait for stability |
 | **Retention** | Set `retention-days`; key caches on lockfile hashes |
-| **Action updates** | Enable Dependabot `github-actions` so SHA pins move through reviewed PRs ([security-hardening.md §1](references/security-hardening.md#1-supply-chain-attacks-via-compromised-actions)) |
+| **Action updates** | Enable Dependabot `github-actions` so SHA pins move through reviewed PRs ([security-hardening.md §1](skill://cicd-engineering/references/security-hardening.md#1-supply-chain-attacks-via-compromised-actions)) |
 | **GxP** | Production promotion needs environment approval and a retained audit record |
 
 ## Failure Modes
@@ -86,6 +86,6 @@ Load only what the task needs.
 | Application code review | omp `/review` |
 | Terraform authoring and tags | `iac-terraform` |
 | IaC security audit | `iac-security-review` |
-| Release notes and versioning schemes | [cicd-rules.md §4.2](references/cicd-rules.md#42-version-artifacts-and-generate-release-notes) |
+| Release notes and versioning schemes | [cicd-rules.md §4.2](skill://cicd-engineering/references/cicd-rules.md#42-version-artifacts-and-generate-release-notes) |
 | Dependency remediation | Dependabot/Renovate PRs |
 | Tyr and other org-managed scanners | Ask the platform team for the current reference; no template here |

@@ -50,7 +50,7 @@ NEVER use `gh api repos/OWNER/REPO/git/ref/tags/TAG --jq .object.sha` alone: for
 ## Prerequisites
 
 - **Allowlist**: confirm each action/version is permitted by the Sanofi org allowlist. Allowlist pins a tag? Use that exact tag instead of the SHA.
-- **ARC runner image**: runner release `2.329.0` or later (the registration minimum), and each new release within 30 days. Container jobs need Docker/BuildKit. Sonar scan action v8 verifies its scanner signature by default, so `gpg` and `dirmngr` MUST be on `PATH`. Confirm with the platform team; NEVER assume fleet versions. Runner enforcement: [security-hardening.md §5](security-hardening.md#5-self-hosted-runner-risks).
+- **ARC runner image**: runner release `2.329.0` or later (the registration minimum), and each new release within 30 days. Container jobs need Docker/BuildKit. Sonar scan action v8 verifies its scanner signature by default, so `gpg` and `dirmngr` MUST be on `PATH`. Confirm with the platform team; NEVER assume fleet versions. Runner enforcement: [security-hardening.md §5](skill://cicd-engineering/references/security-hardening.md#5-self-hosted-runner-risks).
 - **Python jobs**: `setup-uv` downloads uv, and `uv sync` downloads the `.python-version` interpreter when the image lacks it; confirm runner egress. Private package index: `[[tool.uv.index]]` in `pyproject.toml` or `UV_DEFAULT_INDEX`.
 - **Environments** `dev`, `test`, `prod`: each holds `AWS_ACCOUNT_ID` and `JFROG_TOKEN` (Terraform repos). `prod` has required reviewers and a `main`-only deployment branch rule.
 - **Repository/org secrets**: `SONAR_TOKEN`; CodeGuard `CHECKMARX_*` secrets.
@@ -397,7 +397,7 @@ Sources: <https://docs.sonarsource.com/sonarqube-cloud/analyzing-source-code/ci-
 
 ## Terraform plan + apply
 
-`JFROG_TOKEN` is an Environment secret (see [cicd-rules.md §6.5](cicd-rules.md#65-jfrog-artifactory-for-terraform-modules)), so every job that runs `terraform init` binds an environment. `setup-terraform` writes the JFrog credential into a runtime-only CLI config file.
+`JFROG_TOKEN` is an Environment secret (see [cicd-rules.md §6.5](skill://cicd-engineering/references/cicd-rules.md#65-jfrog-artifactory-for-terraform-modules)), so every job that runs `terraform init` binds an environment. `setup-terraform` writes the JFrog credential into a runtime-only CLI config file.
 
 ```yaml
 name: "Infrastructure"
@@ -638,7 +638,7 @@ jobs:
 
 `AWS_ACCOUNT_ID` exists only in the `dev` environment; the callee job sets `environment`, and passing the secret by name resolves the environment value (<https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows>).
 
-Production-bound image? Add a provenance attestation step after `Build and push`: [security-hardening.md §11](security-hardening.md#11-artifact-attestations-and-provenance). It needs `attestations: write` in this job and the caller, and `actions/attest` on the allowlist.
+Production-bound image? Add a provenance attestation step after `Build and push`: [security-hardening.md §11](skill://cicd-engineering/references/security-hardening.md#11-artifact-attestations-and-provenance). It needs `attestations: write` in this job and the caller, and `actions/attest` on the allowlist.
 
 ---
 
@@ -784,7 +784,7 @@ jobs:
 
 ## CodeGuard / Checkmarx SAST
 
-Org-managed reusable workflow; `@main` is the documented exception ([cicd-rules.md §1.1](cicd-rules.md#11-reference-actions-in-a-form-the-sanofi-allowlist-accepts)). Secrets are passed explicitly.
+Org-managed reusable workflow; `@main` is the documented exception ([cicd-rules.md §1.1](skill://cicd-engineering/references/cicd-rules.md#11-reference-actions-in-a-form-the-sanofi-allowlist-accepts)). Secrets are passed explicitly.
 
 ```yaml
 name: "SAST"

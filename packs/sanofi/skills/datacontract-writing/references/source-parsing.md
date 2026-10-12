@@ -1,6 +1,6 @@
 # Source Parsing Patterns
 
-Extraction rules for dbt, Snowflake, and SQL DDL. Type tables: [full-guide.md](full-guide.md#type-mapping-tables). Output shape: [odcs-template.md](odcs-template.md).
+Extraction rules for dbt, Snowflake, and SQL DDL. Type tables: [full-guide.md](skill://datacontract-writing/references/full-guide.md#type-mapping-tables). Output shape: [odcs-template.md](skill://datacontract-writing/references/odcs-template.md).
 
 ## dbt Projects
 
@@ -18,7 +18,7 @@ Per model → schema object (`logicalType: object`, `physicalType: table` or `vi
 |-----|------|
 | model `name`, `description` | schema `name`, `description` |
 | column `name`, `description` | property `name`, `description` |
-| column `data_type` | `logicalType` per [dbt table](full-guide.md#dbt-data_type); `physicalType` = verbatim |
+| column `data_type` | `logicalType` per [dbt table](skill://datacontract-writing/references/full-guide.md#dbt-data_type); `physicalType` = verbatim |
 | column `meta` / `config.meta` | see Meta Mapping |
 | model/column `constraints:` (needs `config.contract.enforced: true`) | see Constraints below |
 
@@ -193,7 +193,7 @@ Parse `CREATE [OR REPLACE] TABLE|VIEW` and `ALTER TABLE ... ADD CONSTRAINT`. One
 | DDL | ODCS |
 |-----|------|
 | Column name | `name` |
-| Data type | `physicalType` verbatim; `logicalType` per [SQL table](full-guide.md#sql-ansi-postgresql-mysql) |
+| Data type | `physicalType` verbatim; `logicalType` per [SQL table](skill://datacontract-writing/references/full-guide.md#sql-ansi-postgresql-mysql) |
 | `NOT NULL` | `required: true` |
 | Inline `PRIMARY KEY` | `primaryKey: true`, `primaryKeyPosition: 1`, `required: true`, `unique: true` |
 | Inline `UNIQUE` | `unique: true` |

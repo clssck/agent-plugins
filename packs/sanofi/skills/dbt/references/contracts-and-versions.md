@@ -5,7 +5,7 @@ skill (see `licenses/sanofi/dbt/ATTRIBUTION`).
 
 ## Placement
 
-`contract`, `access`, `group` are **configs**: in properties YAML nest under `config:`; in `dbt_project.yml` use the `+` prefix (`+access`, `+group`). Top-level `access` / `group` model properties are deprecated from dbt 1.10 ([Deprecations and Strict Validation](project-setup.md#deprecations-and-strict-validation)). `versions:`, `latest_version:`, `deprecation_date:` stay model properties.
+`contract`, `access`, `group` are **configs**: in properties YAML nest under `config:`; in `dbt_project.yml` use the `+` prefix (`+access`, `+group`). Top-level `access` / `group` model properties are deprecated from dbt 1.10 ([Deprecations and Strict Validation](skill://dbt/references/project-setup.md#deprecations-and-strict-validation)). `versions:`, `latest_version:`, `deprecation_date:` stay model properties.
 
 ```yaml
 models:
@@ -42,7 +42,7 @@ models:
 | `primary_key`, `unique`, `foreign_key` | Metadata only; NOT verified on insert |
 | `check` | Not supported; dbt skips it and warns |
 
-- Keep a `unique` / `relationships` data test for every non-enforced constraint ([writing-data-tests.md](writing-data-tests.md)). Constraints still document keys for catalogs; add `rely` to the constraint `expression` only to let Snowflake use it for join elimination — Snowflake trusts it without checking.
+- Keep a `unique` / `relationships` data test for every non-enforced constraint ([writing-data-tests.md](skill://dbt/references/writing-data-tests.md)). Constraints still document keys for catalogs; add `rely` to the constraint `expression` only to let Snowflake use it for join elimination — Snowflake trusts it without checking.
 - `warn_unenforced: false` silences the warning for a constraint kept as documentation.
 
 ## Access and Groups
@@ -66,7 +66,7 @@ Version a model only for a breaking change to a consumed model: removing or rena
 - **Files:** each version needs its own SQL file (`fct_orders_v1.sql`, `fct_orders_v2.sql`) or `defined_in:`. Version columns use `include: all` / `exclude: [col]` plus new entries.
 - **Resolution:** without `latest_version`, the numerically greatest version is latest and unpinned `ref()` resolves to it. Pin consumers with `ref('fct_orders', v=1)`.
 - **Relation names:** each version builds as `<model>_v<N>` unless it sets `alias`. Selection: `dbt build -s fct_orders_v2`, `-s "fct_orders,version:latest"`, `version:prerelease`, `version:old`.
-- **Unit tests** run on all versions unless scoped with `versions: {include|exclude}` ([unit-tests.md](unit-tests.md#versioned-models)).
+- **Unit tests** run on all versions unless scoped with `versions: {include|exclude}` ([unit-tests.md](skill://dbt/references/unit-tests.md#versioned-models)).
 
 ### Keeping an unversioned relation name
 
@@ -90,7 +90,7 @@ models:
 ```
 
 - **`dbt1005`:** raised when the latest version's `alias` equals the pointer name. Fix: drop the `alias` (preferred) · `latest_version_pointer: {enabled: false}` for that model · give the version a different alias · override the `generate_latest_version_pointer_alias` macro.
-- A project that aliases its latest version and wants no pointers sets `latest_version_pointer_enabled_by_default: false` (or disables per model) ([upgrading.md](upgrading.md#behavior-flags)).
+- A project that aliases its latest version and wants no pointers sets `latest_version_pointer_enabled_by_default: false` (or disables per model) ([upgrading.md](skill://dbt/references/upgrading.md#behavior-flags)).
 - The pointer follows `latest_version`; it does not shield consumers from a shape change.
 
 ```sql

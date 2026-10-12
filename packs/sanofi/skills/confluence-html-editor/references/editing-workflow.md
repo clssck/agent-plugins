@@ -1,6 +1,6 @@
 # Detailed Editing Workflow
 
-Detail for [SKILL.md](../SKILL.md); the numbered steps below extend its workflow. Tool names are hints; discover the live Atlassian tools and read their schemas first. Run scripts exactly as in SKILL.md: `uv run "$(realpath skill://confluence-html-editor/scripts/<name>.py)" ARGS` in the omp `bash` tool.
+Detail for [SKILL.md](skill://confluence-html-editor/SKILL.md); the numbered steps below extend its workflow. Tool names are hints; discover the live Atlassian tools and read their schemas first. Run scripts exactly as in SKILL.md: `uv run "$(realpath skill://confluence-html-editor/scripts/<name>.py)" ARGS` in the omp `bash` tool.
 
 ## 1. Identify the target
 
@@ -19,19 +19,19 @@ Detail for [SKILL.md](../SKILL.md); the numbered steps below extend its workflow
 ## 3. Apply the edit
 
 - Keep page purpose and audience; preserve useful links, headings, tables, code blocks.
-- Redesigns → [rich-page-design.md](rich-page-design.md); templates in [SKILL.md](../SKILL.md#templates).
+- Redesigns → [rich-page-design.md](skill://confluence-html-editor/references/rich-page-design.md); templates in [SKILL.md](skill://confluence-html-editor/SKILL.md#templates).
 - Fix obvious breakage: `file:///` links, malformed anchors, empty trailing paragraphs, heading-level jumps, weak tables, plain blockquotes that should be panels.
 - Small change → exact replacement with counted matches.
 - Large rewrite → outline retained sections first; compose from a scratch file when diffing or escaping is risky.
 - NEVER silently drop comments, task states, mentions, macros, attachments, decisions.
 
-Large or attachment-heavy pages: treat the local body as a dry run using the checks in [confluence-html-patterns.md](confluence-html-patterns.md#large-page-dry-run).
+Large or attachment-heavy pages: treat the local body as a dry run using the checks in [confluence-html-patterns.md](skill://confluence-html-editor/references/confluence-html-patterns.md#large-page-dry-run).
 
 ## 4. Compose valid HTML
 
 - Fragment only. NEVER `<html>`, `<head>`, `<body>`, `<style>`, `<script>`.
 - Standard tags: `h1`–`h6`, `p`, `strong`, `em`, `ul`, `ol`, `li`, `table`, `thead`, `tbody`, `tr`, `th`, `td`, `pre`/`code`, `a`, `blockquote`, `hr`, `details`, `summary`.
-- Confluence `data-type` attributes: [confluence-html-patterns.md](confluence-html-patterns.md).
+- Confluence `data-type` attributes: [confluence-html-patterns.md](skill://confluence-html-editor/references/confluence-html-patterns.md).
 - Status lozenges: 1–2 words. Put full values in an adjacent cell.
 
 | Bad | Good |
@@ -70,7 +70,7 @@ Run `verify_confluence_adf.py` on the saved ADF fetch with the command in SKILL.
 
 - Add `embeds` when embed cards are expected. `mermaid` requires a rendered Mermaid extension; a plain Mermaid code block only satisfies `mermaid_source`.
 - Missing expected components and unsupported ADF nodes are errors.
-- Normalization problem → fix per [confluence-html-patterns.md](confluence-html-patterns.md), update once, verify once.
+- Normalization problem → fix per [confluence-html-patterns.md](skill://confluence-html-editor/references/confluence-html-patterns.md), update once, verify once.
 
 ## Page audit before a risky edit
 

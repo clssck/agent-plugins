@@ -13,10 +13,10 @@ Scope: Terraform authoring → iac-terraform · CI/CD workflows → cicd-enginee
 
 | File | Read for |
 |------|----------|
-| [security-controls.md](references/security-controls.md) | Control IDs, per-framework checks, evidence status, severity rules |
-| [aws-defaults.md](references/aws-defaults.md) | Current AWS defaults and sources; check before flagging absent properties |
-| [scanners.md](references/scanners.md) | Optional Checkov/Trivy/KICS cross-check, uv install, safe invocation, suppressions, 2026 supply-chain warnings |
-| [report.template.md](assets/report.template.md) | Report structure |
+| [security-controls.md](skill://iac-security-review/references/security-controls.md) | Control IDs, per-framework checks, evidence status, severity rules |
+| [aws-defaults.md](skill://iac-security-review/references/aws-defaults.md) | Current AWS defaults and sources; check before flagging absent properties |
+| [scanners.md](skill://iac-security-review/references/scanners.md) | Optional Checkov/Trivy/KICS cross-check, uv install, safe invocation, suppressions, 2026 supply-chain warnings |
+| [report.template.md](skill://iac-security-review/assets/report.template.md) | Report structure |
 
 ## Guardrails
 
@@ -52,14 +52,14 @@ omp tools only; no shell needed.
 
 ### 2. Inventory
 
-`grep` resource declarations; `read` the files. Per resource: type, name, file:line, internet-facing, intended public (docs, comments, naming), relationships (CloudFront → API → Lambda). Terraform: also record the AWS provider constraint (`required_providers`, `.terraform.lock.hcl`) — defaults differ between provider 5.x and 6.x ([aws-defaults.md](references/aws-defaults.md)).
+`grep` resource declarations; `read` the files. Per resource: type, name, file:line, internet-facing, intended public (docs, comments, naming), relationships (CloudFront → API → Lambda). Terraform: also record the AWS provider constraint (`required_providers`, `.terraform.lock.hcl`) — defaults differ between provider 5.x and 6.x ([aws-defaults.md](skill://iac-security-review/references/aws-defaults.md)).
 
 ### 3. Analysis
 
-Apply [security-controls.md](references/security-controls.md) per resource; check [aws-defaults.md](references/aws-defaults.md) before flagging any absent property. Per finding: control ID, severity, status (Confirmed / Needs confirmation), confidence, evidence, exposure analysis, remediation.
+Apply [security-controls.md](skill://iac-security-review/references/security-controls.md) per resource; check [aws-defaults.md](skill://iac-security-review/references/aws-defaults.md) before flagging any absent property. Per finding: control ID, severity, status (Confirmed / Needs confirmation), confidence, evidence, exposure analysis, remediation.
 
 - **Suppressions:** `grep` `checkov:skip`, `trivy:ignore`, `kics-scan`; judge each suppressed control yourself.
-- **Scanner cross-check:** MAY run; rules in [scanners.md](references/scanners.md). Hits are re-graded, never copied; scanner already installed or install approved by the user.
+- **Scanner cross-check:** MAY run; rules in [scanners.md](skill://iac-security-review/references/scanners.md). Hits are re-graded, never copied; scanner already installed or install approved by the user.
 - **Large repos:** delegate per directory with `task`; merge findings centrally.
 
 ### 4. Cross-Resource
@@ -71,7 +71,7 @@ Apply [security-controls.md](references/security-controls.md) per resource; chec
 
 ### 5. Report
 
-Fill [report.template.md](assets/report.template.md); `write` `audits/iac-security-review-YYYY-MM-DD.md`. Show the user:
+Fill [report.template.md](skill://iac-security-review/assets/report.template.md); `write` `audits/iac-security-review-YYYY-MM-DD.md`. Show the user:
 
 ```markdown
 Overall risk: {level}

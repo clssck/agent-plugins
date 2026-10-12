@@ -75,7 +75,7 @@ Source: [Rovo MCP supported tools](https://developer.atlassian.com/cloud/rovo-mc
 | "Search returned 12 results: 1. ..." | "Minions are background workers (Architecture Guide); PROJ-203 sets 5 instances." |
 | "Docs say 30 min." (ticket says 15) | "Docs say 30 min; PROJ-456 shows 15 min in practice (load balancer)." |
 
-More query patterns, CQL/JQL examples, and scenario templates: [workflow.md](references/workflow.md).
+More query patterns, CQL/JQL examples, and scenario templates: [workflow.md](skill://search-company-knowledge/references/workflow.md).
 
 ## Verification
 

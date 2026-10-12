@@ -23,14 +23,14 @@ Tiny links look like `/wiki/x/<token>`. Order of preference:
 uv run "$(realpath skill://adr-writing/scripts/decode_tiny_link.py)" "<token>"
 ```
 
-   Prints a candidate page ID, or exits non-zero on an invalid token. ALWAYS verify by fetching the page and checking the title; Atlassian documents the algorithm for Data Center only, unsupported ([KB](https://support.atlassian.com/confluence/kb/how-to-programmatically-generate-the-tiny-link-of-a-confluence-page/)), so it may not hold for every Cloud token. Tests (from `scripts/`): `uv run --no-project python -B -m unittest discover -p 'test_*.py'`; see [test_decode_tiny_link.py](../scripts/test_decode_tiny_link.py).
+   Prints a candidate page ID, or exits non-zero on an invalid token. ALWAYS verify by fetching the page and checking the title; Atlassian documents the algorithm for Data Center only, unsupported ([KB](https://support.atlassian.com/confluence/kb/how-to-programmatically-generate-the-tiny-link-of-a-confluence-page/)), so it may not hold for every Cloud token. Tests (from `scripts/`): `uv run --no-project python -B -m unittest discover -p 'test_*.py'`; see [test_decode_tiny_link.py](skill://adr-writing/scripts/test_decode_tiny_link.py).
 3. Search Confluence by keywords from the decision topic.
 4. Ask the user for the numeric page ID.
 
 ## Fact-Checking with Vendor Documentation
 
 1. Fetch vendor docs with `read` on the URL or `web_search`.
-2. Check pricing pages or APIs for cost claims ([cost-analysis.md](cost-analysis.md)).
+2. Check pricing pages or APIs for cost claims ([cost-analysis.md](skill://adr-writing/references/cost-analysis.md)).
 3. Quote text that actually appears on the page; NEVER present paraphrase as a quotation.
 4. Mark claims you cannot confirm "unverified".
 5. Distinguish a service's internal mechanism from what users can integrate with before calling an option infeasible.

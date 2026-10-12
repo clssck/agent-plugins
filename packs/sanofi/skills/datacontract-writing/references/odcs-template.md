@@ -2,7 +2,7 @@
 
 Template and field reference for [Open Data Contract Standard v3.1.0](https://github.com/bitol-io/open-data-contract-standard/tree/v3.1.0), the skill default. Schema: [odcs-json-schema-v3.1.0.json](https://raw.githubusercontent.com/bitol-io/open-data-contract-standard/v3.2.0/schema/odcs-json-schema-v3.1.0.json). Both YAML blocks below validate against it with `validate_odcs.py`. v3.2.0 additions: [v3.2.0 Delta](#v320-delta).
 
-Type mapping tables: [full-guide.md](full-guide.md#type-mapping-tables). Source extraction: [source-parsing.md](source-parsing.md).
+Type mapping tables: [full-guide.md](skill://datacontract-writing/references/full-guide.md#type-mapping-tables). Source extraction: [source-parsing.md](skill://datacontract-writing/references/source-parsing.md).
 
 ## Standard vs Sanofi Policy
 

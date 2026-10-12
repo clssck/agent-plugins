@@ -1,6 +1,6 @@
 # Sanofi AWS Tagging Guide
 
-Every taggable AWS resource carries 10 mandatory tags (accepted RFC, `Sanofi-Accelerator/Request-for-Comments`). Governing principle: one `local.tags` set per project, passed everywhere, verified on the evaluated plan. Live RFC + library tags module are the authority; re-verify before deployment ([module-guide.md](module-guide.md#discovery)).
+Every taggable AWS resource carries 10 mandatory tags (accepted RFC, `Sanofi-Accelerator/Request-for-Comments`). Governing principle: one `local.tags` set per project, passed everywhere, verified on the evaluated plan. Live RFC + library tags module are the authority; re-verify before deployment ([module-guide.md](skill://iac-terraform/references/module-guide.md#discovery)).
 
 ## Contents
 

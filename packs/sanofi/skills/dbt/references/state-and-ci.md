@@ -13,7 +13,7 @@ Scoped execution is the Sanofi default: select the smallest meaningful set of no
 - **Deprecated:** `-m` / `--model` / `--models` → `-s` / `--select`.
 - **Typo guard:** `--warn-error-options '{"error": ["NoNodesForSelectionCriteria"]}'` turns "no nodes selected" into a failure instead of a green no-op.
 - **Legacy `--selector <name>` ignores `--select` and `--exclude`** (dbt 1.12 warns with `SelectExcludeIgnoredWithSelectorWarning`; older versions do not) → a safety `--exclude` is dropped. Reference the named selector inside the selection instead: `--select "selector:<name> <extra>" --exclude "<x>"` (1.12+).
-- **Orchestrators select by tag, not file path**, so renames do not silently break schedules (Tags in [general-dbt-guide.md](general-dbt-guide.md#tags)).
+- **Orchestrators select by tag, not file path**, so renames do not silently break schedules (Tags in [general-dbt-guide.md](skill://dbt/references/general-dbt-guide.md#tags)).
 
 ## `state:` Selection
 
@@ -67,14 +67,14 @@ Deferral is cheaper and simpler when the run only reads unbuilt upstream models.
 
 ## Per-PR Schemas on Snowflake
 
-- **Naming:** one schema per PR, e.g. `CI_PR_<number>`, via an env-var-driven `schema` in the CI profile target (Profile patterns in [project-setup.md](project-setup.md#profiles-and-secrets)); keep `generate_schema_name` overrides consistent so layer schemas become `CI_PR_<number>_<layer>` or collapse to one.
-- **Ownership:** dbt may create objects inside a schema but, at Sanofi, does not own schemas and grants ([general-dbt-guide.md](general-dbt-guide.md#schemas-sources-and-lineage)). Confirm the CI role may create schemas in the approved CI database, or provision them through the repo's approved path.
+- **Naming:** one schema per PR, e.g. `CI_PR_<number>`, via an env-var-driven `schema` in the CI profile target (Profile patterns in [project-setup.md](skill://dbt/references/project-setup.md#profiles-and-secrets)); keep `generate_schema_name` overrides consistent so layer schemas become `CI_PR_<number>_<layer>` or collapse to one.
+- **Ownership:** dbt may create objects inside a schema but, at Sanofi, does not own schemas and grants ([general-dbt-guide.md](skill://dbt/references/general-dbt-guide.md#schemas-sources-and-lineage)). Confirm the CI role may create schemas in the approved CI database, or provision them through the repo's approved path.
 - **Cleanup is explicit; dbt never drops what it created:**
   1. Job on PR close (and on merge) drops that PR's schema.
   2. Scheduled sweep for stale schemas matching **only** the CI prefix pattern.
 
   `DROP SCHEMA` defaults to `CASCADE` and removes every object inside; `UNDROP SCHEMA` restores only within Time Travel retention. Build the name from CI variables, assert it matches the prefix, and NEVER derive a drop target from user input, `target.schema` of a shared profile, or a wildcard that could match dev or prod schemas.
-- **Isolation:** per-PR schemas also stop concurrent runs overwriting each other's objects, including `tmp_relation_type: transient` staging relations ([snowflake-materializations.md](snowflake-materializations.md#incremental-strategies-on-snowflake)).
+- **Isolation:** per-PR schemas also stop concurrent runs overwriting each other's objects, including `tmp_relation_type: transient` staging relations ([snowflake-materializations.md](skill://dbt/references/snowflake-materializations.md#incremental-strategies-on-snowflake)).
 
 ## Gates
 
@@ -82,7 +82,7 @@ Cheap checks first; stop at the first failure:
 
 1. `dbt parse` (add `--no-partial-parse --show-all-deprecations` on 1.10+). Needs no warehouse resources; every other command runs it implicitly → run explicitly when the change is project configuration.
 2. Lint (`sqlfluff`, `ruff`, pre-commit) when configured.
-3. `dbt build --select "state:modified+" --defer --state <prod-artifacts>` into the PR schema (also runs tests and unit tests; parent prerequisite in [unit-tests.md](unit-tests.md#running-unit-tests)).
+3. `dbt build --select "state:modified+" --defer --state <prod-artifacts>` into the PR schema (also runs tests and unit tests; parent prerequisite in [unit-tests.md](skill://dbt/references/unit-tests.md#running-unit-tests)).
 4. Optional `dbt_project_evaluator` where the repo has approved it.
 
 **One gate pattern per DAG:** `dbt build` for dependency-ordered run/test, or explicit per-layer `dbt run` + `dbt test` tasks when downstream layers must wait for intermediate test feedback. Mixing both inside one pipeline needs a documented reason. PR checks commonly combine scoped `dbt compile`, scoped `dbt test`, SQLFluff over `transformation/`, and optional dbt_project_evaluator. Authoring the Airflow/MWAA DAGs that run dbt (`BashOperator` + `dbt_run.sh` or a typed `DbtClient`, scheduling, parse-time safety, deployment) → sanofi-airflow skill. State-based snapshot runs: `dbt snapshot --select state:modified` when the state manifest is available.

@@ -1,6 +1,6 @@
 # Data Contract Guide
 
-Conventions, type mappings, quality patterns, and troubleshooting for ODCS v3.1.0 contracts. Template: [odcs-template.md](odcs-template.md). Extraction: [source-parsing.md](source-parsing.md).
+Conventions, type mappings, quality patterns, and troubleshooting for ODCS v3.1.0 contracts. Template: [odcs-template.md](skill://datacontract-writing/references/odcs-template.md). Extraction: [source-parsing.md](skill://datacontract-writing/references/source-parsing.md).
 
 ## Contract Scope and Naming
 
@@ -62,11 +62,11 @@ A contract represents a **database schema** (one or more tables), not one table.
 | `time` | `time` |
 | `variant`, `json`, `object` | `object` |
 | `array` | `array` |
-| _(missing)_ | OMIT both types; see [source-parsing.md](source-parsing.md#column-extraction) |
+| _(missing)_ | OMIT both types; see [source-parsing.md](skill://datacontract-writing/references/source-parsing.md#column-extraction) |
 
 ## Quality Rule Patterns
 
-Rules are suggestions. Present them; the user approves. Place rules on a schema object or property, NEVER at root. Vocabulary: see [odcs-template.md](odcs-template.md#quality-rules).
+Rules are suggestions. Present them; the user approves. Place rules on a schema object or property, NEVER at root. Vocabulary: see [odcs-template.md](skill://datacontract-writing/references/odcs-template.md#quality-rules).
 
 | Source condition | Rule | Level |
 |------------------|------|-------|
@@ -160,5 +160,5 @@ UUID generation:
 | Empty source descriptions | Write a minimal description from the column name; flag `# REVIEW:` |
 | Multiple tables in one DDL | One schema object per `CREATE TABLE`/`CREATE VIEW`, same contract |
 | Unmapped type | Keep `physicalType` verbatim; omit `logicalType`; flag |
-| Validator says `Unevaluated properties are not allowed` for `enum`, `synonyms`, `context`, `map`, `vector` | Contract declares `v3.1.0`; remove the field, or switch to `apiVersion: v3.2.0` only if the user agrees ([delta](odcs-template.md#v320-delta)) |
-| Imported draft has `id: my-data-contract`, `v3.2.0`, `my_host`; or `datacontract lint` rejects an `id` the validator accepted | Reconcile per [datacontract-cli.md](datacontract-cli.md) |
+| Validator says `Unevaluated properties are not allowed` for `enum`, `synonyms`, `context`, `map`, `vector` | Contract declares `v3.1.0`; remove the field, or switch to `apiVersion: v3.2.0` only if the user agrees ([delta](skill://datacontract-writing/references/odcs-template.md#v320-delta)) |
+| Imported draft has `id: my-data-contract`, `v3.2.0`, `my_host`; or `datacontract lint` rejects an `id` the validator accepted | Reconcile per [datacontract-cli.md](skill://datacontract-writing/references/datacontract-cli.md) |

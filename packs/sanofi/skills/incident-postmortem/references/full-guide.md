@@ -12,7 +12,7 @@ Blameless post-mortem for Sanofi incident management. Output: single Markdown do
 
 ### 1. Confirm (or revise) severity
 
-Severity is set **during** the incident — it drives paging, war-room activation, comms plan; it cannot wait. The post-mortem **confirms the live classification or deliberately reclassifies** once settled facts (user impact, duration, data/compliance blast radius) are known. Definitions, response SLAs, decision flow: [severity-levels.md](severity-levels.md).
+Severity is set **during** the incident — it drives paging, war-room activation, comms plan; it cannot wait. The post-mortem **confirms the live classification or deliberately reclassifies** once settled facts (user impact, duration, data/compliance blast radius) are known. Definitions, response SLAs, decision flow: [severity-levels.md](skill://incident-postmortem/references/severity-levels.md).
 
 - **Reclassify up** when settled facts show a larger blast radius (more users, longer duration, data/compliance impact discovered after the fact).
 - **Reclassify down** only when measured impact is genuinely smaller than the live call; record the reason. NEVER down to avoid the 5-business-day deadline — real, material impact is SEV2 (or higher) however inconvenient the write-up.
@@ -123,7 +123,7 @@ Q5: Why is canary traffic segmented that way? A: Default router config from 2023
 
 **Interviewing responders.** Ask "how" and "what", not "who" or "why": What were you focusing on? What differed from what you expected? What options did you consider and why did this one seem best? How did time pressure influence choices? Was there prior work the team chose not to do?
 
-Blameless language throughout: [blameless-language.md](blameless-language.md).
+Blameless language throughout: [blameless-language.md](skill://incident-postmortem/references/blameless-language.md).
 
 ### 6. What went well / wrong / lucky
 
@@ -179,11 +179,11 @@ Changing human behaviour (training, "be careful") is less reliable than changing
 
 ### 8. Write the document
 
-Use [post-mortem-template.md](post-mortem-template.md) as the exact template. Fill every required section; omit optional sections only when empty — no "TBD" placeholders. File at `docs/postmortems/YYYY-MM-DD-short-slug.md` (create directory if missing); date = incident **start**, not authoring date.
+Use [post-mortem-template.md](skill://incident-postmortem/references/post-mortem-template.md) as the exact template. Fill every required section; omit optional sections only when empty — no "TBD" placeholders. File at `docs/postmortems/YYYY-MM-DD-short-slug.md` (create directory if missing); date = incident **start**, not authoring date.
 
 ### 9. Review and publish
 
-Reread against [blameless-language.md](blameless-language.md); run Verification in SKILL.md before circulating.
+Reread against [blameless-language.md](skill://incident-postmortem/references/blameless-language.md); run Verification in SKILL.md before circulating.
 
 ## Anti-patterns
 

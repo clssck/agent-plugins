@@ -7,7 +7,7 @@ description: Run ambiguous debugging, root-cause hunts, and research with an evi
 
 Keeps facts about the subject separate from the history of exploring it. Short investigation → compact inline ledger; likely context loss, branching, or handoff → persist a task-owned artifact in the project's notes location if one exists. NEVER create hidden global state. The failure this prevents: an inference repeated until it reads as fact, a failed probe retried by the next worker, a contradiction resolved by intuition.
 
-Ledger template → [investigation-ledger.md](references/investigation-ledger.md). Worker or session boundary → [handoff-packet.md](references/handoff-packet.md).
+Ledger template → [investigation-ledger.md](skill://evidence-led-exploration/references/investigation-ledger.md). Worker or session boundary → [handoff-packet.md](skill://evidence-led-exploration/references/handoff-packet.md).
 
 ## Activate
 
@@ -85,4 +85,4 @@ Each worker gets one branch, an immutable snapshot of relevant subject records, 
 
 Stop when: done condition met · all useful branches terminal · next step needs an external prerequisite · remaining probes exceed scope or risk. Outcome and stop reason are separate fields: `resolved / unresolved / inconclusive` ≠ `done_condition_met / external_prerequisite / frontier_exhausted / scope_or_risk_limit / budget_limit`.
 
-**MUST produce a [handoff packet](references/handoff-packet.md) before stopping:** evidence-linked facts, contradictions, branch states, artifacts, exactly one best next action; exhausted paths named. Objective and done condition MUST be observable; every blocked or deferred branch carries an observable predicate.
+**MUST produce a [handoff packet](skill://evidence-led-exploration/references/handoff-packet.md) before stopping:** evidence-linked facts, contradictions, branch states, artifacts, exactly one best next action; exhausted paths named. Objective and done condition MUST be observable; every blocked or deferred branch carries an observable predicate.

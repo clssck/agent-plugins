@@ -1,6 +1,6 @@
 # GitHub Actions Security Hardening
 
-GitHub Actions attack vectors and mitigations for Sanofi CI/CD pipelines. Rules and wording: [cicd-rules.md](cicd-rules.md); workflows: [pipeline-templates.md](pipeline-templates.md).
+GitHub Actions attack vectors and mitigations for Sanofi CI/CD pipelines. Rules and wording: [cicd-rules.md](skill://cicd-engineering/references/cicd-rules.md); workflows: [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md).
 
 ## Table of Contents
 
@@ -40,7 +40,7 @@ An attacker takes over the maintainer account and rewrites the `v2` tag to a mal
 - uses: popular-org/useful-action@a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2 # v2.3.1
 ```
 
-**Sanofi allowlist and `@main` exception.** The allowlist is tag-based, so pin only GitHub-published and verified-creator actions to SHAs; other third-party actions use the registered tag, and org-managed reusable workflows MAY use `@main` with a comment. Rules and wording: [cicd-rules.md §1.1](cicd-rules.md#11-reference-actions-in-a-form-the-sanofi-allowlist-accepts).
+**Sanofi allowlist and `@main` exception.** The allowlist is tag-based, so pin only GitHub-published and verified-creator actions to SHAs; other third-party actions use the registered tag, and org-managed reusable workflows MAY use `@main` with a comment. Rules and wording: [cicd-rules.md §1.1](skill://cicd-engineering/references/cicd-rules.md#11-reference-actions-in-a-form-the-sanofi-allowlist-accepts).
 
 **Additional mitigations:**
 
@@ -461,12 +461,12 @@ Scorecard results can be uploaded to GitHub Security tab via SARIF.
 
 ## 11. Artifact Attestations and Provenance
 
-Artifact attestations give signed SLSA build-provenance (and SBOM) statements for a built artifact, signed with short-lived Sigstore certificates. They implement the "SLSA provenance" recommendation in [cicd-rules.md §3.5](cicd-rules.md#35-sign-and-verify-release-artifacts-recommended).
+Artifact attestations give signed SLSA build-provenance (and SBOM) statements for a built artifact, signed with short-lived Sigstore certificates. They implement the "SLSA provenance" recommendation in [cicd-rules.md §3.5](skill://cicd-engineering/references/cicd-rules.md#35-sign-and-verify-release-artifacts-recommended).
 
 Prerequisites to confirm before adding the step:
 
 - Attestations in private or internal repositories need GitHub Enterprise Cloud; GitHub Enterprise Server is unsupported.
-- `actions/attest` MUST be on the Sanofi allowlist ([pins](pipeline-templates.md#action-pins)). `actions/attest-build-provenance` v4 is a wrapper around it; use `actions/attest` directly.
+- `actions/attest` MUST be on the Sanofi allowlist ([pins](skill://cicd-engineering/references/pipeline-templates.md#action-pins)). `actions/attest-build-provenance` v4 is a wrapper around it; use `actions/attest` directly.
 - The job needs `id-token: write`, `contents: read`, and `attestations: write`. Add `packages: write` for an image pushed to GHCR, and `artifact-metadata: write` to create storage records on the linked-artifacts page.
 
 ```yaml
@@ -517,7 +517,7 @@ cache-mode: read # workflow default; build jobs that must save say `cache-mode: 
 - Let a `push` workflow own cache saves; untrusted triggers restore.
 - A called reusable workflow cannot receive more cache access than its caller.
 - A denied cache operation logs a message and the job continues, so a cache miss is the symptom, not a failure.
-- `actionlint` v1.7.12 rejects `cache-mode`; ignore that finding (see [SKILL.md](../SKILL.md#failure-modes)).
+- `actionlint` v1.7.12 rejects `cache-mode`; ignore that finding (see [SKILL.md](skill://cicd-engineering/SKILL.md#failure-modes)).
 
 ---
 

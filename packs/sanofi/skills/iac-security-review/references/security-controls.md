@@ -1,6 +1,6 @@
 # Security Controls
 
-AWS IaC control matrix. Governing rule: severity = proven exposure; absence is not exposure. Frameworks: Terraform (TF), CDK, SST, CloudFormation (CFN), Pulumi (TF resource names, Pulumi property casing). Defaults and sources: [aws-defaults.md](aws-defaults.md).
+AWS IaC control matrix. Governing rule: severity = proven exposure; absence is not exposure. Frameworks: Terraform (TF), CDK, SST, CloudFormation (CFN), Pulumi (TF resource names, Pulumi property casing). Defaults and sources: [aws-defaults.md](skill://iac-security-review/references/aws-defaults.md).
 
 ## Evidence Status and Severity
 
@@ -125,7 +125,7 @@ Trust policy with external account principals and no `sts:ExternalId` (third-par
 
 ## 3. Encryption
 
-AWS defaults (since 2022–2023) encrypt S3 objects (SSE-S3), SQS queues (SSE-SQS), DynamoDB (AWS-owned key). Missing config on these ≠ unencrypted data. See [aws-defaults.md](aws-defaults.md).
+AWS defaults (since 2022–2023) encrypt S3 objects (SSE-S3), SQS queues (SSE-SQS), DynamoDB (AWS-owned key). Missing config on these ≠ unencrypted data. See [aws-defaults.md](skill://iac-security-review/references/aws-defaults.md).
 
 ### EN-01: S3 encryption policy
 

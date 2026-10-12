@@ -30,12 +30,12 @@ Ask ONE message covering all fields; NEVER split across turns:
 
 Per Jira ticket: fetch with the available Atlassian Jira tool; extract problem context, acceptance criteria, linked issues, decision comments.
 
-Per Confluence page: resolve tiny URLs per [atlassian-integration.md](atlassian-integration.md); search by title via Atlassian tools or the search-company-knowledge skill; fetch by page ID. Extract context, constraints, prior decisions.
+Per Confluence page: resolve tiny URLs per [atlassian-integration.md](skill://adr-writing/references/atlassian-integration.md); search by title via Atlassian tools or the search-company-knowledge skill; fetch by page ID. Extract context, constraints, prior decisions.
 
 - List each fetched page title and ticket summary; ask the user to confirm.
 - Unresolved link: say "I could not resolve [link]. Provide the page title or numeric ID."
 - Search Confluence for existing standards on the topic. Surface an enterprise standard as context and a factor in the analysis.
-- Fetch the Sanofi Architecture Manifesto through Atlassian tools. If unavailable, use the principle list in [adr.template.md](../assets/adr.template.md) and say the live source was unavailable.
+- Fetch the Sanofi Architecture Manifesto through Atlassian tools. If unavailable, use the principle list in [adr.template.md](skill://adr-writing/assets/adr.template.md) and say the live source was unavailable.
 - Present a consolidated summary and confirm before continuing.
 
 | Atlassian access | User gave refs | Behavior |
@@ -58,12 +58,12 @@ Ask once, only for what is missing: options, decision, status, deciders, drivers
 
 ## 5. Write the ADR
 
-Use [adr.template.md](../assets/adr.template.md). Include required sections; include optional ones only with supporting input.
+Use [adr.template.md](skill://adr-writing/assets/adr.template.md). Include required sections; include optional ones only with supporting input.
 
 - Technical Story from Jira keys.
 - Links: Jira, Confluence, external references.
 - Technically infeasible option → Options Ruled Out.
-- Variable-priced infrastructure → Cost Annex per [cost-analysis.md](cost-analysis.md).
+- Variable-priced infrastructure → Cost Annex per [cost-analysis.md](skill://adr-writing/references/cost-analysis.md).
 - Mandated single option: follow SKILL.md "Single Mandated Option".
 
 ## 6. Confirm

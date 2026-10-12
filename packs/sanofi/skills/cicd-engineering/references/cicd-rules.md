@@ -1,6 +1,6 @@
 # Sanofi CI/CD Rules
 
-Sanofi source of truth for GitHub Actions CI/CD, by functional domain; RFC 2119 keywords. Sanofi-specific patterns (§6) override generic guidance. Copy-paste workflows: [pipeline-templates.md](pipeline-templates.md). Attack vectors and mitigations: [security-hardening.md](security-hardening.md).
+Sanofi source of truth for GitHub Actions CI/CD, by functional domain; RFC 2119 keywords. Sanofi-specific patterns (§6) override generic guidance. Copy-paste workflows: [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md). Attack vectors and mitigations: [security-hardening.md](skill://cicd-engineering/references/security-hardening.md).
 
 ## Contents
 
@@ -39,7 +39,7 @@ Resolve a tag to its commit; dereferences annotated tags; same text runs in bash
 gh api repos/actions/checkout/commits/refs/tags/v7.0.1 --jq .sha
 ```
 
-NEVER pin `gh api repos/OWNER/REPO/git/ref/tags/TAG --jq .object.sha` output without checking `.object.type`: for an annotated tag it is the tag object SHA, not a commit. Pick the version from `gh release view --repo OWNER/REPO`; verified pins: [pipeline-templates.md](pipeline-templates.md#action-pins).
+NEVER pin `gh api repos/OWNER/REPO/git/ref/tags/TAG --jq .object.sha` output without checking `.object.type`: for an annotated tag it is the tag object SHA, not a commit. Pick the version from `gh release view --repo OWNER/REPO`; verified pins: [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md#action-pins).
 
 **Org SHA-pin policy.** GitHub can enforce full-SHA pins and block specific versions at org level. If the platform team enables it, tag-based allowlist entries fail; follow what the platform team publishes and NEVER disable the policy to make a run pass.
 
@@ -93,7 +93,7 @@ env:
 - **Storage**: **GitHub Environments** or **AWS Secrets Manager** (the approved Sanofi vault).
 - **Prod approval**: production environments SHOULD require manual approval via environment protection rules; MUST for GxP — regulatory change control requires a recorded approval step.
 - **Scanning**: secret scanning MUST be enabled org-wide (GitHub secret scanning; GitGuardian for Sanofi). Exposed credentials MUST be revoked and rotated immediately.
-- **Avoid `secrets: inherit`** to reusable workflows unless the callee is org-managed. Declare `on.workflow_call.secrets` in every local callee; pass only the named secrets it needs. A callee job setting `environment` receives the environment secret when the caller passes it by name. See [security-hardening.md](security-hardening.md#8-environment-scoped-secrets-vs-secrets-inherit).
+- **Avoid `secrets: inherit`** to reusable workflows unless the callee is org-managed. Declare `on.workflow_call.secrets` in every local callee; pass only the named secrets it needs. A callee job setting `environment` receives the environment secret when the caller passes it by name. See [security-hardening.md](skill://cicd-engineering/references/security-hardening.md#8-environment-scoped-secrets-vs-secrets-inherit).
 
 ### 1.4 Prefer OIDC over long-lived cloud credentials
 
@@ -114,7 +114,7 @@ jobs:
           aws-region: eu-west-1
 ```
 
-IAM trust policy MUST scope the `sub` claim to the specific repo **and** environment; separate roles per environment (dev / test / prod). Discover the repo's actual `sub` format first (name-based or immutable owner/repo IDs); template and discovery command: [security-hardening.md](security-hardening.md#6-oidc-for-aws-role-per-environment-pattern). Long-lived cloud keys in `secrets`: compliance gap → remove once OIDC is in place.
+IAM trust policy MUST scope the `sub` claim to the specific repo **and** environment; separate roles per environment (dev / test / prod). Discover the repo's actual `sub` format first (name-based or immutable owner/repo IDs); template and discovery command: [security-hardening.md](skill://cicd-engineering/references/security-hardening.md#6-oidc-for-aws-role-per-environment-pattern). Long-lived cloud keys in `secrets`: compliance gap → remove once OIDC is in place.
 
 ### 1.5 Prevent workflow injection
 
@@ -185,7 +185,7 @@ Config files (`.eslintrc`, `.prettierrc`, `tsconfig.json`, `pyproject.toml`) MUS
 
 **Every repo with automated tests MUST enforce a minimum coverage threshold**; merges dropping coverage below baseline MUST be blocked. Sanofi measures and enforces coverage with **SonarCloud** (Sanofi's managed SonarQube tenant); deviations from the standard Sanofi SonarCloud configuration require explicit approval.
 
-Three pieces make the gate real; full workflow in [pipeline-templates.md](pipeline-templates.md#sonarcloud-analysis-reusable):
+Three pieces make the gate real; full workflow in [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md#sonarcloud-analysis-reusable):
 
 1. Tests write a coverage report the Sonar language plugin reads (LCOV for JavaScript/TypeScript, Cobertura XML for Python) and upload it as an artifact.
 2. `sonar-project.properties` imports it: `sonar.javascript.lcov.reportPaths` or `sonar.python.coverage.reportPaths`. An uploaded artifact alone is NOT imported coverage.
@@ -209,7 +209,7 @@ Three pieces make the gate real; full workflow in [pipeline-templates.md](pipeli
 
 **Lockfiles (`package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `uv.lock`, `Pipfile.lock`, `poetry.lock`) MUST be committed** for deterministic builds. CI MUST use deterministic installs (`npm ci`, `pipenv sync`, `uv sync --locked`, `bundle install --deployment`) and MUST fail when the lockfile is missing or out of sync (`--frozen` installs from a stale `uv.lock` without failing; use `--locked`).
 
-Lockfile updates flow through PRs so dependency changes get reviewed; Dependabot or Renovate SHOULD automate them. Enable Dependabot `github-actions` updates so SHA pins and reusable workflow references refresh in reviewed PRs ([security-hardening.md §1](security-hardening.md#1-supply-chain-attacks-via-compromised-actions)). Dependabot alerts do not cover SHA-pinned actions.
+Lockfile updates flow through PRs so dependency changes get reviewed; Dependabot or Renovate SHOULD automate them. Enable Dependabot `github-actions` updates so SHA pins and reusable workflow references refresh in reviewed PRs ([security-hardening.md §1](skill://cicd-engineering/references/security-hardening.md#1-supply-chain-attacks-via-compromised-actions)). Dependabot alerts do not cover SHA-pinned actions.
 
 ### 3.2 Audit dependencies automatically (SCA)
 
@@ -282,7 +282,7 @@ SBOMs SHOULD be signed together with the release artifact (§3.5).
 - Configure the registry (ECR, JFrog) to reject unsigned uploads where supported.
 - Rotate signing keys at least every 6 months; SHOULD prefer Sigstore keyless to avoid key rotation entirely.
 
-Teams MUST document their signing process (tools, key management, verification gates) in the project runbook. Attestation command, inputs, permissions, prerequisites, verification: [security-hardening.md §11](security-hardening.md#11-artifact-attestations-and-provenance). Verify with `gh attestation verify` before promoting a digest.
+Teams MUST document their signing process (tools, key management, verification gates) in the project runbook. Attestation command, inputs, permissions, prerequisites, verification: [security-hardening.md §11](skill://cicd-engineering/references/security-hardening.md#11-artifact-attestations-and-provenance). Verify with `gh attestation verify` before promoting a digest.
 
 ---
 
@@ -292,7 +292,7 @@ Teams MUST document their signing process (tools, key management, verification g
 
 **Production deployments MUST go through dev → test → prod** with quality/security gates and approvals at each stage. Direct feature-branch-to-prod: **prohibited** outside documented emergency hotfix procedures.
 
-Standard Sanofi pattern: build the image once in CI, then `workflow_run` (auto-deploy to dev when CI succeeds) + `workflow_dispatch` (manual promotion to test and prod). Both deploy the **image digest recorded by a specific CI run**, NEVER a rebuild and NEVER the branch tip. Full workflows: [pipeline-templates.md](pipeline-templates.md#cd-auto-deploy--manual-promotion-to-ecs).
+Standard Sanofi pattern: build the image once in CI, then `workflow_run` (auto-deploy to dev when CI succeeds) + `workflow_dispatch` (manual promotion to test and prod). Both deploy the **image digest recorded by a specific CI run**, NEVER a rebuild and NEVER the branch tip. Full workflows: [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md#cd-auto-deploy--manual-promotion-to-ecs).
 
 ```yaml
 on:
@@ -369,7 +369,7 @@ Release notes MUST include contributors, bug fixes, new features, and explicit b
       ${{ runner.os }}-node-
 ```
 
-Workflows triggered by `pull_request_target`, `issue_comment`, or fork `workflow_run` MUST NOT save caches: GitHub issues them read-only cache tokens, and an explicit `cache-mode: write` overrides that safeguard. See [security-hardening.md §12](security-hardening.md#12-cache-poisoning-and-cache-mode).
+Workflows triggered by `pull_request_target`, `issue_comment`, or fork `workflow_run` MUST NOT save caches: GitHub issues them read-only cache tokens, and an explicit `cache-mode: write` overrides that safeguard. See [security-hardening.md §12](skill://cicd-engineering/references/security-hardening.md#12-cache-poisoning-and-cache-mode).
 
 Caches MAY be force-refreshed periodically (e.g. weekly per project, monthly at org level) to flush stale dependencies and reclaim storage; cadence left to each team / platform owner unless a documented org-level policy applies.
 
@@ -418,7 +418,7 @@ jobs:
 
 ### 6.2 CodeGuard (Checkmarx SAST)
 
-Org-level reusable workflow satisfying the SAST requirement (§3.3). Runs on `schedule`, `push` to main, and via `workflow_call`. MAY use `@main` (§1.1 exception). Full template: [pipeline-templates.md](pipeline-templates.md#codeguard--checkmarx-sast).
+Org-level reusable workflow satisfying the SAST requirement (§3.3). Runs on `schedule`, `push` to main, and via `workflow_call`. MAY use `@main` (§1.1 exception). Full template: [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md#codeguard--checkmarx-sast).
 
 ### 6.3 Tyr compliance scanning
 
@@ -426,11 +426,11 @@ Tyr (`tsg-tyr`): org-managed governance and policy-compliance workflow. No Tyr t
 
 ### 6.4 SonarCloud quality gating
 
-One reusable workflow (`sonarcloud.yaml`) serves pull-request analysis and the main-branch baseline, waits for the quality gate, and feeds `Build Complete` (§2.2). Full template: [pipeline-templates.md](pipeline-templates.md#sonarcloud-analysis-reusable).
+One reusable workflow (`sonarcloud.yaml`) serves pull-request analysis and the main-branch baseline, waits for the quality gate, and feeds `Build Complete` (§2.2). Full template: [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md#sonarcloud-analysis-reusable).
 
 ### 6.5 JFrog Artifactory for Terraform modules
 
-Private Terraform modules come from Sanofi's JFrog Artifactory. The JFrog token MUST be a GitHub Environment secret (not repo-level) → every job running `terraform init` MUST set `environment:`. Credentials written at runtime only (`hashicorp/setup-terraform` `cli_config_credentials_*` inputs, or a `.terraformrc` created in the job). See [security-hardening.md](security-hardening.md#7-jfrog-credentials-via-terraformrc).
+Private Terraform modules come from Sanofi's JFrog Artifactory. The JFrog token MUST be a GitHub Environment secret (not repo-level) → every job running `terraform init` MUST set `environment:`. Credentials written at runtime only (`hashicorp/setup-terraform` `cli_config_credentials_*` inputs, or a `.terraformrc` created in the job). See [security-hardening.md](skill://cicd-engineering/references/security-hardening.md#7-jfrog-credentials-via-terraformrc).
 
 ---
 
@@ -509,6 +509,6 @@ When reviewing `.github/workflows/*.yml`:
 
 | Symptom | Cause → action |
 | --- | --- |
-| No workflow files found | No `.github/workflows/` directory → new CI setup; generate from [pipeline-templates.md](pipeline-templates.md) |
+| No workflow files found | No `.github/workflows/` directory → new CI setup; generate from [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md) |
 | Action SHA lookup fails | GitHub API rate limit or action repo inaccessible → authenticate `gh` and retry |
 | Sanofi shared workflows not accessible | `Sanofi-Shared-GitHub-Apps` org requires specific access → verify org membership; if blocked, fall back to CodeQL for SAST while access is granted |

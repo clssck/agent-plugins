@@ -1,6 +1,6 @@
 # Project Setup, Profiles, and Deprecations
 
-Environment, profiles and secrets, the `dbt_project.yml` baseline, and deprecation handling for Sanofi dbt projects. Moved from `general-dbt-guide.md`; layer, naming, and model-development rules stay there. Upgrade procedure → [upgrading.md](upgrading.md). Governing rule: existing project's lockfile and conventions bind; the baseline below applies only where nothing stricter exists.
+Environment, profiles and secrets, the `dbt_project.yml` baseline, and deprecation handling for Sanofi dbt projects. Moved from `general-dbt-guide.md`; layer, naming, and model-development rules stay there. Upgrade procedure → [upgrading.md](skill://dbt/references/upgrading.md). Governing rule: existing project's lockfile and conventions bind; the baseline below applies only where nothing stricter exists.
 
 ## Setup and Environment
 
@@ -24,7 +24,7 @@ Snowflake postponed BCR 2118 to a future bundle, no date ⇒ hazard is condition
 dbt ls -s config.materialized:incremental,config.on_schema_change:sync_all_columns --resource-type model
 ```
 
-**Bare `dbt` is v2.** The bare `dbt` PyPI package is dbt v2 (since 2026-09-14). A 1.x project NEVER installs it (`pip install dbt`, `uv add dbt`, `uv tool install dbt`); install `dbt-core` and `dbt-snowflake` at the repository's pins; run `dbt --version` to confirm the engine on `PATH` before trusting a parse or test result. Procedure → [upgrading.md](upgrading.md#engines-and-install).
+**Bare `dbt` is v2.** The bare `dbt` PyPI package is dbt v2 (since 2026-09-14). A 1.x project NEVER installs it (`pip install dbt`, `uv add dbt`, `uv tool install dbt`); install `dbt-core` and `dbt-snowflake` at the repository's pins; run `dbt --version` to confirm the engine on `PATH` before trusting a parse or test result. Procedure → [upgrading.md](skill://dbt/references/upgrading.md#engines-and-install).
 
 ### Install with uv
 
@@ -103,7 +103,7 @@ New projects cover:
 | `on_schema_change: append_new_columns` on incrementals | New columns flow in |
 | `+full_refresh: false` on persistent-staging/history layers | Accidental `--full-refresh` cannot wipe retained history |
 
-See [snowflake-materializations.md](snowflake-materializations.md#tables-transience-and-grants).
+See [snowflake-materializations.md](skill://dbt/references/snowflake-materializations.md#tables-transience-and-grants).
 
 Guide examples include these flags; keep only when compatible with project and dbt version:
 

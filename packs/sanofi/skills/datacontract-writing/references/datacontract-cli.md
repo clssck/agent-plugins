@@ -19,7 +19,7 @@ The command tables below show plain `datacontract`; prefix `uvx --from "datacont
 | Goal | Command | Notes |
 |------|---------|-------|
 | Validate structure | `datacontract lint FILE --all-errors --no-inline-references` | Validates against the schema for the contract's declared `apiVersion` (CLI 1.2.1+). Exit 1 = invalid. `--all-errors` reports every error instead of the first. `--no-inline-references` stops it fetching `authoritativeDefinitions` URLs |
-| Pin schema | `datacontract lint FILE --json-schema PATH_OR_URL` | Same flag as `validate_odcs.py --schema` |
+| Pin schema | `datacontract lint FILE --json-schema PATH_OR_URL` | Equivalent to `validate_odcs.py --schema` |
 | Compare versions | `datacontract changelog OLD NEW` | Lists changed fields |
 | Gate a release | `datacontract breaking OLD NEW` | Fails on backward-incompatible change (incl. `quality` rules); run before bumping a `version` major |
 | Schema-only test | `datacontract test FILE --server NAME --metadata-only` | Reads the catalog only: field presence and types, no row values |
@@ -30,7 +30,7 @@ The command tables below show plain `datacontract`; prefix `uvx --from "datacont
 
 ## Rules
 
-- Plain `datacontract test` (no `--metadata-only`) reads row values for quality, null, and duplicate checks. The Snowflake metadata-only rule in [SKILL.md](../SKILL.md) applies: NEVER run it unless the user explicitly asks for a data test and supplies credentials.
+- Plain `datacontract test` (no `--metadata-only`) reads row values for quality, null, and duplicate checks. The Snowflake metadata-only rule in [SKILL.md](skill://datacontract-writing/SKILL.md) applies: NEVER run it unless the user explicitly asks for a data test and supplies credentials.
 - NEVER invent or print credentials. Snowflake auth comes from the user's environment: `DATACONTRACT_SNOWFLAKE_USERNAME`, `_PASSWORD`, `_WAREHOUSE`, `_ROLE`; key-pair via `_PRIVATE_KEY_FILE` and `_PRIVATE_KEY_FILE_PWD`; `_AUTHENTICATOR` for SSO/MFA. Without a password, `import snowflake` opens a browser SSO login.
 - Set variables per shell: POSIX `export DATACONTRACT_SNOWFLAKE_ROLE=ROLE`; PowerShell `$env:DATACONTRACT_SNOWFLAKE_ROLE = "ROLE"`.
 - Snowflake `--source` is `<orgname>-<accountname>`, without `.snowflakecomputing.com`. `250001: Could not connect` usually means a wrong identifier.
@@ -39,11 +39,11 @@ The command tables below show plain `datacontract`; prefix `uvx --from "datacont
 | CLI import behavior | Skill rule |
 |---------------------|------------|
 | Draft declares `apiVersion: v3.2.0` (observed on `import sql`, 1.2.4) | Change to `v3.1.0` unless the user wants v3.2.0 |
-| Snowflake import: `NUMBER` (incl. `INT`, `BIGINT`) → `number`; precision and scale go to custom properties | Zero-scale `NUMBER` → `integer` ([full-guide.md](full-guide.md#snowflake)) |
+| Snowflake import: `NUMBER` (incl. `INT`, `BIGINT`) → `number`; precision and scale go to custom properties | Zero-scale `NUMBER` → `integer` ([full-guide.md](skill://datacontract-writing/references/full-guide.md#snowflake)) |
 | Snowflake import: `VARIANT`, `OBJECT`, `GEOGRAPHY`, `GEOMETRY` leave `logicalType` unset | Map to `object` per the same table |
 | Snowflake import: `unique` derived from `IS_IDENTITY` | `unique: true` only from a real UNIQUE/PK constraint |
 | SQL import rewrites `NUMBER(38,0)` to `physicalType: DECIMAL(38, 0)` | Keep `physicalType` exactly as in the source DDL |
-| Placeholder `id: my-data-contract`, `name: My Data Contract`, `my_host`/`my_database`/`my_schema` server values (observed on `import sql`) | Generate a UUID v4 `id`; take server values from the user; apply [Sanofi policy](odcs-template.md#standard-vs-sanofi-policy) (`tenant`, `domain`, `dataProduct`) |
+| Placeholder `id: my-data-contract`, `name: My Data Contract`, `my_host`/`my_database`/`my_schema` server values (observed on `import sql`) | Generate a UUID v4 `id`; take server values from the user; apply [Sanofi policy](skill://datacontract-writing/references/odcs-template.md#standard-vs-sanofi-policy) (`tenant`, `domain`, `dataProduct`) |
 
 - The CLI's bundled v3.1.0 schema is older than the v3.2.0-tag schema: nested `id` values with `:` (for example `urn:uuid:...`) fail CLI lint but pass `validate_odcs.py`. Use `[A-Za-z0-9_-]` ids.
 - Put an `id` on quality rules if the user will filter with `datacontract test --quality-id`.

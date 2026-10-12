@@ -33,8 +33,8 @@ Modes: `depth` (enumerate known routes and record traffic), `coverage` (drive UI
 
 - **Phase 0 — classify and stage.** SPA versus MPA; create the task output directory `recon/`. All intermediates go there; the skill directory is read-only.
 - **Phase 1 — static harvest `[GATE]`.** First productive action: download the entry HTML, enumerate script and chunk URLs (manifest for webpack/Vite), fetch every chunk, extract endpoints and routes. NEVER hand-pick paths out of an unparsed bundle, and NEVER read a bundle larger than ~100KB into context — batch with a throwaway script in `recon/` and bounded searches. Verify with `wc -l` counts. Lazy-load discovery works the same for webpack, Vite, and Angular.
-- **Phase 1b — parameter reverse-engineering.** Per important endpoint: field names, transport, type, required?, sample value, confidence. Anchors, UI binding chains, and multi-sample diffs; recipes in [references/parameter-recon.md](references/parameter-recon.md).
-- **Phase 2 — auth doors `[GATE]`.** Find the three gates — render gate (how login is judged), interceptor gate (what redirects to `/login`), content gate (where menus and permissions come from) — and record keys and shapes in `recon/config.json`. NEVER treat a localStorage key name as proof; confirm the code path. Stub layers: [references/auth-doors.md](references/auth-doors.md).
+- **Phase 1b — parameter reverse-engineering.** Per important endpoint: field names, transport, type, required?, sample value, confidence. Anchors, UI binding chains, and multi-sample diffs; recipes in [references/parameter-recon.md](skill://api-recon/references/parameter-recon.md).
+- **Phase 2 — auth doors `[GATE]`.** Find the three gates — render gate (how login is judged), interceptor gate (what redirects to `/login`), content gate (where menus and permissions come from) — and record keys and shapes in `recon/config.json`. NEVER treat a localStorage key name as proof; confirm the code path. Stub layers: [references/auth-doors.md](skill://api-recon/references/auth-doors.md).
 - **Phase 3 — runtime enumeration `[GATE]`.** Render past login with stubbed gates, then enumerate. Harness mapping: `browser.open({init_scripts})` for document-start hooks, `tab.route` for fake responses, `tab.observe`/`tab.id(...)` for clicks, `tab.pushState` for SPA routes, `tab.harStart`/`tab.harStop` plus `tab.requests` for recording. Coverage order: nav/sidebar → tabs → table rows → toolbars (skip irreversible actions) → `pushState` for uncovered routes. Verify: injected marker present; a business path does not land on `/login`.
 - **Phase 3b — parameter trigger matrix.** Per module, record each action class once — list, search, advanced filter, create/edit, bulk/export/sort — and diff the samples. Outbound bodies under mocks are still real.
 - **Phase 4 — permission tree restore**, only if module pages render blank or every route shows the same bootstrap calls: extract permission/menu endpoints, rebuild the flat-codes-plus-tree mapping, patch stubs, rerun Phase 3.
@@ -43,7 +43,7 @@ Modes: `depth` (enumerate known routes and record traffic), `coverage` (drive UI
 ## Standing rules
 
 - **Big files stay out of context.** Scripts and bounded searches only; matched lines in, bundle fragments never.
-- **Two strikes, then change.** After two failures of one technique, switch approach or consult [references/parameter-recon.md](references/parameter-recon.md).
+- **Two strikes, then change.** After two failures of one technique, switch approach or consult [references/parameter-recon.md](skill://api-recon/references/parameter-recon.md).
 - **One sample NEVER decides required versus optional.** Multi-sample diffs or validation/error evidence.
 - **Static is the safety net when runtime is blocked.** Label blind spots (JSVMP, WASM, HMAC/mTLS, gRPC-web) as limitations instead of guessing.
 - **Before any state-changing click, re-read the Boundaries table.**

@@ -1,6 +1,6 @@
 # Operations: Observability, Query Tracking, Feature Flags, and WAP
 
-Runtime and operational controls for Sanofi dbt projects: Elementary observability, Snowflake query tracking, temporary feature flags, Write-Audit-Publish. Moved from `general-dbt-guide.md`; selectors and CI → [state-and-ci.md](state-and-ci.md). Governing rule: each control is opt-in per project; use it only where the project wires it.
+Runtime and operational controls for Sanofi dbt projects: Elementary observability, Snowflake query tracking, temporary feature flags, Write-Audit-Publish. Moved from `general-dbt-guide.md`; selectors and CI → [state-and-ci.md](skill://dbt/references/state-and-ci.md). Governing rule: each control is opt-in per project; use it only where the project wires it.
 
 ## Observability
 

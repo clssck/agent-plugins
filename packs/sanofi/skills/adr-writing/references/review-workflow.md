@@ -10,9 +10,9 @@ Source from the user's input:
 
 ## R2. Run the MADR Review Checklist
 
-Evaluate against [review-checklist.md](review-checklist.md), including S13 (Architecture Manifesto Alignment). Verdicts: Pass, Fail, Partial, N/A. Optional check with validly omitted section → N/A; a documented single mandated option is not a Fail on S7/S8/S10.
+Evaluate against [review-checklist.md](skill://adr-writing/references/review-checklist.md), including S13 (Architecture Manifesto Alignment). Verdicts: Pass, Fail, Partial, N/A. Optional check with validly omitted section → N/A; a documented single mandated option is not a Fail on S7/S8/S10.
 
-Manifesto check: fetch the Architecture Manifesto page through Atlassian/Confluence tools when available; otherwise use the embedded principle list in [adr.template.md](../assets/adr.template.md) and flag the source gap.
+Manifesto check: fetch the Architecture Manifesto page through Atlassian/Confluence tools when available; otherwise use the embedded principle list in [adr.template.md](skill://adr-writing/assets/adr.template.md) and flag the source gap.
 
 Compare the decision and consequences against the 10 manifesto principles. Flag any principle the decision strains (e.g., a cost increase strains Principle 10 — Frugality). Present results as a table.
 
@@ -46,7 +46,7 @@ Write `docs/adr/ADR-NNN-slug-review.md` (ADR's number and slug) containing:
 3. **Technical Accuracy** — fact-check results with documentation references.
 4. **Comment Thread Analysis** — coherence assessment (Confluence source only).
 5. **Comparison Table** — if the ADR compares options: color-coded summary table.
-6. **Cost Analysis** — if infrastructure costs are relevant: cost annex with data from vendor pricing APIs ([cost-analysis.md](cost-analysis.md)).
+6. **Cost Analysis** — if infrastructure costs are relevant: cost annex with data from vendor pricing APIs ([cost-analysis.md](skill://adr-writing/references/cost-analysis.md)).
 7. **Recommendations** — numbered, specific, actionable improvements.
 
 ## R6. Offer Follow-Up Actions

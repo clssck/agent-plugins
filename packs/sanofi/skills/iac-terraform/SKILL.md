@@ -13,9 +13,9 @@ Complements built-in `/review`: that finds generic defects; this skill checks mo
 
 | File | Covers |
 | --- | --- |
-| [module-guide.md](references/module-guide.md) | discovery commands, version constraints + AWS provider v6 changes, S3 backend locking, `terraform test`, secrets, module catalog, project layout, pinning, sources |
-| [tagging-guide.md](references/tagging-guide.md) | mandatory tag values, `local.tags` pattern, `default_tags` limits, effective-tag check, sources |
-| [scripts/check_tags.py](scripts/check_tags.py) | validates tags on every resource in a plan JSON; tests in [scripts/test_check_tags.py](scripts/test_check_tags.py); invocation → [tagging-guide.md](references/tagging-guide.md#effective-tag-check) |
+| [module-guide.md](skill://iac-terraform/references/module-guide.md) | discovery commands, version constraints + AWS provider v6 changes, S3 backend locking, `terraform test`, secrets, module catalog, project layout, pinning, sources |
+| [tagging-guide.md](skill://iac-terraform/references/tagging-guide.md) | mandatory tag values, `local.tags` pattern, `default_tags` limits, effective-tag check, sources |
+| [scripts/check_tags.py](skill://iac-terraform/scripts/check_tags.py) | validates tags on every resource in a plan JSON; tests in [scripts/test_check_tags.py](skill://iac-terraform/scripts/test_check_tags.py); invocation → [tagging-guide.md](skill://iac-terraform/references/tagging-guide.md#effective-tag-check) |
 
 ## Rules
 
@@ -25,19 +25,19 @@ Complements built-in `/review`: that finds generic defects; this skill checks mo
 - **Tags**: all 10 mandatory tags on every taggable resource.
 - **Missing values**: ASK for team, cost center, application ID, contact, environment. NEVER guess.
 - **Sensitive settings**: NEVER guess network, IAM, encryption, or environment values.
-- **Secrets**: NEVER hardcode → [module-guide.md](references/module-guide.md#secrets).
+- **Secrets**: NEVER hardcode → [module-guide.md](skill://iac-terraform/references/module-guide.md#secrets).
 - **Apply**: NEVER run `terraform apply`. `plan` only on user authorization.
-- **Backend**: new S3 backends use `use_lockfile = true`; NEVER add `dynamodb_table` → [module-guide.md](references/module-guide.md#state-backend).
-- **Versions**: `required_version` + provider floors = what the code needs, compatible with every module → [module-guide.md](references/module-guide.md#versions-and-providers).
-- **Tests**: NEVER run `terraform test` unmocked; default `command = apply` creates real resources → [module-guide.md](references/module-guide.md#testing).
+- **Backend**: new S3 backends use `use_lockfile = true`; NEVER add `dynamodb_table` → [module-guide.md](skill://iac-terraform/references/module-guide.md#state-backend).
+- **Versions**: `required_version` + provider floors = what the code needs, compatible with every module → [module-guide.md](skill://iac-terraform/references/module-guide.md#versions-and-providers).
+- **Tests**: NEVER run `terraform test` unmocked; default `command = apply` creates real resources → [module-guide.md](skill://iac-terraform/references/module-guide.md#testing).
 - **Plan files**: `tfplan` + `plan.json` hold secrets in cleartext; NEVER commit or paste them.
 
 ## Workflow
 
 1. **Scope**: service, environment, modules needed, missing inputs. Existing code → `glob` `**/*.tf` (excluding `.terraform/`), then `read`.
-2. **Discover** modules + RFC guidance → [module-guide.md](references/module-guide.md#discovery). Confluence CODE-space docs → `search-company-knowledge` skill.
-3. **Implement**: pinned modules, `tags = local.tags` → [tagging-guide.md](references/tagging-guide.md). No library module → state the reason in the report.
-4. **Validate locally** (order matters; private modules need JFrog credentials for `init` → [module-guide.md](references/module-guide.md#validation)):
+2. **Discover** modules + RFC guidance → [module-guide.md](skill://iac-terraform/references/module-guide.md#discovery). Confluence CODE-space docs → `search-company-knowledge` skill.
+3. **Implement**: pinned modules, `tags = local.tags` → [tagging-guide.md](skill://iac-terraform/references/tagging-guide.md). No library module → state the reason in the report.
+4. **Validate locally** (order matters; private modules need JFrog credentials for `init` → [module-guide.md](skill://iac-terraform/references/module-guide.md#validation)):
 
    ```bash
    terraform fmt -check -recursive

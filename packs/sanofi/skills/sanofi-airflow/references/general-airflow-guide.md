@@ -1,6 +1,6 @@
 # General Airflow Guide
 
-Sanofi Airflow guidance for the shared MWAA platform, derived from the OneMesh "Airflow - how to guide" and child pages, plus reusable DAG standards and best-practice pages from other Sanofi Airflow spaces. Read by task: new DAG → Parse-Time Safety, DAG Configuration, TaskFlow API, Project and Repo Structure · orchestration → Cross-DAG Orchestration, Sensors, [`orchestrating-dbt.md`](orchestrating-dbt.md) for dbt · operations → Alerting, Access Control, CI/CD and Deployment, Troubleshooting · Airflow 3.x target or 2.x → 3.x move → Airflow 3 Migration.
+Sanofi Airflow guidance for the shared MWAA platform, derived from the OneMesh "Airflow - how to guide" and child pages, plus reusable DAG standards and best-practice pages from other Sanofi Airflow spaces. Read by task: new DAG → Parse-Time Safety, DAG Configuration, TaskFlow API, Project and Repo Structure · orchestration → Cross-DAG Orchestration, Sensors, [`orchestrating-dbt.md`](skill://sanofi-airflow/references/orchestrating-dbt.md) for dbt · operations → Alerting, Access Control, CI/CD and Deployment, Troubleshooting · Airflow 3.x target or 2.x → 3.x move → Airflow 3 Migration.
 
 ## Source of Truth
 
@@ -261,7 +261,7 @@ Loop-generated DAGs are dangerous when real work runs at parse time. NEVER query
 
 ## Running dbt from Airflow
 
-Dominant Sanofi orchestration use case; own reference: [`orchestrating-dbt.md`](orchestrating-dbt.md) (choosing/wiring `BashOperator` + `dbt_run.sh` or typed `DbtClient`, logs/artifacts, backfills, run vars). dbt models/SQL/tests → dbt skill.
+Dominant Sanofi orchestration use case; own reference: [`orchestrating-dbt.md`](skill://sanofi-airflow/references/orchestrating-dbt.md) (choosing/wiring `BashOperator` + `dbt_run.sh` or typed `DbtClient`, logs/artifacts, backfills, run vars). dbt models/SQL/tests → dbt skill.
 
 ## Alerting and Failure Handling
 

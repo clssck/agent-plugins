@@ -31,7 +31,7 @@ Additional standards sources:
 - DCFDP `6. dbt Standards` tree: hub `65443597350`; `6.1 Project structure and naming conventions` `65443597575`; `6.1.1 Managing dbt_project.yml and Model Organization` `65443859336`; `6.2 Models and Documentation Configuration` `65445232861`; `6.3 Building a model` `65443597707`. DD&O tree = source for the `psa`/`rsv`/`dwh`/`dmt` taxonomy, its folder-to-schema mapping in `dbt_project.yml`, and the `generate_schema_name` override.
 - `dbt | Coding Standards`: `https://sanofi.atlassian.net/wiki/spaces/BCORE10/pages/66574254841/dbt+Coding+Standards`. Reuse generic naming, docs, tests, contracts, macro rules; ignore project-specific warehouse names.
 - `dbt (Data Build Tool) setup and best practices`: `https://sanofi.atlassian.net/wiki/spaces/PADE/pages/66575630729/dbt+Data+Build+Tool+setup+and+best+practices`. Only general setup/toolchain cautions; ignore local Airflow roles and team implementation.
-- CIDF `Best practices - dbt and SQL in general` `66074739903` and RDDP `IICS to dbt - Detailed Target State Architecture` `66814313816`: scoped CI, SQLFluff, packages, per-layer orchestration. CIDF also documents Snowflake persistence defaults (`copy_grants`, `transient: false`, `+full_refresh: false` on persistent layers) and tag-based orchestration selectors. Its `incremental` + `insert_overwrite` suggestion does NOT fit history-bearing models on Snowflake → [snowflake-materializations.md](snowflake-materializations.md#tables-transience-and-grants).
+- CIDF `Best practices - dbt and SQL in general` `66074739903` and RDDP `IICS to dbt - Detailed Target State Architecture` `66814313816`: scoped CI, SQLFluff, packages, per-layer orchestration. CIDF also documents Snowflake persistence defaults (`copy_grants`, `transient: false`, `+full_refresh: false` on persistent layers) and tag-based orchestration selectors. Its `incremental` + `insert_overwrite` suggestion does NOT fit history-bearing models on Snowflake → [snowflake-materializations.md](skill://dbt/references/snowflake-materializations.md#tables-transience-and-grants).
 - OneMesh `dbt Incremental Load – Implementation Guide` `67205533077`: generic table-to-incremental pattern; push the watermark filter into the driving table's `WHERE` for micro-partition pruning. `Data Quality Framework — dbt + Elementary` `67118465918`: `store_failures` triage schema, warn/error severity policy, control-total reconciliation tests.
 
 ## How to Use This Reference
@@ -115,7 +115,7 @@ Descriptive logical model names; `alias` for short, stable Snowflake object name
 
 Set each layer's `schema` explicitly in config; the DD&O `generate_schema_name` override uses it verbatim, else falls back to the target default. Match the repo's schema case convention (some lowercase; DD&O examples uppercase, e.g. `PSA_WORKDAY_HUB`, `DMT_PLAI`).
 
-Snowflake rules (transient default, `copy_grants`, dynamic tables, incremental strategies, late-arriving data) → [snowflake-materializations.md](snowflake-materializations.md). **NEVER** `insert_overwrite` on Snowflake to "replace a partition": it truncates and reloads the whole table every run, erasing history on history-bearing models.
+Snowflake rules (transient default, `copy_grants`, dynamic tables, incremental strategies, late-arriving data) → [snowflake-materializations.md](skill://dbt/references/snowflake-materializations.md). **NEVER** `insert_overwrite` on Snowflake to "replace a partition": it truncates and reloads the whole table every run, erasing history on history-bearing models.
 
 ## YAML Properties and Configuration
 
@@ -163,7 +163,7 @@ Detail → `writing-data-tests.md`.
 - **Layer focus:** staging `not_null`, `unique`, relationships, freshness · intermediate unit tests for complex or grain-changing logic · marts relationships, accepted values, business invariants.
 - **Legacy snippets:** normalize Confluence `tests:` → `data_tests:` unless the repo is intentionally pinned to the older style.
 - **`arguments`:** nest generic test parameters under `arguments` on dbt >= 1.10.8, or on 1.10.5-1.10.7 only after `flags: require_generic_test_arguments_property: true` (default there `false`; nested form otherwise raises `ArgumentsPropertyInGenericTestDeprecation`). Otherwise top-level test properties. From 1.10.8 the flag defaults `true` and top-level parameters warn. `severity`, `where`, `store_failures` stay under `config:`.
-- **Unit tests** (placement, overrides, incremental cases, `--empty` prerequisites, production exclusion) → [unit-tests.md](unit-tests.md).
+- **Unit tests** (placement, overrides, incremental cases, `--empty` prerequisites, production exclusion) → [unit-tests.md](skill://dbt/references/unit-tests.md).
 - **`run_dq_check` macro** = pre-hook data quality gate. Standards-page example wraps `DQ_SF.SP_DQ_FETCH_CUSTOM_CHECKS`: a critical `PROCESS_HALT` result aborts the model, writes details to `DQ_ERROR_DETAILS`, propagates through the orchestrator/alerting path. Inspect the project macro before changing arguments or failure semantics.
 - **Before PR merge:** relevant scoped dbt tests SHOULD pass with zero error-level failures. Minimum: grain `unique`/`not_null`; foreign keys `relationships`; controlled categorical mart fields `accepted_values` when allowed values are verified.
 
@@ -196,7 +196,7 @@ For important downstream consumers: dashboards, applications, ML models, noteboo
 
 ## Sources
 
-Version-sensitive on their own; setup, deprecation, and upgrade sources → [project-setup.md](project-setup.md#sources). Re-check when the project's resolved versions differ:
+Version-sensitive on their own; setup, deprecation, and upgrade sources → [project-setup.md](skill://dbt/references/project-setup.md#sources). Re-check when the project's resolved versions differ:
 
 - [Snapshots](https://docs.getdbt.com/docs/build/snapshots): `hard_deletes`, `dbt_valid_to_current`, optional `target_schema`.
 - [Source freshness config](https://docs.getdbt.com/reference/resource-configs/freshness): `loaded_at_query`, `config:` nesting.

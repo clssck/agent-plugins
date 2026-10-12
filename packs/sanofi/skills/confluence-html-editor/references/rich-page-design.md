@@ -59,7 +59,7 @@ NEVER mix modes accidentally. A page serving several → primary mode in the mai
 | Knowledge base article | Short answer, context, examples and anti-examples, related pages, owner and freshness note |
 | Hub or landing page | Purpose statement, navigation table grouped by user intent, key actions, important links, ownership and contribution guidance |
 
-Templates (`## Templates` in [SKILL.md](../SKILL.md)) are starting points: remove irrelevant sections, replace placeholders, preserve fetched rich objects, run the HTML checker before writing.
+Templates (`## Templates` in [SKILL.md](skill://confluence-html-editor/SKILL.md)) are starting points: remove irrelevant sections, replace placeholders, preserve fetched rich objects, run the HTML checker before writing.
 
 ## Composition
 

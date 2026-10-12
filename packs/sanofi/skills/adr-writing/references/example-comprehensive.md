@@ -132,5 +132,5 @@ SQS assumes 3 requests per message, no batching, no retries, and ignores the fre
 ## Links
 
 * [ORDERS-1042](https://sanofi.atlassian.net/browse/ORDERS-1042) — Epic: Order Processing Pipeline
-* [ADR-008-use-lambda-for-compute.md](ADR-008-use-lambda-for-compute.md) — Prior decision on Lambda adoption
+* `ADR-008-use-lambda-for-compute.md` — illustrative prior decision; not bundled with this skill
 * [Step Functions service quotas](https://docs.aws.amazon.com/step-functions/latest/dg/service-quotas.html)

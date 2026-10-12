@@ -15,29 +15,29 @@ Governing principle: an ADR records a decision and its evidence, never a fabrica
 - **File name:** `ADR-NNN-slug.md` — three-digit number, kebab-case slug. Reviews: `ADR-NNN-slug-review.md`.
 - **Number:** highest existing + 1. NEVER fill gaps.
 - **Qualified titles:** `use-postgresql-for-user-profiles`, not `use-postgresql`.
-- **Match house style:** `read` 1-2 existing ADRs; match header style, section order, table alignment. None → [adr.template.md](assets/adr.template.md).
+- **Match house style:** `read` 1-2 existing ADRs; match header style, section order, table alignment. None → [adr.template.md](skill://adr-writing/assets/adr.template.md).
 
 ## Modes
 
 | Mode | Trigger | Procedure |
 |---|---|---|
-| Write | Record a decision | [write-workflow.md](references/write-workflow.md) |
-| Review | Evaluate or fact-check an existing ADR | [review-workflow.md](references/review-workflow.md), [review-checklist.md](references/review-checklist.md) |
+| Write | Record a decision | [write-workflow.md](skill://adr-writing/references/write-workflow.md) |
+| Review | Evaluate or fact-check an existing ADR | [review-workflow.md](skill://adr-writing/references/review-workflow.md), [review-checklist.md](skill://adr-writing/references/review-checklist.md) |
 
 - **NEVER self-review** an ADR written in the same conversation; shared context removes independence.
 
 | Need | Reference |
 |---|---|
-| Jira/Confluence sources, comment threads, tiny links | [atlassian-integration.md](references/atlassian-integration.md) |
-| Pricing, Cost Annex, Confluence charts | [cost-analysis.md](references/cost-analysis.md) |
-| Depth/style: 2 options, no optional sections | [example-minimal.md](references/example-minimal.md) |
-| Depth/style: Cost Annex, Options Ruled Out, Drivers | [example-comprehensive.md](references/example-comprehensive.md) |
+| Jira/Confluence sources, comment threads, tiny links | [atlassian-integration.md](skill://adr-writing/references/atlassian-integration.md); runnable decoder → [decode_tiny_link.py](skill://adr-writing/scripts/decode_tiny_link.py) |
+| Pricing, Cost Annex, Confluence charts | [cost-analysis.md](skill://adr-writing/references/cost-analysis.md) |
+| Depth/style: 2 options, no optional sections | [example-minimal.md](skill://adr-writing/references/example-minimal.md) |
+| Depth/style: Cost Annex, Options Ruled Out, Drivers | [example-comprehensive.md](skill://adr-writing/references/example-comprehensive.md) |
 | Publishing an ADR to Confluence | confluence-html-editor skill |
 
 ## Writing Rules
 
 - **Date:** today, `YYYY-MM-DD`.
-- **Status:** `accepted` ONLY when the decision is made. Undecided → `proposed`, no invented choice; see [write-workflow.md](references/write-workflow.md).
+- **Status:** `accepted` ONLY when the decision is made. Undecided → `proposed`, no invented choice; see [write-workflow.md](skill://adr-writing/references/write-workflow.md).
 - **Problem statement:** 2-3 sentences, a question, with constraints or metrics.
 - **Specificity:** add technical detail ("PostgreSQL with JSONB"); stay close to user facts.
 - **NEVER invent** performance numbers, costs, benchmarks, or options. Ask.

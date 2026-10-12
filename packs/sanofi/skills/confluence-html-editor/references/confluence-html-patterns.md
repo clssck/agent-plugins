@@ -146,7 +146,7 @@ Confluence normalizes HTML on save. Verify by intent, not byte-for-byte equality
 
 ## Page Design Patterns
 
-Page-level design policy (modes, archetypes, composition, visual restraint, quality gate) lives in [rich-page-design.md](rich-page-design.md). This file keeps component syntax, round-trip behavior, and native feature boundaries.
+Page-level design policy (modes, archetypes, composition, visual restraint, quality gate) lives in [rich-page-design.md](skill://confluence-html-editor/references/rich-page-design.md). This file keeps component syntax, round-trip behavior, and native feature boundaries.
 
 ## Native Feature Boundaries
 
@@ -192,7 +192,7 @@ Before publishing a large HTML replacement, write the proposed body to a local s
 | Links, mentions, dates, tasks, and decisions | Catches accidental loss of workflow state and navigation. |
 | Risky deletions | Makes removed headings, tables, links, tasks, and decisions explicit. |
 
-Run the scripts with the commands in [SKILL.md](../SKILL.md) (steps 4 and 6) and [editing-workflow.md](editing-workflow.md#page-audit-before-a-risky-edit).
+Run the scripts with the commands in [SKILL.md](skill://confluence-html-editor/SKILL.md) (steps 4 and 6) and [editing-workflow.md](skill://confluence-html-editor/references/editing-workflow.md#page-audit-before-a-risky-edit).
 
 `check_confluence_html.py` catches page wrappers, scripts/styles, local file and filesystem paths (`file:`, Windows drives and UNC, `/Users`, `/home`, `/private`, `/tmp`, `~/`), base64 images, long status labels, duplicate title headings, duplicate `data-local-id` values, unclosed tags (including inner tags silently closed by an ancestor's end tag), headings inside table cells, reduced macro extension counts, dropped extension keys, dropped image/embed sources, dropped link hrefs, dropped mentions, dropped dates, and reduced task or decision item counts. Fix `ERROR` findings before publishing and review `WARNING` findings deliberately.
 
@@ -204,7 +204,7 @@ If the HTML update path rejects a large body, do not immediately convert the pag
 
 ### Attachment And Image Discipline
 
-HTML body updates do not upload binary files; follow the Attachments rule in [SKILL.md](../SKILL.md).
+HTML body updates do not upload binary files; follow the Attachments rule in [SKILL.md](skill://confluence-html-editor/SKILL.md).
 
 - Preserve existing images, attachment links, and macro extension blocks unless the edit explicitly replaces them.
 - New externally hosted images: full `https://...` URL; verify the image renders after publishing.

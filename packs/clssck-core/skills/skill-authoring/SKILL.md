@@ -13,7 +13,7 @@ House style = OMP bundled skills (`system-prompts`, `tool-prompt-optimization`, 
 
 The description is **retrieval surface**: the model sees only it before choosing, and matches it against the user's own phrasing.
 
-- **40-70 words, "Use when …" form:** what it does, then tasks, phrasings, and contexts that trigger it. Keep keyword-redundant alternatives ("audit", "review", "trim"); compress the body, NEVER the trigger.
+- **Trigger coverage, no fixed word count:** state what the skill does, then tasks, phrasings, and contexts that trigger it. Use "Use when …" where it reads naturally. Keep keyword-redundant alternatives ("audit", "review", "trim"); compress the body, NEVER the trigger.
 - **Layout:** a standalone skill is `<skills-root>/<name>/SKILL.md`; the directory name is the skill `name`.
 - **Sibling boundaries inline:** `not for X — <sibling> instead`. Name the sibling.
 - Quote the value when it contains a colon-space.
@@ -22,11 +22,11 @@ The description is **retrieval surface**: the model sees only it before choosing
 ## Body structure
 
 - **Layout:** `# Title`, 1-2 dense intro paragraphs (what, governing principle, why — evidence only where it changes a decision), then `##` sections named for tasks ("Run probe", "Before every deletion", "Verdict"), `###` where needed.
-- **Rules lead with bold:** `**MUST \`git blame\` each cut line.**` Body never restates the lead.
+- **Rules use descriptive bold leads:** ``**Git history:** MUST `git blame` each cut line.`` Keep RFC 2119 markers in full caps but outside bold; body never restates the lead.
 - **Enumerations → tables.** Telegraphic where enumerating (`→`, `⇒`, `·`); normal dense prose in paragraphs. No hedging, ceremony, closing summaries.
 - **Examples are concrete and runnable** — bash/json fences, real commands — not abstract description. Adjacent Bad/Good pair removes a retry class.
-- **RFC 2119 keywords** (MUST, NEVER, SHOULD, AVOID, MAY) precise and sparse; bold when they lead a line. Prohibition without a stated substitute forces guessing; name the substitute.
-- **Router size:** SKILL.md ≤~150 lines. Detail → `references/*.md` in the same register, runnable helpers → `scripts/`. Link every runtime entry point directly from SKILL.md; supporting test material MAY be linked from the reference or script it validates. Scope splits point at sibling skills by name.
+- **RFC 2119 keywords** (MUST, NEVER, SHOULD, AVOID, MAY) are precise, sparse, full caps, and not bold. Prohibition without a stated substitute forces guessing; name the substitute.
+- **Router size:** SKILL.md ≤~150 lines. Detail → `references/*.md` in the same register, runnable helpers → `scripts/`. Link every runtime entry point directly from SKILL.md with `skill://<name>/...`; supporting test material MAY be linked from the reference or script it validates. Scope splits point at sibling skills by name.
 
 ## Boundaries and gates
 
@@ -61,7 +61,7 @@ A checklist survives only when it describes the artifact the skill produces (`sy
 
 |Wrong|Right|
 |---|---|
-|Description of one line with no triggers|40-70 words, "Use when …", sibling boundaries|
+|Description with no trigger language|Task phrasing, trigger synonyms, contexts, and sibling boundaries|
 |Rote `## Checklist` ending|Fold into task sections; keep a checklist only for the produced artifact|
 |Hand-rolling a substitute for a shipped template|Copy, adapt, record deltas, run|
 |Retrying a failing command|Two-strike rule: change strategy|

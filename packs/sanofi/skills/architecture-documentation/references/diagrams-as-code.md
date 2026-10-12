@@ -11,7 +11,7 @@ Detect with `glob`/`grep` BEFORE drafting anything new. Edit the format the repo
 | Structurizr DSL | `glob` `**/workspace.dsl`, `**/*.dsl`; sibling `workspace.json` | One model, many views |
 | C4-PlantUML | `glob` `**/*.{puml,plantuml,iuml}`; `grep` `C4_(Context\|Container\|Component\|Dynamic\|Deployment\|Sequence)` | Legend and tags supported |
 | Mermaid C4 | `grep` `C4(Context\|Container\|Component\|Dynamic\|Deployment)` in `**/*.{md,mmd,mermaid}` | Experimental, limited |
-| Draw.io | `glob` `**/*.drawio` | [drawio-c4-templates.md](drawio-c4-templates.md) |
+| Draw.io | `glob` `**/*.drawio` | [drawio-c4-templates.md](skill://architecture-documentation/references/drawio-c4-templates.md) |
 
 ## Choosing a Format (only when asked to create one)
 
@@ -62,7 +62,7 @@ Good: `docker run --rm -v "$PWD:/usr/local/structurizr" structurizr/structurizr 
 - `inspect` exits with the violation count. A nonzero exit is findings, not a crash.
 - Export formats: `plantuml`, `plantuml/c4plantuml`, `mermaid`, `static`, `json`. `png`/`svg` need a Playwright build: the `<version>-playwright` image tag or the `-playwright` `.war`. Exports do not support every shape or feature.
 - Mermaid exports need `securityLevel: "loose"` in the Mermaid config.
-- `local` writes manual layout to `workspace.json` next to `workspace.dsl`. NEVER delete or regenerate `workspace.json` when editing the DSL, or the layout is lost. NEVER rename `workspace.dsl`, because `local` looks for that name. Apply the [versioning-guide.md](versioning-guide.md) identifier to exports and the changelog.
+- `local` writes manual layout to `workspace.json` next to `workspace.dsl`. NEVER delete or regenerate `workspace.json` when editing the DSL, or the layout is lost. NEVER rename `workspace.dsl`, because `local` looks for that name. Apply the [versioning-guide.md](skill://architecture-documentation/references/versioning-guide.md) identifier to exports and the changelog.
 - Implied relationships are on by default. A container-level relationship implies the system-level one, so NEVER add duplicate explicit L1 relationships. Respect any `!impliedRelationships` setting already in the file.
 - Keep one software system per workspace and `workspace.json` under about 1-2 MB. Model a landscape across workspaces, not in one large workspace.
 

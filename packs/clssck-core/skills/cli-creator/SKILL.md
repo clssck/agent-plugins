@@ -7,7 +7,7 @@ description: Build a durable, installable CLI from API docs, OpenAPI specs, SDKs
 
 Builds a real CLI an agent runs by command name from any working directory, plus a companion omp skill that teaches it. Durable tools only: a short script in the current repo solves the task? Write the script there. The CLI is the agent's command layer — composable discover/resolve/read/write primitives with stable `--json`, no TTY assumptions, and no secret leakage — because an agent drives it cold, repeatedly, without a human to answer prompts.
 
-License: Apache-2.0; see `licenses/clssck-core/cli-creator/LICENSE.txt`. Command, JSON, and companion-skill contract → [agent-cli-patterns.md](references/agent-cli-patterns.md). Per-runtime install → [install-and-packaging.md](references/install-and-packaging.md).
+License: Apache-2.0; see `licenses/clssck-core/cli-creator/LICENSE.txt`. Command, JSON, and companion-skill contract → [agent-cli-patterns.md](skill://cli-creator/references/agent-cli-patterns.md). Per-runtime install → [install-and-packaging.md](skill://cli-creator/references/install-and-packaging.md).
 
 ## Scope the tool
 
@@ -68,7 +68,7 @@ Precedence: env var with the service's standard name (`GITHUB_TOKEN`) > user con
 ## Build
 
 1. **Inventory the source:** resources, auth, pagination, IDs, file flows, rate limits, dangerous writes. OpenAPI available → inspect before naming commands.
-2. **Sketch the command surface in chat before coding:** binary name, discovery, resolve, read, write, raw escape hatch, auth/config choice, install command. Short, shell-friendly names; shape, JSON policy, pagination, exit codes per [agent-cli-patterns.md](references/agent-cli-patterns.md).
+2. **Sketch the command surface in chat before coding:** binary name, discovery, resolve, read, write, raw escape hatch, auth/config choice, install command. Short, shell-friendly names; shape, JSON policy, pagination, exit codes per [agent-cli-patterns.md](skill://cli-creator/references/agent-cli-patterns.md).
 3. Scaffold with a README or equivalent.
 4. Implement `doctor`, discovery, resolve, reads, one narrow draft or dry-run write if requested, raw escape hatch.
 5. **Install on PATH only when the user asks** for a globally callable command; state the target first. Otherwise keep the verified local wrapper.
@@ -115,6 +115,6 @@ After the CLI works, create or update a normal omp skill that teaches it.
 
 - **Layout:** one level deep, `<skills-root>/<tool-name>/SKILL.md`; folder name = `name`.
 - **Frontmatter:** `name` + `description`; `disable-model-invocation: true` only for a manual-only skill. Description = retrieval surface: purpose + concrete "Use when" triggers; `Not for …` only against sibling confusion. Authoring style → `skill-authoring`.
-- **Body:** `# Title`, dense intro, task-named `##` sections, bold-lead rules; ≤~150 lines. Detail in `references/*.md`, every file linked by relative Markdown link. Skeleton → [agent-cli-patterns.md](references/agent-cli-patterns.md#companion-skill).
+- **Body:** `# Title`, dense intro, task-named `##` sections, bold-lead rules; ≤~150 lines. Detail in `references/*.md`; link every runtime asset with `skill://<tool-name>/...`. Skeleton → [agent-cli-patterns.md](skill://cli-creator/references/agent-cli-patterns.md#companion-skill).
 - **Bundled scripts:** PEP 723 header with `#!/usr/bin/env -S uv run --script`; invoke as `uv run "$(realpath skill://<tool-name>/scripts/<file>.py)"` in the omp `bash` tool. Bare `skill://` path fails in external programs; `realpath` prints the physical path.
 - **Verify:** `read skill://<tool-name>` resolves, every link resolves, example commands run from a fresh directory.

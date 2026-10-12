@@ -13,6 +13,7 @@ on:
       - "omp-source-lock.json"
       - "scripts/**"
       - ".github/workflows/sync-upstreams.yml"
+      - ".github/actions/**"
 
 concurrency:
   group: sync
@@ -38,6 +39,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: bun scripts/sync.ts
+
+      # Pushes made with github.token do not trigger Validate, so validate here before committing.
+      - name: Bun tests
+        run: bun test scripts
+
+      - name: Validate packs with OMP's extension loaders
+        uses: ./.github/actions/omp-loader-check
 
       - name: Commit changes
         run: |

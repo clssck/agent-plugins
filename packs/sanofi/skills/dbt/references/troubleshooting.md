@@ -42,14 +42,14 @@ jq '.results[] | select(.status != "success" and .status != "pass") | {unique_id
 | Compilation / SQL | undefined macro, Jinja or SQL syntax, missing `ref` | `dbt compile --select <model>`; `git log`/`git diff` of `models/` and `macros/` |
 | Hook | error before any node, then all `SKIP` | `on-run-start` / `on-run-end` SQL and macros |
 | Data test | `Got N results, configured to fail if != 0` | Compile the test, run it with `dbt show`, inspect failing rows |
-| Unit test | `actual differs from expected` diff | Mocked inputs, overrides, the model change ([unit-tests.md](unit-tests.md)) |
-| Contract | `This model has an enforced contract that failed` | Name/type table in the message ([contracts-and-versions.md](contracts-and-versions.md)) |
+| Unit test | `actual differs from expected` diff | Mocked inputs, overrides, the model change ([unit-tests.md](skill://dbt/references/unit-tests.md)) |
+| Contract | `This model has an enforced contract that failed` | Name/type table in the message ([contracts-and-versions.md](skill://dbt/references/contracts-and-versions.md)) |
 
 ## Investigate
 
 - **What changed:** `git log --oneline -20`; `git diff HEAD~5..HEAD -- models/ macros/ dbt_project.yml packages.yml`. Most failures correlate with a recent change, package bump, or upstream source change.
 - **Dependency graph:** `dbt ls --select "+<failing_model>" --resource-type model`.
-- **Data test failure:** `dbt ls --resource-type test --select <model>` → test name; `dbt compile --select <test_name> --output json` → its SQL; `dbt show --inline "<that SQL>" --limit 20`. Compare with the last good run and upstream sources; check whether a transformation introduced new values. `store_failures` tables hold offending rows ([writing-data-tests.md](writing-data-tests.md#persisting-failing-rows-store_failures)).
+- **Data test failure:** `dbt ls --resource-type test --select <model>` → test name; `dbt compile --select <test_name> --output json` → its SQL; `dbt show --inline "<that SQL>" --limit 20`. Compare with the last good run and upstream sources; check whether a transformation introduced new values. `store_failures` tables hold offending rows ([writing-data-tests.md](skill://dbt/references/writing-data-tests.md#persisting-failing-rows-store_failures)).
 - **Intermittent failures:** compare successive `run_results.json` files; look for concurrent runs of the same model in one schema (shared tmp relations) and late-arriving data.
 - **Regression test:** at the right layer; unit test for logic, data test for data.
 - **Unresolved root cause:** no guessed fix. Write down what was checked (commands, run IDs, failing node, hypotheses ruled out) and next steps; hand that over.
@@ -67,7 +67,7 @@ Cheapest command first (Command Scope in SKILL.md): `dbt parse` for project erro
 | Slow incrementals | Align `cluster_by` with predicates |
 | Expensive full rebuilds | Consider justified `incremental` |
 | History wrong | Full refresh/backfill |
-| Late-arriving data | Widen lookback or re-derive affected keys ([snowflake-materializations.md](snowflake-materializations.md#late-arriving-and-multi-parent-changes)) |
+| Late-arriving data | Widen lookback or re-derive affected keys ([snowflake-materializations.md](skill://dbt/references/snowflake-materializations.md#late-arriving-and-multi-parent-changes)) |
 | Snapshot not changing | Verify `updated_at` |
 | Deletes missing | Hard-delete invalidation |
 | Slow unit tests | Select `test_type:unit` |

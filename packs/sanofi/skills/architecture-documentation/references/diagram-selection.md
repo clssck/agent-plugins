@@ -59,7 +59,7 @@ Not all four levels are required.
 **Audience**: Technical and non-technical people, inside and outside the team.
 
 **When to create**: When the boundary question spans several systems (see
-[large-system-workflow.md](large-system-workflow.md)) or a platform may be several systems.
+[large-system-workflow.md](skill://architecture-documentation/references/large-system-workflow.md)) or a platform may be several systems.
 Recommended for larger organisations; it bridges to enterprise architecture.
 
 **Rules**: Systems and people only; no containers. Each system of interest keeps its own L1-L3 set.

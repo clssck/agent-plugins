@@ -7,7 +7,7 @@ description: "Build, review, deploy, and troubleshoot Streamlit in Snowflake (Si
 
 Guardrails for Streamlit in Snowflake apps in Sanofi repos: explicit runtime choice, owner-rights least privilege, parameterized read-only queries, viewer-safe caching, source-version and `snow` CLI deployment, contract tests. Work from the repo's existing runtime and deployment contract; never from Snowflake's current default.
 
-Governing hazard: with the 2026_06 behavior bundle (enabled by default since Sept 2026), `CREATE STREAMLIT` without `RUNTIME_NAME` creates a container-runtime app. An unnamed runtime ⇒ silent migration or failed deploy. Complements generic developing-with-streamlit-in-snowflake (general how-to; Community Cloud out of scope). Runtime matrix, deployment mechanics, security constraints, current Snowflake links → [runtime-and-deployment.md](references/runtime-and-deployment.md).
+Governing hazard: with the 2026_06 behavior bundle (enabled by default since Sept 2026), `CREATE STREAMLIT` without `RUNTIME_NAME` creates a container-runtime app. An unnamed runtime ⇒ silent migration or failed deploy. Complements generic developing-with-streamlit-in-snowflake (general how-to; Community Cloud out of scope). Runtime matrix, deployment mechanics, security constraints, current Snowflake links → [runtime-and-deployment.md](skill://snowflake-streamlit/references/runtime-and-deployment.md).
 
 ## Stop rules
 

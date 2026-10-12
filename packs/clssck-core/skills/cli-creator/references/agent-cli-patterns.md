@@ -1,6 +1,6 @@
 # Agent CLI Patterns
 
-Command, JSON, and companion-skill contract for CLIs an agent runs repeatedly from any repo. Workflow, runtime choice, and permission gates live in [SKILL.md](../SKILL.md).
+Command, JSON, and companion-skill contract for CLIs an agent runs repeatedly from any repo. Workflow, runtime choice, and permission gates live in [SKILL.md](skill://cli-creator/SKILL.md).
 
 ## Contents
 
@@ -157,7 +157,7 @@ tool-name --json request get /v2/me
 
 ## Companion skill
 
-The companion skill is an omp skill that teaches the path through the tool. It MUST be smaller than the CLI README. Location and file contract → [SKILL.md](../SKILL.md#companion-skill); authoring style → `skill-authoring`.
+The companion skill is an omp skill that teaches the path through the tool. It MUST be smaller than the CLI README. Location and file contract → [SKILL.md](skill://cli-creator/SKILL.md#companion-skill); authoring style → `skill-authoring`.
 
 Body skeleton:
 
