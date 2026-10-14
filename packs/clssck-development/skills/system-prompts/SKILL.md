@@ -151,9 +151,9 @@ Tool prompts teach when to use the tool, input shape, and agent-owned failures �
 Agents choose tools from prose: state WHEN/WHY; NEVER internal HOW.
 
 - `read.md`: enumerate every covered source — file/dir/archive/sqlite/PDF/URL — so agent avoids `cat`/`curl`/`tar`; omit chunker, binary sniffer, cache layer.
-- `lsp.md`: "You MUST use `lsp` whenever a language server is available — safer than text-based alternatives." Omit LSP wire protocol, server lifecycle, capability negotiation.
+- `lsp.md`: "Symbol-aware work (rename, references, definition, code actions) MUST use `lsp` whenever a server is available." Omit LSP wire protocol, server lifecycle, capability negotiation.
 - `ast_grep`: teach metavariable syntax + workflow: "Loosest existence check: `pat: "executeBash"` with narrow `path`"; `ast_edit` rewrites need both `pat` and `out`. Omit AST engine, query compilation, tree-sitter grammar selection.
-- `hashline.md` (OMP): teach **patch grammar** — anchors, ops, payloads, ranges — and successful **edit shapes**. NEVER expose `tryRecoverHashlineWithCache`, fuzz factor, bigram tables, `findUniqueSuffixMatch`, `untilAborted`, `formatGroupedFiles`; agent sees only "the tool resolved your typo" or "the anchor was stale, re-read".
+- `hashline.md` (OMP, `crates/pi-edit/prompts/`): teach **patch grammar** — anchors, ops, payloads, ranges — and successful **edit shapes**. NEVER expose the recovery machinery (`recover_target`, `recover_header`, seen-line enforcement, fuzzy thresholds); agent sees only "the tool resolved your typo" or "the anchor was stale, re-read".
 
 Behavior-invariant detail: exclude. Every sentence MUST shift an agent decision.
 
