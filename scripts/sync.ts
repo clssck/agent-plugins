@@ -43,9 +43,19 @@ interface Sources {
 	upstreams: Upstream[];
 }
 
-interface Commit {
+/** A commit and the GitHub repository that owns it; links are built only from this pair. */
+export interface Commit {
+	repository: string;
 	sha: string;
 	date: string;
+}
+
+/** Last-updated commits for README rows: this repository's history and upstream histories at their pins. */
+export interface ReadmeCommits {
+	/** Repository path under packs/ or upstream/ → newest local commit touching it. */
+	local: Map<string, Commit>;
+	/** `<pack>/<skill dir>` → newest upstream commit touching that skill at the pin. */
+	upstream: Map<string, Commit>;
 }
 
 interface Item {
@@ -672,17 +682,17 @@ function failOn(errors: string[]): void {
 // ---------------------------------------------------------------------------
 
 /** Newest commit touching each file and directory under packs/ and upstream/, from one pass over history (newest first). */
-function localLastCommits(): Map<string, Commit> {
+function localLastCommits(repository: string): Map<string, Commit> {
 	const log = Bun.spawnSync(["git", "log", "--format=%x00%H %cI", "--name-only", "--", "packs", "upstream"], { cwd: ROOT });
 	const latest = new Map<string, Commit>();
 	for (const block of log.stdout.toString().split("\0").slice(1)) {
 		const [header, ...files] = block.trim().split("\n");
 		const [sha, date] = header.split(" ");
 		for (const file of files) {
-			if (!latest.has(file)) latest.set(file, { sha, date });
+			if (!latest.has(file)) latest.set(file, { repository, sha, date });
 			// Ancestors of an already-dated directory were dated by the same, newer commit.
 			for (let dir = path.posix.dirname(file); dir !== "." && !latest.has(dir); dir = path.posix.dirname(dir)) {
-				latest.set(dir, { sha, date });
+				latest.set(dir, { repository, sha, date });
 			}
 		}
 	}
@@ -691,13 +701,13 @@ function localLastCommits(): Map<string, Commit> {
 
 /** Newest commit touching each upstream skill at its pin, keyed by `<pack>/<skill dir>`, in one request. */
 async function upstreamLastCommits(packs: Pack[]): Promise<Map<string, Commit>> {
-	const lookups: Array<{ key: string; alias: string }> = [];
+	const lookups: Array<{ key: string; alias: string; repository: string }> = [];
 	const fields = packs.flatMap((pack, p) => {
 		if (!pack.upstream || pack.skills.length === 0) return [];
 		const upstream = pack.upstream;
 		const histories = pack.skills.map((skill, s) => {
 			const dir = path.posix.dirname(skill.file);
-			lookups.push({ key: `${pack.name}/${dir}`, alias: `${p}.${s}` });
+			lookups.push({ key: `${pack.name}/${dir}`, alias: `${p}.${s}`, repository: upstream.repo });
 			return `s${s}: history(first: 1, path: ${JSON.stringify(upstreamPath(pack, dir))}) { nodes { oid committedDate } }`;
 		});
 		return [`p${p}: ${repositoryField(upstream.repo)} { object(oid: ${JSON.stringify(upstream.sha)}) { ... on Commit { ${histories.join(" ")} } } }`];
@@ -706,10 +716,10 @@ async function upstreamLastCommits(packs: Pack[]): Promise<Map<string, Commit>> 
 	type History = { nodes: Array<{ oid: string; committedDate: string }> };
 	const data = await graphql<Record<string, { object: Record<string, History> | null } | null>>(`query { ${fields.join("\n")} }`);
 	const commits = new Map<string, Commit>();
-	for (const { key, alias } of lookups) {
+	for (const { key, alias, repository } of lookups) {
 		const [p, s] = alias.split(".");
 		const node = data[`p${p}`]?.object?.[`s${s}`]?.nodes[0];
-		if (node) commits.set(key, { sha: node.oid, date: node.committedDate });
+		if (node) commits.set(key, { repository, sha: node.oid, date: node.committedDate });
 	}
 	return commits;
 }
@@ -736,14 +746,17 @@ function describeRequirements(pack: Pack): string {
 	return providers.length > 0 ? providers.join("; ") : "—";
 }
 
-export async function renderReadme(sources: Sources, packs: Pack[]): Promise<string> {
-	const localCommits = localLastCommits();
-	const upstreamCommits = await upstreamLastCommits(packs);
+/** Last-updated cell: the commit date, linked inside the repository that owns the commit. */
+export function commitStamp(commit: Commit | undefined): string {
+	return commit
+		? `[${new Date(commit.date).toISOString().slice(0, 16).replace("T", " ")} UTC](https://github.com/${commit.repository}/commit/${commit.sha})`
+		: "—";
+}
+
+export async function renderReadme(sources: Sources, packs: Pack[], commits?: ReadmeCommits): Promise<string> {
 	const repo = sources.repository;
-	const stamp = (commit: Commit | undefined, at: string): string =>
-		commit
-			? `[${new Date(commit.date).toISOString().slice(0, 16).replace("T", " ")} UTC](https://github.com/${at}/commit/${commit.sha})`
-			: "—";
+	const localCommits = commits?.local ?? localLastCommits(repo);
+	const upstreamCommits = commits?.upstream ?? (await upstreamLastCommits(packs));
 	// Link each item at its own last commit so unrelated commits don't rewrite the row.
 	const source = (pack: Pack, item: Item) => {
 		if (pack.upstream) {
@@ -751,7 +764,6 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 				at: pack.upstream.repo,
 				url: `https://github.com/${pack.upstream.repo}/blob/${pack.upstream.sha}/${upstreamPath(pack, item.file)}`,
 				commit: upstreamCommits.get(`${pack.name}/${path.posix.dirname(item.file)}`),
-				commitAt: pack.upstream.repo,
 			};
 		}
 		const commit = localCommits.get(path.posix.join(pack.dir, item.file));
@@ -759,7 +771,6 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 			at: pack.repository ?? repo,
 			url: `https://github.com/${repo}/blob/${commit?.sha ?? "main"}/${pack.dir}/${item.file}`,
 			commit,
-			commitAt: repo,
 		};
 	};
 	const section = (kind: string, pick: (pack: Pack) => Item[]): string[] => {
@@ -768,14 +779,13 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 			.sort((a, b) => `${a.pack.name}/${a.item.name}`.localeCompare(`${b.pack.name}/${b.item.name}`))
 			.map(({ pack, item }) => {
 				const link = source(pack, item);
-				return `| [${item.name}](${link.url}) | \`${pack.name}\` | \`${pack.version}\` | [${link.at}](https://github.com/${link.at}) | ${stamp(link.commit, link.commitAt)} |`;
+				return `| [${item.name}](${link.url}) | \`${pack.name}\` | \`${pack.version}\` | [${link.at}](https://github.com/${link.at}) | ${commitStamp(link.commit)} |`;
 			});
 		if (rows.length === 0) return [];
 		return [`## ${kind}`, "", `| ${kind.slice(0, -1)} | Pack | Version | Source | Last updated |`, "| --- | --- | --- | --- | --- |", ...rows, ""];
 	};
 	const authored = packs.filter(pack => !pack.upstream && !pack.attribution).map(pack => `\`${pack.name}\``).join(", ");
 	const packRows = packs.map(pack => {
-		const at = pack.upstream?.repo ?? pack.repository ?? repo;
 		const target = pack.upstream
 			? `[${pack.upstream.repo}@${pack.upstream.sha.slice(0, 7)}](https://github.com/${pack.upstream.repo}/tree/${pack.upstream.sha})`
 			: pack.attribution
@@ -783,8 +793,8 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 					? `[${pack.repository}](https://github.com/${pack.repository}) via [ATTRIBUTION](./${pack.dir}/ATTRIBUTION)`
 					: `vendored, see [ATTRIBUTION](./${pack.dir}/ATTRIBUTION)`
 				: "this repo";
-		const commitAt = pack.upstream ? at : repo;
-		return `| \`${pack.name}\` | \`${pack.version}\` | ${target} | ${describeRequirements(pack)} | ${describeContents(pack)} | ${stamp(localCommits.get(pack.dir), commitAt)} |`;
+		// A pack row dates the pack directory in this repository, so its commit is always local.
+		return `| \`${pack.name}\` | \`${pack.version}\` | ${target} | ${describeRequirements(pack)} | ${describeContents(pack)} | ${commitStamp(localCommits.get(pack.dir))} |`;
 	});
 
 	return [
@@ -830,7 +840,7 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		...section("Tools", pack => pack.tools),
 		"## License",
 		"",
-		`The root [LICENSE](./LICENSE) covers what is written here: ${authored} under \`packs/\`, and tooling under \`scripts/\`. Vendored packs and \`upstream/\` copies carry the license files their upstreams ship. Third-party adaptations and attributions are listed in [\`licenses/\`](./licenses/README.md).`,
+		`The root [LICENSE](./LICENSE) (MIT) covers all material authored in this repository: root files, \`.github/\`, configuration, \`scripts/\`, and the first-party packs ${authored} under \`packs/\`, with the third-party exceptions it documents. Vendored packs and \`upstream/\` copies carry the license files their upstreams ship. Third-party adaptations and attributions are listed in [\`licenses/\`](./licenses/README.md).`,
 		"",
 	].join("\n");
 }

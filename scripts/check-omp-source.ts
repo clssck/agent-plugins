@@ -5,13 +5,13 @@
 import * as path from "node:path";
 import { githubGraphql, githubRepositoryField } from "./github";
 
-interface NotificationConfig {
+export interface NotificationConfig {
 	repository: string;
 	assignee: string;
 	issueTitle: string;
 }
 
-interface SourceLock {
+export interface SourceLock {
 	repository: string;
 	ref: string;
 	reviewedCommit: string;
@@ -19,7 +19,7 @@ interface SourceLock {
 	notification: NotificationConfig;
 }
 
-interface Issue {
+export interface Issue {
 	number: number;
 	title: string;
 	body: string | null;
@@ -28,6 +28,13 @@ interface Issue {
 }
 
 const LOCK_PATH = path.resolve(import.meta.dir, "..", "omp-source-lock.json");
+
+type Request = <T>(endpoint: string, init: RequestInit, allowed: number[]) => Promise<T>;
+
+const ISSUES_PER_PAGE = 100;
+const RESOLVED_MARKER = "<!-- omp-source-resolved -->";
+const DRIFT_MARKER_LINE = /^<!-- omp-source-current:[0-9a-f]+ -->[ \t]*$/gm;
+const DRIFT_MARKER = /<!-- omp-source-current:[0-9a-f]+ -->/;
 
 async function rest<T>(endpoint: string, init: RequestInit, allowed: number[]): Promise<T> {
 	const token = process.env.GITHUB_TOKEN;
@@ -85,25 +92,103 @@ function issueBody(lock: SourceLock, head: string, current: Record<string, strin
 	].join("\n");
 }
 
-async function notify(lock: SourceLock, head: string, current: Record<string, string | null>, changed: boolean): Promise<void> {
-	const { repository, assignee, issueTitle } = lock.notification;
-	if (process.env.GITHUB_REPOSITORY !== repository) {
-		throw new Error(`Refusing to notify ${repository} from GITHUB_REPOSITORY=${process.env.GITHUB_REPOSITORY ?? "<unset>"}`);
-	}
-	const issues = await rest<Issue[]>(`/repos/${repository}/issues?state=all&sort=updated&direction=desc&per_page=100`, { method: "GET" }, [200]);
-	const existing = issues.find(issue => !issue.pull_request && issue.title === issueTitle);
+export type NotifyAction = "create" | "refresh" | "close" | "resolve" | "none";
+
+/**
+ * Issue body state is explicit and deterministic:
+ * - a body containing the exact current drift marker reports that drift;
+ * - a body containing RESOLVED_MARKER reports nothing. It is written whenever the baseline matches again, whether the
+ *   issue was open (auto-closed) or closed by a maintainer (dismissed), because a recurrence is then new drift.
+ * While the same drift persists, a maintainer-closed issue stays dismissed. Any drift whose marker the body lacks,
+ * including a recurrence equal to an older report, refreshes and reopens the issue.
+ */
+export function notifyAction(existing: Issue | undefined, changed: boolean, marker: string): NotifyAction {
 	if (!changed) {
-		if (existing?.state === "open") {
-			await rest(`/repos/${repository}/issues/${existing.number}`, { method: "PATCH", body: JSON.stringify({ state: "closed" }) }, [200]);
-			console.log(`closed resolved baseline issue #${existing.number}`);
+		if (existing?.state === "open") return "close";
+		return existing && DRIFT_MARKER.test(existing.body ?? "") ? "resolve" : "none";
+	}
+	if (!existing) return "create";
+	return existing.body?.includes(marker) ? "none" : "refresh";
+}
+
+/** Replace the drift marker with the resolved marker so a recurrence of the same drift is not mistaken for a dismissal. */
+export function resolvedBody(body: string | null): string {
+	const kept = (body ?? "").replace(DRIFT_MARKER_LINE, "").trimEnd();
+	return kept.includes(RESOLVED_MARKER) ? kept : `${kept}${kept ? "\n\n" : ""}${RESOLVED_MARKER}`;
+}
+
+export function driftMarker(current: Record<string, string | null>): string {
+	const sorted = Object.fromEntries(Object.entries(current).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
+	return `<!-- omp-source-current:${new Bun.CryptoHasher("sha256").update(JSON.stringify(sorted)).digest("hex")} -->`;
+}
+
+interface NotificationIssues {
+	/** The issue drift is reported in: an open issue if any, otherwise the oldest. */
+	canonical: Issue | undefined;
+	/** Every same-title non-PR issue, oldest first; duplicates may carry stale drift markers. */
+	matches: Issue[];
+}
+
+/** Scan every issue page (never just the newest) for same-title issues; pull requests are excluded. */
+async function scanNotificationIssues(repository: string, title: string, request: Request): Promise<NotificationIssues> {
+	const matches: Issue[] = [];
+	let canonical: Issue | undefined;
+	for (let page = 1; ; page++) {
+		const issues = await request<Issue[]>(
+			`/repos/${repository}/issues?state=all&sort=created&direction=asc&per_page=${ISSUES_PER_PAGE}&page=${page}`,
+			{ method: "GET" },
+			[200],
+		);
+		for (const issue of issues) {
+			if (issue.pull_request || issue.title !== title) continue;
+			matches.push(issue);
+			if (!canonical || (issue.state === "open" && canonical.state !== "open")) canonical = issue;
+		}
+		if (issues.length < ISSUES_PER_PAGE) return { canonical, matches };
+	}
+}
+
+/** Scan every issue page (never just the newest) for the notification issue; pull requests are excluded. Prefers an open issue, then the oldest. */
+export async function findNotificationIssue(repository: string, title: string, request: Request = rest): Promise<Issue | undefined> {
+	return (await scanNotificationIssues(repository, title, request)).canonical;
+}
+
+export async function notify(
+	lock: SourceLock,
+	head: string,
+	current: Record<string, string | null>,
+	changed: boolean,
+	request: Request = rest,
+	githubRepository: string | undefined = process.env.GITHUB_REPOSITORY,
+): Promise<void> {
+	const { repository, assignee, issueTitle } = lock.notification;
+	if (githubRepository !== repository) {
+		throw new Error(`Refusing to notify ${repository} from GITHUB_REPOSITORY=${githubRepository ?? "<unset>"}`);
+	}
+	const { canonical: existing, matches } = await scanNotificationIssues(repository, issueTitle, request);
+	const marker = driftMarker(current);
+	if (!changed) {
+		// Resolve every duplicate, not just the canonical one: a stale drift marker left on any duplicate could later be
+		// selected as canonical and make a recurrence of that drift look deliberately dismissed.
+		for (const issue of matches) {
+			const action = notifyAction(issue, false, marker);
+			if (action === "none") continue;
+			// A dismissed (already closed) issue only has its drift marker cleared; its closed state is left alone.
+			const patch = action === "close" ? { state: "closed", body: resolvedBody(issue.body) } : { body: resolvedBody(issue.body) };
+			await request(`/repos/${repository}/issues/${issue.number}`, { method: "PATCH", body: JSON.stringify(patch) }, [200]);
+			console.log(`resolved baseline issue #${issue.number}${action === "close" ? " (closed)" : ""}`);
 		}
 		return;
 	}
+	const action = notifyAction(existing, changed, marker);
+	if (action === "none") {
+		console.log(`baseline change already ${existing!.state === "open" ? "reported" : "dismissed"} in issue #${existing!.number}`);
+		return;
+	}
 
-	const marker = `<!-- omp-source-current:${new Bun.CryptoHasher("sha256").update(JSON.stringify(current)).digest("hex")} -->`;
 	const body = issueBody(lock, head, current, marker);
-	if (!existing) {
-		const created = await rest<Issue>(
+	if (action === "create") {
+		const created = await request<Issue>(
 			`/repos/${repository}/issues`,
 			{ method: "POST", body: JSON.stringify({ title: issueTitle, body, assignees: [assignee] }) },
 			[201],
@@ -111,33 +196,31 @@ async function notify(lock: SourceLock, head: string, current: Record<string, st
 		console.log(`opened baseline issue #${created.number}`);
 		return;
 	}
-	if (existing.body?.includes(marker)) {
-		console.log(`baseline change already ${existing.state === "open" ? "reported" : "dismissed"} in issue #${existing.number}`);
-		return;
-	}
-	await rest(
-		`/repos/${repository}/issues/${existing.number}`,
+	await request(
+		`/repos/${repository}/issues/${existing!.number}`,
 		{ method: "PATCH", body: JSON.stringify({ body, state: "open", assignees: [assignee] }) },
 		[200],
 	);
-	await rest(
-		`/repos/${repository}/issues/${existing.number}/comments`,
+	await request(
+		`/repos/${repository}/issues/${existing!.number}/comments`,
 		{ method: "POST", body: JSON.stringify({ body: `@${assignee} OMP changed again; the table above is current.` }) },
 		[201],
 	);
-	console.log(`updated baseline issue #${existing.number}`);
+	console.log(`updated baseline issue #${existing!.number}`);
 }
 
-const lock = (await Bun.file(LOCK_PATH).json()) as SourceLock;
-if (!lock.repository || !lock.ref || !lock.reviewedCommit || Object.keys(lock.trees ?? {}).length === 0) {
-	throw new Error(`Invalid OMP source lock: ${LOCK_PATH}`);
-}
-const current = await currentTrees(lock);
-const changed = Object.keys(lock.trees).sort().filter(sourcePath => lock.trees[sourcePath] !== current.trees[sourcePath]);
-if (process.argv.includes("--notify")) await notify(lock, current.head, current.trees, changed.length > 0);
-if (changed.length === 0) {
-	console.log(`OMP baseline matches ${lock.repository}@${current.head.slice(0, 12)}`);
-} else {
-	for (const sourcePath of changed) console.error(`${sourcePath}: ${lock.trees[sourcePath]} -> ${current.trees[sourcePath] ?? "missing"}`);
-	if (!process.argv.includes("--notify")) process.exitCode = 1;
+if (import.meta.main) {
+	const lock = (await Bun.file(LOCK_PATH).json()) as SourceLock;
+	if (!lock.repository || !lock.ref || !lock.reviewedCommit || Object.keys(lock.trees ?? {}).length === 0) {
+		throw new Error(`Invalid OMP source lock: ${LOCK_PATH}`);
+	}
+	const current = await currentTrees(lock);
+	const changed = Object.keys(lock.trees).sort().filter(sourcePath => lock.trees[sourcePath] !== current.trees[sourcePath]);
+	if (process.argv.includes("--notify")) await notify(lock, current.head, current.trees, changed.length > 0);
+	if (changed.length === 0) {
+		console.log(`OMP baseline matches ${lock.repository}@${current.head.slice(0, 12)}`);
+	} else {
+		for (const sourcePath of changed) console.error(`${sourcePath}: ${lock.trees[sourcePath]} -> ${current.trees[sourcePath] ?? "missing"}`);
+		if (!process.argv.includes("--notify")) process.exitCode = 1;
+	}
 }
