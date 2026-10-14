@@ -1,13 +1,13 @@
 ---
 name: skill-authoring
-description: Write, revise, or audit agent skills (SKILL.md, references/, script templates) in OMP's bundled style — trigger-rich descriptions, task-named sections, bold-lead rules, tables, runnable examples. Use when creating a skill, rewriting a description that never triggers, trimming a bloated SKILL.md, adding gates or definitions of done, or reviewing skill quality. Not for building the tool a skill wraps — cli-creator; prompt voice and tags — system-prompts.
+description: Write, revise, or audit agent skills (SKILL.md, references/, script templates) in clssck house style — trigger-rich descriptions, task-named sections, bold-lead rules, tables, runnable examples. Use when creating a skill, rewriting a description that never triggers, trimming a bloated SKILL.md, adding gates or definitions of done, or reviewing skill quality. Not for building the tool a skill wraps — cli-creator.
 ---
 
 # Skill Authoring
 
-A skill is a control surface loaded on demand: what the agent MAY do, in what order, on what evidence, and when work counts as done. Write dense prose for a competent agent that would otherwise improvise. Model is a cold executor: no author present, so every sentence MUST change a decision. Discovery behavior → `omp://skills.md`.
+A skill is a control surface loaded on demand: what the agent MAY do, in what order, on what evidence, and when work counts as done. Write dense prose for a competent agent that would otherwise improvise. Model is a cold executor: no author present, so every sentence MUST change a decision. Host discovery and loading mechanics are runtime-specific; consult the host's own skills docs (OMP: `omp://skills.md`).
 
-House style = OMP bundled skills (`system-prompts`, `tool-prompt-optimization`, `semantic-compression`): rationale in the intro, task-named sections, bold-lead rules, tables for enumerations, runnable examples. Compression mechanics → `semantic-compression`; tag and RFC vocabulary → `system-prompts`.
+House style → [references/house-style.md](skill://skill-authoring/references/house-style.md): dense imperative voice, RFC vocabulary, lossless compression, and tool-description boundaries. This skill applies that style to skill structure and quality gates.
 
 ## Description
 
@@ -15,7 +15,7 @@ The description is **retrieval surface**: the model sees only it before choosing
 
 - **Trigger coverage, no fixed word count:** state what the skill does, then tasks, phrasings, and contexts that trigger it. Use "Use when …" where it reads naturally. Keep keyword-redundant alternatives ("audit", "review", "trim"); compress the body, NEVER the trigger.
 - **Layout:** a standalone skill is `<skills-root>/<name>/SKILL.md`; the directory name is the skill `name`.
-- **Sibling boundaries inline:** `not for X — <sibling> instead`. Name the sibling.
+- **Boundaries inline:** state `not for X`, the safe alternative, and the stop condition locally. A sibling name MAY route the reader but NEVER carries required behavior.
 - Quote the value when it contains a colon-space.
 - Frontmatter = `name` + `description`; add `disable-model-invocation: true` only for manual-only skills. Directory name = `name`.
 
@@ -26,7 +26,7 @@ The description is **retrieval surface**: the model sees only it before choosing
 - **Enumerations → tables.** Telegraphic where enumerating (`→`, `⇒`, `·`); normal dense prose in paragraphs. No hedging, ceremony, closing summaries.
 - **Examples are concrete and runnable** — bash/json fences, real commands — not abstract description. Adjacent Bad/Good pair removes a retry class.
 - **RFC 2119 keywords** (MUST, NEVER, SHOULD, AVOID, MAY) are precise, sparse, full caps, and not bold. Prohibition without a stated substitute forces guessing; name the substitute.
-- **Router size:** SKILL.md ≤~150 lines. Detail → `references/*.md` in the same register, runnable helpers → `scripts/`. Link every runtime entry point directly from SKILL.md with `skill://<name>/...`; supporting test material MAY be linked from the reference or script it validates. Scope splits point at sibling skills by name.
+- **Router size:** SKILL.md ≤~150 lines. Detail → `references/*.md` in the same register, runnable helpers → `scripts/`. Link every runtime entry point directly from SKILL.md with `skill://<name>/...`; supporting test material MAY be linked from the reference or script it validates.
 
 ## Boundaries and gates
 
@@ -37,7 +37,7 @@ The description is **retrieval surface**: the model sees only it before choosing
 
 ## Definition of done
 
-A checklist survives only when it describes the artifact the skill produces (`system-prompts` ends with one for prompts). Otherwise fold its content into task sections: "Before every check", "Verdict", "Stop rules", "Verification".
+A checklist survives only when it describes the artifact the skill produces. Otherwise fold its content into task sections: "Before every check", "Verdict", "Stop rules", "Verification".
 
 - Done criteria MUST be countable where possible (file exists, line count, exit code), not only qualitative.
 - Artifact-producing skills SHOULD carry a deliverables table: exact file, stage, contents.

@@ -1,0 +1,13 @@
+{
+  "name": "clssck-development",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Repository-agnostic development commands, prompt-authoring skills, and a terminal UI debugging tool.",
+  "license": "MIT",
+  "author": {
+    "name": "clssck"
+  },
+  "homepage": "https://github.com/clssck/agent-plugins/tree/main/packs/clssck-development",
+  "repository": "https://github.com/clssck/agent-plugins",
+  "omp": {}
+}

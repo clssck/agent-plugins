@@ -26,6 +26,3 @@ jobs:
 
       - name: Check packs and generated files
         run: bun scripts/sync.ts --check
-
-      - name: Validate packs with OMP's extension loaders
-        uses: ./.github/actions/omp-loader-check

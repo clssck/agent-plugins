@@ -864,7 +864,7 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		"omp plugin install github:clssck/agent-plugins   # omp keeps its own copy of this repo",
 		"AP=~/.omp/plugins/node_modules/agent-plugins",
 		"omp plugin link $AP/packs/clssck-core              # link each pack you want",
-		"omp plugin link $AP/packs/omp-development",
+		"omp plugin link $AP/packs/clssck-development",
 		"omp plugin link $AP/upstream/emilkowalski-skills",
 		"```",
 		"",
@@ -874,8 +874,6 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		"Upgrade note for existing installs: if a machine links `sanofi` without `clssck-core`, link `clssck-core` before upgrading. The `dbt-command-scope` and `dbt-test-arguments` guards moved to `clssck-core` in 1.2.0.",
 		"",
 		"Packs that load are not guaranteed to work with every host capability. Generated CoCo upstreams are adapted on deterministic staged copies and record pinned build provenance; committed \`packs/coco-*\` are adapted in place in this repository. In both cases source repositories and named source releases remain untouched. Foreign question, skill, task, todo, and fetch interfaces become OMP semantics; external capabilities are gated; missing links are repaired or de-linked; and \`skill://\` references are validated against pack-scoped dependency declarations. When a required capability or host path is unavailable, stop and report it; NEVER improvise a substitute.",
-		"",
-		"CI also runs each pack through the pinned OMP extension providers with its declared dependency closure, plus the fatal task-agent parser and extension loader. This proves discovery and schema compatibility, not the business behavior of every skill workflow.",
 		"",
 		"Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).",
 		"",
@@ -918,7 +916,7 @@ if (import.meta.main) {
 			console.log("readme updated");
 		}
 	} else {
-		console.log("readme: written by the workflow; pass --readme to update it locally");
+		console.log("readme not checked; pass --readme to regenerate it locally");
 	}
 	console.log(`${packs.length} packs, ${packs.reduce((total, pack) => total + pack.skills.length, 0)} skills: all load in OMP`);
 }

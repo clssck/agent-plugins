@@ -1,12 +1,13 @@
 #!/usr/bin/env bun
 /**
- * Validate every pack with OMP's real extension-package loaders from an oh-my-pi checkout.
+ * Local smoke test: validate every pack with OMP's extension-package loaders from an explicit oh-my-pi checkout.
  *
  * Usage: OMP_ROOT=/path/to/oh-my-pi bun scripts/check-omp-loader.ts
  *
  * The check runs the omp-plugins provider in explicit-only mode for skills, commands,
  * rules, and tools; parses task agents with OMP's fatal agent parser; and imports/binds every
- * declared extension. Repository expectations must match OMP by name and file with no warnings.
+ * declared extension. Repository expectations must match the host by name and file with no warnings.
+ * It then runs the packaged builtin prompt probe offline (`--show`) against the same checkout.
  */
 
 import * as path from "node:path";
@@ -24,6 +25,8 @@ const AGENT_SRC = path.join(OMP_ROOT, "packages/coding-agent/src");
 interface LoadedItem {
 	name: string;
 	path: string;
+	/** Present on rules: OMP's normalized regex condition strings. */
+	condition?: string[];
 }
 
 interface CapabilityLoadResult<T> {
@@ -63,6 +66,9 @@ const extensionLoader = (await import(path.join(AGENT_SRC, "extensibility/extens
 const utils = (await import(path.join(OMP_ROOT, "packages/utils/src/frontmatter.ts"))) as {
 	parseFrontmatter(content: string, options?: { source?: unknown; level?: "off" | "warn" | "fatal" }): unknown;
 };
+const ruleCapability = (await import(path.join(AGENT_SRC, "capability/rule.ts"))) as {
+	compileRuleCondition(pattern: string): RegExp;
+};
 
 const sources = await Bun.file(path.join(ROOT, "sources.json")).json();
 const repositoryErrors: string[] = [];
@@ -92,6 +98,17 @@ for (const surface of surfaces) {
 	});
 	for (const warning of result.warnings) problems.push("OMP " + surface.label + " warning: " + warning);
 
+	if (surface.id === "rules") {
+		for (const rule of result.items) {
+			for (const [index, condition] of (rule.condition ?? []).entries()) {
+				try {
+					ruleCapability.compileRuleCondition(condition);
+				} catch (error) {
+					problems.push("OMP cannot compile rule " + rule.path + " condition[" + index + "]: " + String(error));
+				}
+			}
+		}
+	}
 	const discovered = new Map(result.items.map(item => [path.resolve(item.path), item]));
 	let expectedCount = 0;
 	for (const pack of packs) {
@@ -191,7 +208,7 @@ totals.push(extensionPaths.length + " " + (extensionPaths.length === 1 ? "extens
 
 const probePath = path.join(
 	ROOT,
-	"packs/omp-development/skills/tool-prompt-optimization/scripts/probe-builtin.ts",
+	"packs/clssck-development/skills/tool-prompt-optimization/scripts/probe-builtin.ts",
 );
 const probeSmoke = Bun.spawnSync({
 	cmd: [process.execPath, probePath, "--tool", "github", "--show"],
@@ -203,7 +220,7 @@ const probeSmoke = Bun.spawnSync({
 });
 if (!probeSmoke.success) {
 	const stderr = new TextDecoder().decode(probeSmoke.stderr).trim();
-	problems.push("omp-development: packaged builtin prompt probe failed" + (stderr ? ": " + stderr : ""));
+	problems.push("clssck-development: packaged builtin prompt probe failed" + (stderr ? ": " + stderr : ""));
 }
 
 if (problems.length > 0) {

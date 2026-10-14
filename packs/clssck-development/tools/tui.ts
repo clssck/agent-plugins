@@ -1,11 +1,12 @@
 /**
- * Project-local `tui` tool: run and debug pi-tui apps headlessly. Each session
- * spawns a TypeScript/JavaScript entry or executable on a Bun-native PTY — a
- * real controlling terminal, so capability probes, SIGWINCH resizes, and
- * immediate-mode hosts all behave as in production — with `OMP_TUI_DEBUG`
- * pointed at the unix socket served by an omp/pi-tui host. Injected input
- * rides the app's own input path, while renderer and component queries inspect
- * the last painted frame.
+ * clssck-maintained `tui` tool: run and debug terminal apps headlessly. Each
+ * session spawns a TypeScript/JavaScript entry (via Bun) or an executable on a
+ * Bun-native PTY — a real controlling terminal, so capability probes, SIGWINCH
+ * resizes, and immediate-mode renderers behave as in production. Screen and
+ * text inspection work for any terminal app. Apps that implement the optional
+ * OMP host introspection protocol also serve NDJSON on the unix socket named by
+ * `OMP_TUI_DEBUG`, which unlocks renderer and component queries against the
+ * last painted frame; injected input always rides the app's own input path.
  *
  * kitty's real terminal core (screen.c + vt-parser.c via kitty-vt-wasm)
  * tracks every PTY byte, so `screen` (and the socketless `text` fallback)
@@ -92,6 +93,7 @@ export interface TuiParams {
 	peek?: number;
 	clear?: boolean;
 	quiet?: boolean;
+	debug?: boolean;
 	timeout?: number;
 }
 
@@ -114,7 +116,7 @@ function loadVt() {
 	vtApi ??= import(dependencyEntry("kitty-vt-wasm/dist/index.js")).catch((error) => {
 		vtApi = null;
 		throw new Error(
-			`screen emulation needs kitty-vt-wasm — run \`bun install\` at the agent-plugins repository root for a linked checkout, or reinstall/upgrade the package (${error})`,
+			`screen emulation needs kitty-vt-wasm — run \`bun install\` at the agent-plugins root for a linked checkout, or \`omp plugin upgrade agent-plugins\` for an installed copy (${error})`,
 		);
 	});
 	return vtApi;
@@ -201,7 +203,7 @@ async function loadCanvas() {
 		mod = await import(dependencyEntry("@napi-rs/canvas/index.js"));
 	} catch (error) {
 		throw new Error(
-			`shot needs @napi-rs/canvas — run \`bun install\` at the agent-plugins repository root for a linked checkout, or reinstall/upgrade the package (${error})`,
+			`shot needs @napi-rs/canvas — run \`bun install\` at the agent-plugins root for a linked checkout, or \`omp plugin upgrade agent-plugins\` for an installed copy (${error})`,
 		);
 	}
 	const families = mod.GlobalFonts.families.map((entry) => entry.family);
@@ -247,7 +249,7 @@ function lerpColor(from: number, to: number, t: number): number {
  * Terminal emulation fed every PTY byte: kitty's real core (screen.c +
  * vt-parser.c compiled to wasm via kitty-vt-wasm), so SGR, rewrap-on-resize,
  * scrollback, graphemes, and wide chars behave exactly as in kitty. Any
- * session — omp-tui host or not — can be read as plain text (`snapshot`) or
+ * session — with or without the optional OMP introspection socket — can be read as plain text (`snapshot`) or
  * rasterized to pixels (`png`). Backs the `screen`/`shot` ops, the socketless
  * `text` fallback, and the after-screenshot on input ops. Query replies the
  * core emits (DA, DECRQSS, XTGETTCAP, OSC color queries) surface on
@@ -755,8 +757,8 @@ function request(
 	if (!sock) {
 		return Promise.reject(
 			new Error(
-				`session "${session.name}" has no debug socket — the app is not an ` +
-					"omp-tui host (or exited). screen/raw/send/resize/stop still work.",
+				`session "${session.name}" has no debug socket — it was started without debug:true, or the app does not serve ` +
+					"OMP_TUI_DEBUG introspection (or exited). text/screen/shot/raw/send/resize/stop still work.",
 			),
 		);
 	}
@@ -793,7 +795,7 @@ async function stopSession(session: Session): Promise<number | null> {
 		if (session.sock) {
 			await request(session, { op: "quit" }, 2_000);
 		} else if (session.exit === null) {
-			// Non-omp-tui apps have no debug socket; Ctrl-C is the
+			// Apps without the optional OMP_TUI_DEBUG socket get Ctrl-C, the
 			// conventional quit chord.
 			session.proc.terminal.write("\x03");
 		}
@@ -980,21 +982,30 @@ const factory = (omp: ToolHost) => {
 		if (sessions.has(name)) {
 			throw new Error(`session "${name}" already running; stop it first`);
 		}
-		if (params.file && params.bin) {
+		const file = params.file;
+		const bin = params.bin;
+		if (file && bin) {
 			throw new Error("start takes `file` or `bin`, not both");
 		}
-		// Default target: this repo's own TUI, omp itself.
-		const file = params.bin ? undefined : (params.file ?? "packages/coding-agent/src/cli.ts");
-		const target = file ?? params.bin ?? "";
-		const bun = file ? Bun.which("bun") : undefined;
-		if (file && !bun) throw new Error("start with file needs bun on PATH");
-		const command = file
-			? [bun, resolve(omp.cwd, file), ...(params.args ?? [])]
-			: [target, ...(params.args ?? [])];
+		let target: string;
+		let command: string[];
+		if (file) {
+			const bun = Bun.which("bun");
+			if (!bun) throw new Error("start with file needs bun on PATH");
+			target = file;
+			command = [bun, resolve(omp.cwd, file), ...(params.args ?? [])];
+		} else if (bin) {
+			target = bin;
+			command = [bin, ...(params.args ?? [])];
+		} else {
+			throw new Error(
+				"start needs a target: `file` (TS/JS entry path relative to cwd, run with bun) or `bin` (executable name or path)",
+			);
+		}
 
 		const rows = params.rows ?? 30;
 		const cols = params.cols ?? 100;
-		const dir = mkdtempSync(join(tmpdir(), `omp-tui-${name}-`));
+		const dir = mkdtempSync(join(tmpdir(), `clssck-tui-${name}-`));
 		const sockPath = join(dir, "debug.sock");
 		const gatePath = join(dir, "spawn.gate");
 		const screen = await Screen.create(cols, rows);
@@ -1060,11 +1071,11 @@ const factory = (omp: ToolHost) => {
 		sessions.set(name, session);
 
 		const deadline = Date.now() + (params.timeout ?? 15) * 1000;
-		const connected = await connectSocket(
-			session,
-			sockPath,
-			(params.timeout ?? 15) * 1000,
-		);
+		// Only hosts that serve OMP_TUI_DEBUG bind the socket; waiting for it
+		// on any other app would stall `start` for the whole timeout.
+		const connected = params.debug
+			? await connectSocket(session, sockPath, (params.timeout ?? 15) * 1000)
+			: (await sleep(250), false);
 		if (session.exit !== null) {
 			const tail = visible(Buffer.concat(session.raw)).slice(-3000);
 			await stopSession(session).catch(() => {});
@@ -1091,7 +1102,7 @@ const factory = (omp: ToolHost) => {
 			text += `\n${screenshotText(shot)}`;
 		} else {
 			text +=
-				"\n(no debug socket: app is not an omp-tui host; `send` injects " +
+				`\n(no debug socket: ${params.debug ? "app does not serve OMP_TUI_DEBUG introspection" : "started without debug:true"}; \`send\` injects ` +
 				"input, `screen` renders the emulated display)" +
 				`\n${session.screen.snapshot()}`;
 		}
@@ -1102,11 +1113,13 @@ const factory = (omp: ToolHost) => {
 		name: "tui",
 		label: "TUI Debug",
 		description:
-			"Run and debug omp/pi-tui apps headlessly on a real PTY plus the " +
-			"OMP_TUI_DEBUG socket. Start defaults to omp itself " +
-			"(packages/coding-agent/src/cli.ts); override with file (a TS/JS entry, e.g. " +
-			"file: \"packages/tui/examples/debug-demo.ts\") or bin (an executable name/path), plus optional rows/cols and args. Any omp/pi-tui app serves " +
-			"OMP_TUI_DEBUG. Ops: text (viewport screenshot as plain text), screen " +
+			"Run and debug terminal apps headlessly on a real PTY. start requires " +
+			"exactly one target: file (a TS/JS entry relative to cwd, run with bun) or " +
+			"bin (an executable name/path), plus optional rows/cols and args. Apps that " +
+			"implement the optional OMP host introspection protocol serve the " +
+			"OMP_TUI_DEBUG socket; start them with debug:true to enable frame/tree/values/info and decoder-level " +
+			"keys/type/paste/mouse. Other apps use screen/shot/send/resize/raw, and text " +
+			"falls back to the emulated screen. Ops: text (viewport screenshot as plain text), screen " +
 			"(plain-text screen from kitty's real terminal core — works for any app, no " +
 			"debug socket needed; peek=N prepends N scrollback lines), frame (full " +
 			"document), tree (component tree with ids/rects/focus), values (widget " +
@@ -1135,11 +1148,11 @@ const factory = (omp: ToolHost) => {
 			file: omp.zod
 				.string()
 				.optional()
-				.describe("start: TS/JS entry path relative to cwd (default: packages/coding-agent/src/cli.ts — omp itself)"),
+				.describe("start: TS/JS entry path relative to cwd, run with bun (exactly one of file/bin)"),
 			bin: omp.zod
 				.string()
 				.optional()
-				.describe("start: executable name or path"),
+				.describe("start: executable name or path (exactly one of file/bin)"),
 			args: omp.zod
 				.array(omp.zod.string())
 				.optional()
@@ -1180,10 +1193,14 @@ const factory = (omp: ToolHost) => {
 				.boolean()
 				.optional()
 				.describe("input ops: skip the after-screenshot"),
+			debug: omp.zod
+				.boolean()
+				.optional()
+				.describe("start: wait for the OMP_TUI_DEBUG socket (default false)"),
 			timeout: omp.zod
 				.number()
 				.optional()
-				.describe("start: socket wait seconds (default 15)"),
+				.describe("start with debug: socket wait seconds (default 15)"),
 		}),
 
 		async execute(
@@ -1231,7 +1248,7 @@ const factory = (omp: ToolHost) => {
 					const session = need(params.name);
 					const png = join(
 						tmpdir(),
-						`omp-tui-${session.name}-${Date.now()}.png`,
+						`clssck-tui-${session.name}-${Date.now()}.png`,
 					);
 					const bytes = await session.screen.png();
 					writeFileSync(png, bytes);
