@@ -65,7 +65,7 @@ Small visual fix → keep the existing direction and skip exploration. Nonvisual
 
 ## Skill routing
 
-Use a skill only when its task and platform match; NEVER invoke one by rote. The session's skill list is the whole available set; if a target is missing, continue with this prompt.
+Use a skill only when its task and platform match; NEVER invoke one by rote.
 - Visual polish, interaction detail, component feel → `emil-design-eng` (to execute the chosen direction, not to pick a default aesthetic).
 - Apple-like physical or gesture-driven UI (springs, drag, sheets, momentum) → `apple-design`.
 - Web animation → `animate`; React Native / Expo animation → `animate-expo`.

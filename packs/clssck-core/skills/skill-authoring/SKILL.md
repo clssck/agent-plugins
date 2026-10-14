@@ -21,12 +21,12 @@ The description is **retrieval surface**: the model sees only it before choosing
 
 ## Body structure
 
-- **Layout:** `# Title`, 1-2 dense intro paragraphs (what, governing principle, why — evidence only where it changes a decision), then `##` sections named for tasks ("Run probe", "Before every deletion", "Verdict"), `###` where needed.
+- **Layout:** `# Title`, 1-2 dense intro paragraphs (what, governing principle, why — evidence only where it changes a decision), then `##` sections: task names for procedures ("Run probe", "Before every deletion"), noun names for reference material ("Frames", "Operators"); `###` where needed.
 - **Rules use descriptive bold leads:** ``**Git history:** MUST `git blame` each cut line.`` Keep RFC 2119 markers in full caps but outside bold; body never restates the lead.
 - **Enumerations → tables.** Telegraphic where enumerating (`→`, `⇒`, `·`); normal dense prose in paragraphs. No hedging, ceremony, closing summaries.
 - **Examples are concrete and runnable** — bash/json fences, real commands — not abstract description. Adjacent Bad/Good pair removes a retry class.
 - **RFC 2119 keywords** (MUST, NEVER, SHOULD, AVOID, MAY) are precise, sparse, full caps, and not bold. Prohibition without a stated substitute forces guessing; name the substitute.
-- **Router size:** SKILL.md ≤~150 lines. Detail → `references/*.md` in the same register, runnable helpers → `scripts/`. Link every runtime entry point directly from SKILL.md with `skill://<name>/...`; supporting test material MAY be linked from the reference or script it validates.
+- **Progressive disclosure:** reference detail → `references/*.md` in the same register, runnable helpers → `scripts/`. Link every runtime entry point directly from SKILL.md with `skill://<name>/...`; supporting test material MAY be linked from the reference or script it validates.
 
 ## Boundaries and gates
 
@@ -37,7 +37,7 @@ The description is **retrieval surface**: the model sees only it before choosing
 
 ## Definition of done
 
-A checklist survives only when it describes the artifact the skill produces. Otherwise fold its content into task sections: "Before every check", "Verdict", "Stop rules", "Verification".
+A closing `## Checklist` MAY summarize the skill's verifiable rules; every item MUST be checkable. Artifact-producing skills also state their done criteria:
 
 - Done criteria MUST be countable where possible (file exists, line count, exit code), not only qualitative.
 - Artifact-producing skills SHOULD carry a deliverables table: exact file, stage, contents.
@@ -62,7 +62,7 @@ A checklist survives only when it describes the artifact the skill produces. Oth
 |Wrong|Right|
 |---|---|
 |Description with no trigger language|Task phrasing, trigger synonyms, contexts, and sibling boundaries|
-|Rote `## Checklist` ending|Fold into task sections; keep a checklist only for the produced artifact|
+|Uncheckable checklist items ("looks good")|Each item names an observable check|
 |Hand-rolling a substitute for a shipped template|Copy, adapt, record deltas, run|
 |Retrying a failing command|Two-strike rule: change strategy|
 |Reading large artifacts whole|Ranges, bounded searches, counts; keep summaries|

@@ -115,6 +115,6 @@ After the CLI works, create or update a normal omp skill that teaches it.
 
 - **Layout:** one level deep, `<skills-root>/<tool-name>/SKILL.md`; folder name = `name`.
 - **Frontmatter:** `name` + `description`; `disable-model-invocation: true` only for a manual-only skill. Description = retrieval surface: purpose + concrete "Use when" triggers; `Not for …` only against sibling confusion. Authoring style → `skill-authoring`.
-- **Body:** `# Title`, dense intro, task-named `##` sections, bold-lead rules; ≤~150 lines. Detail in `references/*.md`; link every runtime asset with `skill://<tool-name>/...`. Skeleton → [agent-cli-patterns.md](skill://cli-creator/references/agent-cli-patterns.md#companion-skill).
+- **Body:** `# Title`, dense intro, `##` sections (task names for procedures, noun names for reference), bold-lead rules. Detail in `references/*.md`; link every runtime asset with `skill://<tool-name>/...`. Skeleton → [agent-cli-patterns.md](skill://cli-creator/references/agent-cli-patterns.md#companion-skill).
 - **Bundled scripts:** PEP 723 header with `#!/usr/bin/env -S uv run --script`; invoke as `uv run "$(realpath skill://<tool-name>/scripts/<file>.py)"` in the omp `bash` tool. Bare `skill://` path fails in external programs; `realpath` prints the physical path.
 - **Verify:** `read skill://<tool-name>` resolves, every link resolves, example commands run from a fresh directory.

@@ -14,10 +14,10 @@ Portable authoring rules for a skill consumed through OMP. OMP owns discovery, f
 
 1. Trigger-rich frontmatter description: task, user phrasing, contexts, local exclusions.
 2. `# Title` and a short governing principle.
-3. Task-named `##` sections in execution order.
+3. `##` sections: task names for procedures, noun names for reference material.
 4. Entry/exit gates where shortcuts are likely.
 5. Exact outputs and observable verification.
-6. Artifact-specific checklist only when the skill produces an artifact.
+6. Optional closing checklist; every item verifiable.
 
 Use tables for real enumerations. Use runnable examples for syntax or shapes. Put reference detail in `references/` and executable helpers in `scripts/`; link every runtime entry point directly from `SKILL.md`.
 
@@ -36,13 +36,20 @@ Teach the decision surface, not implementation machinery:
 
 1. One-line purpose in agent vocabulary.
 2. Input grammar and verbatim syntax.
-3. Runnable common examples.
-4. Agent-owned failures and exact recovery action.
-5. WRONG/RIGHT anti-patterns from real retries.
-6. Short critical recap.
+3. Worked examples: 3–8 common shapes; the example is the explanation.
+4. Agent-owned failures and exact recovery action; omit silently recovered failures.
+5. WRONG/RIGHT anti-patterns from real retries, never imagined ones.
+6. `<critical>` recap: 3–6 load-bearing lines for agents that skip the body.
 
-Keep defaults and their direction, output shape, routing/escalation, domain grammar, and constraints the schema cannot express. Omit module layout, internal algorithms, caches, telemetry, and silently recovered failures.
+Keep defaults and their direction, output shape, routing/escalation, domain grammar, and constraints the schema cannot express. Exclude:
+
+- Implementation file/function names and module layout.
+- Recovery, retry, normalization, caching, fuzz matching.
+- Performance characteristics, unless they change strategy.
+- Telemetry, logging, debug flags, unsettable env vars.
+- Version history, deprecated parameters, "previously this worked differently".
+- Cross-tool plumbing, unless the agent must coordinate the tools.
 
 ## Boundaries
 
-A sibling name MAY route the reader, but required behavior MUST remain local. The skill still states what is out of scope, the safe alternative, and the stop condition when no sibling skill is present.
+A sibling name MAY mark out-of-scope work. NEVER make behavior depend on whether another skill is installed. Required behavior lives in this skill or its references.
