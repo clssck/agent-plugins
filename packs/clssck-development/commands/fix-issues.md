@@ -12,7 +12,7 @@ No arguments → open issues created within the last 3 days.
 
 Run from the checkout root. Determine, and print:
 
-- `REPO`: canonical `HOST/owner/name`, built from `repo_view`/`gh repo view --json nameWithOwner,url`; always retain the URL host so `GH_HOST` cannot redirect a bare slug.
+- `REPO`: canonical `HOST/owner/name`, built from `repo_view`/`gh repo view --json nameWithOwner,url,defaultBranchRef`; always retain the URL host so `GH_HOST` cannot redirect a bare slug.
 - `BASE`: the repository's default branch from that same result; verify with `git rev-parse --verify "refs/remotes/<remote>/<BASE>"` where `<remote>` is the git remote whose URL matches `REPO` (`git remote -v`). Remote missing or ambiguous → stop and ask.
 - `MAIN`: `git rev-parse --show-toplevel`.
 - Repo instructions: use the instructions already supplied by the host; read the repository's contributor/development docs and note documented setup, test, format, and commit conventions. They govern the fix; this command never assumes any.

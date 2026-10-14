@@ -172,7 +172,7 @@ description: <What the CLI does, service named>. Use when <concrete triggers, us
 
 # Tool Name
 
-Wrapper for <service>; run by command name from any directory. `doctor --json` MUST pass before other commands.
+Wrapper for <service>; run by command name from any directory. `doctor --json` MUST pass before service commands; help, configuration, and authentication commands MUST remain usable when it fails.
 
 ## Start
 

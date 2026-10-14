@@ -57,7 +57,7 @@ Modes: `depth` (enumerate known routes and record traffic), `coverage` (drive UI
 |`recon/js/`, `api_static.txt`, `routes.txt`|1|chunks, static endpoints, routes|
 |`param_candidates.json`|1b|static candidates with confidence|
 |`config.json`|2|three doors, runtime config|
-|`runtime_api.json`, HAR|3|runtime recording incl. WS/SSE|
+|`runtime_api.json`, HAR|3|runtime recording; Tern captures fetch/XHR + navigation only — WS/SSE need separate instrumentation|
 |`param_samples.json`, `scan_raw.json`|3b|samples, click log|
 |`params_merged.json`, `api_merged.txt`, `site_map.json`|5|merged output + limitations|
 
