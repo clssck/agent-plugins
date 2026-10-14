@@ -20,10 +20,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+A friendly request, not a license condition: if you copy or substantially adapt
+an idea from this repository, acknowledging the relevant contributors is
+appreciated. Doing so is entirely optional; the MIT terms above are the only
+terms that apply, and this note adds no restriction to them.
+
 ---
 
-This license covers only what is written in this repository: clssck-core,
-clssck-development, and sanofi under packs/, and the tooling under scripts/.
+This license covers all material authored in this repository, including root
+files, .github/, configuration, scripts/, rule sources, and the first-party
+packs under packs/ (clssck-core, clssck-development, and sanofi).
 Exceptions:
 - packs/clssck-core/skills/cli-creator/ remains under Apache-2.0; see
   licenses/clssck-core/cli-creator/LICENSE.txt.
