@@ -27,12 +27,12 @@ Name three things before scaffolding:
 Detect OS, active shell, toolchains, repository convention, and a user-writable PATH directory before generating install commands. **NEVER emit PowerShell syntax for a POSIX shell or the reverse.**
 
 ```bash
-command -v cargo rustc bun node pnpm npm python3 uv
+command -v cargo rustc bun node pnpm npm python3 uv go
 echo "$PATH"; echo "${XDG_CONFIG_HOME:-$HOME/.config}"; echo "${TMPDIR:-/tmp}"
 ```
 
 ```powershell
-Get-Command cargo, rustc, bun, node, pnpm, npm, python, uv -ErrorAction SilentlyContinue
+Get-Command cargo, rustc, bun, node, pnpm, npm, python, uv, go -ErrorAction SilentlyContinue
 $env:TEMP
 [Environment]::GetEnvironmentVariable('Path', 'User')
 ```
