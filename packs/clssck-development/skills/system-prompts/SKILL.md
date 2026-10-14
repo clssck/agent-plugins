@@ -101,6 +101,8 @@ Back matter:
 2. Contract — completeness, yielding, workflow.
 3. Prompt >~150 lines: repeat most important `<critical>` rule.
 
+**Agent definitions** (subagent bodies) are the exception: the wrapper places the body under `§ Role`, and the parent prompt's RFC/XML conventions plus the wrapper's completion/yield contract already apply. The body holds specialist identity and domain rules only — no `<system-conventions>`, no restated global conventions, no global completion rules (`prompts/agents/task.md` is the corpus pattern).
+
 ## Tone Patterns That Work
 
 Illustrative patterns (examples, not quotations from the current bundled prompt; anti-budget paraphrases its closing `<critical>`):
@@ -130,7 +132,7 @@ Illustrative patterns (examples, not quotations from the current bundled prompt;
 ## Checklist
 
 - Tags match content; no ornamental tags.
-- `<system-conventions>` defines `NEVER`/`AVOID` aliases.
+- `<system-conventions>` defines `NEVER`/`AVOID` aliases (system prompts; agent bodies inherit them instead).
 - Critical rules at START and END.
 - Prescriptive prose: uppercase RFC 2119 keywords.
 - Tactical bullets ≤12 words unless distinct subclaims justify more.
