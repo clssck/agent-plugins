@@ -9,7 +9,7 @@ Prompt/schema overlap: content reconstructible from `(name, JSON schema, blank o
 
 ## Run probe
 
-`skill://tool-prompt-optimization/scripts/probe.ts`: `@oh-my-pi/pi-ai` `completeSimple`; production-matching model/auth/provider behavior.
+`skill://tool-prompt-optimization/scripts/probe.ts`: `@oh-my-pi/pi-ai` `completeSimple`; production-matching model/auth/provider behavior. Run from a cwd where `@oh-my-pi/pi-ai` and `@oh-my-pi/pi-catalog` resolve (an OMP checkout or install).
 
 ```bash
 bun "$(realpath skill://tool-prompt-optimization/scripts/probe.ts)" \
@@ -23,7 +23,7 @@ bun "$(realpath skill://tool-prompt-optimization/scripts/probe.ts)" \
 
 ### Builtin shortcut — preferred inside an OMP checkout
 
-`skill://tool-prompt-optimization/scripts/probe-builtin.ts` instantiates the live tool; gets exact `toolWireSchema`, `tool.description`, and derived outline. Works only inside an OMP checkout whose packages resolve from cwd; elsewhere use `probe.ts`:
+`skill://tool-prompt-optimization/scripts/probe-builtin.ts` instantiates the live tool; gets exact `toolWireSchema`, `tool.description`, and derived outline. Additionally needs `@oh-my-pi/pi-coding-agent` resolvable from cwd; otherwise use `probe.ts` with manual inputs:
 
 ```bash
 bun "$(realpath skill://tool-prompt-optimization/scripts/probe-builtin.ts)" --tool <name> [--no-summary] [--show]
