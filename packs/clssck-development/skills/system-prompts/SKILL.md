@@ -23,7 +23,7 @@ Tags: authoritative, literal structural markers; meaning exactly matches name. N
 |`<yielding>`|Pre-yield checklist; block conditions.|
 |`<workflow>`|Numbered phases: scope → research → decompose → implement → verify (subagent: hand-off) → cleanup.|
 
-Corpus status: OMP's bundled `system-prompt.md` uses `<critical>`, `<completeness>`, `<yielding>` (plus `<contract>`, `<evidence-and-output>`); its workflow is a `§ Workflow` section, not a `<workflow>` tag. `<system-conventions>`, `<stakes>`, `<communication>`, `<workflow>` are this skill's recommendations (`<workflow>`/`<communication>` appear in some other bundled prompts). These conventions govern prompts authored with this skill; OMP skill documents (SKILL.md) follow OMP's skill conventions instead.
+Corpus status: OMP's bundled `system-prompt.md` uses `<critical>`, `<completeness>`, `<yielding>` (plus `<contract>`, `<evidence-and-output>`); its workflow is a `§ Workflow` section, not a `<workflow>` tag; its `<critical>` blocks sit mid-document and in the closing `§ Critical` section — the START-and-END placement this skill prescribes is its own recommended layout, not the corpus's. `<system-conventions>`, `<stakes>`, `<communication>`, `<workflow>` are this skill's recommendations (`<workflow>`/`<communication>` appear in some other bundled prompts). These conventions govern prompts authored with this skill; OMP skill documents (SKILL.md) follow OMP's skill conventions instead.
 
 ## Normative Language
 
