@@ -4,7 +4,7 @@ condition:
   - '#\s*noqa(?!:)'
   - '#\s*(?:type|pyright|ty):\s*ignore(?!\[)'
   - '#\s*(?:ruff|flake8):\s*noqa|mypy:\s*ignore-errors|pylint:\s*(?:disable=all|skip-file)'
-  - '#!\[allow\(|#\[allow\((?:warnings|clippy::(?:all|pedantic|nursery|restriction|cargo))'
+  - '#!\[allow\(|#\[allow\((?:warnings|clippy::(?:all|pedantic|nursery|restriction|cargo))\b'
   - '@ts-(?:ignore|nocheck)|biome-ignore-all'
   - '(?:eslint|oxlint)-disable(?:-next-line|-line)?\s*(?:\*/|--|\n|$)'
 scope: "tool:edit(**/*.{py,pyi,rs,ts,tsx,mts,cts,js,jsx,mjs,cjs}), tool:write(**/*.{py,pyi,rs,ts,tsx,mts,cts,js,jsx,mjs,cjs})"

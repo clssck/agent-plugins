@@ -60,7 +60,7 @@ const bashCases: Record<string, { flagged: string[]; ignored: string[] }> = {
 		ignored: ["git status", "git diff", "git clean -n", "git checkout main", "git worktree remove ../wt"],
 	},
 	"sql-mutation-safety": {
-		flagged: [`psql -c '${sql("DELETE", " FROM users")}'`, `snowsql -q '${sql("TRUNCATE", " TABLE t")}'`, `psql -c '${sql("DROP", " TABLE users")}'`, "rails db:drop", "alembic downgrade -1"],
+		flagged: [`psql -c '${sql("DELETE", " FROM users")}'`, `snowsql -q '${sql("TRUNCATE", " TABLE users;")}'`, `psql -c '${sql("TRUNCATE", " orders")}'`, `psql -c '${sql("DROP", " TABLE users")}'`, "rails db:drop", "alembic downgrade -1"],
 		ignored: ["psql -c 'select 1'", "psql -c 'SELECT * FROM users'", "rails db:migrate", "dbt run-operation noop"],
 	},
 	"temp-cleanup-ownership": {
@@ -131,7 +131,7 @@ describe("source rules", () => {
 		for (const flagged of ["x = f()  # noqa\n", "x = f()  # type: ignore\n", "# ruff: noqa\n", "#![allow(dead_code)]\n", "#[allow(clippy::all)]\n", "// @ts-ignore\n", "/* eslint-disable */\n", "// eslint-disable-next-line\n"]) {
 			expect(matches("lint-suppression", flagged), flagged).toBe(true);
 		}
-		for (const named of ["x = f()  # noqa: S603\n", "x = f()  # type: ignore[arg-type]\n", "#[allow(dead_code)]\n", "// eslint-disable-next-line no-console -- reason\n", "// @ts-expect-error reason\n"]) {
+		for (const named of ["x = f()  # noqa: S603\n", "x = f()  # type: ignore[arg-type]\n", "#[allow(dead_code)]\n", `#[allow(clippy::cargo_common_metadata, reason = "x")]\n`, "// eslint-disable-next-line no-console -- reason\n", "// @ts-expect-error reason\n"]) {
 			expect(matches("lint-suppression", named), named).toBe(false);
 		}
 	});

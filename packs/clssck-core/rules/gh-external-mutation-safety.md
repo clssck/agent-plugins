@@ -34,7 +34,7 @@ gh api repos/acme/widgets/issues -f state=open
 gh api -X GET repos/acme/widgets/issues -f state=open
 ```
 
-GraphQL (`gh api graphql -f query=...`) always POSTs, but a literal `query` is a read; only a `mutation`, or a query supplied from `@file`, `--input`, or a variable, changes state.
+GraphQL (`gh api graphql -f query=...`) always POSTs; only a `mutation` operation changes state. When the operation text comes from `@file`, `--input`, or a variable, read it first to see which it is.
 
 ```bash
 # Read
