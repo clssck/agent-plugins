@@ -17,7 +17,7 @@ bun "$(realpath skill://tool-prompt-optimization/scripts/probe.ts)" \
 ```
 
 - Required: `--schema`, `--template` — file path or inline value.
-- No default panel: `--model provider/id` (repeatable, comma-separated allowed) or `CLSSCK_PROBE_MODELS` required; flag wins over env. Credentials: whatever the OMP host model layer resolves for the selected provider.
+- No default panel: `--model provider/id` (repeatable, comma-separated allowed) or `CLSSCK_PROBE_MODELS` required; flag wins over env. Credentials: environment/provider-native only (`getEnvApiKey`, Vertex/Bedrock ambient auth) — the probe passes no `apiKey` resolver, so OMP's stored credential cascade is NOT used.
 - Tune: `--samples N` (1..20, default 3), `--max-tokens N` (1..32000, default 1200), `--json`. Invalid args → usage, exit 2, no model call.
 - Programmatic: `import { probe } from "./scripts/probe.ts"` (`models` required) → `{ prompt, results: [{ model, samples: [{ text, stopReason, usage, error }] }] }`.
 
@@ -92,7 +92,7 @@ Agents choose from prose, not source: tell WHEN/WHY, NEVER internal HOW.
 
 - `read.md`: every covered source — file/dir/archive/sqlite/PDF/URL — prevents `cat`/`curl`/`tar`; omit chunker, binary sniffer, cache layer.
 - `lsp.md`: "You MUST use `lsp` whenever a language server is available — safer than text-based alternatives." Omit LSP wire protocol, server lifecycle, capability negotiation.
-- `ast_edit`: metavariable syntax/workflow: "Loosest existence check: `pat: 'executeBash'` with narrow paths"; omit AST engine, query compilation, tree-sitter grammar selection.
+- `ast_grep`: "Loosest existence check: `pat: 'executeBash'` with narrow paths"; `ast_edit`: metavariable syntax/rewrite workflow. Omit AST engine, query compilation, tree-sitter grammar selection.
 - `hashline.md` (OMP): patch grammar — anchors, ops, payloads, ranges — and successful edit shapes. Hide `tryRecoverHashlineWithCache`, fuzz factor, bigram tables, `findUniqueSuffixMatch`, `untilAborted`, `formatGroupedFiles`; agent sees only "the tool resolved your typo" or "the anchor was stale, re-read".
 
 If a detail cannot change agent behavior, it does NOT belong. Each sentence MUST shift an agent decision.

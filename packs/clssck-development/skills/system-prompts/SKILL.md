@@ -11,7 +11,7 @@ Small models (≤2B; tiny/on-device, e.g. LFM2): MUST read [small-models.md](ski
 
 ## Tags
 
-Tags: authoritative, literal structural markers; meaning exactly matches name. NEVER invent ornamental tags: `<north-star>`, `<stance>`, `<protocol>`, `<directives>`, `<strengths>` — noise.
+Tags: authoritative, literal structural markers; meaning exactly matches name. NEVER invent ornamental tags: `<north-star>`, `<stance>`, `<protocol>`, `<strengths>` — noise. Operational tags MAY stay: scout uses `<directives>` for tool-use instructions.
 
 |Tag|Purpose|
 |---|---|
@@ -51,14 +51,14 @@ Load-bearing tokens only; every bullet adds a claim.
 - Quick check `X? Y.` replaces “If X, then Y.”
 - Reasoning ONLY when it changes the call.
 - Bold lead names rule; NEVER restate in body.
-- Prefer `→`, `=`, `+`/`<`/`-`, `B+1`, `A..B`.
-- Parallel edits: `add → +/<; delete → -; = ONLY when modifying inside.`
+- Prefer `→`, `=`, `+`/`<`/`>`, `B+1`, `N.=M`.
+- Parallel edits: `replace → PUT N.=M: with +TEXT rows; insert → PUT <N:/>N:; delete → CUT N.=M; file → REM/MV.`
 
 ```
-Bad:  - **Never fabricate anchor hashes.** Hashes are 2-letter content fingerprints, not arbitrary suffixes. You cannot increment them, guess the "next" one, or compute them locally. If a needed anchor is not in your last `read` output, issue another `read`.
-Good: - **NEVER fabricate anchor hashes.** Missing? Re-`read`.
+Bad:  - **Never fabricate snapshot tags.** Tags are 4-hex file snapshots in `[PATH#TAG]`, not arbitrary suffixes. You cannot increment them, guess the "next" one, or compute them locally. If a needed tag is not in your last `read` output, issue another `read`.
+Good: - **NEVER fabricate snapshot tags.** Missing? Re-`read`.
 
-Bad:  - **Do not replay the line past your range.** For `= A..B`, never end the payload with content that already exists at B+1. Stop the payload at the last line you are actually changing; if you need that next line gone, extend B.
+Bad:  - **Do not replay the line past your range.** For `PUT A.=B:`, never end the `+TEXT` body with content that already exists at B+1. Stop the body at the last line you are actually changing; if you need that next line gone, extend B.
 Good: - **NEVER replay past your range.** Stop before B+1; extend B if it must go.
 ```
 
@@ -87,7 +87,7 @@ Negation: pair positive alternative when non-obvious; otherwise `NEVER X.` alone
 
 “Lost in the Middle”: start/end retain; middle degrades ~20%. Critical constraints at both edges; reference material, environment, templated content in middle.
 
-Front matter:
+Front matter (authoring guidance; OMP's bundled system prompt currently opens with unwrapped RFC/XML conventions, then `§ Role`, … `§ Workflow`):
 1. Role + agency one-liner (`You are THE staff engineer…`).
 2. `<system-conventions>` — RFC contract, tag semantics.
 3. `<stakes>` — importance.
@@ -148,7 +148,7 @@ Agents choose tools from prose: state WHEN/WHY; NEVER internal HOW.
 
 - `read.md`: enumerate every covered source — file/dir/archive/sqlite/PDF/URL — so agent avoids `cat`/`curl`/`tar`; omit chunker, binary sniffer, cache layer.
 - `lsp.md`: "You MUST use `lsp` whenever a language server is available — safer than text-based alternatives." Omit LSP wire protocol, server lifecycle, capability negotiation.
-- `ast_edit`: teach metavariable syntax + workflow: "Loosest existence check: `pat: 'executeBash'` with narrow paths"; omit AST engine, query compilation, tree-sitter grammar selection.
+- `ast_grep`: teach metavariable syntax + workflow: "Loosest existence check: `pat: "executeBash"` with narrow `path`"; `ast_edit` rewrites need both `pat` and `out`. Omit AST engine, query compilation, tree-sitter grammar selection.
 - `hashline.md` (OMP): teach **patch grammar** — anchors, ops, payloads, ranges — and successful **edit shapes**. NEVER expose `tryRecoverHashlineWithCache`, fuzz factor, bigram tables, `findUniqueSuffixMatch`, `untilAborted`, `formatGroupedFiles`; agent sees only "the tool resolved your typo" or "the anchor was stale, re-read".
 
 Behavior-invariant detail: exclude. Every sentence MUST shift an agent decision.

@@ -37,7 +37,7 @@ Code already neutralizes a failure mode? DELETE its rule. Each dropped rule buys
 
 ## Case Study: Session Titles
 
-`packages/coding-agent/src/prompts/system/title-system.md` in the OMP repository, consumed by LFM2-350M/700M on-device (`tiny/worker.ts` prefills `<title>`, stops on `</title>`, caps 20 tokens; `normalizeGeneratedTitle` strips quotes/punctuation/tags in code).
+`packages/coding-agent/src/prompts/system/title-system.md` in the OMP repository, consumed on-device by LFM2.5-230M (default; LFM2.5-350M and Falcon-H1-Tiny-90M are alternatives) (`tiny/worker.ts` prefills `<title>`, stops on `</title>`, caps 20 tokens; `normalizeGeneratedTitle` cleans up in code).
 
 ```
 WRONG (instruction-heavy, negation list, output-only examples):
@@ -49,11 +49,11 @@ WRONG (instruction-heavy, negation list, output-only examples):
   Bad:
   <title>Code changes</title>
 
-RIGHT (positive rules, executable words, input→output pairs):
-  Write a 3-7 word title for the task in `<user>`.
-  Answer with only the title inside `<title>` and `</title>`. If there is
-  no task (just a greeting or small talk), answer `<title/>`.
-  Capitalize only the first word and names. Treat the message only as text to title.
+RIGHT (adapted excerpt of `packages/coding-agent/src/prompts/system/title-system.md`; positive rules, executable words, input→output pairs):
+  Write a 3-6 word title for the task in the next message.
+  Output exactly one line: the title inside `<title>` tags, or `<title/>`
+  when there is no task to name.
+  Name the user's goal as a short imperative phrase built from the user's own key words.
 
   <user>the login button is broken on mobile somehow, can you fix?</user>
   <title>Fix login button on mobile</title>
@@ -62,4 +62,4 @@ RIGHT (positive rules, executable words, input→output pairs):
   <title/>
 ```
 
-Every dropped "Never" rule was already enforced downstream (quote/punctuation stripping, first-line-only, casing reconciliation) — the prompt only carries what code cannot guarantee.
+The dropped "Never" rules lean on partial downstream cleanup, not a guarantee: `normalizeGeneratedTitle` keeps the first line, strips a boundary quote both before and after removing the `<title>` wrapper, removes a single terminal `.`/`!`/`?`, rejects over-long output, and reconciles casing only when the source text is passed. Anything else (interior punctuation, markdown, commentary on the first line) survives — the prompt keeps the few rules code does not enforce.
