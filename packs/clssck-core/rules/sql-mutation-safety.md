@@ -10,13 +10,57 @@ interruptMode: tool-only
 
 Before running SQL that deletes or overwrites persistent data, or drops or narrows a schema, establish target, scope, and recovery.
 
+## Target and authorization
+
 - Establish the target connection, environment, database, and schema without exposing credentials.
 - Match the operation and affected data to the user's authorization. Ask only when authorization or consequential scope remains unclear; NEVER demand redundant confirmation.
-- Before UPDATE, DELETE, or MERGE, establish the intended affected rows. Use a read-only preview where practical; a WHERE clause alone does not prove the scope is correct.
-- Before DROP, TRUNCATE, or destructive ALTER, establish an appropriate recovery path or explicitly authorized acceptance of irreversible loss. NEVER assume DDL can be rolled back; transaction behavior varies by database engine and operation.
-- SHOULD use the narrowest operation that fulfills the request. NEVER replace a targeted repair with a table-wide reset.
-- Verify the resulting row changes or schema state; report what was actually checked and any recovery limitations.
+
+## UPDATE, DELETE, MERGE
+
+Before UPDATE, DELETE, or MERGE, establish the intended affected rows. Use a read-only preview where practical; a WHERE clause alone does not prove the scope is correct.
+
+```sql
+-- Bad: WHERE clause alone, scope unverified
+DELETE FROM orders WHERE status = 'stale';
+
+-- Good: preview the affected rows, then mutate
+SELECT count(*) FROM orders WHERE status = 'stale';
+SELECT id, status, updated_at FROM orders WHERE status = 'stale' LIMIT 20;
+DELETE FROM orders WHERE status = 'stale';
+```
+
+## DROP, TRUNCATE, destructive ALTER
+
+Before DROP, TRUNCATE, or destructive ALTER, establish an appropriate recovery path or explicitly authorized acceptance of irreversible loss. NEVER assume DDL can be rolled back; transaction behavior varies by database engine and operation.
+
+## Narrowest operation
+
+SHOULD use the narrowest operation that fulfills the request. NEVER replace a targeted repair with a table-wide reset.
+
+```sql
+-- Bad: table-wide reset to fix one row
+TRUNCATE TABLE users;
+
+-- Good
+UPDATE users SET email = 'ada@example.com' WHERE id = 42;
+```
+
+## Migrations
 
 Apply the same checks to destructive migration commands. Inspect what the selected downgrade/reset/clean operation will do before running it.
 
-Disposable databases created solely for this task need no additional confirmation when their ownership and isolation are clear. A read-only query or inert example does not become a mutation merely because this reminder matched.
+```bash
+# Good — inspect current state and target before downgrading
+alembic current
+alembic history --verbose
+alembic downgrade -1
+```
+
+## After running
+
+Verify the resulting row changes or schema state; report what was actually checked and any recovery limitations.
+
+## Exceptions
+
+- Disposable databases created solely for this task need no additional confirmation when their ownership and isolation are clear.
+- A read-only query or inert example does not become a mutation merely because this reminder matched.

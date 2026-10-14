@@ -9,10 +9,42 @@ scope: "tool:bash, tool:eval"
 interruptMode: always
 ---
 
-`/tmp` and `$TMPDIR` are shared with every other process, session, and tool on the machine. A glob or a time window also matches their live files.
+Delete only the exact temp paths this session created, after their owning process exits. `/tmp` and `$TMPDIR` are shared with every other process, session, and tool on the machine; a glob or a time window also matches their live files.
 
-- Track what you create: keep the `mktemp -d` path, or name scratch with a unique prefix and record the full paths.
-- Delete exactly those recorded paths, after their owning process exits.
-- NEVER select deletions by glob, name pattern, or modification time in a shared temp directory, even if the names look like yours. That includes `find <tmp> ... -delete`, `find <tmp> ... | xargs rm`, and Python `Path("/tmp").glob(...)`/`iterdir()`/`os.listdir` followed by `rmtree` or `unlink`.
+## Track what you create
+
+Keep the `mktemp -d` path, or name scratch with a unique prefix and record the full paths. Delete exactly those recorded paths, after their owning process exits.
+
+```bash
+# Good
+scratch=$(mktemp -d)
+./run-job --out "$scratch"
+rm -rf -- "$scratch"
+```
+
+## Never select by pattern
+
+NEVER select deletions by glob, name pattern, or modification time in a shared temp directory, even if the names look like yours. That includes `find <tmp> ... -delete`, `find <tmp> ... | xargs rm`, and Python `Path("/tmp").glob(...)`/`iterdir()`/`os.listdir` followed by `rmtree` or `unlink`.
+
+```bash
+# Bad
+rm -rf /tmp/myjob-*
+find /tmp -name 'myjob-*' -mtime +1 -delete
+find "$TMPDIR" -name '*.log' | xargs rm
+```
+
+```python
+# Bad
+for p in Path("/tmp").glob("myjob-*"):
+    shutil.rmtree(p)
+
+# Good — remove only the path this session recorded
+scratch = tempfile.mkdtemp(prefix="myjob-")
+...
+shutil.rmtree(scratch)
+```
+
+## Untraceable paths
+
 - Can't trace a path to a command you ran? Leave it, and list it in the report.
 - Deleted something you can't trace? Say so explicitly: it cannot be recovered.
