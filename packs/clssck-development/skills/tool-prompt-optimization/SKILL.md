@@ -92,7 +92,7 @@ Agents choose from prose, not source: tell WHEN/WHY, NEVER internal HOW.
 
 - `read.md`: every covered source — file/dir/archive/sqlite/PDF/URL — prevents `cat`/`curl`/`tar`; omit chunker, binary sniffer, cache layer.
 - `lsp.md`: "Symbol-aware work (rename, references, definition, code actions) MUST use `lsp` whenever a server is available." Omit LSP wire protocol, server lifecycle, capability negotiation.
-- `ast_grep`: "Loosest existence check: `pat: 'executeBash'` with narrow paths"; `ast_edit`: metavariable syntax/rewrite workflow. Omit AST engine, query compilation, tree-sitter grammar selection.
+- `ast_grep`: "Loosest existence check: `pat: "executeBash"` with narrow `path`"; `ast_edit`: metavariable syntax/rewrite workflow. Omit AST engine, query compilation, tree-sitter grammar selection.
 - `hashline.md` (OMP, `crates/pi-edit/prompts/`): patch grammar — anchors, ops, payloads, ranges — and successful edit shapes. Hide the recovery machinery (`recover_target`, `recover_header`, seen-line enforcement, fuzzy thresholds); agent sees only "the tool resolved your typo" or "the anchor was stale, re-read".
 
 If a detail cannot change agent behavior, it does NOT belong. Each sentence MUST shift an agent decision.
