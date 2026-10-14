@@ -9,7 +9,7 @@ scope:
 interruptMode: never
 ---
 
-**Generic data test parameters belong under `arguments:`.** Parameters written beside the test name (`values:`, `to:`, `field:`, `expression:`) raise `MissingArgumentsPropertyInGenericTestDeprecation`.
+Generic data test parameters belong under `arguments:`. Parameters written beside the test name (`values:`, `to:`, `field:`, `expression:`) raise `MissingArgumentsPropertyInGenericTestDeprecation`.
 
 - Check `dbt --version` and `require_generic_test_arguments_property` first.
 - dbt >= 1.10.8: MUST nest parameters under `arguments:`, even when the file around them still uses the legacy form. The flag defaults to `true` there.

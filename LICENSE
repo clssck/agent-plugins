@@ -22,9 +22,8 @@ SOFTWARE.
 
 ---
 
-This license covers only what is written in this repository: the packs
-clssck-core and sanofi under packs/, the rule sources under rule-sources/, and
-the tooling under scripts/.
+This license covers only what is written in this repository: clssck-core,
+clssck-development, and sanofi under packs/, and the tooling under scripts/.
 Exceptions:
 - packs/clssck-core/skills/cli-creator/ remains under Apache-2.0; see
   licenses/clssck-core/cli-creator/LICENSE.txt.

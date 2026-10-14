@@ -10,7 +10,7 @@ scope:
 interruptMode: never
 ---
 
-**A suppression hides a diagnostic; it does not fix the code.** Lint and type errors usually point at a real defect, an unsafe call, or a wrong type.
+A suppression hides a diagnostic; it does not fix the code. Lint and type errors usually point at a real defect, an unsafe call, or a wrong type.
 
 - Fix the cause first: correct the type, narrow the value, restructure the call, or use the safe API the rule points to.
 - Keep a suppression only when the diagnostic is a verified false positive or the flagged behaviour is intentional and safe. Then make it as narrow as possible:

@@ -2,11 +2,10 @@
 // Keeps this repository self-contained. In order:
 //   1. pin    – move every upstream in sources.json to the latest commit of its ref
 //   2. fetch  – copy each upstream into upstream/<name>/ at its pinned commit
-//   3. rules  – render rule-sources/<pack>/*.md into packs/<pack>/rules/
-//   4. check  – fail if anything in packs/ or upstream/ would not load in OMP
-//   5. readme – regenerate README.md (the workflow only; pass --readme to do it locally)
+//   3. check  – fail if anything in packs/ or upstream/ would not load in OMP
+//   4. readme – regenerate README.md (the workflow only; pass --readme to do it locally)
 // Run by .github/workflows/sync-upstreams.yml; set GITHUB_TOKEN when running locally.
-// `--local` runs only rules and check: no network, no token. A local run leaves README.md to the workflow.
+// `--local` runs only check: no network, no token. A local run leaves README.md to the workflow.
 
 import { YAML } from "bun";
 import { cp, mkdir, mkdtemp, readdir, rename, rm, stat } from "node:fs/promises";
@@ -97,11 +96,6 @@ const LICENSE_FILE = /^(licen[cs]e|copying|notice)(\.|$)/i;
 const STAGING_PREFIX = ".sync-";
 /** Bump whenever buildUpstream's output changes for an unchanged sources.json entry, so every pack is rebuilt. */
 const BUILD_FORMAT = 8;
-/** Rule sources; packs/<pack>/rules/ is generated from rule-sources/<pack>/. */
-const RULE_SOURCES_DIR = path.join(ROOT, "rule-sources");
-/** Shared regex fragments, one per file, referenced from rule frontmatter as {{<name>}}. */
-const FRAGMENTS_DIR = path.join(RULE_SOURCES_DIR, "fragments");
-const FRAGMENT_REF = /\{\{([\w-]+)\}\}/g;
 
 async function readJson<T>(file: string): Promise<T | undefined> {
 	const handle = Bun.file(file);
@@ -342,63 +336,9 @@ export async function fetchUpstreams(sources: Sources): Promise<void> {
 	}
 }
 
-// ---------------------------------------------------------------------------
-// 3. rules
-// ---------------------------------------------------------------------------
-
-/**
- * Render rule-sources/<pack>/*.md into packs/<pack>/rules/, replacing each {{name}} in the frontmatter
- * with rule-sources/fragments/<name>.regex. Conditions are YAML single-quoted, so `'` is doubled.
- * In GitHub Actions a stale generated rule is an error: the workflow commits only upstream changes.
- */
-export async function renderRules(errors: string[], write = !process.env.GITHUB_ACTIONS): Promise<void> {
-	const fragments = new Map<string, string>();
-	for (const entry of await entries(FRAGMENTS_DIR)) {
-		if (!entry.isFile() || !entry.name.endsWith(".regex")) continue;
-		const text = await Bun.file(path.join(FRAGMENTS_DIR, entry.name)).text();
-		fragments.set(entry.name.slice(0, -".regex".length), text.replace(/\r?\n$/, "").replaceAll("'", "''"));
-	}
-	const packNames = (await entries(path.join(ROOT, "packs"))).filter(entry => entry.isDirectory()).map(entry => entry.name);
-	for (const entry of await entries(RULE_SOURCES_DIR)) {
-		if (entry.isDirectory() && entry.name !== "fragments" && !packNames.includes(entry.name)) {
-			errors.push(`rule-sources/${entry.name}/ has no matching packs/${entry.name}/`);
-		}
-	}
-	for (const pack of packNames) {
-		const sourceDir = path.join(RULE_SOURCES_DIR, pack);
-		const targetDir = path.join(ROOT, "packs", pack, "rules");
-		const names = (await entries(sourceDir)).filter(entry => entry.isFile() && entry.name.endsWith(".md")).map(entry => entry.name);
-		for (const name of names) {
-			const source = await Bun.file(path.join(sourceDir, name)).text();
-			const end = source.startsWith("---") ? source.indexOf("\n---", 3) : -1;
-			if (end === -1) {
-				errors.push(`rule-sources/${pack}/${name} must start with YAML frontmatter closed by ---`);
-				continue;
-			}
-			const head = source.slice(0, end).replace(FRAGMENT_REF, (ref, key: string) => {
-				const fragment = fragments.get(key);
-				if (fragment === undefined) errors.push(`rule-sources/${pack}/${name}: unknown fragment ${ref}`);
-				return fragment ?? ref;
-			});
-			const rendered = head + source.slice(end);
-			const target = path.join(targetDir, name);
-			const current = (await Bun.file(target).exists()) ? await Bun.file(target).text() : undefined;
-			if (rendered === current) continue;
-			if (!write) {
-				errors.push(`packs/${pack}/rules/${name} is stale; run \`bun scripts/sync.ts --local\` and commit it`);
-			} else {
-				await Bun.write(target, rendered);
-				console.log(`rendered packs/${pack}/rules/${name}`);
-			}
-		}
-		for (const entry of await entries(targetDir)) {
-			if (!names.includes(entry.name)) errors.push(`packs/${pack}/rules/${entry.name} has no source; rules are edited in rule-sources/${pack}/`);
-		}
-	}
-}
 
 // ---------------------------------------------------------------------------
-// 4. check
+// 3. check
 // ---------------------------------------------------------------------------
 
 /** OMP scans rules/, agents/, and commands/ one level deep; nested files are silently ignored. */
@@ -890,7 +830,7 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		...section("Tools", pack => pack.tools),
 		"## License",
 		"",
-		`The root [LICENSE](./LICENSE) covers what is written here: ${authored} under \`packs/\`, \`rule-sources/\`, and \`scripts/\`. Vendored packs and \`upstream/\` copies carry the license files their upstreams ship. Third-party adaptations and attributions are listed in [\`licenses/\`](./licenses/README.md).`,
+		`The root [LICENSE](./LICENSE) covers what is written here: ${authored} under \`packs/\`, and tooling under \`scripts/\`. Vendored packs and \`upstream/\` copies carry the license files their upstreams ship. Third-party adaptations and attributions are listed in [\`licenses/\`](./licenses/README.md).`,
 		"",
 	].join("\n");
 }
@@ -907,7 +847,6 @@ if (import.meta.main) {
 		await fetchUpstreams(sources);
 	}
 	const errors: string[] = [];
-	await renderRules(errors, !checkOnly && !process.env.GITHUB_ACTIONS);
 	const packs = await check(sources, errors);
 	if (!checkOnly && (process.env.GITHUB_ACTIONS || process.argv.includes("--readme"))) {
 		const readme = await renderReadme(sources, packs);
