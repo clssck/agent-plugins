@@ -64,21 +64,21 @@ Atlassian Rovo MCP required. Missing → report the missing access; NEVER fall b
 ## Workflow
 
 1. **Resolve target.** Page ID from `/pages/{id}` URLs, else search; exact title+space match or ask. New page needs space and parent.
-2. **Fetch** HTML with `detail="full"` (default summary has no body); capture id, title, spaceId, parentId, version, `snapshotToken`, URL. Load `getContentFormatGuide` and the space's `spaceInstructions` (skip only if the fetch reported `hasSpaceInstructions=false`); space instructions override this skill's design defaults. Save to `fetched.html` for large or risky edits.
+2. **Fetch** HTML with `detail="full"` (default summary has no body); capture id, title, spaceId, parentId, version, `snapshotToken`, URL. Load `getContentFormatGuide` and the space's `spaceInstructions` (skip only if the fetch reported `hasSpaceInstructions=false`); space instructions override this skill's design defaults. Save to `local://fetched.html` for large or risky edits.
 3. **Build** node `edits` or the full replacement body; load references as needed (below).
 4. **Validate locally** before writing:
 
 ```bash
-uv run "$(realpath skill://confluence-html-editor/scripts/check_confluence_html.py)" proposed.html --original fetched.html --title "Page title"
-uv run "$(realpath skill://confluence-html-editor/scripts/review_confluence_publish.py)" --original fetched.html --proposed proposed.html --title "Page title" --page-id 123 --version-message "Polish page"
+uv run "$(realpath skill://confluence-html-editor/scripts/check_confluence_html.py)" "$(realpath local://proposed.html)" --original "$(realpath local://fetched.html)" --title "Page title"
+uv run "$(realpath skill://confluence-html-editor/scripts/review_confluence_publish.py)" --original "$(realpath local://fetched.html)" --proposed "$(realpath local://proposed.html)" --title "Page title" --page-id 123 --version-message "Polish page"
 ```
 
-   Errors block publish; review every warning. `review_confluence_publish.py` is for large or attachment-heavy updates. Node `edits` → run the edit set with `dryRun: true`, check the returned HTML as `proposed.html`.
+   Errors block publish; review every warning. `review_confluence_publish.py` is for large or attachment-heavy updates. Node `edits` → run the edit set with `dryRun: true`, save the returned HTML to `local://proposed.html` and check it.
 5. **Write** with HTML content format, `snapshotToken`, concise version message.
 6. **Refetch.** Compare by intent; Confluence normalizes HTML. Rich pages → also fetch ADF and verify:
 
 ```bash
-uv run "$(realpath skill://confluence-html-editor/scripts/verify_confluence_adf.py)" fetched-adf.json --expect panels,statuses,layouts,tasks,decisions,inline_cards,dates
+uv run "$(realpath skill://confluence-html-editor/scripts/verify_confluence_adf.py)" "$(realpath local://fetched-adf.json)" --expect panels,statuses,layouts,tasks,decisions,inline_cards,dates
 ```
 
    One clear correction, then verify again. Write damaged the page → `restoreConfluenceContentVersion` to the prior version, then report. NEVER loop speculative writes.

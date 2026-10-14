@@ -17,7 +17,7 @@ The description is **retrieval surface**: the model sees only it before choosing
 - **Layout:** a standalone skill is `<skills-root>/<name>/SKILL.md`; the directory name is the skill `name`.
 - **Boundaries inline:** state `not for X`, the safe alternative, and the stop condition locally. A sibling name MAY route the reader but NEVER carries required behavior.
 - Quote the value when it contains a colon-space.
-- Frontmatter = `name` + `description`; add `disable-model-invocation: true` only for manual-only skills. Directory name = `name`.
+- Frontmatter = `name` + `description`; add `disable-model-invocation: true` only for manual-only skills. It is OMP extension frontmatter: OMP's strict Agent Plugins validator accepts only the Agent Skills fields and rejects the skill for any other key, so omit it from standard `plugin.json` packages. Directory name = `name`.
 
 ## Body structure
 

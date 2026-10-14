@@ -174,7 +174,7 @@ authoritativeDefinitions:
     url: https://example.com/glossary/orders
 
 customProperties:
-  - property: dataClassificationPolicy      # contract-level policy: not inherited by properties
+  - property: dataClassificationPolicy      # contract-level default; properties set classification only when different
     value: restricted
 ```
 

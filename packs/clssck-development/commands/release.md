@@ -74,7 +74,7 @@ Publish:    <manual steps or "handled by release automation after tag push">
    Never add force flags, tag-wildcard flags, or deletions. Push rejection → stop and report.
 4. Manual publish steps only after confirmation (c).
 
-If the repo's documented release tool performs steps 5.1–5.3 itself, run that tool in place of them, only with the arguments the plan listed, and only after the same confirmations; do not run it speculatively.
+If the repo's documented release tool performs steps 5.1–5.3 itself, first confirm from its docs or source that it stages by named path only, pauses for each confirmation class (a)–(c) separately, and does not monitor or dispatch CI unattended. Only then run it in place of those steps, with only the arguments the plan listed, after the same confirmations; do not run it speculatively. If it breaks any of these rules, or you cannot confirm that it follows them, perform steps 5.1–5.3 manually.
 
 ## Failure handling
 

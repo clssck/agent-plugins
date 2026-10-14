@@ -105,7 +105,7 @@ ALB/NLB internet-facing with `0.0.0.0/0` ingress and no WAF or authentication ac
 | SST | `permissions` / `link` with wildcard actions |
 | CFN | `Action: '*'` in `AWS::IAM::Policy`, `ManagedPolicy` |
 
-`Action: "*"` + `Resource: "*"` on an attached role = Critical. Service wildcards = High.
+`Action: "*"` + `Resource: "*"` on an attached role = High; Critical only when the role is shown to be assumable or usable from a reachable entry point (severity model). Service wildcards = High.
 
 ### AA-02: Wildcard resources
 
@@ -262,7 +262,7 @@ ALB or CloudFront without access logs. Low–Medium.
 
 ### SM-01: Hardcoded credentials
 
-`grep` patterns: `AKIA[0-9A-Z]{16}`, `(password|secret|api_?key|token)\s*[=:]\s*["'][^"']{6,}`, private key headers. Exclude placeholders and variable references. Confirmed hit = Critical; rotate the secret.
+`grep` patterns: `AKIA[0-9A-Z]{16}`, `(password|secret|api_?key|token)\s*[=:]\s*["'][^"']{6,}`, private key headers. Exclude placeholders and variable references. Confirmed hit = High; Critical only when the secret is shown live and grants a reachable path to sensitive data or a privileged action (severity model). Rotate the secret either way.
 
 ### SM-02: Plaintext sensitive config
 
