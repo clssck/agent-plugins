@@ -702,6 +702,9 @@ function capture(session: Session, chunk: Uint8Array) {
 	}
 }
 
+/** Per-line debug response cap, matching the original IPC line framing. */
+const MAX_LINE_BYTES = 64 * 1024 * 1024;
+
 function connectSocket(
 	session: Session,
 	path: string,
@@ -711,9 +714,51 @@ function connectSocket(
 	const { promise, resolve } = Promise.withResolvers<boolean>();
 	const attempt = () => {
 		const sock = net.createConnection(path);
+		// Bound each attempt like the original IPC connect, clamped to the
+		// overall deadline; expiry surfaces as an error and takes the retry path.
+		const timer = setTimeout(
+			() => sock.destroy(new Error("debug socket connect timed out")),
+			Math.max(1, Math.min(1_000, deadline - Date.now())),
+		);
+		const retry = () => {
+			clearTimeout(timer);
+			sock.destroy();
+			if (Date.now() >= deadline || session.exit !== null) resolve(false);
+			else setTimeout(attempt, 150);
+		};
+		sock.on("error", retry);
 		sock.on("connect", () => {
+			clearTimeout(timer);
+			// Established sockets never reconnect: a later error just closes
+			// this socket, so no stale waiter or partial line is reused.
+			sock.on("error", () => {});
+			sock.off("error", retry);
+			session.sockBuf = "";
+			// UTF-8 bytes of the unterminated tail in session.sockBuf.
+			let tailBytes = 0;
 			sock.setEncoding("utf8");
 			sock.on("data", (data: string) => {
+				const newline = data.indexOf("\n");
+				const lineBytes =
+					tailBytes +
+					Buffer.byteLength(newline < 0 ? data : data.slice(0, newline));
+				tailBytes =
+					newline < 0
+						? lineBytes
+						: Buffer.byteLength(data.slice(data.lastIndexOf("\n") + 1));
+				if (lineBytes > MAX_LINE_BYTES || tailBytes > MAX_LINE_BYTES) {
+					session.sockBuf = "";
+					if (session.sock === sock) session.sock = null;
+					sock.destroy();
+					const error = new Error(
+						`debug response line exceeds ${MAX_LINE_BYTES} bytes; socket closed`,
+					);
+					for (const waiter of session.waiters.splice(0)) {
+						clearTimeout(waiter.timer);
+						waiter.reject(error);
+					}
+					return;
+				}
 				session.sockBuf += data;
 				for (;;) {
 					const index = session.sockBuf.indexOf("\n");
@@ -733,14 +778,8 @@ function connectSocket(
 			sock.on("close", () => {
 				if (session.sock === sock) session.sock = null;
 			});
-			sock.on("error", () => {});
 			session.sock = sock;
 			resolve(true);
-		});
-		sock.on("error", () => {
-			sock.destroy();
-			if (Date.now() >= deadline || session.exit !== null) resolve(false);
-			else setTimeout(attempt, 150);
 		});
 	};
 	attempt();
