@@ -1019,7 +1019,7 @@ const factory = (omp: ToolHost) => {
 				cwd: omp.cwd,
 				env: {
 					...process.env,
-					...(params.debug ? { OMP_TUI_DEBUG: sockPath } : {}),
+					OMP_TUI_DEBUG: params.debug ? sockPath : undefined,
 					TERM: "xterm-256color",
 					COLORTERM: "truecolor",
 				},
