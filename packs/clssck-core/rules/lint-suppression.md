@@ -1,9 +1,12 @@
 ---
 description: Fix the diagnostic instead of adding lint or type-checker suppressions
 condition:
-  - '#[ \t]*(?:noqa(?![\w:-])(?![ \t]*:)(?=[ \t\r\n])|(?:ruff|flake8)[ \t]*:[ \t]*noqa\b|(?:type|pyright|ty)[ \t]*:[ \t]*ignore(?![\w-])(?![ \t]*\[)(?=[ \t\r\n])|mypy[ \t]*:[ \t]*ignore-errors\b|pylint[ \t]*:[ \t]*(?:disable[ \t]*=[ \t]*all\b|skip-file\b))'
-  - '#!\[allow\(|#\[allow\([^)\]]*\b(?:warnings|clippy::(?:all|pedantic|nursery|restriction|cargo))(?=[,\s)\]])'
-  - '(?://|/\*)[ \t]*(?:@ts-(?:ignore|nocheck)\b|(?:eslint|oxlint)-disable(?:-next-line|-line)?(?=[ \t]*(?:\*/|--|\r?\n))|biome-ignore-all\b|biome-ignore(?:-start)?[ \t]+lint[ \t]*:)'
+  - '#\s*noqa(?!:)'
+  - '#\s*(?:type|pyright|ty):\s*ignore(?!\[)'
+  - '#\s*(?:ruff|flake8):\s*noqa|mypy:\s*ignore-errors|pylint:\s*(?:disable=all|skip-file)'
+  - '#!\[allow\(|#\[allow\((?:warnings|clippy::(?:all|pedantic|nursery|restriction|cargo))'
+  - '@ts-(?:ignore|nocheck)|biome-ignore-all'
+  - '(?:eslint|oxlint)-disable(?:-next-line|-line)?\s*(?:\*/|--|\n|$)'
 scope:
   - tool:edit(**/*.{py,pyi,rs,ts,tsx,mts,cts,js,jsx,mjs,cjs})
   - tool:write(**/*.{py,pyi,rs,ts,tsx,mts,cts,js,jsx,mjs,cjs})

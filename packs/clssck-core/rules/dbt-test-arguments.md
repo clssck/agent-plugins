@@ -1,8 +1,8 @@
 ---
 description: Nest generic dbt test parameters under arguments on dbt 1.10.8 and later
 condition:
-- '(?:^|\n)([ \t]*)-[ \t]+["'']?(?:accepted_values|relationships|(?:dbt_utils|dbt_expectations|dbt_date|audit_helper|elementary|dbt_project_evaluator|re_data|dbt_profiler)\.[a-z_]\w*)["'']?[ \t]*:[ \t\r]*(?:#[^\n]*)?\n(?:[ \t\r]*(?:#[^\n]*)?\n)*(\1[ \t]+)(?:(?:arguments|config|severity|where|limit|warn_if|error_if|fail_calc|store_failures|store_failures_as|tags|meta|enabled|name|description|column_name|test_name|alias|schema|database)(?![\w-])[ \t]*:[^\n]*\n(?:\2[ \t][^\n]*\n|(?!\2[ \t])[ \t\r]*(?:#[^\n]*)?\n)*\2)*(?!(?:arguments|config|severity|where|limit|warn_if|error_if|fail_calc|store_failures|store_failures_as|tags|meta|enabled|name|description|column_name|test_name|alias|schema|database)(?![\w-]))["'']?[A-Za-z_][\w-]*["'']?[ \t]*:(?=[ \t\r\n]|$)'
-- '(?:-[ \t]+|[{,][ \t]*)["'']?(?:accepted_values|relationships|(?:dbt_utils|dbt_expectations|dbt_date|audit_helper|elementary|dbt_project_evaluator|re_data|dbt_profiler)\.[a-z_]\w*)["'']?[ \t]*:[ \t]*\{[ \t]*(?:(?:arguments|config|severity|where|limit|warn_if|error_if|fail_calc|store_failures|store_failures_as|tags|meta|enabled|name|description|column_name|test_name|alias|schema|database)(?![\w-])[ \t]*:(?:[^,{}\[\]\n]|\{[^{}\n]*\}|\[[^\[\]\n]*\])*,[ \t]*)*(?!(?:arguments|config|severity|where|limit|warn_if|error_if|fail_calc|store_failures|store_failures_as|tags|meta|enabled|name|description|column_name|test_name|alias|schema|database)(?![\w-]))["'']?[A-Za-z_][\w-]*["'']?[ \t]*:(?=[ \t\r\n]|$)'
+  - '(?:accepted_values|relationships|(?:dbt_utils|dbt_expectations|dbt_date|audit_helper|elementary)\.\w+)["'']?:[ \t]*\n\s+(?!(?:arguments|config|severity|where|name|description|tags|meta|enabled)\s*:)\w+\s*:'
+  - '(?:accepted_values|relationships|(?:dbt_utils|dbt_expectations|dbt_date|audit_helper|elementary)\.\w+)["'']?:\s*\{\s*(?!(?:arguments|config|severity|where|name|description|tags|meta|enabled)\s*:)\w+\s*:'
 scope:
 - 'tool:edit(**/*.{yml,yaml})'
 - 'tool:write(**/*.{yml,yaml})'

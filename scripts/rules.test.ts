@@ -94,6 +94,15 @@ describe("bash rules", () => {
 			}
 		});
 	}
+
+	test("exclusions stop at a JSON-escaped newline", () => {
+		for (const [rule, command] of [
+			["git-push-safety", "git push origin main\ngit log -n 3"],
+			["dbt-command-scope", "dbt build\ndbt ls -s x"],
+		]) {
+			expect(matches(rule, JSON.stringify({ command })), command).toBe(true);
+		}
+	});
 });
 
 describe("source rules", () => {
@@ -110,11 +119,17 @@ describe("source rules", () => {
 
 	test("dbt-test-arguments flags legacy top-level test parameters", () => {
 		expect(matches("dbt-test-arguments", "- accepted_values:\n    values: [a]\n")).toBe(true);
+		expect(matches("dbt-test-arguments", "- relationships: {to: ref('x'), field: id}\n")).toBe(true);
 		expect(matches("dbt-test-arguments", "- accepted_values:\n    arguments:\n      values: [a]\n")).toBe(false);
+		expect(matches("dbt-test-arguments", "- relationships: {arguments: {to: ref('x'), field: id}}\n")).toBe(false);
 	});
 
 	test("lint-suppression flags blanket suppressions only", () => {
-		expect(matches("lint-suppression", "x = f()  # type: ignore\n")).toBe(true);
-		expect(matches("lint-suppression", "x = f()  # type: ignore[arg-type]\n")).toBe(false);
+		for (const flagged of ["x = f()  # noqa\n", "x = f()  # type: ignore\n", "# ruff: noqa\n", "#![allow(dead_code)]\n", "#[allow(clippy::all)]\n", "// @ts-ignore\n", "/* eslint-disable */\n", "// eslint-disable-next-line\n"]) {
+			expect(matches("lint-suppression", flagged), flagged).toBe(true);
+		}
+		for (const named of ["x = f()  # noqa: S603\n", "x = f()  # type: ignore[arg-type]\n", "#[allow(dead_code)]\n", "// eslint-disable-next-line no-console -- reason\n", "// @ts-expect-error reason\n"]) {
+			expect(matches("lint-suppression", named), named).toBe(false);
+		}
 	});
 });
