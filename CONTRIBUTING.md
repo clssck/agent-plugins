@@ -33,7 +33,7 @@ Create `packs/<name>/package.json` with `name` (matching the directory), `versio
 
 ## `clssck-development`
 
-`packs/clssck-development/` is a first-party, repository-agnostic pack maintained here; it carries no upstream drift procedure. It began from MIT-licensed `can1357/oh-my-pi` development assets, recorded in [`licenses/clssck-development/`](./licenses/clssck-development/ATTRIBUTION). Edit it in place, keep tool dependencies in the root `package.json`, and bump the pack version when behavior changes.
+`packs/clssck-development/` is a first-party, repository-agnostic pack maintained here. It began from MIT-licensed `can1357/oh-my-pi` development assets, recorded in [`licenses/clssck-development/`](./licenses/clssck-development/ATTRIBUTION). Edit it in place, keep tool dependencies in the root `package.json`, and bump the pack version when behavior changes. It is never synced from OMP: [`omp-source-lock.json`](./omp-source-lock.json) pins the reviewed OMP `.omp/commands`, `.omp/skills`, and `.omp/tools` trees, and the Sync workflow runs `scripts/check-omp-source.ts --notify` to open one assigned issue when they change. After reviewing and adapting that diff by hand, update the lock to the reviewed commit and trees.
 
 Smoke-test against the host loaders locally, offline, with an explicit oh-my-pi checkout: `OMP_ROOT=/path/to/oh-my-pi bun scripts/check-omp-loader.ts`. It runs every pack through the OMP providers, task-agent parser, and extension loader, then the packaged builtin prompt probe via `--show`. Also run `bun scripts/sync.ts --check`.
 

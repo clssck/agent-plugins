@@ -9,6 +9,7 @@ on:
     paths:
       - "packs/**"
       - "sources.json"
+      - "omp-source-lock.json"
       - "scripts/**"
       - ".github/workflows/sync-upstreams.yml"
 
@@ -52,3 +53,18 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Update upstream skills"
           git push
+
+  omp-baseline:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Report OMP baseline changes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: bun scripts/check-omp-source.ts --notify
