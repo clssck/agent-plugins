@@ -1,59 +1,54 @@
 ---
 name: tool-prompt-optimization
-description: "Author, audit, trim, or review the description prompts an agent reads to learn its tools (function/tool docs, MCP tool descriptions). Two halves: (1) measure how much of a tool prompt is already inferable from the tool's name + JSON parameter schema, to prune redundancy with evidence; (2) authoring rules for what belongs in a tool prompt vs what stays in code. Use when writing a tool description, deciding what schema field descriptions already cover, testing schema-vs-prompt overlap before deleting prompt lines, or cutting a bloated tool doc. Prompt voice, tags, RFC keywords — system-prompts; re-encoding mechanics — semantic-compression."
+description: Optimize the description prompts an AI agent reads to learn its built-in tools (the `.md` files under prompts/tools/). Two halves: (1) measure how much of a prompt is already inferable from the tool's JSON parameter schema + name, to prune redundancy with evidence; (2) house authoring rules for what belongs in a tool prompt vs what stays in code. Use when auditing, trimming, writing, or reviewing tool prompts, deciding what schema field descriptions already cover, or testing schema-vs-prompt overlap before deleting prompt lines.
 ---
 
 # Tool Prompt Optimization
 
-A tool prompt is read cold, next to a wire schema the model already sees. Content reconstructible from `(name, JSON schema, blank outline)` is a *prune candidate*, never an automatic delete. Probe that overlap for evidence: ask models to predict the prompt body from those inputs. Lines recovered reliably across samples and models → candidates. Lines no model recovers → load-bearing, keep.
-
-This skill owns tool-prompt content: what ships, what stays in code, how to measure. Voice, tags, and RFC 2119 vocabulary → `system-prompts`. Re-encoding the survivors → `semantic-compression`. Decide *what* with this skill, then *how it reads* with those two.
+Prompt/schema overlap: content reconstructible from `(name, JSON schema, blank outline)` is a *prune candidate*, never an automatic delete. Probe this overlap for evidence, not vibes: predict the prompt body from those inputs. Reliably recovered lines: candidates; no-model recovery: load-bearing — keep.
 
 ## Run probe
 
-[`probe.ts`](skill://tool-prompt-optimization/scripts/probe.ts) is generic: any tool, any schema. You supply the schema, the outline, and the models. Model calls use the OMP host model layer, so run it from a working directory where `@oh-my-pi/pi-ai` and `@oh-my-pi/pi-catalog` resolve; credentials are whatever the host resolves for the provider you select.
+`skill://tool-prompt-optimization/scripts/probe.ts`: `@oh-my-pi/pi-ai` `completeSimple`; production-matching model/auth/provider behavior.
 
 ```bash
 bun "$(realpath skill://tool-prompt-optimization/scripts/probe.ts)" \
-  --schema schema.json --template outline.md --name search_files \
-  --model <provider/id> --model <provider/id> --samples 3
+  --schema <file|json> --template <file|text> --name <tool_name> --model <provider/id>
 ```
 
-| Flag | Rule |
-|---|---|
-| `--schema`, `--template` | Required. File path, else inline value. |
-| `--model` | Required unless `CLSSCK_PROBE_MODELS` is set. Repeatable; commas allowed; `provider/id`. Flag wins over env. |
-| `--samples` | Integer 1..20, default 3. |
-| `--max-tokens` | Integer 1..32000, default 1200. |
-| `--name` | Tool name shown to the model; default `the tool`. |
-| `--json` / `--help` | Machine output / usage, exit 0. |
+- Required: `--schema`, `--template` — file path or inline value.
+- No default panel: `--model provider/id` (repeatable, comma-separated allowed) or `CLSSCK_PROBE_MODELS` required; flag wins over env. Credentials: whatever the OMP host model layer resolves for the selected provider.
+- Tune: `--samples N` (1..20, default 3), `--max-tokens N` (1..32000, default 1200), `--json`. Invalid args → usage, exit 2, no model call.
+- Programmatic: `import { probe } from "./scripts/probe.ts"` (`models` required) → `{ prompt, results: [{ model, samples: [{ text, stopReason, usage, error }] }] }`.
 
-- **Validation:** bad flags, unknown flags, missing models, out-of-range numbers → error + usage, exit 2, before any model call. No default panel exists: you choose models and own the spend.
-- **Panel:** use at least two unrelated models; agreement across them is the signal. One model = noise.
-- **Programmatic:** `import { probe } from "./probe.ts"` → `probe({ schema, template, models, samples?, name?, maxTokens? })` → `{ prompt, results: [{ model, samples: [{ text, stopReason, usage, error }] }] }`. `models` is required.
+### Builtin shortcut — preferred inside an OMP checkout
 
-### OMP-host adapter (optional)
-
-[`probe-builtin.ts`](skill://tool-prompt-optimization/scripts/probe-builtin.ts) works only inside an OMP checkout. It instantiates a live host tool and reads the exact wire schema (`toolWireSchema`) and rendered description (`tool.description`), derives the outline, then calls the generic probe. Anywhere else, use `probe.ts` with hand-supplied inputs; it still calls models through the OMP host model layer, so `@oh-my-pi/pi-ai` and `@oh-my-pi/pi-catalog` MUST resolve from the working directory.
+`skill://tool-prompt-optimization/scripts/probe-builtin.ts` instantiates the live tool; gets exact `toolWireSchema`, `tool.description`, and derived outline. Works only inside an OMP checkout whose packages resolve from cwd; elsewhere use `probe.ts`:
 
 ```bash
-bun "$(realpath skill://tool-prompt-optimization/scripts/probe-builtin.ts)" --tool <name> --show
-bun "$(realpath skill://tool-prompt-optimization/scripts/probe-builtin.ts)" --tool <name> [--no-summary] --model <provider/id>
+bun "$(realpath skill://tool-prompt-optimization/scripts/probe-builtin.ts)" --tool <name> [--no-summary] [--show]
 ```
 
-- `--show`: prints resolved schema, derived outline, real prompt; offline, needs no model, makes no model call. Run it first.
-- `--no-summary`: also drops the first-line summary. Section names still reach the model.
-- `--model`, `--samples`, `--max-tokens`, `--json`: same rules as `probe.ts`. Output ends with the real prompt for in-place diff.
-- Factory-map resolution bypasses the host's tool allowlist. `github` is built directly and skips its CLI-availability gate; any other tool that fails to construct needs the manual `probe.ts` path.
+- `--show`: resolved schema, derived outline, real prompt; exits without API calls or model selection. Inspect before spending tokens.
+- `--no-summary`: direct summary-line-blank ablation.
+- `--model` / `--samples` / `--max-tokens` / `--json`: shared with `probe.ts`; `--model` (or `CLSSCK_PROBE_MODELS`) required unless `--show`. Output ends with real prompt for in-place diff.
+- Factory-map bypasses settings allowlist; `github` constructed directly past its `gh` gate. Other construction availability gate (e.g. ssh, unconfigured memory backend) → manual inputs.
 
 ## Inputs
 
-**Schema:** the wire schema the model actually sees, never a hand sketch. Include `required` and `additionalProperties: false`; omitting them makes usage look looser than it is. Export it from the host (the adapter does) or copy the serialized request.
+**Schema:** wire schema the model sees, never hand-sketch. Arktype:
 
-**Outline:** the real prompt's structure with every body blanked: first-line summary, then each section tag containing `...`. The adapter refuses a prompt whose outline would equal the prompt itself (no sections) or come out empty.
+```ts
+import { arkToWireSchema } from "@oh-my-pi/pi-ai"; // or toolWireSchema(tool)
+JSON.stringify(arkToWireSchema(toolSchema), null, 2);
+```
+
+Include `required`, `additionalProperties: false`; omission makes usage appear looser than reality.
+
+**Template:** actual `.md` structure with bodies blanked — one-line summary, then each section tag containing `...`.
 
 ```
-Search files by name or content under a directory.
+Structural code search via native ast-grep AST matching.
 
 <instruction>
 ...
@@ -70,67 +65,52 @@ Search files by name or content under a directory.
 
 ## Interpret
 
-Bucket each line of the real prompt:
+Bucket each real-prompt line:
 
-| Bucket | Lines |
-|---|---|
-| **Prune candidate** | Stable across samples **and** models; restates the schema: parameter names/types, `required`, example values already in field descriptions, stated clamp ranges. |
-| **Keep** | No model recovers it: defaults and their direction (`gitignore: true` does not say "respects gitignore"); routing and escalation ("NEVER shell out to `find` → use this tool"); exact output shape (ordering, grouping, truncation, URIs); WRONG/RIGHT anti-patterns; constraints invisible to types (embedded-DSL grammar, trailing delimiters). |
+- **Prune candidate:** stable across samples **and** models; schema restatement — parameter names/types, `required`, field-description value examples, stated clamp ranges.
+- **Keep:** no model recovers it — defaults/direction (`gitignore` default true); routing/escalation (`NEVER` shell out to `find`/`fd` → use this tool; broad exploration → `Task` subagent); exact output shape (mtime sort, grouping, `artifact://` truncation); worked anti-patterns; type-invisible constraints (AST metavariable grammar, C++ trailing `;`).
 
-One sample is noise. Stable cross-model overlap only nominates a line; history clears it.
+One sample: noise. Stable cross-sample/model overlap is only a candidate; history must clear it. MUST NOT delete on inferability alone.
 
-Worked read, for a `search_files(pattern, path?, glob?, limit?)` schema: models restate "`pattern`: text or regex to find; `path`: directory, default current" → prune after check. They never produce "results grouped by file, newest first; truncated output carries a handle for the full list" or "NEVER pipe to `grep`" → keep.
+## Caveats — before every deletion
 
-## Before every deletion
+- **MUST `git blame` each cut line; read its commit/issue.** Many lines are incident scar tissue: hallucinated flag, shell-out, repo-root scan, fabricated anchor. Keep scar tissue. History distinguishes schema restatement from incident prevention. Inferability necessary, NEVER sufficient.
+- **Memorization ≠ inference:** public repos, including this one, may be training data. Repo-specific prediction absent from schema — exact tool names, internal URI schemes, `Task` subagent — is recitation; discount it.
+- **Outline leaks:** summary and section names hint. For schema-alone inference, second pass: no summary, generic section tags. Content surviving only the summary is summary-inferable, not schema-inferable.
 
-- **Version history:** MUST read the history of each cut line (blame, commit message, linked issue). Many lines are incident scar tissue: a hallucinated flag, a shell-out, a repo-root scan. Keep scar tissue. Inferability is necessary, NEVER sufficient.
-- **Memorization ≠ inference:** a model may recite a public tool's prompt from training. Host-specific names and URI schemes absent from the schema are recitation; discount them.
-- **Outline leaks:** summary and section names hint. For schema-alone inference run a second pass with `--no-summary`; for generic section names too, hand `probe.ts` a template with renamed tags. Content surviving only the summary is summary-inferable, not schema-inferable.
-- **Verdict:** models typically recover schema-covered parameter mechanics and generic usage; they do not recover defaults, output shape, routing, anti-patterns, or domain grammar. Self-documenting flag tools prune heavily; DSL and capability tools barely. Treat that as a hypothesis for your tool, not a result: the probe decides.
+## Verdict
 
-## Authoring
+Predictions usually recover schema-covered parameter mechanics/generic usage, not defaults, output shape, routing, anti-patterns, domain grammar. Prune the former only after per-line `git blame`; keep the latter. Self-documenting flag tools (`find`) prune heavily; DSL/capability tools (`read`, `ast_grep`) barely.
 
-Tool prompts teach when to choose the tool, its input shape, and agent-owned failures. They are not API docs. Engine internals, recovery heuristics, fallback chains, performance tuning: code.
+## Tool Prompt Authoring
+
+Tool prompts are not API docs: teach when to choose a tool, input shape, and agent-owned failures. Engine internals, recovery heuristics, fallback chains, performance tuning: code.
 
 ### Surface, not machinery
 
 Agents choose from prose, not source: tell WHEN/WHY, NEVER internal HOW.
 
-|Tool|Teach|Omit|
-|---|---|---|
-|file reader|every source it covers (file, directory, archive, URL) so the agent skips `cat`/`curl`/`tar`|chunker, binary sniffer, cache layer|
-|language-server client|"MUST use it whenever a language server is available — safer than text search"|wire protocol, server lifecycle, capability negotiation|
-|structural search/replace|metavariable syntax + workflow: loosest existence check first, narrow paths|AST engine, query compilation, grammar selection|
-|line-anchored editor|patch grammar (anchors, ops, payloads, ranges) + successful edit shapes|hash internals, fuzz tolerance, recovery helpers; the agent sees only "resolved your typo" or "anchor stale, re-read"|
+- `read.md`: every covered source — file/dir/archive/sqlite/PDF/URL — prevents `cat`/`curl`/`tar`; omit chunker, binary sniffer, cache layer.
+- `lsp.md`: "You MUST use `lsp` whenever a language server is available — safer than text-based alternatives." Omit LSP wire protocol, server lifecycle, capability negotiation.
+- `ast_edit`: metavariable syntax/workflow: "Loosest existence check: `pat: 'executeBash'` with narrow paths"; omit AST engine, query compilation, tree-sitter grammar selection.
+- `hashline.md` (this repo): patch grammar — anchors, ops, payloads, ranges — and successful edit shapes. Hide `tryRecoverHashlineWithCache`, fuzz factor, bigram tables, `findUniqueSuffixMatch`, `untilAborted`, `formatGroupedFiles`; agent sees only "the tool resolved your typo" or "the anchor was stale, re-read".
 
-If a detail cannot change an agent decision, it does NOT belong. Each sentence MUST shift a call.
+If a detail cannot change agent behavior, it does NOT belong. Each sentence MUST shift an agent decision.
 
-### Anatomy
+### Good prompt anatomy
 
-1. **One-line purpose** in agent vocabulary: "compact, line-anchored edit format", not "wraps libfoo with X".
-2. **Input grammar:** operators, parameters, selectors; verbatim emitted syntax.
-3. **Worked examples:** 3–8 common shapes; an example is the explanation, never narrate twice.
-4. **Agent-owned failures:** stale anchor, missing payload prefix, fabricated identifier; omit silently recovered failures.
-5. **Anti-patterns:** WRONG/RIGHT pairs from real retries, never imagined ones.
-6. **`<critical>` recap:** 3–6 load-bearing lines for agents that skip the body. Tool prompts are short, so one recap at the end suffices; the start-and-end rule is for long system prompts.
+1. **One-line purpose:** agent-vocabulary problem; not "wraps libfoo with X", but "compact, line-anchored edit format".
+2. **Input grammar/surface:** operators, parameters, selectors; concrete emitted syntax.
+3. **Worked examples:** 3–8 common shapes. Example IS explanation; do not narrate twice.
+4. **Agent-owned failure shapes:** input-fixable stale anchors, missing payload prefix, fabricated hash; omit silently recovered failures.
+5. **Anti-patterns:** real-failure WRONG/RIGHT pairs for retry-causing mistakes, never imagined ones.
+6. **`<critical>` recap:** 3–6 load-bearing lines for agents skipping body.
 
 ### Exclude
 
 - Implementation file/function names, module layout.
-- Recovery, retry, normalization, caching, fuzzy matching.
-- Performance (`O(n)`) unless it changes strategy.
-- Telemetry, logging, debug flags, env vars the agent cannot set.
+- Recovery, retry, normalization, caching, fuzz matching.
+- Performance characteristics such as "this is O(n)", unless strategy-changing.
+- Telemetry, logging, debug flags, unsettable env vars.
 - Version history, deprecated parameters, "previously this worked differently".
-- Cross-tool plumbing ("calls `read` under the hood") unless coordination is required.
-
-### Examples drive the contract
-
-- Mechanical syntax: one correct example beats three grammar paragraphs.
-- The model anchors output format on the latest example: canonical shape last.
-- Adjacent WRONG/RIGHT removes a retry class.
-- Examples MUST be runnable, not pseudo-code: JSON tool → JSON example; custom grammar → real anchors, prefixes, line numbers.
-
-```
-WRONG  search_files({"pattern": "TODO", "path": "src", "limit": "ten"})
-RIGHT  search_files({"pattern": "TODO", "path": "src", "limit": 10})
-```
+- Cross-tool plumbing such as "this calls `read` under the hood", unless coordination required.
