@@ -136,7 +136,7 @@ Do not collapse distinct runtime or data-store responsibilities because local de
 Each queue or topic you own is a data-store container. NEVER model the broker itself (Kafka cluster, RabbitMQ server) as one hub container: a hub hides producer-consumer coupling. Alternative: omit the queues and put the queue name in the relationship label ("Sends order events via `orders-queue` to"). Both valid; keep one choice per diagram set. The broker or cluster belongs on the Deployment diagram. Separate software systems sharing a queue need a stated owner (producer, consumer, or third party).
 
 **Microservices:**
-Within one team's single software system, each microservice is a group of one or more containers (API plus data store) inside one system boundary. Promote a service to its own software system only when a separate team owns and operates it.
+Within a single software system, each microservice is a group of one or more containers (API plus data store) inside one system boundary. Promote a service to its own software system only when it carries a distinct runtime responsibility with its own boundary; a separate owning and operating team is evidence for that, never the deciding rule.
 
 ---
 
@@ -221,7 +221,7 @@ Several systems need the same data:
 - Define domains at the **business/functional level**, never one global "shared data" bucket
 - Examples: "R&D Shared Data", "Manufacturing Data", "Commercial Analytics"
 - Each domain has clear ownership and access policies
-- Document in the System Landscape diagram
+- Show the domain boundary in the System Landscape diagram (systems and people only); model its Stores in the domain's own container view
 
 ### Mapping to C4
 
@@ -229,8 +229,8 @@ Several systems need the same data:
 |---------------|------------|
 | System | Software System |
 | Store (owned by one System) | Container (within that System) |
-| Store (shared across Systems) | Container in Shared Data Domain boundary |
-| Shared Data Domain | System boundary box (in System Landscape diagram) |
+| Store (shared across Systems) | Container in the Shared Data Domain's own container view |
+| Shared Data Domain | System boundary box in System Landscape diagram (no Stores inside) |
 | External vendor platform | External Software System (grey) |
 
 ## Sources

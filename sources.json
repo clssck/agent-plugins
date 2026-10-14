@@ -26,7 +26,7 @@
       "name": "lavish-axi",
       "repo": "kunchenguid/lavish-axi",
       "ref": "main",
-      "sha": "42c5691bd6807e0eced7316c85b155dccfeb0c50",
+      "sha": "224f40719d74c15897cfec0c3d67a0dce869ba5f",
       "description": "HTML is the new markdown. Lavish is the new editor for your HTML artifacts.",
       "include": {
         "skills": "skills"
@@ -47,7 +47,7 @@
       "name": "snowflake-labs-coco-skills",
       "repo": "Snowflake-Labs/coco-skills",
       "ref": "main",
-      "sha": "28b549f48da9994307081a9d4d2f16379f5a9c16",
+      "sha": "89c57c211105bb5a870ce2f6e6e495a20c962fd8",
       "description": "Curated Agent Skills for Cortex Code (CoCo), Snowflake's CLI for building with AI.",
       "compatibility": "coco",
       "skillReferences": {

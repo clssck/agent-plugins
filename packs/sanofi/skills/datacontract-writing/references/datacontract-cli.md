@@ -30,7 +30,7 @@ The command tables below show plain `datacontract`; prefix `uvx --from "datacont
 
 ## Rules
 
-- Plain `datacontract test` (no `--metadata-only`) reads row values for quality, null, and duplicate checks. The Snowflake metadata-only rule in [SKILL.md](skill://datacontract-writing/SKILL.md) applies: NEVER run it unless the user explicitly asks for a data test and supplies credentials.
+- Plain `datacontract test` (no `--metadata-only`) reads row values for quality, null, and duplicate checks. The Snowflake metadata-only rule in [SKILL.md](skill://datacontract-writing/SKILL.md) applies: NEVER run it without `--metadata-only` or `--dry-run`; the skill reads metadata only.
 - NEVER invent or print credentials. Snowflake auth comes from the user's environment: `DATACONTRACT_SNOWFLAKE_USERNAME`, `_PASSWORD`, `_WAREHOUSE`, `_ROLE`; key-pair via `_PRIVATE_KEY_FILE` and `_PRIVATE_KEY_FILE_PWD`; `_AUTHENTICATOR` for SSO/MFA. Without a password, `import snowflake` opens a browser SSO login.
 - Set variables per shell: POSIX `export DATACONTRACT_SNOWFLAKE_ROLE=ROLE`; PowerShell `$env:DATACONTRACT_SNOWFLAKE_ROLE = "ROLE"`.
 - Snowflake `--source` is `<orgname>-<accountname>`, without `.snowflakecomputing.com`. `250001: Could not connect` usually means a wrong identifier.

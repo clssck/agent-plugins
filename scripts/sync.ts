@@ -2,11 +2,10 @@
 // Keeps this repository self-contained. In order:
 //   1. pin    – move every upstream in sources.json to the latest commit of its ref
 //   2. fetch  – copy each upstream into upstream/<name>/ at its pinned commit
-//   3. rules  – render rule-sources/<pack>/*.md into packs/<pack>/rules/
-//   4. check  – fail if anything in packs/ or upstream/ would not load in OMP
-//   5. readme – regenerate README.md (the workflow only; pass --readme to do it locally)
+//   3. check  – fail if anything in packs/ or upstream/ would not load in OMP
+//   4. readme – regenerate README.md (the workflow only; pass --readme to do it locally)
 // Run by .github/workflows/sync-upstreams.yml; set GITHUB_TOKEN when running locally.
-// `--local` runs only rules and check: no network, no token. A local run leaves README.md to the workflow.
+// `--local` runs only check: no network, no token. A local run leaves README.md to the workflow.
 
 import { YAML } from "bun";
 import { cp, mkdir, mkdtemp, readdir, rename, rm, stat } from "node:fs/promises";
@@ -44,9 +43,19 @@ interface Sources {
 	upstreams: Upstream[];
 }
 
-interface Commit {
+/** A commit and the GitHub repository that owns it; links are built only from this pair. */
+export interface Commit {
+	repository: string;
 	sha: string;
 	date: string;
+}
+
+/** Last-updated commits for README rows: this repository's history and upstream histories at their pins. */
+export interface ReadmeCommits {
+	/** Repository path under packs/ or upstream/ → newest local commit touching it. */
+	local: Map<string, Commit>;
+	/** `<pack>/<skill dir>` → newest upstream commit touching that skill at the pin. */
+	upstream: Map<string, Commit>;
 }
 
 interface Item {
@@ -97,11 +106,6 @@ const LICENSE_FILE = /^(licen[cs]e|copying|notice)(\.|$)/i;
 const STAGING_PREFIX = ".sync-";
 /** Bump whenever buildUpstream's output changes for an unchanged sources.json entry, so every pack is rebuilt. */
 const BUILD_FORMAT = 8;
-/** Rule sources; packs/<pack>/rules/ is generated from rule-sources/<pack>/. */
-const RULE_SOURCES_DIR = path.join(ROOT, "rule-sources");
-/** Shared regex fragments, one per file, referenced from rule frontmatter as {{<name>}}. */
-const FRAGMENTS_DIR = path.join(RULE_SOURCES_DIR, "fragments");
-const FRAGMENT_REF = /\{\{([\w-]+)\}\}/g;
 
 async function readJson<T>(file: string): Promise<T | undefined> {
 	const handle = Bun.file(file);
@@ -342,63 +346,9 @@ export async function fetchUpstreams(sources: Sources): Promise<void> {
 	}
 }
 
-// ---------------------------------------------------------------------------
-// 3. rules
-// ---------------------------------------------------------------------------
-
-/**
- * Render rule-sources/<pack>/*.md into packs/<pack>/rules/, replacing each {{name}} in the frontmatter
- * with rule-sources/fragments/<name>.regex. Conditions are YAML single-quoted, so `'` is doubled.
- * In GitHub Actions a stale generated rule is an error: the workflow commits only upstream changes.
- */
-export async function renderRules(errors: string[], write = !process.env.GITHUB_ACTIONS): Promise<void> {
-	const fragments = new Map<string, string>();
-	for (const entry of await entries(FRAGMENTS_DIR)) {
-		if (!entry.isFile() || !entry.name.endsWith(".regex")) continue;
-		const text = await Bun.file(path.join(FRAGMENTS_DIR, entry.name)).text();
-		fragments.set(entry.name.slice(0, -".regex".length), text.replace(/\r?\n$/, "").replaceAll("'", "''"));
-	}
-	const packNames = (await entries(path.join(ROOT, "packs"))).filter(entry => entry.isDirectory()).map(entry => entry.name);
-	for (const entry of await entries(RULE_SOURCES_DIR)) {
-		if (entry.isDirectory() && entry.name !== "fragments" && !packNames.includes(entry.name)) {
-			errors.push(`rule-sources/${entry.name}/ has no matching packs/${entry.name}/`);
-		}
-	}
-	for (const pack of packNames) {
-		const sourceDir = path.join(RULE_SOURCES_DIR, pack);
-		const targetDir = path.join(ROOT, "packs", pack, "rules");
-		const names = (await entries(sourceDir)).filter(entry => entry.isFile() && entry.name.endsWith(".md")).map(entry => entry.name);
-		for (const name of names) {
-			const source = await Bun.file(path.join(sourceDir, name)).text();
-			const end = source.startsWith("---") ? source.indexOf("\n---", 3) : -1;
-			if (end === -1) {
-				errors.push(`rule-sources/${pack}/${name} must start with YAML frontmatter closed by ---`);
-				continue;
-			}
-			const head = source.slice(0, end).replace(FRAGMENT_REF, (ref, key: string) => {
-				const fragment = fragments.get(key);
-				if (fragment === undefined) errors.push(`rule-sources/${pack}/${name}: unknown fragment ${ref}`);
-				return fragment ?? ref;
-			});
-			const rendered = head + source.slice(end);
-			const target = path.join(targetDir, name);
-			const current = (await Bun.file(target).exists()) ? await Bun.file(target).text() : undefined;
-			if (rendered === current) continue;
-			if (!write) {
-				errors.push(`packs/${pack}/rules/${name} is stale; run \`bun scripts/sync.ts --local\` and commit it`);
-			} else {
-				await Bun.write(target, rendered);
-				console.log(`rendered packs/${pack}/rules/${name}`);
-			}
-		}
-		for (const entry of await entries(targetDir)) {
-			if (!names.includes(entry.name)) errors.push(`packs/${pack}/rules/${entry.name} has no source; rules are edited in rule-sources/${pack}/`);
-		}
-	}
-}
 
 // ---------------------------------------------------------------------------
-// 4. check
+// 3. check
 // ---------------------------------------------------------------------------
 
 /** OMP scans rules/, agents/, and commands/ one level deep; nested files are silently ignored. */
@@ -732,17 +682,17 @@ function failOn(errors: string[]): void {
 // ---------------------------------------------------------------------------
 
 /** Newest commit touching each file and directory under packs/ and upstream/, from one pass over history (newest first). */
-function localLastCommits(): Map<string, Commit> {
+function localLastCommits(repository: string): Map<string, Commit> {
 	const log = Bun.spawnSync(["git", "log", "--format=%x00%H %cI", "--name-only", "--", "packs", "upstream"], { cwd: ROOT });
 	const latest = new Map<string, Commit>();
 	for (const block of log.stdout.toString().split("\0").slice(1)) {
 		const [header, ...files] = block.trim().split("\n");
 		const [sha, date] = header.split(" ");
 		for (const file of files) {
-			if (!latest.has(file)) latest.set(file, { sha, date });
+			if (!latest.has(file)) latest.set(file, { repository, sha, date });
 			// Ancestors of an already-dated directory were dated by the same, newer commit.
 			for (let dir = path.posix.dirname(file); dir !== "." && !latest.has(dir); dir = path.posix.dirname(dir)) {
-				latest.set(dir, { sha, date });
+				latest.set(dir, { repository, sha, date });
 			}
 		}
 	}
@@ -751,13 +701,13 @@ function localLastCommits(): Map<string, Commit> {
 
 /** Newest commit touching each upstream skill at its pin, keyed by `<pack>/<skill dir>`, in one request. */
 async function upstreamLastCommits(packs: Pack[]): Promise<Map<string, Commit>> {
-	const lookups: Array<{ key: string; alias: string }> = [];
+	const lookups: Array<{ key: string; alias: string; repository: string }> = [];
 	const fields = packs.flatMap((pack, p) => {
 		if (!pack.upstream || pack.skills.length === 0) return [];
 		const upstream = pack.upstream;
 		const histories = pack.skills.map((skill, s) => {
 			const dir = path.posix.dirname(skill.file);
-			lookups.push({ key: `${pack.name}/${dir}`, alias: `${p}.${s}` });
+			lookups.push({ key: `${pack.name}/${dir}`, alias: `${p}.${s}`, repository: upstream.repo });
 			return `s${s}: history(first: 1, path: ${JSON.stringify(upstreamPath(pack, dir))}) { nodes { oid committedDate } }`;
 		});
 		return [`p${p}: ${repositoryField(upstream.repo)} { object(oid: ${JSON.stringify(upstream.sha)}) { ... on Commit { ${histories.join(" ")} } } }`];
@@ -766,10 +716,10 @@ async function upstreamLastCommits(packs: Pack[]): Promise<Map<string, Commit>> 
 	type History = { nodes: Array<{ oid: string; committedDate: string }> };
 	const data = await graphql<Record<string, { object: Record<string, History> | null } | null>>(`query { ${fields.join("\n")} }`);
 	const commits = new Map<string, Commit>();
-	for (const { key, alias } of lookups) {
+	for (const { key, alias, repository } of lookups) {
 		const [p, s] = alias.split(".");
 		const node = data[`p${p}`]?.object?.[`s${s}`]?.nodes[0];
-		if (node) commits.set(key, { sha: node.oid, date: node.committedDate });
+		if (node) commits.set(key, { repository, sha: node.oid, date: node.committedDate });
 	}
 	return commits;
 }
@@ -796,14 +746,17 @@ function describeRequirements(pack: Pack): string {
 	return providers.length > 0 ? providers.join("; ") : "—";
 }
 
-export async function renderReadme(sources: Sources, packs: Pack[]): Promise<string> {
-	const localCommits = localLastCommits();
-	const upstreamCommits = await upstreamLastCommits(packs);
+/** Last-updated cell: the commit date, linked inside the repository that owns the commit. */
+export function commitStamp(commit: Commit | undefined): string {
+	return commit
+		? `[${new Date(commit.date).toISOString().slice(0, 16).replace("T", " ")} UTC](https://github.com/${commit.repository}/commit/${commit.sha})`
+		: "—";
+}
+
+export async function renderReadme(sources: Sources, packs: Pack[], commits?: ReadmeCommits): Promise<string> {
 	const repo = sources.repository;
-	const stamp = (commit: Commit | undefined, at: string): string =>
-		commit
-			? `[${new Date(commit.date).toISOString().slice(0, 16).replace("T", " ")} UTC](https://github.com/${at}/commit/${commit.sha})`
-			: "—";
+	const localCommits = commits?.local ?? localLastCommits(repo);
+	const upstreamCommits = commits?.upstream ?? (await upstreamLastCommits(packs));
 	// Link each item at its own last commit so unrelated commits don't rewrite the row.
 	const source = (pack: Pack, item: Item) => {
 		if (pack.upstream) {
@@ -811,7 +764,6 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 				at: pack.upstream.repo,
 				url: `https://github.com/${pack.upstream.repo}/blob/${pack.upstream.sha}/${upstreamPath(pack, item.file)}`,
 				commit: upstreamCommits.get(`${pack.name}/${path.posix.dirname(item.file)}`),
-				commitAt: pack.upstream.repo,
 			};
 		}
 		const commit = localCommits.get(path.posix.join(pack.dir, item.file));
@@ -819,7 +771,6 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 			at: pack.repository ?? repo,
 			url: `https://github.com/${repo}/blob/${commit?.sha ?? "main"}/${pack.dir}/${item.file}`,
 			commit,
-			commitAt: repo,
 		};
 	};
 	const section = (kind: string, pick: (pack: Pack) => Item[]): string[] => {
@@ -828,14 +779,13 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 			.sort((a, b) => `${a.pack.name}/${a.item.name}`.localeCompare(`${b.pack.name}/${b.item.name}`))
 			.map(({ pack, item }) => {
 				const link = source(pack, item);
-				return `| [${item.name}](${link.url}) | \`${pack.name}\` | \`${pack.version}\` | [${link.at}](https://github.com/${link.at}) | ${stamp(link.commit, link.commitAt)} |`;
+				return `| [${item.name}](${link.url}) | \`${pack.name}\` | \`${pack.version}\` | [${link.at}](https://github.com/${link.at}) | ${commitStamp(link.commit)} |`;
 			});
 		if (rows.length === 0) return [];
 		return [`## ${kind}`, "", `| ${kind.slice(0, -1)} | Pack | Version | Source | Last updated |`, "| --- | --- | --- | --- | --- |", ...rows, ""];
 	};
 	const authored = packs.filter(pack => !pack.upstream && !pack.attribution).map(pack => `\`${pack.name}\``).join(", ");
 	const packRows = packs.map(pack => {
-		const at = pack.upstream?.repo ?? pack.repository ?? repo;
 		const target = pack.upstream
 			? `[${pack.upstream.repo}@${pack.upstream.sha.slice(0, 7)}](https://github.com/${pack.upstream.repo}/tree/${pack.upstream.sha})`
 			: pack.attribution
@@ -843,8 +793,8 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 					? `[${pack.repository}](https://github.com/${pack.repository}) via [ATTRIBUTION](./${pack.dir}/ATTRIBUTION)`
 					: `vendored, see [ATTRIBUTION](./${pack.dir}/ATTRIBUTION)`
 				: "this repo";
-		const commitAt = pack.upstream ? at : repo;
-		return `| \`${pack.name}\` | \`${pack.version}\` | ${target} | ${describeRequirements(pack)} | ${describeContents(pack)} | ${stamp(localCommits.get(pack.dir), commitAt)} |`;
+		// A pack row dates the pack directory in this repository, so its commit is always local.
+		return `| \`${pack.name}\` | \`${pack.version}\` | ${target} | ${describeRequirements(pack)} | ${describeContents(pack)} | ${commitStamp(localCommits.get(pack.dir))} |`;
 	});
 
 	return [
@@ -864,7 +814,7 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		"omp plugin install github:clssck/agent-plugins   # omp keeps its own copy of this repo",
 		"AP=~/.omp/plugins/node_modules/agent-plugins",
 		"omp plugin link $AP/packs/clssck-core              # link each pack you want",
-		"omp plugin link $AP/packs/omp-development",
+		"omp plugin link $AP/packs/clssck-development",
 		"omp plugin link $AP/upstream/emilkowalski-skills",
 		"```",
 		"",
@@ -874,8 +824,6 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		"Upgrade note for existing installs: if a machine links `sanofi` without `clssck-core`, link `clssck-core` before upgrading. The `dbt-command-scope` and `dbt-test-arguments` guards moved to `clssck-core` in 1.2.0.",
 		"",
 		"Packs that load are not guaranteed to work with every host capability. Generated CoCo upstreams are adapted on deterministic staged copies and record pinned build provenance; committed \`packs/coco-*\` are adapted in place in this repository. In both cases source repositories and named source releases remain untouched. Foreign question, skill, task, todo, and fetch interfaces become OMP semantics; external capabilities are gated; missing links are repaired or de-linked; and \`skill://\` references are validated against pack-scoped dependency declarations. When a required capability or host path is unavailable, stop and report it; NEVER improvise a substitute.",
-		"",
-		"CI also runs each pack through the pinned OMP extension providers with its declared dependency closure, plus the fatal task-agent parser and extension loader. This proves discovery and schema compatibility, not the business behavior of every skill workflow.",
 		"",
 		"Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).",
 		"",
@@ -892,7 +840,7 @@ export async function renderReadme(sources: Sources, packs: Pack[]): Promise<str
 		...section("Tools", pack => pack.tools),
 		"## License",
 		"",
-		`The root [LICENSE](./LICENSE) covers what is written here: ${authored} under \`packs/\`, \`rule-sources/\`, and \`scripts/\`. Vendored packs and \`upstream/\` copies carry the license files their upstreams ship. Third-party adaptations and attributions are listed in [\`licenses/\`](./licenses/README.md).`,
+		`The root [LICENSE](./LICENSE) (MIT) covers all material authored in this repository: root files, \`.github/\`, configuration, \`scripts/\`, and the first-party packs ${authored} under \`packs/\`, with the third-party exceptions it documents. Vendored packs and \`upstream/\` copies carry the license files their upstreams ship. Third-party adaptations and attributions are listed in [\`licenses/\`](./licenses/README.md).`,
 		"",
 	].join("\n");
 }
@@ -909,7 +857,6 @@ if (import.meta.main) {
 		await fetchUpstreams(sources);
 	}
 	const errors: string[] = [];
-	await renderRules(errors, !checkOnly && !process.env.GITHUB_ACTIONS);
 	const packs = await check(sources, errors);
 	if (!checkOnly && (process.env.GITHUB_ACTIONS || process.argv.includes("--readme"))) {
 		const readme = await renderReadme(sources, packs);
@@ -918,7 +865,7 @@ if (import.meta.main) {
 			console.log("readme updated");
 		}
 	} else {
-		console.log("readme: written by the workflow; pass --readme to update it locally");
+		console.log("readme not checked; pass --readme to regenerate it locally");
 	}
 	console.log(`${packs.length} packs, ${packs.reduce((total, pack) => total + pack.skills.length, 0)} skills: all load in OMP`);
 }

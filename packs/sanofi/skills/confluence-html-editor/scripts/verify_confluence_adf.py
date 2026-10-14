@@ -10,7 +10,7 @@ ADF content format, including MCP text-content wrappers. It intentionally does
 not call Confluence itself; fetch ADF with the active Atlassian tool, save it,
 then run this verifier.
 
-Usage: uv run verify_confluence_adf.py fetched-adf.json --expect panels,statuses,layouts,tasks,decisions,inline_cards,dates
+Usage: uv run "$(realpath skill://confluence-html-editor/scripts/verify_confluence_adf.py)" "$(realpath local://fetched-adf.json)" --expect panels,statuses,layouts,tasks,decisions,inline_cards,dates
 """
 
 from __future__ import annotations

@@ -24,7 +24,7 @@ Cards for `api-recon` Phases 1b and 3b. Paths come from the static harvest; para
 - Packer-object leads: `(params|data|body|payload)\s*:\s*\{`.
 - Type residue for field hints: `yup`/`zod` schemas, `Form.Item name=`, embedded Swagger.
 
-**Output stays bounded** — matched lines only; page with the tool's `skip` when needed. NEVER paste bundle fragments into the conversation: record candidates in `recon/param_candidates.json` as `{path, fields[], source, confidence}`.
+**Output stays bounded** — matched lines only; page files with the tool's `skip`, and tighten the pattern or window to surface more matches inside one file. NEVER paste bundle fragments into the conversation: record candidates in `recon/param_candidates.json` as `{path, fields[], source, confidence}`.
 
 ## Binding Chains
 
@@ -44,7 +44,7 @@ Three questions per endpoint: how the payload is assembled, what validation exis
 |Create/edit|full entity|
 |Bulk/export/sort|`ids[]`, export type, `sortField`|
 
-Record to `param_samples.json`; required versus optional is decided by multi-sample diff plus validation evidence, NEVER by one sample.
+Record to `param_samples.json`; required versus optional is decided by multi-sample diffs or validation/error evidence, NEVER by one sample.
 
 ## Confidence Tiers
 

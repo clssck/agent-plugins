@@ -58,7 +58,7 @@ Pitfalls:
 
 ## `dbt clone`
 
-`dbt clone --state <dir> [--select ...]` copies selected nodes from the state's relations into the target schema. On Snowflake a table in state becomes a **zero-copy clone**; views become pointer views (`select * from` the source). Existing relations are not recreated unless `--full-refresh`; raise `--threads` since each clone is independent. Use instead of deferral when real objects are needed:
+`dbt clone --state <dir> --select <selector>` copies the selected nodes from the state's relations into the target schema. On Snowflake a table in state becomes a **zero-copy clone**; views become pointer views (`select * from` the source). Existing relations are not recreated unless `--full-refresh`; raise `--threads` since each clone is independent. Use instead of deferral when real objects are needed:
 
 - Seed a CI schema with current production incrementals so CI does not full-refresh them.
 - Test downstream consumers outside dbt (BI tools) against changed models.

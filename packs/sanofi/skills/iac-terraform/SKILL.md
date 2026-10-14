@@ -21,7 +21,7 @@ Complements built-in `/review`: that finds generic defects; this skill checks mo
 
 - **Modules**: approved library module exists → use it. NEVER write a raw `aws_*` resource for it.
 - **Read first**: module README + `variables.tf` before writing a call.
-- **Pins**: pin every module `version`; NEVER float.
+- **Pins**: pin registry modules by `version` and Git sources by `?ref`; NEVER float.
 - **Tags**: all 10 mandatory tags on every taggable resource.
 - **Missing values**: ASK for team, cost center, application ID, contact, environment. NEVER guess.
 - **Sensitive settings**: NEVER guess network, IAM, encryption, or environment values.
@@ -68,7 +68,7 @@ Complements built-in `/review`: that finds generic defects; this skill checks mo
 Done when each holds, or its blocker is reported:
 
 - Every resource from a library module, or stated reason no module exists.
-- Every module call pins `version` and passes `tags = local.tags`.
+- Every module call is pinned (registry `version`, Git `?ref`) and passes `tags = local.tags`.
 - `terraform fmt -check`, `init -backend=false`, `validate` pass.
 - Backend uses `use_lockfile`; `versions.tf` floors match features used.
 - Plan JSON passes `check_tags.py`, or user has not yet produced a plan.

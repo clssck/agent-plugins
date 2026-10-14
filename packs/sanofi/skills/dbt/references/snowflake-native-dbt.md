@@ -48,7 +48,7 @@ Use current Snowflake CLI syntax; NEVER translate ordinary dbt commands by guess
 ```shell
 snow dbt deploy <project_object> --source <project_directory> --database <database> --schema <schema>
 
-snow dbt execute <project_object> build
+snow dbt execute <project_object> build --select <selector>
 snow dbt execute <project_object> test --select <selector>
 snow dbt execute <project_object> show --select <model>
 ```

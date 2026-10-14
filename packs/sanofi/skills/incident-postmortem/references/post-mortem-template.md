@@ -72,7 +72,7 @@ Quantify wherever possible. Unknown number → say so; NEVER guess.
 
 ## Timeline (Required)
 
-All times UTC. Sources linked inline where available. Facts only; no interpretation.
+All times UTC. A source per entry; facts only, no interpretation.
 
 | Time (UTC) | Actor            | Event                                                                          |
 | ---------- | ---------------- | ------------------------------------------------------------------------------ |
@@ -131,6 +131,8 @@ Root cause is rarely a single chain. Capture **all** factors that had to align f
   the only detection path.
 - **Gap — rollback runbook**: no documented rollback procedure for
   `orders-api` > v2.40. @bob reconstructed the procedure live.
+
+**Root-cause category**: `Architecture` — the canary's fixed traffic segmentation was never revisited after the schema migration changed the risk profile.
 
 ## What Went Well
 

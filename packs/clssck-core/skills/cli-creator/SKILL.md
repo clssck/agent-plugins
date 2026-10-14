@@ -1,6 +1,6 @@
 ---
 name: cli-creator
-description: Build a durable, installable CLI from API docs, OpenAPI specs, SDKs, curl captures, internal scripts, or shell history, plus a companion omp skill that teaches it. Use when asked to wrap a service or API as a command-line tool, make a script callable from anywhere, add doctor/JSON/pagination to a CLI, or package and install a binary on PATH. Not for one-off scripts or CI/CD pipelines — cicd-engineering instead.
+description: Build a durable, installable CLI from API docs, OpenAPI specs, SDKs, curl captures, internal scripts, or shell history, plus a companion omp skill that teaches it. Use when asked to wrap a service or API as a command-line tool, make a script callable from anywhere, add doctor/JSON/pagination to a CLI, or package and install a binary on PATH. Not for one-off scripts or CI/CD pipeline authoring.
 ---
 
 # CLI Creator
@@ -27,17 +27,18 @@ Name three things before scaffolding:
 Detect OS, active shell, toolchains, repository convention, and a user-writable PATH directory before generating install commands. **NEVER emit PowerShell syntax for a POSIX shell or the reverse.**
 
 ```bash
-command -v cargo rustc node pnpm npm python3 uv
+command -v cargo rustc bun node pnpm npm python3 uv go
 echo "$PATH"; echo "${XDG_CONFIG_HOME:-$HOME/.config}"; echo "${TMPDIR:-/tmp}"
 ```
 
 ```powershell
-Get-Command cargo, rustc, node, pnpm, npm, python, uv -ErrorAction SilentlyContinue
+Get-Command cargo, rustc, bun, node, pnpm, npm, python, uv, go -ErrorAction SilentlyContinue
 $env:TEMP
 [Environment]::GetEnvironmentVariable('Path', 'User')
 ```
 
-- Repo has a package manager and install convention → use it.
+- Repo has a package manager and install convention → use it (existing convention wins over any default here).
+- New TypeScript/JavaScript CLI, no existing convention or Node-only constraint → **prefer Bun** (`bun install`, `bun run`, `bun test`, `bun build --compile`). Fall back to npm/pnpm when the repo already uses them, the target requires Node/npm, or a dependency fails under Bun; Bun is not compatible with every Node SDK.
 - Search source material with `grep`, `glob`, `read`; NEVER shell `rg`/`find`/`Select-String`.
 
 ## Choose the runtime
@@ -45,7 +46,7 @@ $env:TEMP
 |Runtime|Choose when|Defaults|
 |---|---|---|
 |Rust (default)|Durable CLI: one fast binary, strong arg parsing, good JSON|`clap`, `reqwest`, `serde`/`serde_json`, `toml`, `anyhow`|
-|TypeScript/Node|Official SDK, auth helper, browser automation, or existing repo tooling is the advantage|`commander` or `cac`; native `fetch` or official SDK; `zod` only where payload validation prevents real breakage; `package.json` `bin`; build tool per repo (`tsup`, `tsx`, `tsc`); `bun build --compile` for a single binary with no Node on the target|
+|TypeScript/JavaScript (Bun preferred)|Official SDK, auth helper, browser automation, or existing repo tooling is the advantage|Bun for package management, running, testing, and `bun build --compile` single binary (no Node needed on target); npm/pnpm/Node only when the repo or target requires it; `commander` or `cac`; native `fetch` or official SDK; `zod` only where payload validation prevents real breakage; `package.json` `bin`; build tool per repo (`tsup`, `tsx`, `tsc`)|
 |Python|Data work, local file transforms, SQLite/CSV/JSON analysis, Python-heavy admin tooling|uv project from `uv init --package` with `[project.scripts]` and committed `uv.lock`; `argparse` (or `typer` for deep subcommands); `httpx`/`requests`/`urllib` matching nearby code; PEP 723 single file for one-module tools|
 |Go|Repo or team already uses Go; one static binary, easy cross-compile|Standard `flag` for flat commands; a subcommand library only for nested trees|
 
@@ -114,7 +115,7 @@ After the CLI works, create or update a normal omp skill that teaches it.
 |Project|`.omp/skills/<tool-name>/SKILL.md`|Tool belongs to one repository|
 
 - **Layout:** one level deep, `<skills-root>/<tool-name>/SKILL.md`; folder name = `name`.
-- **Frontmatter:** `name` + `description`; `disable-model-invocation: true` only for a manual-only skill. Description = retrieval surface: purpose + concrete "Use when" triggers; `Not for …` only against sibling confusion. Authoring style → `skill-authoring`.
-- **Body:** `# Title`, dense intro, task-named `##` sections, bold-lead rules; ≤~150 lines. Detail in `references/*.md`; link every runtime asset with `skill://<tool-name>/...`. Skeleton → [agent-cli-patterns.md](skill://cli-creator/references/agent-cli-patterns.md#companion-skill).
+- **Frontmatter:** `name` + `description`; `disable-model-invocation: true` only for a manual-only skill (OMP extension frontmatter — omit it from standard `plugin.json` packages; strict validation rejects unknown fields). Description = retrieval surface: purpose + concrete "Use when" triggers; `Not for …` only against sibling confusion. Authoring style → `skill-authoring`.
+- **Body:** `# Title`, dense intro, `##` sections (task names for procedures, noun names for reference), bold-lead rules. Detail in `references/*.md`; link every runtime asset with `skill://<tool-name>/...`. Skeleton → [agent-cli-patterns.md](skill://cli-creator/references/agent-cli-patterns.md#companion-skill).
 - **Bundled scripts:** PEP 723 header with `#!/usr/bin/env -S uv run --script`; invoke as `uv run "$(realpath skill://<tool-name>/scripts/<file>.py)"` in the omp `bash` tool. Bare `skill://` path fails in external programs; `realpath` prints the physical path.
 - **Verify:** `read skill://<tool-name>` resolves, every link resolves, example commands run from a fresh directory.

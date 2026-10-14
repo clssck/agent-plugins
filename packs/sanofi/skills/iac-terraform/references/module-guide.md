@@ -135,7 +135,7 @@ terraform {
 
 ## Testing
 
-`terraform test` defaults every `run` block to `command = apply`: creates real infrastructure, destroys it at end of file. NEVER run unless every `run` block sets `command = plan` with the AWS provider mocked, or the user authorizes real resources.
+`terraform test` defaults every `run` block to `command = apply`: creates real infrastructure, destroys it at end of file. NEVER run unless every `run` block sets `command = plan` with the AWS provider mocked; a `command = apply` run creates real infrastructure.
 
 ```hcl
 # tests/tags.tftest.hcl: assumes the root defines the variables and local.tags from tagging-guide.md

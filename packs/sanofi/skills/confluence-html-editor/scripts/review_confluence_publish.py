@@ -8,7 +8,7 @@
 This script is intentionally local-only. It does not call Confluence. Use it
 after saving a fetched HTML body and a proposed full replacement body.
 
-Usage: uv run review_confluence_publish.py --original fetched.html --proposed proposed.html --title "Page title" --page-id 123 --version-message "Polish page"
+Usage: uv run "$(realpath skill://confluence-html-editor/scripts/review_confluence_publish.py)" --original "$(realpath local://fetched.html)" --proposed "$(realpath local://proposed.html)" --title "Page title" --page-id 123 --version-message "Polish page"
 """
 
 from __future__ import annotations

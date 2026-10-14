@@ -1,11 +1,12 @@
 ---
 name: api-recon
-description: "Map a web app's API surface before any testing: endpoints from static bundles, parameters from anchors and UI bindings, the auth gates, and the live session under stubs. Use when you need the complete outbound surface of an authorized web app — paths, methods, params, route coverage. Not for exploitation or credential attacks (`exploitation`). The request, not the mock, is the truth."
+description: "Invoke explicitly to map a web app's API surface before any testing: endpoints from static bundles, parameters from anchors and UI bindings, auth gates, and the live session under stubs. Best when you need the complete outbound surface of an authorized web app — paths, methods, params, route coverage. Not for exploitation or credential attacks (`exploitation`). The request, not the mock, is the truth."
+disable-model-invocation: true
 ---
 
 # API Recon
 
-Collect the complete outbound API surface of an authorized web app: backend paths, methods, parameters, response shapes, front-end routes, and the UI actions that trigger them.
+Manual-only. Collect the complete outbound API surface of an authorized web app: backend paths, methods, parameters, response shapes, front-end routes, and the UI actions that trigger them.
 
 Recon measures what the front end STILL SENDS under mocked responses, not what the backend returns. Mocked bodies are the mechanism, not a compromise.
 
@@ -38,15 +39,15 @@ Modes: `depth` (enumerate known routes and record traffic), `coverage` (drive UI
 - **Phase 1b — parameter reverse-engineering.** Per important endpoint: field names, transport, type, required?, sample value, confidence. Anchors, UI binding chains, and multi-sample diffs; recipes in [references/parameter-recon.md](skill://api-recon/references/parameter-recon.md).
 - **Phase 1c — hand the index forward.** Mark the routes that list, search, filter or sort, and the free-text parameters they accept, with sample values. Those are the application's own index of its objects and the first probe targets for the next phase; record explicitly that probing a query parameter beats guessing identifiers, and that an identifier space is not a substitute for a search route.
 - **Phase 2 — auth doors `[GATE]`.** Find the three gates — render gate (how login is judged), interceptor gate (what redirects to `/login`), content gate (where menus and permissions come from) — and record keys and shapes in `recon/config.json`. NEVER treat a localStorage key name as proof; confirm the code path. Stub layers: [references/auth-doors.md](skill://api-recon/references/auth-doors.md).
-- **Phase 3 — runtime enumeration `[GATE]`.** Render past login with stubbed gates, then enumerate. Harness mapping: `browser.open({init_scripts})` for document-start hooks, `tab.route` for fake responses, `tab.observe`/`tab.id(...)` for clicks, `tab.pushState` for SPA routes, `tab.harStart`/`tab.harStop` plus `tab.requests` for recording. Coverage order: nav/sidebar → tabs → table rows → toolbars (skip irreversible actions) → `pushState` for uncovered routes. Verify: injected marker present; a business path does not land on `/login`.
+- **Phase 3 — runtime enumeration `[GATE]`.** Prerequisite: a browser backend that supports routing, HAR capture, document-start scripts, and domain fences. If the current tab rejects any required method, stop and launch through a supported relay, Tern, CDP, or Chromium backend per host configuration; NEVER retry the unsupported backend. Render past login with stubbed gates, then enumerate. Harness mapping: `browser.open({init_scripts, allowed_domains})` for document-start hooks and the domain fence, `tab.route` for fake responses, `tab.observe`/`tab.id(...)` for clicks, `tab.pushState` for SPA routes, `tab.harStart()`/`tab.harStop({ path })` plus `tab.requests()` for recording; pass `tab.harStart({ content: "text" })` when response bodies are needed — the default records none. Coverage order: nav/sidebar → tabs → table rows → toolbars (skip irreversible actions) → `pushState` for uncovered routes. Verify: injected marker present; a business path does not land on `/login`.
 - **Phase 3b — parameter trigger matrix.** Per module, record each action class once — list, search, advanced filter, create/edit, bulk/export/sort — and diff the samples. Outbound bodies under mocks are still real.
 - **Phase 4 — permission tree restore**, only if module pages render blank or every route shows the same bootstrap calls: extract permission/menu endpoints, rebuild the flat-codes-plus-tree mapping, patch stubs, rerun Phase 3.
-- **Phase 5 — merge and report.** Merge parameters with confidence tiers; emit `api_merged` and `site_map.json`; run error-based reverse checks (in-scope incomplete requests may read 400 validation text — that is parameter recon, not exploitation). Every discovered service and endpoint MUST reach the asset library; none dropped.
+- **Phase 5 — merge and report.** Merge parameters with confidence tiers; emit `api_merged.txt` and `site_map.json`; run error-based reverse checks (in-scope incomplete requests may read 400 validation text — that is parameter recon, not exploitation). Every discovered service and endpoint MUST appear in the merged outputs; none dropped.
 
 ## Standing rules
 
 - **Big files stay out of context.** Scripts and bounded searches only; matched lines in, bundle fragments never.
-- **Two strikes, then change.** After two failures of one technique, switch approach or consult [references/parameter-recon.md](skill://api-recon/references/parameter-recon.md).
+- **Two failures of one technique → switch techniques.** Consult [references/parameter-recon.md](skill://api-recon/references/parameter-recon.md); three distinct techniques with no new information exhaust the broader strategy.
 - **One sample NEVER decides required versus optional.** Multi-sample diffs or validation/error evidence.
 - **Static is the safety net when runtime is blocked.** Label blind spots (JSVMP, WASM, HMAC/mTLS, gRPC-web) as limitations instead of guessing.
 - **Before any state-changing click, re-read the Boundaries table.**
@@ -58,13 +59,12 @@ Modes: `depth` (enumerate known routes and record traffic), `coverage` (drive UI
 |`recon/js/`, `api_static.txt`, `routes.txt`|1|chunks, static endpoints, routes|
 |`param_candidates.json`|1b|static candidates with confidence|
 |`config.json`|2|three doors, runtime config|
-|`runtime_api.json`, HAR|3|runtime recording incl. WS/SSE|
+|`runtime_api.json`, HAR|3|runtime recording; Tern captures fetch/XHR + navigation only — WS/SSE need separate instrumentation|
 |`param_samples.json`, `scan_raw.json`|3b|samples, click log|
 |`params_merged.json`, `api_merged.txt`, `site_map.json`|5|merged output + limitations|
-|asset library|5|all services and endpoints inserted|
 
 ## Before every phase
 
-- Authorization, scope, and the entry credential confirmed — template text or an absent token is a stop, not a puzzle; the phase gate satisfied.
+- Authorization, scope, and the entry credential confirmed — template text or an absent token is a stop, not a puzzle — check what the target already serves before reporting it absent; the phase gate satisfied.
 - Counted verification ready (files exist, line counts) — qualitative claims are not coverage.
 - Outputs land in `recon/`; nothing is written into the skill directory.

@@ -99,14 +99,20 @@ schema:
       - name: order_id
         logicalType: integer
         physicalType: NUMBER(38,0)
-        description: Unique order identifier
+        description: Order identifier
         primaryKey: true
         primaryKeyPosition: 1               # 1-based, source key order
         required: true                      # NOT NULL
-        unique: true                        # single-column unique only
         classification: restricted          # only when differing from the policy default
         tags: [identifier]
         examples: [1001]
+      - name: line_id
+        logicalType: integer
+        physicalType: NUMBER(38,0)
+        description: Line number within the order
+        primaryKey: true
+        primaryKeyPosition: 2               # 1-based, source key order
+        required: true                      # NOT NULL
       - name: status
         logicalType: string
         physicalType: VARCHAR(50)
@@ -168,7 +174,7 @@ authoritativeDefinitions:
     url: https://example.com/glossary/orders
 
 customProperties:
-  - property: dataClassificationPolicy      # contract-level policy: not inherited by properties
+  - property: dataClassificationPolicy      # contract-level default; properties set classification only when different
     value: restricted
 ```
 

@@ -10,6 +10,7 @@ only what the skill loads at runtime.
 | Reference files in `packs/sanofi/skills/dbt/` | [dbt-labs/dbt-agent-skills](https://github.com/dbt-labs/dbt-agent-skills) at `168a2b0` | Apache-2.0 | [sanofi/dbt/ATTRIBUTION](./sanofi/dbt/ATTRIBUTION), [LICENSE-dbt-agent-skills](./sanofi/dbt/LICENSE-dbt-agent-skills) |
 | `packs/clssck-core/skills/api-recon/` | Hinln/ARTEX api-recon (methodology) | — | [clssck-core/api-recon/ATTRIBUTION](./clssck-core/api-recon/ATTRIBUTION) |
 | `packs/clssck-core/skills/evidence-led-exploration/` | ARTEX exploration-state design | — | [clssck-core/evidence-led-exploration/ATTRIBUTION](./clssck-core/evidence-led-exploration/ATTRIBUTION) |
+| `packs/clssck-development/` (derived from `commands/`, `skills/`, `tools/tui.ts`) | [can1357/oh-my-pi](https://github.com/can1357/oh-my-pi) at `5d0aaff` | MIT | [clssck-development/ATTRIBUTION](./clssck-development/ATTRIBUTION), [LICENSE](./clssck-development/LICENSE) |
 
 Vendored packs under `packs/` (the `coco-*` packs) and the copies under
 `upstream/` are reproduced as published and keep the license files their

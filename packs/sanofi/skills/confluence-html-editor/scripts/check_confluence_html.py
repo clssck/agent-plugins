@@ -9,7 +9,7 @@ This is a lightweight dry-run gate for the confluence-html-editor skill. It
 uses only the Python standard library and intentionally validates body
 fragments, not full HTML documents.
 
-Usage: uv run check_confluence_html.py proposed.html --original fetched.html --title "Page title"
+Usage: uv run "$(realpath skill://confluence-html-editor/scripts/check_confluence_html.py)" "$(realpath local://proposed.html)" --original "$(realpath local://fetched.html)" --title "Page title"
 """
 
 from __future__ import annotations

@@ -28,7 +28,7 @@ Needs the Atlassian Rovo MCP server. Missing or unauthenticated → say so and s
 
 omp names MCP tools from the server name. NEVER hard-code a prefix. Search your tool list for `Confluence`, `Jira`, or `Atlassian` tools, and read each schema before the first call.
 
-Some tools are deferred: find them with `discover`, run them with `executeRead` (searches and fetches are reads).
+Some Atlassian Rovo tools are deferred: find them with the server's `discover` tool, then invoke them with its `executeRead` tool (searches and fetches are reads).
 
 | Need | Tool (hint) | Older servers |
 |---|---|---|
@@ -50,7 +50,7 @@ Source: [Rovo MCP supported tools](https://developer.atlassian.com/cloud/rovo-mc
 2. Extract the shortest useful query: system names, acronyms, error text, ticket keys.
 3. Search with Rovo `search`, passing natural language. NEVER put CQL or JQL in its query; it silently degrades results. Skip `search` only when the user asks for CQL or JQL, or names one system ("tickets", "in Confluence").
 4. Rovo hits mostly the wrong system → targeted `searchConfluence` (CQL) or `searchJiraIssuesUsingJql` (JQL).
-5. Fetch only the few results needed to answer; NEVER fetch every hit. `getJiraIssue` omits comment bodies; when discussion matters, run `listJiraIssueComments` via `executeRead`.
+5. Fetch only the few results needed to answer; NEVER fetch every hit. `getJiraIssue` omits comment bodies; when discussion matters, find `listJiraIssueComments` with the Rovo `discover` tool and invoke it through `executeRead`.
 6. Weak results → retry once or twice with variants (synonyms, acronym expansion, error codes) before declaring a gap.
 7. Synthesize by topic, not by source.
 8. Cite every substantive claim.

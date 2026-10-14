@@ -122,7 +122,7 @@ Exit codes:
 - Map nonzero codes to the main failure modes and document them in `--help` or the README. Reference points: argparse exits 2 on invalid arguments; `gh` uses 1 failure, 2 cancelled, 4 authentication required.
 - `doctor --json` MUST report missing auth instead of crashing.
 
-Non-interactive behavior (agents have no TTY):
+Non-interactive behavior (must work without a TTY):
 
 - Prompt only when stdin is a TTY. Otherwise fail fast with an error that names the flag to pass. Offer `--no-input` to force this.
 - Command expects piped stdin but stdin is a TTY? Print help or an error; NEVER hang waiting.
@@ -130,6 +130,9 @@ Non-interactive behavior (agents have no TTY):
 - Disable color when stdout/stderr is not a TTY, when `NO_COLOR` is set and non-empty, or when `TERM=dumb`; support `--no-color`. No spinners or progress animations when stdout is not a TTY.
 - Network calls MUST have a configurable timeout with a finite default. Ctrl-C MUST still interrupt a hung request.
 - `--force` bypasses confirmations; `--dry-run` describes changes without making them.
+- CI installs MUST use a committed lockfile; `--version` identifies the executed artifact.
+- Automation NEVER starts background processes or retries implicitly; retries are bounded and explicit.
+- Repository workflows MUST call the same checked-in commands developers run locally; NEVER create a second build/test path inside the CLI.
 
 ## Pagination and breadth
 
@@ -169,7 +172,7 @@ description: <What the CLI does, service named>. Use when <concrete triggers, us
 
 # Tool Name
 
-Wrapper for <service>; run by command name from any directory. `doctor --json` MUST pass before other commands.
+Wrapper for <service>; run by command name from any directory. `doctor --json` MUST pass before service commands; help, configuration, and authentication commands MUST remain usable when it fails.
 
 ## Start
 

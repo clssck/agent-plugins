@@ -1,0 +1,14 @@
+clssck-development derives from oh-my-pi development assets.
+
+Source: https://github.com/can1357/oh-my-pi
+Source commit: 5d0aaffaf1f987503ce129a642fb6e30339615af
+License: MIT (see LICENSE)
+
+Copied paths:
+- .omp/commands/ -> packs/clssck-development/commands/
+- .omp/skills/ -> packs/clssck-development/skills/
+- .omp/tools/tui.ts -> packs/clssck-development/tools/tui.ts
+
+The pack has since been substantially adapted and is maintained by clssck as
+a first-party, repository-agnostic pack. Credit for the original commands,
+skills, and TUI tool belongs to the oh-my-pi authors.

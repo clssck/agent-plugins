@@ -1,18 +1,49 @@
 ---
 description: Check authorization, target, and outgoing commits before git push
-condition:
-- '^(?:\s*|(?:[^#''"\\<]|\\[\s\S]|"(?:[^"\\]|\\[\s\S])*"|''[^'']*''|(?<=(?:^|[\s;&|()<>\x60]))#[^\r\n]*(?=[\r\n]|$)|(?<!(?:^|[\s;&|()<>\x60]))#|(?:<(?!<)|<<<|<<(?=[ \t]*\d))|<<-?[ \t]*(["'']?)\\?([\w.-]+)\1[^\n]*\n(?:[^\n]*\n)*?[ \t]*\2(?=[ \t]*(?:\r?\n|$)))*?(?:(?:(?:&&|\|\|?|;|&|\(|\x60|\{(?=(?:[ \t]|\\\r?\n)))|\r?\n)|<<-?[ \t]*["'']?\\?[\w.-]+["'']?(?:[^#''"\\<\r\n]|\\[^\n]|"(?:[^"\\]|\\[\s\S])*"|''[^'']*''|(?<!(?:^|[\s;&|()<>\x60]))#|(?:<(?!<)|<<<|<<(?=[ \t]*\d)))*?(?:&&|\|\|?|;|&|\(|\x60|\{(?=(?:[ \t]|\\\r?\n))))\s*)(?:(?:[A-Za-z_]\w*\+?=(?:(?:\$\([^()]*\)|[^\s;&|()<>''"\\#\x60]|\\[\s\S]|"(?:[^"\\]|\\[\s\S])*"|''[^'']*'')(?:(?:\$\([^()]*\)|[^\s;&|()<>''"\\#\x60]|\\[\s\S]|"(?:[^"\\]|\\[\s\S])*"|''[^'']*'')|#)*)?|(?:then|do|else|elif|if|while|until|!|time(?:(?:[ \t]|\\\r?\n)+-p)?|exec(?:(?:[ \t]|\\\r?\n)+-[cl]+)*)|(?:/(?:usr/)?bin/)?env(?:(?:[ \t]|\\\r?\n)+(?:-[iv0]*[uCP](?:[ \t]|\\\r?\n)*(?:[^\s;&|()<>''"\\]+|"[^"]*"|''[^'']*'')|-[iv0]+|--(?:unset|chdir)(?:=|(?:[ \t]|\\\r?\n)+)(?:[^\s;&|()<>''"\\]+|"[^"]*"|''[^'']*'')|--[\w-]+=(?:[^\s;&|()<>''"\\]+|"[^"]*"|''[^'']*'')|--[\w-]+|--))*|(?:/(?:usr/)?bin/)?sudo(?:(?:[ \t]|\\\r?\n)+(?:-[AbEeHiKklnPSsV]*[ugChprtDTUR](?:[ \t]|\\\r?\n)*(?:[^\s;&|()<>''"\\]+|"[^"]*"|''[^'']*'')|-[AbEeHiKklnPSsV]+|--(?:user|group|close-from|host|prompt|role|type|chdir|chroot|command-timeout|other-user)(?:=|(?:[ \t]|\\\r?\n)+)(?:[^\s;&|()<>''"\\]+|"[^"]*"|''[^'']*'')|--[\w-]+(?:=(?:[^\s;&|()<>''"\\]+|"[^"]*"|''[^'']*''))?|--))*|doas(?:(?:[ \t]|\\\r?\n)+(?:-[Lns]*[uC](?:[ \t]|\\\r?\n)*(?:[^\s;&|()<>''"\\]+|"[^"]*"|''[^'']*'')|-[Lns]+|--))*|command(?:(?:[ \t]|\\\r?\n)+(?:-p|--))*|(?:/(?:usr/)?bin/)?xargs(?:(?:[ \t]|\\\r?\n)+(?:-[0rtpxo]*[ILnPsdEa](?:[ \t]|\\\r?\n)*(?:[^\s;&|()<>''"\\]+|"[^"]*"|''[^'']*'')|-[0rtpxo]*[ile](?:(?:[^\s;&|()<>''"\\]+|"[^"]*"|''[^'']*''))?|-[0rtpxo]+|--(?:max-args|max-procs|arg-file|delimiter|max-chars|process-slot-var|eof|replace|max-lines)(?:=|(?:[ \t]|\\\r?\n)+)(?:[^\s;&|()<>''"\\]+|"[^"]*"|''[^'']*'')|--[\w-]+(?:=(?:[^\s;&|()<>''"\\]+|"[^"]*"|''[^'']*''))?|--))*|nice(?:(?:[ \t]|\\\r?\n)+(?:-n(?:[ \t]|\\\r?\n)*(?:[^\s;&|()<>''"\\]+|"[^"]*"|''[^'']*'')|-\d+|--adjustment=(?:[^\s;&|()<>''"\\]+|"[^"]*"|''[^'']*'')))*|timeout(?:(?:[ \t]|\\\r?\n)+(?:-[sk](?:[ \t]|\\\r?\n)*(?:[^\s;&|()<>''"\\]+|"[^"]*"|''[^'']*'')|-[vfp]+|--(?:signal|kill-after)(?:=|(?:[ \t]|\\\r?\n)+)(?:[^\s;&|()<>''"\\]+|"[^"]*"|''[^'']*'')|--[\w-]+))*(?:[ \t]|\\\r?\n)+[\d.]+[smhd]?|nohup)(?:[ \t]|\\\r?\n)+)*(?:(?:/[\w.+-]+)+/(?:git)|\\?(?:git)|"(?:git)"|''(?:git)'')(?:(?:[ \t]|\\\r?\n)+(?:(?:-C|-c|--(?:git-dir|work-tree|namespace|config-env|super-prefix|shallow-file|attr-source|date|exec-path))(?:=|(?:[ \t]|\\\r?\n)+)(?:\$\([^()]*\)|[^\s;&|()<>''"\\#\x60]|\\[\s\S]|"(?:[^"\\]|\\[\s\S])*"|''[^'']*'')(?:(?:\$\([^()]*\)|[^\s;&|()<>''"\\#\x60]|\\[\s\S]|"(?:[^"\\]|\\[\s\S])*"|''[^'']*'')|#)*|-[pP]|--(?:paginate|no-pager|no-replace-objects|no-lazy-fetch|no-optional-locks|no-advice|bare|literal-pathspecs|glob-pathspecs|noglob-pathspecs|icase-pathspecs|exec-path)))*(?:[ \t]|\\\r?\n)+(?:(?:push)|"(?:push)"|''(?:push)'')(?=[\s;&|()<>\x60]|$)(?!(?:(?:[ \t]|\\\r?\n)+(?!(?:(?:--)|"(?:--)"|''(?:--)'')(?=[\s;&|()<>\x60]|$))(?:\$\([^()]*\)|[^\s;&|()<>''"\\#\x60]|\\[\s\S]|"(?:[^"\\]|\\[\s\S])*"|''[^'']*'')(?:(?:\$\([^()]*\)|[^\s;&|()<>''"\\#\x60]|\\[\s\S]|"(?:[^"\\]|\\[\s\S])*"|''[^'']*'')|#)*)*?(?:[ \t]|\\\r?\n)+(?:(?:--dry-run|-[A-Za-z]*n[A-Za-z]*)|"(?:--dry-run|-[A-Za-z]*n[A-Za-z]*)"|''(?:--dry-run|-[A-Za-z]*n[A-Za-z]*)'')(?=[\s;&|()<>\x60]|$))'
-- '"command"\s*:\s*"(?:(?: |\\[tnr])*|(?:[^"\\#''<]|\\[^"\\]|\\\\(?:\\.|[^"\\])|\\"(?:[^"\\]|\\[^"\\]|\\\\(?:\\.|[^"\\]))*\\"|''(?:[^''"\\]|\\.)*''|(?<=(?:^|[ ;&|()<>\x60"]|\\[ntr]))#(?:[^"\\]|\\[^n])*(?=\\n|"|$)|(?<!(?:^|[ ;&|()<>\x60"]|\\[ntr]))#|(?:<(?!<)|<<<|<<(?=(?: |\\t)*\d))|<<-?(?: |\\t)*(\\"|''|)(?:\\\\)?([\w.-]+)\1(?:[^"\\]|\\[^n])*\\n(?:(?:[^"\\]|\\[^n])*\\n)*?(?: |\\t)*\2(?=(?: |\\t)*(?:\\n|"|$)))*?(?:(?:(?:&&|\|\|?|;|&|\(|\x60|\{(?=(?: |\\t|\\\\\\n)))|(?:\\r)?\\n)|<<-?(?: |\\t)*(?:\\"|'')?(?:\\\\)?[\w.-]+(?:\\"|'')?(?:[^"\\#''<]|\\[^"\\n]|\\\\(?:\\.|[^"\\])|\\"(?:[^"\\]|\\[^"\\]|\\\\(?:\\.|[^"\\]))*\\"|''(?:[^''"\\]|\\.)*''|(?<!(?:^|[ ;&|()<>\x60"]|\\[ntr]))#|(?:<(?!<)|<<<|<<(?=(?: |\\t)*\d)))*?(?:&&|\|\|?|;|&|\(|\x60|\{(?=(?: |\\t|\\\\\\n))))(?: |\\[tnr])*)(?:(?:[A-Za-z_]\w*\+?=(?:(?:\$\((?:[^()"\\]|\\.)*\)|(?:[^ "\\;&|()<>''#\x60]|\\(?:u[0-9a-fA-F]{4}|/))|\\\\(?:\\.|[^"\\])|\\"(?:[^"\\]|\\[^"\\]|\\\\(?:\\.|[^"\\]))*\\"|''(?:[^''"\\]|\\.)*'')(?:(?:\$\((?:[^()"\\]|\\.)*\)|(?:[^ "\\;&|()<>''#\x60]|\\(?:u[0-9a-fA-F]{4}|/))|\\\\(?:\\.|[^"\\])|\\"(?:[^"\\]|\\[^"\\]|\\\\(?:\\.|[^"\\]))*\\"|''(?:[^''"\\]|\\.)*'')|#)*)?|(?:then|do|else|elif|if|while|until|!|time(?:(?: |\\t|\\\\\\n)+-p)?|exec(?:(?: |\\t|\\\\\\n)+-[cl]+)*)|(?:/(?:usr/)?bin/)?env(?:(?: |\\t|\\\\\\n)+(?:-[iv0]*[uCP](?: |\\t|\\\\\\n)*(?:[^ ;&|()<>''"\\]+|\\"(?:[^"\\]|\\[^"])*\\"|''[^'']*'')|-[iv0]+|--(?:unset|chdir)(?:=|(?: |\\t|\\\\\\n)+)(?:[^ ;&|()<>''"\\]+|\\"(?:[^"\\]|\\[^"])*\\"|''[^'']*'')|--[\w-]+=(?:[^ ;&|()<>''"\\]+|\\"(?:[^"\\]|\\[^"])*\\"|''[^'']*'')|--[\w-]+|--))*|(?:/(?:usr/)?bin/)?sudo(?:(?: |\\t|\\\\\\n)+(?:-[AbEeHiKklnPSsV]*[ugChprtDTUR](?: |\\t|\\\\\\n)*(?:[^ ;&|()<>''"\\]+|\\"(?:[^"\\]|\\[^"])*\\"|''[^'']*'')|-[AbEeHiKklnPSsV]+|--(?:user|group|close-from|host|prompt|role|type|chdir|chroot|command-timeout|other-user)(?:=|(?: |\\t|\\\\\\n)+)(?:[^ ;&|()<>''"\\]+|\\"(?:[^"\\]|\\[^"])*\\"|''[^'']*'')|--[\w-]+(?:=(?:[^ ;&|()<>''"\\]+|\\"(?:[^"\\]|\\[^"])*\\"|''[^'']*''))?|--))*|doas(?:(?: |\\t|\\\\\\n)+(?:-[Lns]*[uC](?: |\\t|\\\\\\n)*(?:[^ ;&|()<>''"\\]+|\\"(?:[^"\\]|\\[^"])*\\"|''[^'']*'')|-[Lns]+|--))*|command(?:(?: |\\t|\\\\\\n)+(?:-p|--))*|(?:/(?:usr/)?bin/)?xargs(?:(?: |\\t|\\\\\\n)+(?:-[0rtpxo]*[ILnPsdEa](?: |\\t|\\\\\\n)*(?:[^ ;&|()<>''"\\]+|\\"(?:[^"\\]|\\[^"])*\\"|''[^'']*'')|-[0rtpxo]*[ile](?:(?:[^ ;&|()<>''"\\]+|\\"(?:[^"\\]|\\[^"])*\\"|''[^'']*''))?|-[0rtpxo]+|--(?:max-args|max-procs|arg-file|delimiter|max-chars|process-slot-var|eof|replace|max-lines)(?:=|(?: |\\t|\\\\\\n)+)(?:[^ ;&|()<>''"\\]+|\\"(?:[^"\\]|\\[^"])*\\"|''[^'']*'')|--[\w-]+(?:=(?:[^ ;&|()<>''"\\]+|\\"(?:[^"\\]|\\[^"])*\\"|''[^'']*''))?|--))*|nice(?:(?: |\\t|\\\\\\n)+(?:-n(?: |\\t|\\\\\\n)*(?:[^ ;&|()<>''"\\]+|\\"(?:[^"\\]|\\[^"])*\\"|''[^'']*'')|-\d+|--adjustment=(?:[^ ;&|()<>''"\\]+|\\"(?:[^"\\]|\\[^"])*\\"|''[^'']*'')))*|timeout(?:(?: |\\t|\\\\\\n)+(?:-[sk](?: |\\t|\\\\\\n)*(?:[^ ;&|()<>''"\\]+|\\"(?:[^"\\]|\\[^"])*\\"|''[^'']*'')|-[vfp]+|--(?:signal|kill-after)(?:=|(?: |\\t|\\\\\\n)+)(?:[^ ;&|()<>''"\\]+|\\"(?:[^"\\]|\\[^"])*\\"|''[^'']*'')|--[\w-]+))*(?: |\\t|\\\\\\n)+[\d.]+[smhd]?|nohup)(?: |\\t|\\\\\\n)+)*(?:(?:/[\w.+-]+)+/(?:git)|(?:\\\\)?(?:git)|\\"(?:git)\\"|''(?:git)'')(?:(?: |\\t|\\\\\\n)+(?:(?:-C|-c|--(?:git-dir|work-tree|namespace|config-env|super-prefix|shallow-file|attr-source|date|exec-path))(?:=|(?: |\\t|\\\\\\n)+)(?:\$\((?:[^()"\\]|\\.)*\)|(?:[^ "\\;&|()<>''#\x60]|\\(?:u[0-9a-fA-F]{4}|/))|\\\\(?:\\.|[^"\\])|\\"(?:[^"\\]|\\[^"\\]|\\\\(?:\\.|[^"\\]))*\\"|''(?:[^''"\\]|\\.)*'')(?:(?:\$\((?:[^()"\\]|\\.)*\)|(?:[^ "\\;&|()<>''#\x60]|\\(?:u[0-9a-fA-F]{4}|/))|\\\\(?:\\.|[^"\\])|\\"(?:[^"\\]|\\[^"\\]|\\\\(?:\\.|[^"\\]))*\\"|''(?:[^''"\\]|\\.)*'')|#)*|-[pP]|--(?:paginate|no-pager|no-replace-objects|no-lazy-fetch|no-optional-locks|no-advice|bare|literal-pathspecs|glob-pathspecs|noglob-pathspecs|icase-pathspecs|exec-path)))*(?: |\\t|\\\\\\n)+(?:(?:push)|\\"(?:push)\\"|''(?:push)'')(?=[ ;&|()<>\x60"]|\\[ntr]|$)(?!(?:(?: |\\t|\\\\\\n)+(?!(?:(?:--)|\\"(?:--)\\"|''(?:--)'')(?=[ ;&|()<>\x60"]|\\[ntr]|$))(?:\$\((?:[^()"\\]|\\.)*\)|(?:[^ "\\;&|()<>''#\x60]|\\(?:u[0-9a-fA-F]{4}|/))|\\\\(?:\\.|[^"\\])|\\"(?:[^"\\]|\\[^"\\]|\\\\(?:\\.|[^"\\]))*\\"|''(?:[^''"\\]|\\.)*'')(?:(?:\$\((?:[^()"\\]|\\.)*\)|(?:[^ "\\;&|()<>''#\x60]|\\(?:u[0-9a-fA-F]{4}|/))|\\\\(?:\\.|[^"\\])|\\"(?:[^"\\]|\\[^"\\]|\\\\(?:\\.|[^"\\]))*\\"|''(?:[^''"\\]|\\.)*'')|#)*)*?(?: |\\t|\\\\\\n)+(?:(?:--dry-run|-[A-Za-z]*n[A-Za-z]*)|\\"(?:--dry-run|-[A-Za-z]*n[A-Za-z]*)\\"|''(?:--dry-run|-[A-Za-z]*n[A-Za-z]*)'')(?=[ ;&|()<>\x60"]|\\[ntr]|$))(?=(?:[^"\\]|\\[\s\S])*")'
-scope: tool:bash
+condition: '\bgit(?:\s+-[Cc]\s+\S+)*\s+push\b(?!(?:(?!\\n)[^\n;&|])*\s(?:--dry-run|-n)\b)'
+scope: "tool:bash"
 interruptMode: always
 ---
 
-**A push publishes work to shared, external state.**
+A push publishes work to shared, external state. Push only when the user requested it or a repository instruction delegates it.
 
-- Push only when the user requested it or a repository instruction delegates it.
-- Name the remote and destination branch explicitly (`git push <remote> HEAD:<branch>`); NEVER rely on upstream defaults you have not inspected.
-- Pushing to a default or protected branch (`main`, `master`, release branches) requires that branch to be the requested target.
-- Before pushing, list exactly what will publish: `git log --oneline <remote>/<branch>..HEAD`. Stop if it contains commits you did not create or expect.
-- NEVER force-push a shared branch. Rewriting your own feature branch? Use `--force-with-lease=<branch>:<expected-sha>`, not `--force`.
-- Deleting remote refs (`--delete`, `:<branch>`) requires an explicit request naming that ref.
-- `git push --dry-run`/`-n` only previews and is not flagged.
+## Before pushing
+
+List exactly what will publish. Stop if it contains commits you did not create or expect.
+
+```bash
+git log --oneline origin/feature/login-retry..HEAD
+```
+
+## Name the target
+
+Name the remote and destination branch explicitly (`git push <remote> HEAD:<branch>`); NEVER rely on upstream defaults you have not inspected. Pushing to a default or protected branch (`main`, `master`, release branches) requires that branch to be the requested target.
+
+```bash
+# Bad — destination comes from an uninspected upstream
+git push
+
+# Good
+git push origin HEAD:feature/login-retry
+```
+
+## Rewriting history
+
+NEVER force-push a shared branch. Rewriting your own feature branch? Use `--force-with-lease=<branch>:<expected-sha>`, not `--force`.
+
+```bash
+# Bad
+git push --force origin HEAD:feature/login-retry
+
+# Good
+git push --force-with-lease=feature/login-retry:3f2a9c1 origin HEAD:feature/login-retry
+```
+
+## Deleting remote refs
+
+Deleting remote refs (`--delete`, `:<branch>`) requires an explicit request naming that ref.
+
+```bash
+# Only after the user names feature/old-spike for deletion
+git push origin --delete feature/old-spike
+```

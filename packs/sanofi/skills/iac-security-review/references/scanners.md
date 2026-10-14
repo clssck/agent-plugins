@@ -26,7 +26,7 @@ Flags identical in POSIX shells and PowerShell; only Docker volume syntax differ
 |------|----------------|-------|
 | Checkov | `uvx checkov -d <dir> --framework terraform cloudformation -o json --quiet --output-file-path <outdir>` | Writes `<outdir>/results_json.json`. `--var-file <f>.tfvars` resolves variables. User-supplied plan JSON: `uvx checkov -f tfplan.json --repo-root-for-plan-enrichment <dir>` |
 | Trivy | `trivy config -f json -o <out>.json <dir>` | Successor to tfsec (Aqua consolidated tfsec scanning into Trivy). `--tf-vars <f>.tfvars`; `--tf-exclude-downloaded-modules` marks findings inside remote modules as ignored |
-| KICS | `kics scan -p <dir> -o <outdir> --report-formats json --cloud-provider aws` | Docker, POSIX: `docker run -t -v "$PWD:/path" checkmarx/kics scan -p /path -o /path/audits`. PowerShell: `docker run -t -v "${PWD}:/path" checkmarx/kics scan -p /path -o /path/audits` |
+| KICS | `kics scan -p <dir> -o <outdir> --report-formats json --cloud-provider aws` | Docker, POSIX: `docker run -t -v "$PWD:/path" checkmarx/kics@sha256:7b0a4d750acd491942ce9de52c1183fbf4451c1c936780ec2cfacd2650e7d84c scan -p /path -o /path/audits`. PowerShell: `docker run -t -v "${PWD}:/path" checkmarx/kics@sha256:7b0a4d750acd491942ce9de52c1183fbf4451c1c936780ec2cfacd2650e7d84c scan -p /path -o /path/audits` (v2.1.19 manifest digest — reverify against the registry before use; if v2.1.19 no longer resolves to this digest, STOP: the tag moved. NEVER reuse digests from the compromised tags) |
 
 **CDK and SST:** scanners read synthesized CloudFormation, not TypeScript. Scan `cdk.out/*.template.json` only if already committed or user-supplied. **NEVER run `cdk synth` or SST commands** — they execute app code and may call AWS.
 

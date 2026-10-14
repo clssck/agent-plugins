@@ -796,6 +796,13 @@ on:
   schedule:
     - cron: "0 6 * * 1" # Weekly Monday 06:00 UTC
   workflow_call:
+    secrets:
+      CHECKMARX_DOCKER_AUTH_CONFIG:
+        required: true
+      CHECKMARX_CX_CLIENT_ID:
+        required: true
+      CHECKMARX_CX_CLIENT_SECRET:
+        required: true
 
 permissions:
   contents: read

@@ -7,22 +7,22 @@ Per-runtime build, local install, and binary location for a CLI that must run by
 - [Install commands](#install-commands)
 - [Rust](#rust)
 - [Go](#go)
-- [Node and pnpm](#node-and-pnpm)
-- [Bun single binary](#bun-single-binary)
+- [Bun (default for TypeScript/JavaScript)](#bun-default-for-typescriptjavascript)
+- [Node, npm, and pnpm (compatibility)](#node-npm-and-pnpm-compatibility)
 - [Python](#python)
 - [Sources](#sources)
 
 ## Install commands
 
-Check the toolchain version first (`pnpm --version`, `uv --version`, `go version`); pnpm 11 changed global linking (see [Node and pnpm](#node-and-pnpm)).
+Check the toolchain version first (`bun --version`, `pnpm --version`, `uv --version`, `go version`); pnpm 11 changed global linking (see [Node, npm, and pnpm](#node-npm-and-pnpm-compatibility)).
 
 |Runtime|Local install|Binary lands in|
 |---|---|---|
 |Rust|`cargo install --path . --locked`|Install root: `--root`, else `CARGO_INSTALL_ROOT`, else `install.root` config, else `CARGO_HOME`, else `~/.cargo`; binary in its `bin/`|
 |Go|`go install ./cmd/<tool-name>`|`$GOBIN`, else `$GOPATH/bin`, else `$HOME/go/bin` (Windows `%USERPROFILE%\go\bin`)|
-|Node + npm|`npm install -g .`|npm's global prefix `bin/` directory|
-|Node + pnpm ≥ 11|`pnpm add -g .`|`$PNPM_HOME/bin`|
-|Bun binary|`bun build ./src/cli.ts --compile --outfile <tool-name>`, then copy into the approved PATH dir|Wherever the copy puts it|
+|Bun binary (JS default)|`bun build ./src/cli.ts --compile --outfile <tool-name>`, then copy into the approved PATH dir|Wherever the copy puts it|
+|Node + npm (compatibility)|`npm install -g .`|POSIX: `bin/` under npm's global prefix (`npm prefix -g`); Windows: command shims at the prefix root|
+|Node + pnpm ≥ 11 (compatibility)|`pnpm add -g .`|`$PNPM_HOME/bin`|
 |Python|`uv tool install --editable .`|`uv tool dir --bin`|
 
 Print the bin directory, confirm it is on `PATH`, and only then claim the tool is installed. Not on PATH? Report it and offer the PATH change; NEVER edit shell rc files without approval.
@@ -37,7 +37,26 @@ Print the bin directory, confirm it is on `PATH`, and only then claim the tool i
 - Standard library `flag` suffices for flat commands; use a subcommand library only for nested command trees.
 - `go install` writes executables to `$GOBIN`, else `$GOPATH/bin`, else `$HOME/go/bin`. Cross-compiled binaries are installed into `$GOOS_$GOARCH` subdirectories of that directory, so install natively and build release artifacts for other platforms separately.
 
-## Node and pnpm
+## Bun (default for TypeScript/JavaScript)
+
+Default for new TypeScript/JavaScript CLIs: use Bun for package management (`bun install`), running (`bun run`), testing (`bun test`), and single-binary output, unless an existing repository convention or target constraint requires npm/Node (see [Node, npm, and pnpm](#node-npm-and-pnpm-compatibility)). Bun is not guaranteed compatible with every Node SDK; verify the CLI's dependencies run under Bun before committing to it.
+
+`bun build --compile` bundles the code, its dependencies, and the Bun runtime into one executable.
+
+```bash
+bun build ./src/cli.ts --compile --minify --sourcemap \
+  --no-compile-autoload-dotenv --no-compile-autoload-bunfig \
+  --define BUILD_VERSION='"0.1.0"' --outfile <tool-name>
+```
+
+- Compiled executables load `.env` and `bunfig.toml` by default; the Bun docs offer the `--no-compile-autoload-*` flags for deterministic execution. A CLI run from arbitrary directories SHOULD disable both unless it deliberately reads them.
+- `--define` bakes the version into the binary for `--version` and `doctor`.
+- Cross-compile with `--target`: `bun-linux-x64`, `bun-linux-arm64`, `bun-windows-x64`, `bun-windows-arm64`, `bun-darwin-x64`, `bun-darwin-arm64`; `-musl` variants exist for Linux. Windows output gets `.exe` automatically.
+- Binaries handed to other macOS users SHOULD be code-signed with `codesign` (Bun ≥ 1.2.4) to avoid Gatekeeper warnings.
+
+## Node, npm, and pnpm (compatibility)
+
+Use this path when the repository already uses npm/pnpm (lockfile, scripts, CI), the install target requires Node/npm, or a dependency is verified to fail under Bun.
 
 - `package.json` `bin` maps the command name to a file whose first line MUST be `#!/usr/bin/env node`; otherwise npm starts the script without Node.
 - pnpm 11 removed `pnpm link --global` and argument-less `pnpm link`; `pnpm link <dir>` now links only into a project's `node_modules`. Global install of a local package is `pnpm add -g .`.
@@ -55,21 +74,6 @@ pnpm build && pnpm add -g .
 ```
 
 - pnpm 11 global bins live in `$PNPM_HOME/bin`. If `pnpm bin -g` reports the directory is not in PATH, run `pnpm setup`; it edits shell config, so ask first.
-
-## Bun single binary
-
-`bun build --compile` bundles the code, its dependencies, and the Bun runtime into one executable.
-
-```bash
-bun build ./src/cli.ts --compile --minify --sourcemap \
-  --no-compile-autoload-dotenv --no-compile-autoload-bunfig \
-  --define BUILD_VERSION='"0.1.0"' --outfile <tool-name>
-```
-
-- Compiled executables load `.env` and `bunfig.toml` by default; the Bun docs offer the `--no-compile-autoload-*` flags for deterministic execution. A CLI run from arbitrary directories SHOULD disable both unless it deliberately reads them.
-- `--define` bakes the version into the binary for `--version` and `doctor`.
-- Cross-compile with `--target`: `bun-linux-x64`, `bun-linux-arm64`, `bun-windows-x64`, `bun-windows-arm64`, `bun-darwin-x64`, `bun-darwin-arm64`; `-musl` variants exist for Linux. Windows output gets `.exe` automatically.
-- Binaries handed to other macOS users SHOULD be code-signed with `codesign` (Bun ≥ 1.2.4) to avoid Gatekeeper warnings.
 
 ## Python
 
