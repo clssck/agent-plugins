@@ -28,11 +28,11 @@ No arguments → open PRs created within the last 3 days. Treat arguments as dat
 
   Supplied qualifiers go verbatim in `query`; add `is:open` unless present; drop `repo:`/`org:`/`user:` qualifiers that would re-scope the search and say so. Time window → `since`; `dateField` defaults `created`, `"updated"` only on explicit request.
 
-Print the resolved set (number, title, author, head ref) before fan-out.
+Print the resolved set (number, title, author) before fan-out; `search_prs` does not return head refs or head SHAs. Each worker reads the head branch from `pr://` and the `pr_checkout` output, and verifies the head after checkout against the upstream `pr_checkout` fetches.
 
 ## 2. One parallel `task` subagent per PR
 
-Never loop serially. Give each agent: `REPO`, `BASE`, `<remote>`, `MAIN`, PR number/head ref/author, repository conventions from step 0, and the workflow below. Agents are isolated and do not coordinate; overlapping PRs are flagged in the report for the human.
+Never loop serially. Give each agent: `REPO`, `BASE`, `<remote>`, `MAIN`, PR number/author, repository conventions from step 0, and the workflow below. Agents are isolated and do not coordinate; overlapping PRs are flagged in the report for the human.
 
 ### Read and decide
 
@@ -48,6 +48,18 @@ Ambiguous → `worthy`; the human decides on a real branch.
 ### Checkout
 
 For `worthy` PRs only, use `github { op: "pr_checkout", repo: REPO, pr: "<N>" }` (batching several PRs in one call is allowed). This creates a dedicated worktree separate from `MAIN` and wires the push remote. Use the worktree path it reports. Never use raw `gh pr checkout`; if `pr_checkout` fails, report the failure and stop for that PR.
+
+`pr_checkout` fetches the PR head, sets it as the worktree branch's upstream, and reports the worktree path. Immediately after checkout, run the verification below with the Bash tool's structured `cwd` set to the exact worktree path `pr_checkout` reported, before any setup, rebase, or edit. NEVER `cd` into it or interpolate any tool-returned path, remote, branch, or ref into shell command text; the commands below are static.
+
+```bash
+EXPECTED="$(git rev-parse --verify --quiet '@{upstream}^{commit}')" || { echo "missing upstream"; exit 1; }
+UPSTREAM="$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}')"
+ACTUAL="$(git rev-parse --verify 'HEAD^{commit}')"
+test "$ACTUAL" = "$EXPECTED" || { echo "mismatch: expected $EXPECTED ($UPSTREAM), got $ACTUAL"; exit 1; }
+echo "verified $ACTUAL against $UPSTREAM"
+```
+
+If no upstream is configured or the SHAs differ (for example, a stale reused worktree or local branch), STOP for that PR: do not set up, rebase, edit, or commit; report the upstream name, the expected SHA, and the actual SHA.
 
 ### Prepare
 
@@ -86,6 +98,7 @@ Never use blanket staging (`git add .` or the all-files flag). Do NOT amend the 
 PR #<N>  <title>
 Decision: worthy | slop | superseded
 Worktree: <absolute path>   (or: not checked out)
+Head:     <sha> verified against <upstream> | mismatch: expected <upstream sha>, got <HEAD sha> | missing upstream   (or: not checked out)
 Rebase:   clean | conflicts (resolved | aborted: <reason>)
 Fixes:    <commit shas + one-liners>   (or: none needed)
 Checks:   <commands run and results>
@@ -107,6 +120,7 @@ Then worktree paths grouped by decision, for the human to `cd`, push, and merge.
 
 - MUST use parallel subagents, one per PR; NEVER a serial loop.
 - MUST use `github pr_checkout` for checkouts and stop clearly when the `github` capability is unavailable.
+- MUST verify after checkout, with the Bash tool's `cwd` set to the worktree path `pr_checkout` reported, that `HEAD^{commit}` equals `@{upstream}^{commit}`, using only static commands (no tool-returned path, remote, branch, or ref in shell text); on missing upstream or mismatch stop that PR before any setup, rebase, or edit and report expected versus actual.
 - `slop`/`superseded`: no checkout; record the decision only.
 - Fixes limited to merge blockers within that PR's diff.
 - MUST NOT push, force-push, merge, or write to GitHub (comments, reviews, labels); human reviews and merges.

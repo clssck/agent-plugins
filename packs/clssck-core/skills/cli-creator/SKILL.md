@@ -27,17 +27,18 @@ Name three things before scaffolding:
 Detect OS, active shell, toolchains, repository convention, and a user-writable PATH directory before generating install commands. **NEVER emit PowerShell syntax for a POSIX shell or the reverse.**
 
 ```bash
-command -v cargo rustc node pnpm npm python3 uv
+command -v cargo rustc bun node pnpm npm python3 uv
 echo "$PATH"; echo "${XDG_CONFIG_HOME:-$HOME/.config}"; echo "${TMPDIR:-/tmp}"
 ```
 
 ```powershell
-Get-Command cargo, rustc, node, pnpm, npm, python, uv -ErrorAction SilentlyContinue
+Get-Command cargo, rustc, bun, node, pnpm, npm, python, uv -ErrorAction SilentlyContinue
 $env:TEMP
 [Environment]::GetEnvironmentVariable('Path', 'User')
 ```
 
-- Repo has a package manager and install convention → use it.
+- Repo has a package manager and install convention → use it (existing convention wins over any default here).
+- New TypeScript/JavaScript CLI, no existing convention or Node-only constraint → **prefer Bun** (`bun install`, `bun run`, `bun test`, `bun build --compile`). Fall back to npm/pnpm when the repo already uses them, the target requires Node/npm, or a dependency fails under Bun; Bun is not compatible with every Node SDK.
 - Search source material with `grep`, `glob`, `read`; NEVER shell `rg`/`find`/`Select-String`.
 
 ## Choose the runtime
@@ -45,7 +46,7 @@ $env:TEMP
 |Runtime|Choose when|Defaults|
 |---|---|---|
 |Rust (default)|Durable CLI: one fast binary, strong arg parsing, good JSON|`clap`, `reqwest`, `serde`/`serde_json`, `toml`, `anyhow`|
-|TypeScript/Node|Official SDK, auth helper, browser automation, or existing repo tooling is the advantage|`commander` or `cac`; native `fetch` or official SDK; `zod` only where payload validation prevents real breakage; `package.json` `bin`; build tool per repo (`tsup`, `tsx`, `tsc`); `bun build --compile` for a single binary with no Node on the target|
+|TypeScript/JavaScript (Bun preferred)|Official SDK, auth helper, browser automation, or existing repo tooling is the advantage|Bun for package management, running, testing, and `bun build --compile` single binary (no Node needed on target); npm/pnpm/Node only when the repo or target requires it; `commander` or `cac`; native `fetch` or official SDK; `zod` only where payload validation prevents real breakage; `package.json` `bin`; build tool per repo (`tsup`, `tsx`, `tsc`)|
 |Python|Data work, local file transforms, SQLite/CSV/JSON analysis, Python-heavy admin tooling|uv project from `uv init --package` with `[project.scripts]` and committed `uv.lock`; `argparse` (or `typer` for deep subcommands); `httpx`/`requests`/`urllib` matching nearby code; PEP 723 single file for one-module tools|
 |Go|Repo or team already uses Go; one static binary, easy cross-compile|Standard `flag` for flat commands; a subcommand library only for nested trees|
 
