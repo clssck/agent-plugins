@@ -1,6 +1,6 @@
 ---
 name: cli-creator
-description: Build a durable, installable CLI from API docs, OpenAPI specs, SDKs, curl captures, internal scripts, or shell history, plus a companion omp skill that teaches it. Use when asked to wrap a service or API as a command-line tool, make a script callable from anywhere, add doctor/JSON/pagination to a CLI, or package and install a binary on PATH. Not for one-off scripts or CI/CD pipelines — cicd-engineering instead.
+description: Build a durable, installable CLI from API docs, OpenAPI specs, SDKs, curl captures, internal scripts, or shell history, plus a companion omp skill that teaches it. Use when asked to wrap a service or API as a command-line tool, make a script callable from anywhere, add doctor/JSON/pagination to a CLI, or package and install a binary on PATH. Not for one-off scripts or CI/CD pipeline authoring.
 ---
 
 # CLI Creator

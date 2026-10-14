@@ -12,6 +12,7 @@ Command, JSON, and companion-skill contract for CLIs an agent runs repeatedly fr
 - [Text, JSON, files, exit codes](#text-json-files-exit-codes)
 - [Pagination and breadth](#pagination-and-breadth)
 - [Writes and raw escape hatch](#writes-and-raw-escape-hatch)
+- [CI use](#ci-use)
 - [Companion skill](#companion-skill)
 
 ## Mental model
@@ -130,6 +131,17 @@ Non-interactive behavior (agents have no TTY):
 - Disable color when stdout/stderr is not a TTY, when `NO_COLOR` is set and non-empty, or when `TERM=dumb`; support `--no-color`. No spinners or progress animations when stdout is not a TTY.
 - Network calls MUST have a configurable timeout with a finite default. Ctrl-C MUST still interrupt a hung request.
 - `--force` bypasses confirmations; `--dry-run` describes changes without making them.
+
+## CI use
+
+A CLI MAY run inside CI; pipeline authoring remains separate scope. Make the binary automation-safe:
+
+- Non-interactive by default; missing input fails with the exact flag or environment variable required.
+- Deterministic install from a committed lockfile; `--version` identifies the executed artifact.
+- Secrets only through environment, stdin, or a file; NEVER command arguments, output, or logs.
+- Stable exit codes and JSON; diagnostics on stderr, machine output on stdout.
+- Finite network timeouts; no prompts, color, spinners, implicit retries, or background processes.
+- Repository workflows MUST call the same checked-in commands developers run locally; NEVER create a second build/test path inside the CLI.
 
 ## Pagination and breadth
 

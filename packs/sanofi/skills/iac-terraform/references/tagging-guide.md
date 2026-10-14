@@ -226,7 +226,7 @@ uv run "$(realpath skill://iac-terraform/scripts/check_tags.py)" plan.json
 
 Run in the omp `bash` tool; `realpath` resolves `skill://` there; script needs no installed dependencies. Script walks `resource_changes`, reads `tags_all` (fallback `tags`), fails on missing/empty tags, wrong case, bad prefixes, mismatched `CE_Environment`. `aws_autoscaling_group` checked via `tag` blocks (key, value, `propagate_at_launch = true`). Tags or tag values unknown until apply → warnings (`--strict` fails them); invalid known values still fail. Exit codes: 0 compliant, 1 violations, 2 unreadable input.
 
-In CI: copy the script into the repository; `uv run check_tags.py plan.json` after the plan step; workflow template → `cicd-engineering` skill.
+In CI: copy the script to a named repository path such as `scripts/check_tags.py`; run `uv run ./scripts/check_tags.py plan.json` after the plan step. Workflow template → `cicd-engineering`.
 
 ## Common mistakes
 

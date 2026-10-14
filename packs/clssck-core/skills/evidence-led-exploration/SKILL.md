@@ -1,6 +1,6 @@
 ---
 name: evidence-led-exploration
-description: Run ambiguous debugging, root-cause hunts, and research with an evidence ledger — claims linked to evidence, branches with owners and wake conditions, contradictions kept visible — and emit a handoff packet. Use when several explanations stay plausible, work will branch, span sessions, or fan out to parallel workers, or findings must survive context loss. Not for single lookups or known linear procedures; a domain skill's own method wins.
+description: Invoke explicitly to run ambiguous debugging, root-cause hunts, and research with an evidence ledger — claims linked to evidence, branches with owners and wake conditions, contradictions kept visible — and emit a handoff packet. Best when several explanations stay plausible, work will branch, span sessions, or fan out to parallel workers, or findings must survive context loss. Not for single lookups or known linear procedures; a domain skill's own method wins.
 disable-model-invocation: true
 ---
 
@@ -10,9 +10,9 @@ Keeps facts about the subject separate from the history of exploring it. Short i
 
 Ledger template → [investigation-ledger.md](skill://evidence-led-exploration/references/investigation-ledger.md). Worker or session boundary → [handoff-packet.md](skill://evidence-led-exploration/references/handoff-packet.md).
 
-## Activate
+## Invoke when
 
-**SHOULD activate when ≥1 holds:**
+**Use explicitly when ≥1 holds:**
 
 - Several explanations plausible; next action not obvious.
 - Work will branch, span sessions, or involve multiple agents.
@@ -25,7 +25,7 @@ Ledger template → [investigation-ledger.md](skill://evidence-led-exploration/r
 
 - **Every claim MUST be evidence-linked or `inferred`.** Repetition never promotes an inference to fact.
 - **Record a failed probe** when it rules out an explanation, narrows scope, or prevents duplicate work. Negative evidence holds only for the tested input, time, version, environment, scope.
-- **Three probes of one strategy, no new information ⇒ exhaustion:** change approach or close the branch unless evidence justifies another attempt.
+- **Three distinct technique probes under one broader strategy, no new information ⇒ exhaustion:** change strategy or close the branch unless evidence justifies another attempt.
 - **Raw output stays in its artifact;** the ledger holds the exact locator + decisive observation.
 - **NEVER overwrite conflicting evidence.** Record the contradiction + the observation that could distinguish the accounts.
 - **One active branch per worker;** other leads stay `open` or `deferred`.
