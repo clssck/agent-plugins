@@ -15,7 +15,7 @@ Every command that writes to Snowflake rebuilds whatever it selects, so scope pr
 - **Examples are patterns.** NEVER copy example names verbatim.
 - **Standards precedence, high → low:** target repo's documented contract, config, conventions › applicable approved/current team standard › cross-space standards › Draft/WIP guidance (advisory only). NEVER let a lower rank override a higher one. Applicability, approval, currency, or conflict unclear → ask first; surface conflicts, never resolve them silently.
 - **Modern syntax.** A legacy-style file is no reason to write legacy syntax. Write the form the resolved dbt version accepts without warning; old form only where that version requires it (table below).
-- **Incremental change signals.** Every joined parent MUST have one: lookback, affected-key re-derivation, `on_schema_change`, periodic refresh. Design it before writing the filter → [snowflake-materializations.md](skill://dbt/references/snowflake-materializations.md#late-arriving-and-multi-parent-changes). Strategy MUST be valid on Snowflake; `full_refresh` behavior understood.
+- **Incremental change signals.** Every joined parent MUST have one: lookback, affected-key re-derivation, hash/CDC, or periodic refresh; `on_schema_change` is set explicitly but never substitutes for one. Design it before writing the filter → [snowflake-materializations.md](skill://dbt/references/snowflake-materializations.md#late-arriving-and-multi-parent-changes). Strategy MUST be valid on Snowflake; `full_refresh` behavior understood.
 - **Grain key.** Documented, tested (`unique` + `not_null`), matching the model SQL.
 - **Native execution.** Native-project steps need authorization; NEVER force deploy, drop, or change a schedule without approval.
 

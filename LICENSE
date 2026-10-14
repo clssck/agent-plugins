@@ -33,7 +33,8 @@ packs under packs/ (clssck-core, clssck-development, and sanofi).
 Exceptions:
 - packs/clssck-core/skills/cli-creator/ remains under Apache-2.0; see
   licenses/clssck-core/cli-creator/LICENSE.txt.
-- Reference files in packs/sanofi/skills/dbt/ adapted from dbt-labs/dbt-agent-skills
+- The `Command Scope` section of packs/sanofi/skills/dbt/SKILL.md and reference
+  files in packs/sanofi/skills/dbt/ adapted from dbt-labs/dbt-agent-skills
   remain under Apache-2.0; see licenses/sanofi/dbt/.
 
 License texts, attributions, and provenance notes for third-party material

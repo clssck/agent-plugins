@@ -89,6 +89,7 @@ All levels tell one coherent story.
 - [ ] No bidirectional arrows (use two separate arrows if needed)
 - [ ] Solid lines = synchronous communication
 - [ ] Dashed lines = asynchronous communication (queues, events, fire-and-forget)
+- [ ] Mermaid C4 has no dashed lines: label async relationships `async`; include the technology where protocol labels are permitted (e.g. `"SQS/HTTPS, async"`)
 - [ ] Dotted lines = dependencies (compile-time, structural -- use sparingly)
 
 > **Note**: C4 is notation-independent for line styles; solid/dashed/dotted above is a Sanofi standard for cross-team consistency.

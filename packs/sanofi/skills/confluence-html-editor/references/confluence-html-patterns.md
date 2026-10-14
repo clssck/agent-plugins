@@ -234,5 +234,5 @@ When a user asks for a docs-as-code workflow but prefers HTML, keep the round tr
 
 - Full HTML documents: `<html>`, `<head>`, `<body>`.
 - CSS, JavaScript, inline event handlers, and unsupported classes.
-- Local file links such as `file:///...` unless explicitly requested.
+- Local file links such as `file:///...`.
 - Oversized rewrites that replace useful source content without approval.

@@ -34,13 +34,13 @@ Load only what the task needs.
 | Area | Rule |
 | --- | --- |
 | **Runner** | Every job MUST use `runs-on: atmos-aws-arc-runner-set`; GitHub-hosted labels prohibited |
-| **Permissions** | Declare `permissions:` at workflow and job level; NEVER `write-all`/`read-all` |
+| **Permissions** | Declare a read-only `permissions:` at workflow level; expand per job only where needed; NEVER `write-all`/`read-all` |
 | **Pinning** | GitHub-published and verified-creator actions → full commit SHA + version comment |
 | **Allowlist** | Other third-party actions → the exact tag the allowlist registers; NEVER invent SHA pins |
 | **Org workflows** | Sanofi org-managed reusable workflows (CodeGuard) MAY use `@main`; comment the exception |
 | **Secrets** | Scope per Environment; NEVER in files or logs; prefer OIDC over long-lived cloud keys |
 | **Reusable workflows** | Callee declares `on.workflow_call.secrets`; caller passes named secrets; `secrets: inherit` only to org-managed workflows |
-| **Injection** | PR/issue text via `env:`; NEVER `${{ }}` inside `run:` |
+| **Injection** | Untrusted PR/issue text via `env:`; NEVER interpolate attacker-controlled `${{ }}` expressions inside `run:` |
 | **Untrusted triggers** | `pull_request_target`, `workflow_run` MUST NOT check out or execute PR code or trust downloaded artifacts: they run from the default branch and see secrets. Caches stay `cache-mode: read` |
 | **Security steps** | NEVER `continue-on-error: true` on SAST, SCA, secret scan, or gate steps |
 | **Installs** | Commit lockfiles; deterministic installs (`npm ci`, `uv sync --locked`). Python CI: `astral-sh/setup-uv` + `uv run`, not `setup-python` + `pip install`; keep a repo's existing tooling (poetry, pip-tools) and say how to adopt uv |

@@ -272,7 +272,7 @@ def task_error_alert(context):
     info = {
         "dag_id": context["dag"].dag_id,
         "task_id": context["task_instance"].task_id,
-        "logical_date": context["logical_date"],
+        "logical_date": str(context.get("logical_date") or "unknown"),
         "exception": str(context.get("exception", "")),
         "log_url": context["task_instance"].log_url,
     }
