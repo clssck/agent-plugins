@@ -42,7 +42,9 @@ jobs:
       - name: Bun tests
         run: bun test scripts
 
+      # Push runs validate only; the catalog refresh commits from the daily schedule or a manual dispatch.
       - name: Commit changes
+        if: github.event_name != 'push'
         run: |
           git add -A -- sources.json README.md upstream
           if git diff --cached --quiet; then
