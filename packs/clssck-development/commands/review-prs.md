@@ -47,19 +47,29 @@ Ambiguous → `worthy`; the human decides on a real branch.
 
 ### Checkout
 
-For `worthy` PRs only, use `github { op: "pr_checkout", repo: REPO, pr: "<N>" }` (batching several PRs in one call is allowed). This creates a dedicated worktree separate from `MAIN` and wires the push remote. Use the worktree path it reports. Never use raw `gh pr checkout`; if `pr_checkout` fails, report the failure and stop for that PR.
+For `worthy` PRs only, use `github { op: "pr_checkout", repo: REPO, pr: "<N>" }` (batching several PRs in one call is allowed). This usually creates a dedicated worktree separate from `MAIN` and wires the push remote; if `MAIN` already has the `pr-<N>` branch checked out, the tool reuses that worktree instead. Use the worktree path it reports. Never use raw `gh pr checkout`; if `pr_checkout` fails, report the failure and stop for that PR.
 
-`pr_checkout` fetches the PR head, sets it as the worktree branch's upstream, and reports the worktree path. Immediately after checkout, run the verification below with the Bash tool's structured `cwd` set to the exact worktree path `pr_checkout` reported, before any setup, rebase, or edit. NEVER `cd` into it or interpolate any tool-returned path, remote, branch, or ref into shell command text; the commands below are static.
+`pr_checkout` fetches the PR head into `refs/remotes/<remote>/<head-ref>` and records that remote and ref in the branch config, then reports the worktree path. Immediately after checkout, with the Bash tool's structured `cwd` set to the exact worktree path `pr_checkout` reported, verify before any setup, rebase, or edit:
+
+- `git rev-parse --show-toplevel` must not equal `MAIN` (a reused `MAIN` checkout would put the rebase and fixes in the shared tree).
+- For a same-repository PR, `git remote get-url origin` must resolve to `REPO`: same-repository heads are fetched from `origin`, so a clone whose `origin` is a fork can fetch a same-named branch that is not the PR head.
+
+NEVER `cd` into the worktree or interpolate any tool-returned path, remote, branch, or ref into shell command text; the block below reads only the branch config the checkout itself wrote.
 
 ```bash
-EXPECTED="$(git rev-parse --verify --quiet '@{upstream}^{commit}')" || { echo "missing upstream"; exit 1; }
-UPSTREAM="$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}')"
-ACTUAL="$(git rev-parse --verify 'HEAD^{commit}')"
-test "$ACTUAL" = "$EXPECTED" || { echo "mismatch: expected $EXPECTED ($UPSTREAM), got $ACTUAL"; exit 1; }
-echo "verified $ACTUAL against $UPSTREAM"
+BRANCH="$(git symbolic-ref --short HEAD)"
+REMOTE="$(git config --get "branch.${BRANCH}.remote")" || { echo "missing branch remote"; exit 1; }
+MERGE="$(git config --get "branch.${BRANCH}.merge")" || { echo "missing branch merge ref"; exit 1; }
+TRACKING="refs/remotes/${REMOTE}/${MERGE#refs/heads/}"
+EXPECTED="$(git rev-parse --verify --quiet "${TRACKING}^{commit}")" || { echo "missing fetched head: $TRACKING"; exit 1; }
+ACTUAL="$(git rev-parse --verify HEAD^{commit})"
+test "$ACTUAL" = "$EXPECTED" || { echo "mismatch: expected $EXPECTED ($TRACKING), got $ACTUAL"; exit 1; }
+echo "verified $ACTUAL against $TRACKING"
 ```
 
-If no upstream is configured or the SHAs differ (for example, a stale reused worktree or local branch), STOP for that PR: do not set up, rebase, edit, or commit; report the upstream name, the expected SHA, and the actual SHA.
+`@{upstream}` is unreliable here: fork remotes are created without a fetch refspec, so upstream resolution fails even after a successful fetch; the branch config names the fetched ref directly.
+
+Any failure above — `MAIN` reuse, wrong `origin`, missing config, missing fetched ref, or different SHAs — means STOP for that PR: no setup, rebase, edit, or commit; report the reason, the expected SHA, and the actual SHA. A reused worktree is fetched but never reset, so also check `git status --porcelain` before the rebase: uncommitted changes there are the human's, not yours to rebase over.
 
 ### Prepare
 
@@ -98,7 +108,7 @@ Never use blanket staging (`git add .` or the all-files flag). Do NOT amend the 
 PR #<N>  <title>
 Decision: worthy | slop | superseded
 Worktree: <absolute path>   (or: not checked out)
-Head:     <sha> verified against <upstream> | mismatch: expected <upstream sha>, got <HEAD sha> | missing upstream   (or: not checked out)
+Head:     <sha> verified against <tracking ref> | mismatch: expected <sha>, got <HEAD sha> | verify failed: <reason>   (or: not checked out)
 Rebase:   clean | conflicts (resolved | aborted: <reason>)
 Fixes:    <commit shas + one-liners>   (or: none needed)
 Checks:   <commands run and results>
@@ -120,7 +130,7 @@ Then worktree paths grouped by decision, for the human to `cd`, push, and merge.
 
 - MUST use parallel subagents, one per PR; NEVER a serial loop.
 - MUST use `github pr_checkout` for checkouts and stop clearly when the `github` capability is unavailable.
-- MUST verify after checkout, with the Bash tool's `cwd` set to the worktree path `pr_checkout` reported, that `HEAD^{commit}` equals `@{upstream}^{commit}`, using only static commands (no tool-returned path, remote, branch, or ref in shell text); on missing upstream or mismatch stop that PR before any setup, rebase, or edit and report expected versus actual.
+- MUST verify after checkout, with the Bash tool's `cwd` set to the worktree path `pr_checkout` reported, that the worktree is not `MAIN`, that a same-repository PR's `origin` resolves to `REPO`, and that `HEAD^{commit}` equals the fetched remote-tracking commit named by the branch config (`branch.<branch>.remote` + `branch.<branch>.merge`); use only static commands over git-written values (no tool-returned path, remote, branch, or ref in shell text); on any failure stop that PR before any setup, rebase, or edit and report the reason, expected SHA, and actual SHA.
 - `slop`/`superseded`: no checkout; record the decision only.
 - Fixes limited to merge blockers within that PR's diff.
 - MUST NOT push, force-push, merge, or write to GitHub (comments, reviews, labels); human reviews and merges.
