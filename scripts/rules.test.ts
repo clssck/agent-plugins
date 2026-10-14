@@ -61,7 +61,7 @@ const bashCases: Record<string, { flagged: string[]; ignored: string[] }> = {
 	},
 	"sql-mutation-safety": {
 		flagged: [`psql -c '${sql("DELETE", " FROM users")}'`, `snowsql -q '${sql("TRUNCATE", " TABLE users;")}'`, `psql -c '${sql("TRUNCATE", " orders")}'`, `psql -c '${sql("DROP", " TABLE users")}'`, "rails db:drop", "alembic downgrade -1"],
-		ignored: ["psql -c 'select 1'", "psql -c 'SELECT * FROM users'", "rails db:migrate", "dbt run-operation noop"],
+		ignored: ["psql -c 'select 1'", "psql -c 'SELECT * FROM users'", "rails db:migrate", "dbt run-operation noop", "python -c 'f.truncate(0)'", "truncate -s 0 app.log"],
 	},
 	"temp-cleanup-ownership": {
 		flagged: ["rm -rf /tmp/*", "rm -rf $TMPDIR/*", "rm -f /tmp/build-?", "find /tmp -mtime +1 -delete", "find /tmp -name '*.log' | xargs rm"],
