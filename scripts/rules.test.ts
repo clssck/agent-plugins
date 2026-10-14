@@ -95,12 +95,14 @@ describe("bash rules", () => {
 		});
 	}
 
-	test("exclusions stop at a JSON-escaped newline", () => {
-		for (const [rule, command] of [
-			["git-push-safety", "git push origin main\ngit log -n 3"],
-			["dbt-command-scope", "dbt build\ndbt ls -s x"],
-		]) {
-			expect(matches(rule, JSON.stringify({ command })), command).toBe(true);
+	test("exclusions stop at a JSON-escaped newline but not at escaped quotes", () => {
+		for (const [rule, command, flagged] of [
+			["git-push-safety", "git push origin main\ngit log -n 3", true],
+			["git-push-safety", `git push "origin" --dry-run`, false],
+			["dbt-command-scope", "dbt build\ndbt ls -s x", true],
+			["dbt-command-scope", `dbt build -s "x"`, false],
+		] as const) {
+			expect(matches(rule, JSON.stringify({ command })), command).toBe(flagged);
 		}
 	});
 });
@@ -122,6 +124,7 @@ describe("source rules", () => {
 		expect(matches("dbt-test-arguments", "- relationships: {to: ref('x'), field: id}\n")).toBe(true);
 		expect(matches("dbt-test-arguments", "- accepted_values:\n    arguments:\n      values: [a]\n")).toBe(false);
 		expect(matches("dbt-test-arguments", "- relationships: {arguments: {to: ref('x'), field: id}}\n")).toBe(false);
+		expect(matches("dbt-test-arguments", "- accepted_values:\n    store_failures: true\n    arguments:\n      values: [a]\n")).toBe(false);
 	});
 
 	test("lint-suppression flags blanket suppressions only", () => {

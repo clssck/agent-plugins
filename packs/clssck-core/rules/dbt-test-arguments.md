@@ -1,8 +1,8 @@
 ---
 description: Nest generic dbt test parameters under arguments on dbt 1.10.8 and later
 condition:
-  - '(?:accepted_values|relationships|(?:dbt_utils|dbt_expectations|dbt_date|audit_helper|elementary)\.\w+)["'']?:[ \t]*\n\s+(?!(?:arguments|config|severity|where|name|description|tags|meta|enabled)\s*:)\w+\s*:'
-  - '(?:accepted_values|relationships|(?:dbt_utils|dbt_expectations|dbt_date|audit_helper|elementary)\.\w+)["'']?:\s*\{\s*(?!(?:arguments|config|severity|where|name|description|tags|meta|enabled)\s*:)\w+\s*:'
+  - '(?:accepted_values|relationships|(?:dbt_utils|dbt_expectations|dbt_date|audit_helper|elementary)\.\w+)["'']?:[ \t]*\n\s+(?!(?:arguments|config|severity|where|store_failures|name|description|tags|meta|enabled)\s*:)\w+\s*:'
+  - '(?:accepted_values|relationships|(?:dbt_utils|dbt_expectations|dbt_date|audit_helper|elementary)\.\w+)["'']?:\s*\{\s*(?!(?:arguments|config|severity|where|store_failures|name|description|tags|meta|enabled)\s*:)\w+\s*:'
 scope:
 - 'tool:edit(**/*.{yml,yaml})'
 - 'tool:write(**/*.{yml,yaml})'

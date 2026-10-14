@@ -1,6 +1,6 @@
 ---
 description: Check authorization, target, and outgoing commits before git push
-condition: '\bgit(?:\s+-[Cc]\s+\S+)*\s+push\b(?![^\\\n;&|]*\s(?:--dry-run|-n)\b)'
+condition: '\bgit(?:\s+-[Cc]\s+\S+)*\s+push\b(?!(?:(?!\\n)[^\n;&|])*\s(?:--dry-run|-n)\b)'
 scope: "tool:bash"
 interruptMode: always
 ---

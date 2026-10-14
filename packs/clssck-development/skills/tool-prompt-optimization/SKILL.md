@@ -75,7 +75,7 @@ One sample: noise. Stable cross-sample/model overlap is only a candidate; histor
 ## Caveats — before every deletion
 
 - **MUST `git blame` each cut line; read its commit/issue.** Many lines are incident scar tissue: hallucinated flag, shell-out, repo-root scan, fabricated anchor. Keep scar tissue. History distinguishes schema restatement from incident prevention. Inferability necessary, NEVER sufficient.
-- **Memorization ≠ inference:** public repos, including this one, may be training data. Repo-specific prediction absent from schema — exact tool names, internal URI schemes, `Task` subagent — is recitation; discount it.
+- **Memorization ≠ inference:** public repos, including OMP's, may be training data. Repo-specific prediction absent from schema — exact tool names, internal URI schemes, `Task` subagent — is recitation; discount it.
 - **Outline leaks:** summary and section names hint. For schema-alone inference, second pass: no summary, generic section tags. Content surviving only the summary is summary-inferable, not schema-inferable.
 
 ## Verdict
