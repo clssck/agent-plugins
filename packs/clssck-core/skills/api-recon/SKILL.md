@@ -63,6 +63,6 @@ Modes: `depth` (enumerate known routes and record traffic), `coverage` (drive UI
 
 ## Before every phase
 
-- Authorization, scope, and the entry credential confirmed — template text or an absent token is a stop, not a puzzle; the phase gate satisfied.
+- Authorization, scope, and the entry credential confirmed — template text or an absent token is a stop, not a puzzle — check what the target already serves before reporting it absent; the phase gate satisfied.
 - Counted verification ready (files exist, line counts) — qualitative claims are not coverage.
 - Outputs land in `recon/`; nothing is written into the skill directory.

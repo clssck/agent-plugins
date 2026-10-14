@@ -122,7 +122,7 @@ Exit codes:
 - Map nonzero codes to the main failure modes and document them in `--help` or the README. Reference points: argparse exits 2 on invalid arguments; `gh` uses 1 failure, 2 cancelled, 4 authentication required.
 - `doctor --json` MUST report missing auth instead of crashing.
 
-Non-interactive behavior (agents have no TTY):
+Non-interactive behavior (must work without a TTY):
 
 - Prompt only when stdin is a TTY. Otherwise fail fast with an error that names the flag to pass. Offer `--no-input` to force this.
 - Command expects piped stdin but stdin is a TTY? Print help or an error; NEVER hang waiting.
