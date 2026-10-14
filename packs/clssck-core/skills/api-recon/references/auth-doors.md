@@ -25,7 +25,7 @@ Cards for `api-recon` Phase 2. Three independent gates decide whether a stubbed 
 ## Harness Mapping
 
 - **Document-start injection:** `browser.open({ init_scripts: [...], allowed_domains: ["app.example.com"] })` — the hook runs before page scripts; the domain fence keeps the session in scope.
-- **Response mocking:** `tab.route(pattern, …)` for per-request fakes; record with `tab.harStart()` / `tab.harStop({ path: "recon/runtime.har" })` and read `tab.requests()`; response bodies need `tab.harStart("text")`. Requires a backend supporting these methods (see Phase 3 prerequisite).
+- **Response mocking:** `tab.route(pattern, …)` for per-request fakes; record with `tab.harStart()` / `tab.harStop({ path: "recon/runtime.har" })` and read `tab.requests()`; response bodies need `tab.harStart({ content: "text" })`. Requires a backend supporting these methods (see Phase 3 prerequisite).
 - **Page-world helpers:** `tab.evaluate(fn, …)` executes in the page context with full page access for one-off probes; `tab.run` executes host-side callbacks, not page JavaScript.
 - **Verification:** the injected marker exists on `window`; navigating to a business path MUST NOT end at `/login`.
 - **SPA routing:** `tab.pushState(url)` walks routes without a document load; hash routes change only the fragment.
