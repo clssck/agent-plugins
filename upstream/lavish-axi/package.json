@@ -1,13 +1,13 @@
 {
   "name": "lavish-axi",
-  "version": "0.0.0-g7cc7a4d",
+  "version": "0.0.0-g224f407",
   "private": true,
   "description": "HTML is the new markdown. Lavish is the new editor for your HTML artifacts.",
-  "homepage": "https://github.com/kunchenguid/lavish-axi/tree/7cc7a4d91f0ac160a6ab42db90f2120c977afd01",
+  "homepage": "https://github.com/kunchenguid/lavish-axi/tree/224f40719d74c15897cfec0c3d67a0dce869ba5f",
   "repository": "https://github.com/kunchenguid/lavish-axi",
-  "gitHead": "7cc7a4d91f0ac160a6ab42db90f2120c977afd01",
+  "gitHead": "224f40719d74c15897cfec0c3d67a0dce869ba5f",
   "sync": {
-    "build": "fa30f97d3eeb0e2f603a522a10c1bfaf54fcb3db2e178f15a485bfde14a4b90f",
+    "build": "e062dd01bf3a906e00563af4d47120d9a47e04b53fc5b7a9cfaaa775efa5cb8e",
     "origins": {
       "LICENSE": "LICENSE",
       "skills/lavish": "skills/lavish"
