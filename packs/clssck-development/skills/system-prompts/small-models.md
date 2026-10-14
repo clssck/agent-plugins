@@ -49,7 +49,7 @@ WRONG (instruction-heavy, negation list, output-only examples):
   Bad:
   <title>Code changes</title>
 
-RIGHT (adapted excerpt of `packages/coding-agent/src/prompts/system/title-system.md`; positive rules, executable words, input→output pairs):
+RIGHT (illustrative rewrite of `packages/coding-agent/src/prompts/system/title-system.md`; positive rules, executable words, input→output pairs):
   Write a 3-6 word title for the task in the next message.
   Output exactly one line: the title inside `<title>` tags, or `<title/>`
   when there is no task to name.

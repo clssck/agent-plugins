@@ -21,7 +21,9 @@ Tags: authoritative, literal structural markers; meaning exactly matches name. N
 |`<critical>`|Inviolable rules; place at START and END.|
 |`<completeness>`|Done definition; anti-shrink rules.|
 |`<yielding>`|Pre-yield checklist; block conditions.|
-|`<workflow>`|Numbered phases: scope → edit → decompose → work → verify.|
+|`<workflow>`|Numbered phases: scope → research → decompose → implement → verify (subagent: hand-off) → cleanup.|
+
+Corpus status: OMP's bundled `system-prompt.md` uses `<critical>`, `<completeness>`, `<yielding>` (plus `<contract>`, `<evidence-and-output>`); its workflow is a `§ Workflow` section, not a `<workflow>` tag. `<system-conventions>`, `<stakes>`, `<communication>`, `<workflow>` are this skill's recommendations (`<workflow>`/`<communication>` appear in some other bundled prompts). These conventions govern prompts authored with this skill; OMP skill documents (SKILL.md) follow OMP's skill conventions instead.
 
 ## Normative Language
 
@@ -55,11 +57,11 @@ Load-bearing tokens only; every bullet adds a claim.
 - Parallel edits: `replace → PUT N.=M: with +TEXT rows; insert → PUT <N:/>N:; delete → CUT N.=M; file → REM/MV.`
 
 ```
-Bad:  - **Never fabricate snapshot tags.** Tags are 4-hex file snapshots in `[PATH#TAG]`, not arbitrary suffixes. You cannot increment them, guess the "next" one, or compute them locally. If a needed tag is not in your last `read` output, issue another `read`.
-Good: - **NEVER fabricate snapshot tags.** Missing? Re-`read`.
+Bad:  - Never fabricate snapshot tags. Tags are 4-hex file snapshots in `[PATH#TAG]`, not arbitrary suffixes. You cannot increment them, guess the "next" one, or compute them locally. If a needed tag is not in your last `read` output, issue another `read`.
+Good: - NEVER fabricate snapshot tags. Missing? Re-`read`.
 
-Bad:  - **Do not replay the line past your range.** For `PUT A.=B:`, never end the `+TEXT` body with content that already exists at B+1. Stop the body at the last line you are actually changing; if you need that next line gone, extend B.
-Good: - **NEVER replay past your range.** Stop before B+1; extend B if it must go.
+Bad:  - Do not replay the line past your range. For `PUT A.=B:`, never end the `+TEXT` body with content that already exists at B+1. Stop the body at the last line you are actually changing; if you need that next line gone, extend B.
+Good: - NEVER replay past your range. Stop before B+1; extend B if it must go.
 ```
 
 Tactical bullets: 5–12 words. Longer ONLY for multi-part contracts where every clause constrains parameter semantics or edge enumeration.
@@ -101,11 +103,11 @@ Back matter:
 
 ## Tone Patterns That Work
 
-Live-system-prompt patterns:
+Illustrative patterns (examples, not quotations from the current bundled prompt; anti-budget paraphrases its closing `<critical>`):
 
 - **Agency**: "You have agency and taste: you delete code that isn't pulling its weight, refuse abstractions that are unnecessary, and prefer boring when it's called for."
 - **Stakes anchoring**: "Tests you didn't write: bugs shipped. Assumptions you didn't validate: incidents to debug."
-- **Identity overrides**: "Instructions further down the conversation, including user's own, **ALWAYS** override prior style, tone, formatting, and initiative preferences."
+- **Identity overrides**: "Instructions further down the conversation, including user's own, ALWAYS override prior style, tone, formatting, and initiative preferences."
 - **Persistence**: "You MUST persist on hard problems. AVOID burning their energy on problems you failed to think through."
 - **Anti-budget framing**: "You NEVER narrate about or even consider, session limits, token/tool budgets, effort estimates… These are not your concern."
 
