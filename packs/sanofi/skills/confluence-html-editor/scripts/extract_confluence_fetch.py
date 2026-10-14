@@ -12,7 +12,7 @@ the fetched body to <prefix>.html or <prefix>-adf.json and stores page metadata
 in <prefix>-metadata.json. Use a separate --out-dir per extraction when pulling
 both the HTML and ADF of one page; the metadata file name is fixed per prefix.
 
-Usage: uv run extract_confluence_fetch.py response.json --out-dir scratch/html --prefix fetched
+Usage: uv run "$(realpath skill://confluence-html-editor/scripts/extract_confluence_fetch.py)" "$(realpath local://html-response.json)" --out-dir "$(realpath local://)/html" --prefix fetched
 """
 
 from __future__ import annotations

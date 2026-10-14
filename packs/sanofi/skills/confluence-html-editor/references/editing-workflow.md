@@ -77,12 +77,12 @@ Run `verify_confluence_adf.py` on the saved ADF fetch with the command in SKILL.
 Fetch HTML and ADF, then extract each saved full response into its own directory. The metadata file name is fixed (`<prefix>-metadata.json`), so two extractions into the same directory with the same prefix collide.
 
 ```bash
-uv run "$(realpath skill://confluence-html-editor/scripts/extract_confluence_fetch.py)" html-response.json --out-dir scratch/html --prefix fetched
-uv run "$(realpath skill://confluence-html-editor/scripts/extract_confluence_fetch.py)" adf-response.json --out-dir scratch/adf --prefix fetched
-uv run "$(realpath skill://confluence-html-editor/scripts/audit_confluence_page.py)" --html scratch/html/fetched.html --adf scratch/adf/fetched-adf.json --title "Page title"
+uv run "$(realpath skill://confluence-html-editor/scripts/extract_confluence_fetch.py)" "$(realpath local://html-response.json)" --out-dir "$(realpath local://)/html" --prefix fetched
+uv run "$(realpath skill://confluence-html-editor/scripts/extract_confluence_fetch.py)" "$(realpath local://adf-response.json)" --out-dir "$(realpath local://)/adf" --prefix fetched
+uv run "$(realpath skill://confluence-html-editor/scripts/audit_confluence_page.py)" --html "$(realpath local://html/fetched.html)" --adf "$(realpath local://adf/fetched-adf.json)" --title "Page title"
 ```
 
-Outputs: `fetched.html` / `fetched-adf.json` plus `fetched-metadata.json`. Use `--force` only to replace an extraction deliberately. The extractor and the ADF verifier both unwrap MCP text results.
+Save both raw responses to `local://` first. `realpath` rejects a `local://` path whose parent directory is missing, so `--out-dir` uses the resolved `local://` root and the extractor creates the subdirectory. Outputs: `local://html/fetched.html` / `local://adf/fetched-adf.json`, each with a `fetched-metadata.json` beside it. Use `--force` only to replace an extraction deliberately. The extractor and the ADF verifier both unwrap MCP text results.
 
 ## MCP v2 call contract
 

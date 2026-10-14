@@ -5,7 +5,7 @@
 # ///
 """Audit fetched Confluence HTML and ADF before editing.
 
-Usage: uv run audit_confluence_page.py --html fetched.html --adf fetched-adf.json --title "Page title"
+Usage: uv run "$(realpath skill://confluence-html-editor/scripts/audit_confluence_page.py)" --html "$(realpath local://html/fetched.html)" --adf "$(realpath local://adf/fetched-adf.json)" --title "Page title"
 """
 
 from __future__ import annotations
