@@ -1,6 +1,6 @@
 ---
 name: tool-prompt-optimization
-description: Optimize the description prompts an AI agent reads to learn its built-in tools (the `.md` files under prompts/tools/). Two halves: (1) measure how much of a prompt is already inferable from the tool's JSON parameter schema + name, to prune redundancy with evidence; (2) house authoring rules for what belongs in a tool prompt vs what stays in code. Use when auditing, trimming, writing, or reviewing tool prompts, deciding what schema field descriptions already cover, or testing schema-vs-prompt overlap before deleting prompt lines.
+description: Optimize the description prompts an AI agent reads to learn its tools (e.g. OMP's built-in `prompts/tools/*.md`). Two halves: (1) measure how much of a prompt is already inferable from the tool's JSON parameter schema + name, to prune redundancy with evidence; (2) house authoring rules for what belongs in a tool prompt vs what stays in code. Use when auditing, trimming, writing, or reviewing tool prompts, deciding what schema field descriptions already cover, or testing schema-vs-prompt overlap before deleting prompt lines.
 ---
 
 # Tool Prompt Optimization
@@ -93,7 +93,7 @@ Agents choose from prose, not source: tell WHEN/WHY, NEVER internal HOW.
 - `read.md`: every covered source — file/dir/archive/sqlite/PDF/URL — prevents `cat`/`curl`/`tar`; omit chunker, binary sniffer, cache layer.
 - `lsp.md`: "You MUST use `lsp` whenever a language server is available — safer than text-based alternatives." Omit LSP wire protocol, server lifecycle, capability negotiation.
 - `ast_edit`: metavariable syntax/workflow: "Loosest existence check: `pat: 'executeBash'` with narrow paths"; omit AST engine, query compilation, tree-sitter grammar selection.
-- `hashline.md` (this repo): patch grammar — anchors, ops, payloads, ranges — and successful edit shapes. Hide `tryRecoverHashlineWithCache`, fuzz factor, bigram tables, `findUniqueSuffixMatch`, `untilAborted`, `formatGroupedFiles`; agent sees only "the tool resolved your typo" or "the anchor was stale, re-read".
+- `hashline.md` (OMP): patch grammar — anchors, ops, payloads, ranges — and successful edit shapes. Hide `tryRecoverHashlineWithCache`, fuzz factor, bigram tables, `findUniqueSuffixMatch`, `untilAborted`, `formatGroupedFiles`; agent sees only "the tool resolved your typo" or "the anchor was stale, re-read".
 
 If a detail cannot change agent behavior, it does NOT belong. Each sentence MUST shift an agent decision.
 
