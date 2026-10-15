@@ -76,7 +76,18 @@ describe("shipped rules", () => {
 
 	test("bash cases cover every bash-scoped rule", () => {
 		expect(Object.keys(bashCases).sort()).toEqual(
-			[...rules.keys()].filter(rule => !["dbt-test-arguments", "lint-suppression"].includes(rule)).sort(),
+			[...rules.keys()]
+				.filter(
+					rule =>
+						![
+							"dbt-test-arguments",
+							"lint-suppression",
+							"no-silent-scope-shrink",
+							"no-source-grep-tests",
+							"no-unverified-test-claims",
+						].includes(rule),
+				)
+				.sort(),
 		);
 	});
 });
