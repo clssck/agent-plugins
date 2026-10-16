@@ -1,13 +1,13 @@
 {
   "name": "snowflake-labs-coco-skills",
-  "version": "0.0.1-g89c57c2",
+  "version": "0.0.1-g2bcd572",
   "private": true,
   "description": "Curated Agent Skills for Cortex Code (CoCo), Snowflake's CLI for building with AI.",
-  "homepage": "https://github.com/Snowflake-Labs/coco-skills/tree/89c57c211105bb5a870ce2f6e6e495a20c962fd8",
+  "homepage": "https://github.com/Snowflake-Labs/coco-skills/tree/2bcd5726917eb7b80199ba6de832dc0c72d4d046",
   "repository": "https://github.com/Snowflake-Labs/coco-skills",
-  "gitHead": "89c57c211105bb5a870ce2f6e6e495a20c962fd8",
+  "gitHead": "2bcd5726917eb7b80199ba6de832dc0c72d4d046",
   "sync": {
-    "build": "b91b32c489fda50cb171ed652ff94ac03dbcffd21bb7e2472e504c33c2ebe8d2",
+    "build": "8dd9fbff84de0d723f2ab68ab62e1ed9cd0bf0ca895000508167aea94649e0f5",
     "origins": {
       "skills/analyst-literal-search": "skills/analyst-literal-search",
       "skills/check-agent-access": "skills/check-agent-access",
