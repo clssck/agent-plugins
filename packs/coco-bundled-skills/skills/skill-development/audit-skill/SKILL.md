@@ -20,7 +20,7 @@ Review skills against best practices. Supports single-skill and batch modes.
 
 ### Step 1: Load Skill
 
-Ask for skill path or name. Search `.snowflake/cortex/skills/` (CoCo Snowsight workspace), `.cortex/skills/`, `$SNOWFLAKE_HOME/cortex/skills/`, or `$HOME/.snowflake/cortex/skills/` if a name is given.
+Use the supplied skill path. For a loaded name, `read skill://<name>` resolves the active OMP skill; consult `omp://skills.md` for discovery precedence. Otherwise inspect the project's `.omp/skills/`, the user's `~/.omp/agent/skills/`, or an explicitly named pack repository. Multiple matches require resolving the intended skill before editing.
 
 Load and parse: frontmatter, sections, workflow steps, and tools.
 
@@ -50,7 +50,7 @@ If present, also load:
 |-------|----------|
 | Numbered steps | 🟡 |
 | ⚠️ checkpoints marked | 🔴 |
-| No chaining without approval | 🔴 |
+| Consequential actions match user authorization | 🔴 |
 | Clear actions | 🟡 |
 
 **Linting (language + misleading text):**
@@ -112,7 +112,7 @@ Ask:
 4. Skip
 ```
 
-For each fix: show change → approve → apply.
+Review-only request → report findings. Authorized fixes → apply in scope, verify, and report; ask only about unresolved consequential choices.
 
 ---
 

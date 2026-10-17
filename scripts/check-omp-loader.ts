@@ -11,6 +11,7 @@
  */
 
 import * as path from "node:path";
+import { checkTuiLifecycle } from "./omp-runtime-cases";
 import { check } from "./sync";
 
 const ROOT = path.resolve(import.meta.dir, "..");
@@ -50,12 +51,7 @@ const capability = (await import(path.join(AGENT_SRC, "capability/index.ts"))) a
 	): Promise<CapabilityLoadResult<T>>;
 };
 const taskAgents = (await import(path.join(AGENT_SRC, "task/agents.ts"))) as {
-	parseAgent(
-		filePath: string,
-		content: string,
-		source: "user",
-		level: "fatal",
-	): { name: string };
+	parseAgent(filePath: string, content: string, source: "user", level: "fatal"): { name: string };
 };
 const extensionLoader = (await import(path.join(AGENT_SRC, "extensibility/extensions/loader.ts"))) as {
 	loadExtensions(
@@ -63,6 +59,9 @@ const extensionLoader = (await import(path.join(AGENT_SRC, "extensibility/extens
 		cwd: string,
 	): Promise<{ extensions: unknown[]; errors: Array<{ path: string; error: string }> }>;
 };
+const customToolLoader = await import(path.join(AGENT_SRC, "extensibility/custom-tools/loader.ts"));
+const ruleRuntime = await import(path.join(AGENT_SRC, "export/ttsr.ts"));
+const skillRuntime = await import(path.join(AGENT_SRC, "extensibility/skills.ts"));
 const utils = (await import(path.join(OMP_ROOT, "packages/utils/src/frontmatter.ts"))) as {
 	parseFrontmatter(content: string, options?: { source?: unknown; level?: "off" | "warn" | "fatal" }): unknown;
 };
@@ -73,8 +72,8 @@ const ruleCapability = (await import(path.join(AGENT_SRC, "capability/rule.ts"))
 const sources = await Bun.file(path.join(ROOT, "sources.json")).json();
 const repositoryErrors: string[] = [];
 const packs = await check(sources, repositoryErrors);
-const problems = repositoryErrors.map(error => "repository check: " + error);
-const packRoots = packs.map(pack => path.join(ROOT, pack.dir));
+const problems = repositoryErrors.map((error) => "repository check: " + error);
+const packRoots = packs.map((pack) => path.join(ROOT, pack.dir));
 const extensionRoots: ExtensionRoots = {
 	explicit: packRoots,
 	mode: "explicit-only",
@@ -83,10 +82,30 @@ const extensionRoots: ExtensionRoots = {
 };
 
 const surfaces = [
-	{ id: "skills", label: "skills", select: (pack: (typeof packs)[number]) => pack.skills, strictFrontmatter: true },
-	{ id: "slash-commands", label: "commands", select: (pack: (typeof packs)[number]) => pack.commands, strictFrontmatter: false },
-	{ id: "rules", label: "rules", select: (pack: (typeof packs)[number]) => pack.rules, strictFrontmatter: false },
-	{ id: "tools", label: "tools", select: (pack: (typeof packs)[number]) => pack.tools, strictFrontmatter: false },
+	{
+		id: "skills",
+		label: "skills",
+		select: (pack: (typeof packs)[number]) => pack.skills,
+		strictFrontmatter: true,
+	},
+	{
+		id: "slash-commands",
+		label: "commands",
+		select: (pack: (typeof packs)[number]) => pack.commands,
+		strictFrontmatter: false,
+	},
+	{
+		id: "rules",
+		label: "rules",
+		select: (pack: (typeof packs)[number]) => pack.rules,
+		strictFrontmatter: false,
+	},
+	{
+		id: "tools",
+		label: "tools",
+		select: (pack: (typeof packs)[number]) => pack.tools,
+		strictFrontmatter: false,
+	},
 ] as const;
 const totals: string[] = [];
 
@@ -109,7 +128,7 @@ for (const surface of surfaces) {
 			}
 		}
 	}
-	const discovered = new Map(result.items.map(item => [path.resolve(item.path), item]));
+	const discovered = new Map(result.items.map((item) => [path.resolve(item.path), item]));
 	let expectedCount = 0;
 	for (const pack of packs) {
 		for (const item of surface.select(pack)) {
@@ -117,34 +136,39 @@ for (const surface of surfaces) {
 			const absolute = path.resolve(ROOT, pack.dir, item.file);
 			const found = discovered.get(absolute);
 			if (!found) {
-				problems.push(pack.name + ": " + item.file + " expected as \"" + item.name + "\" but OMP did not discover it");
+				problems.push(pack.name + ": " + item.file + ' expected as "' + item.name + '" but OMP did not discover it');
 				continue;
 			}
 			if (found.name !== item.name) {
 				problems.push(
-					pack.name + ": " + item.file + " expected as \"" + item.name + "\" but OMP named it \"" + found.name + "\"",
+					pack.name + ": " + item.file + ' expected as "' + item.name + '" but OMP named it "' + found.name + '"',
 				);
 			}
 			discovered.delete(absolute);
 			if (surface.strictFrontmatter) {
 				try {
-					utils.parseFrontmatter(await Bun.file(absolute).text(), { source: absolute, level: "fatal" });
+					utils.parseFrontmatter(await Bun.file(absolute).text(), {
+						source: absolute,
+						level: "fatal",
+					});
 				} catch (error) {
-					problems.push(pack.name + ": " + item.file + " frontmatter only loads via OMP's lenient fallback: " + String(error));
+					problems.push(
+						pack.name + ": " + item.file + " frontmatter only loads via OMP's lenient fallback: " + String(error),
+					);
 				}
 			}
 		}
 	}
 	for (const item of discovered.values()) {
-		problems.push("OMP discovered unexpected " + surface.label + " item \"" + item.name + "\" at " + item.path);
+		problems.push("OMP discovered unexpected " + surface.label + ' item "' + item.name + '" at ' + item.path);
 	}
 	totals.push(expectedCount + " " + (expectedCount === 1 ? surface.label.slice(0, -1) : surface.label));
 }
-const packsByName = new Map(packs.map(pack => [pack.name, pack]));
+const packsByName = new Map(packs.map((pack) => [pack.name, pack]));
 for (const pack of packs) {
 	const dependencyNames = Object.keys(pack.skillReferences.requires ?? {});
-	const dependencyPacks = dependencyNames.map(name => packsByName.get(name)!);
-	const roots = [pack, ...dependencyPacks].map(item => path.join(ROOT, item.dir));
+	const dependencyPacks = dependencyNames.map((name) => packsByName.get(name)!);
+	const roots = [pack, ...dependencyPacks].map((item) => path.join(ROOT, item.dir));
 	const scopedRoots: ExtensionRoots = {
 		explicit: roots,
 		mode: "explicit-only",
@@ -160,14 +184,16 @@ for (const pack of packs) {
 		for (const warning of result.warnings) {
 			problems.push("OMP " + pack.name + " dependency-closure " + surface.label + " warning: " + warning);
 		}
-		const discovered = new Map(result.items.map(item => [path.resolve(item.path), item]));
+		const discovered = new Map(result.items.map((item) => [path.resolve(item.path), item]));
 		for (const item of surface.select(pack)) {
 			const absolute = path.resolve(ROOT, pack.dir, item.file);
 			const found = discovered.get(absolute);
 			if (!found) {
 				problems.push(pack.name + ": " + item.file + " was not discovered from its declared dependency closure");
 			} else if (found.name !== item.name) {
-				problems.push(pack.name + ": " + item.file + " loaded as \"" + found.name + "\" from its declared dependency closure");
+				problems.push(
+					pack.name + ": " + item.file + ' loaded as "' + found.name + '" from its declared dependency closure',
+				);
 			}
 		}
 	}
@@ -181,7 +207,9 @@ for (const pack of packs) {
 		try {
 			const parsed = taskAgents.parseAgent(absolute, await Bun.file(absolute).text(), "user", "fatal");
 			if (parsed.name !== item.name) {
-				problems.push(pack.name + ": " + item.file + " expected as \"" + item.name + "\" but OMP named it \"" + parsed.name + "\"");
+				problems.push(
+					pack.name + ": " + item.file + ' expected as "' + item.name + '" but OMP named it "' + parsed.name + '"',
+				);
 			}
 		} catch (error) {
 			problems.push(pack.name + ": OMP rejected agent " + item.file + ": " + String(error));
@@ -189,6 +217,59 @@ for (const pack of packs) {
 	}
 }
 totals.push(agentCount + " " + (agentCount === 1 ? "agent" : "agents"));
+
+// Exercise the actual TTSR matcher with finalized connector arguments, not a local scope approximation.
+const loadedRules = await capability.loadCapability<LoadedItem>("rules", {
+	cwd: ROOT,
+	providers: ["omp-plugins"],
+	extensionRoots,
+});
+const sqlRule = loadedRules.items.find((rule) => rule.name === "sql-mutation-safety");
+for (const [toolName, args, expected] of [
+	["bash", { command: "snow sql -q 'DROP TABLE orders'" }, true],
+	["snowflake_sql_execute", { sql: "DELETE FROM orders WHERE id = 7" }, true],
+	["mcp__warehouse__query", { query: "TRUNCATE TABLE orders" }, true],
+	["customConnector", { statement: "UPDATE orders SET status = 'closed' WHERE id = 7" }, true],
+	["mcp__warehouse__query", { query: "SELECT id FROM orders LIMIT 1" }, false],
+] as const) {
+	const manager = new ruleRuntime.TtsrManager({ enabled: true });
+	if (!sqlRule || !manager.addRule(sqlRule)) {
+		problems.push("SQL safety rule could not be registered in OMP");
+		break;
+	}
+	const hit = manager.checkSnapshot(JSON.stringify(args), { source: "tool", toolName });
+	if (hit.some((rule: LoadedItem) => rule.name === "sql-mutation-safety") !== expected) {
+		problems.push("SQL safety rule mismatch for " + toolName + ": " + JSON.stringify(args));
+	}
+}
+
+// Manual-only keeps URI/slash invocation while removing this CoCo integration from automatic routing.
+const bundledSkills = await skillRuntime.loadSkillsFromDir({
+	dir: path.join(ROOT, "packs/coco-bundled-skills/skills"),
+	source: "omp-plugins:user",
+});
+const team = bundledSkills.skills.find((skill: { name: string }) => skill.name === "team-workflow");
+if (!team?.hide) problems.push("OMP did not hide team-workflow from automatic skill selection");
+if (!team || !skillRuntime.parseSkillInvocation("/skill:team-workflow")) {
+	problems.push("team-workflow lost its explicit OMP skill invocation");
+}
+
+const customPaths = packs.flatMap((pack) =>
+	pack.tools.map((item) => ({ path: path.resolve(ROOT, pack.dir, item.file) })),
+);
+const loadedCustom = await customToolLoader.loadCustomTools(customPaths, ROOT, []);
+for (const error of loadedCustom.errors) problems.push("OMP custom-tool factory: " + error.path + ": " + error.error);
+if (loadedCustom.tools.length !== customPaths.length)
+	problems.push("OMP did not instantiate every discovered custom tool");
+const tui = loadedCustom.tools.find((item: { tool: { name: string } }) => item.tool.name === "tui");
+if (tui) {
+	try {
+		await checkTuiLifecycle(tui.tool);
+	} catch (error) {
+		problems.push("OMP TUI lifecycle: " + String(error));
+	}
+} else problems.push("OMP custom-tool loader did not instantiate tui");
+totals.push(loadedCustom.tools.length + " custom-tool factories; connector SQL and manual-skill runtime cases");
 
 const extensionPaths: string[] = [];
 for (const pack of packs) {
@@ -206,10 +287,7 @@ if (extensionPaths.length > 0) {
 }
 totals.push(extensionPaths.length + " " + (extensionPaths.length === 1 ? "extension" : "extensions"));
 
-const probePath = path.join(
-	ROOT,
-	"packs/clssck-development/skills/tool-prompt-optimization/scripts/probe-builtin.ts",
-);
+const probePath = path.join(ROOT, "packs/clssck-development/skills/tool-prompt-optimization/scripts/probe-builtin.ts");
 const probeSmoke = Bun.spawnSync({
 	cmd: [process.execPath, probePath, "--tool", "github", "--show"],
 	cwd: OMP_ROOT,

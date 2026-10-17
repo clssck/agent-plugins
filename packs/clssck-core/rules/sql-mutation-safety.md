@@ -4,9 +4,11 @@ condition:
   - '(?i)\b(?:delete\s+from|update\s+\S+\s+set|merge\s+into|truncate\s+(?:table\s+)?["`\[]?\w+|drop\s+(?:table|schema|database|view|index|sequence|type|function|procedure|materialized\s+view)|alter\s+table\b[^;\n]*\b(?:drop|alter|modify|change)|(?:replace|insert\s+or\s+replace)\s+into)\b'
   - '\b(?:rails|rake)\s+db:(?:drop|reset|rollback|purge|schema:load|migrate:reset)\b'
   - '\b(?:alembic\s+downgrade|prisma\s+(?:migrate\s+reset|db\s+push\b[^\n;&|]*--force-reset)|flyway\s+clean|sequelize\s+db:(?:drop|migrate:undo))\b'
-scope: "tool:bash, tool:eval"
+scope: "tool"
 interruptMode: tool-only
 ---
+
+This rule watches every tool argument, including direct SQL and MCP connector calls; tool names and server prefixes vary by installation. Match the SQL operation, not a hard-coded connector name.
 
 Before running SQL that deletes or overwrites persistent data, or drops or narrows a schema, establish target, scope, and recovery.
 

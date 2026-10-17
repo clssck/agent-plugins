@@ -1,6 +1,7 @@
 ---
 name: team-workflow
-description: "Multi-phase team orchestration for feature implementation. HIGHEST PRIORITY — load FIRST (before domain skills) when user requests teammates, teams, swarms, parallel agents, or the workflow auto-triggers (`/team`, `cortex --team`, ctrl+g)."
+disable-model-invocation: true
+description: "Manual Cortex Code team integration. Use only when explicitly invoking this workflow with configured Cortex Code team tools and CLI. Not OMP-native task orchestration; unavailable capabilities block execution."
 ---
 
 <!-- omp-compat:start -->

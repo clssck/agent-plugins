@@ -27,7 +27,7 @@ Present summary:
 Is this accurate?
 ```
 
-**⚠️ STOP**: Confirm summary.
+Proceed within the user's authorized scope. Ask only when a material requirement or tradeoff remains unresolved.
 
 ### Step 2: Extract Pattern
 
@@ -40,9 +40,9 @@ Is this accurate?
 | `MY_DATABASE` | `<DATABASE>` |
 | `file.yaml` | `<INPUT_FILE>` |
 
-4. Present pattern for approval
+4. State the extracted pattern and resolve material ambiguity
 
-**⚠️ STOP**: Approve pattern.
+Proceed within the user's authorized scope. Ask only when a material requirement or tradeoff remains unresolved.
 
 ### Step 3: Define Parameters
 
@@ -57,9 +57,16 @@ Ask:
 1. **Name**: Suggest based on workflow
 2. **Triggers**: Suggest based on session
 3. **Location**:
-   - If your identity is "Snowflake Intelligence": Create skill files in a temporary directory inside the sandbox (`/tmp/<skill-name>/`), then upload each file to `snow://workspace/USER$.PUBLIC.DEFAULT$/versions/live/.snowflake/si/skills/<skill-name>/` using `snow stage copy`. e.g.  `snow stage copy /tmp/my_skill/SKILL.md "snow://workspace/USER$.PUBLIC.DEFAULT$/versions/live/.snowflake/si/skills/my_skill/" --overwrite`
-   - Else if your identity is CoCo (Cortex Code) built into Snowflake's Snowsight UI: use the `write` tool to create `.snowflake/cortex/skills/<skill-name>/SKILL.md` (workspace-relative; no `snow://`, no `snow stage copy`, no `mkdir`). Extra files go in the same folder. The skill appears in the `/` picker on next invocation.
-   - Otherwise: `.cortex/skills/<name>/` (project) or `$HOME/.snowflake/cortex/skills/<name>/` (or `$SNOWFLAKE_HOME/cortex/skills/<name>/` if `$SNOWFLAKE_HOME` is set) (global)
+
+Use OMP discovery, not a foreign host's installation paths. Read `omp://skills.md` before choosing a destination.
+
+| Scope | Destination |
+|---|---|
+| Existing pack or user-named repository | Its existing `skills/<name>/SKILL.md`; preserve its manifest and conventions |
+| Project-local skill | `.omp/skills/<name>/SKILL.md` |
+| Personal skill | `~/.omp/agent/skills/<name>/SKILL.md` |
+
+Resolve a supplied path before writing. Project scope is the default for project work; use personal scope only when requested. NEVER create `.cortex/`, `.snowflake/cortex/`, Snowflake workspace uploads, or compatibility symlinks for an OMP skill. Read the written file back and verify OMP discovers it; a file's existence alone does not prove discovery.
 
 ### Step 5: Generate Skill
 
@@ -78,7 +85,7 @@ Triggers: [phrases]
 Parameters: [list]
 ```
 
-**⚠️ STOP**: Final review.
+Proceed within the user's authorized scope. Ask only when a material requirement or tradeoff remains unresolved.
 
 ## Common Patterns
 
@@ -88,11 +95,9 @@ Parameters: [list]
 | Create | Requirements → Configure → Create → Verify |
 | Optimize | Analyze → Identify → Apply → Measure |
 
-## Stopping Points
+## Decisions
 
-- ✋ Step 1: Summary validated
-- ✋ Step 2: Pattern approved
-- ✋ Step 6: Final review
+Ask only when the user's answer changes scope, destination, or a consequential action. Routine implementation continues under existing authorization.
 
 ## Output
 

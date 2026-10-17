@@ -7,7 +7,7 @@
   "repository": "https://github.com/Snowflake-Labs/coco-skills",
   "gitHead": "2bcd5726917eb7b80199ba6de832dc0c72d4d046",
   "sync": {
-    "build": "8dd9fbff84de0d723f2ab68ab62e1ed9cd0bf0ca895000508167aea94649e0f5",
+    "build": "59af2eba72bed0077b6a2356a7fc90f62231887e3f35439c94ffbf0b4725f4ca",
     "origins": {
       "skills/analyst-literal-search": "skills/analyst-literal-search",
       "skills/check-agent-access": "skills/check-agent-access",
@@ -38,9 +38,9 @@
     },
     "compatibility": {
       "profile": "coco",
-      "version": 2
+      "version": 3
     },
-    "tree": "sha256:fba155641e14f9cb2926cdda461bfe62cb9f9d23434068fbf4b3689a076c9a10"
+    "tree": "sha256:c7df66152d0733ebb0e0642e3fba426789096c82580834937d4ee489b7ec4f4d"
   },
   "ompSkillReferences": {
     "requires": {
@@ -51,7 +51,7 @@
   },
   "ompCompatibility": {
     "profile": "coco",
-    "version": 2
+    "version": 3
   },
   "omp": {}
 }

@@ -27,6 +27,7 @@ import type * as CanvasModule from "@napi-rs/canvas";
 import type * as KittyVt from "kitty-vt-wasm";
 import type { Color, KittyEvent, KittyTerminal } from "kitty-vt-wasm";
 import { tmpdir } from "node:os";
+import { setTimeout as delay } from "node:timers/promises";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -52,10 +53,7 @@ interface ToolUpdate {
 	details?: Record<string, unknown>;
 }
 interface ToolResult {
-	content: (
-		| { type: "text"; text: string }
-		| { type: "image"; data: string; mimeType: string }
-	)[];
+	content: ({ type: "text"; text: string } | { type: "image"; data: string; mimeType: string })[];
 	details?: Record<string, unknown>;
 }
 
@@ -220,11 +218,7 @@ function imageSizeAllowed(width: number, height: number): boolean {
 
 /** PNG dimensions from the IHDR chunk; null when the bytes are not a PNG. */
 function pngSize(bytes: Buffer): { width: number; height: number } | null {
-	if (
-		bytes.length < 24 ||
-		!bytes.subarray(0, 8).equals(PNG_SIGNATURE) ||
-		bytes.toString("latin1", 12, 16) !== "IHDR"
-	)
+	if (bytes.length < 24 || !bytes.subarray(0, 8).equals(PNG_SIGNATURE) || bytes.toString("latin1", 12, 16) !== "IHDR")
 		return null;
 	return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
 }
@@ -281,8 +275,7 @@ async function loadCanvas() {
 	const families = mod.GlobalFonts.families.map((entry) => entry.family);
 	const stack = ["Menlo"];
 	const nerd =
-		families.find((family) => /nerd font mono/i.test(family)) ??
-		families.find((family) => /nerd font/i.test(family));
+		families.find((family) => /nerd font mono/i.test(family)) ?? families.find((family) => /nerd font/i.test(family));
 	if (nerd) stack.push(nerd);
 	for (const wanted of [
 		"Apple Braille",
@@ -384,9 +377,7 @@ export class Screen {
 				chunks: [],
 				bytes: 0,
 				// Raw pixels declare their size up front; PNG is checked against its IHDR.
-				rejected:
-					(!raw && cmd.format !== 100) ||
-					(raw && !imageSizeAllowed(cmd.data_width, cmd.data_height)),
+				rejected: (!raw && cmd.format !== 100) || (raw && !imageSizeAllowed(cmd.data_width, cmd.data_height)),
 			};
 		}
 		if (!pending.rejected && cmd.payload) {
@@ -418,16 +409,10 @@ export class Screen {
 
 	/** Decodes a completed transmission and retains it, evicting the oldest images over budget. */
 	#store(pending: PendingImage) {
-		let bytes: Buffer =
-			pending.chunks.length === 1
-				? pending.chunks[0]
-				: Buffer.concat(pending.chunks);
+		let bytes: Buffer = pending.chunks.length === 1 ? pending.chunks[0] : Buffer.concat(pending.chunks);
 		// Raw pixels have an exact declared size; a compressed payload may not
 		// expand past it. PNG is bounded by the largest RGBA image instead.
-		const expected =
-			pending.format === 100
-				? 0
-				: pending.width * pending.height * (pending.format === 24 ? 3 : 4);
+		const expected = pending.format === 100 ? 0 : pending.width * pending.height * (pending.format === 24 ? 3 : 4);
 		if (pending.compressed) {
 			try {
 				bytes = inflateSync(bytes, {
@@ -461,10 +446,7 @@ export class Screen {
 		});
 		this.#retainedBytes += cost;
 		// Oldest first, by count and worst-case retained+decoded bytes.
-		while (
-			this.#images.size > KITTY_MAX_RETAINED_IMAGES ||
-			this.#retainedBytes > KITTY_MAX_RETAINED_BYTES
-		) {
+		while (this.#images.size > KITTY_MAX_RETAINED_IMAGES || this.#retainedBytes > KITTY_MAX_RETAINED_BYTES) {
 			const oldest = this.#images.keys().next().value;
 			if (oldest === undefined) break;
 			this.#retainedBytes -= this.#images.get(oldest)?.cost ?? 0;
@@ -507,8 +489,7 @@ export class Screen {
 		}
 		const channels = image.format === 24 ? 3 : 4;
 		const { width, height } = image;
-		if (!width || !height || image.bytes.length < width * height * channels)
-			return null;
+		if (!width || !height || image.bytes.length < width * height * channels) return null;
 		const off = create(width, height);
 		const ctx = off.getContext("2d");
 		const data = ctx.createImageData(width, height);
@@ -535,13 +516,10 @@ export class Screen {
 		if (history > 0) {
 			const total = term.scrollbackLength;
 			for (let i = Math.max(0, total - history); i < total; i++) {
-				out.push(
-					`┆${(term.scrollbackLine(i) ?? "").replace(PLACEHOLDER_RE, "▒")}`,
-				);
+				out.push(`┆${(term.scrollbackLine(i) ?? "").replace(PLACEHOLDER_RE, "▒")}`);
 			}
 		}
-		for (let y = 0; y < term.rows; y++)
-			out.push(`│${term.line(y).replace(PLACEHOLDER_RE, "▒")}`);
+		for (let y = 0; y < term.rows; y++) out.push(`│${term.line(y).replace(PLACEHOLDER_RE, "▒")}`);
 		return out.join("\n");
 	}
 
@@ -606,11 +584,7 @@ export class Screen {
 					// Image placeholder: fg encodes the image id, combining
 					// diacritics the tile row/col; omitted diacritics continue
 					// the previous cell's run (kitty spec).
-					const id = cell.fg
-						? "rgb" in cell.fg
-							? cell.fg.rgb
-							: cell.fg.index
-						: 0;
+					const id = cell.fg ? ("rgb" in cell.fg ? cell.fg.rgb : cell.fg.index) : 0;
 					const row = rowcolIndex.get(cell.combining[0]?.codePointAt(0) ?? -1);
 					const col = rowcolIndex.get(cell.combining[1]?.codePointAt(0) ?? -1);
 					const prev = holders.at(-1);
@@ -640,10 +614,7 @@ export class Screen {
 		}
 		// Decode every image referenced by a placement or placeholder cell.
 		const placements = term.graphicsPlacements();
-		const drawable = new Map<
-			number,
-			CanvasModule.Image | CanvasModule.Canvas
-		>();
+		const drawable = new Map<number, CanvasModule.Image | CanvasModule.Canvas>();
 		const wanted = new Set(holders.map((holder) => holder.id));
 		for (const placement of placements) {
 			if (!placement.unicodePlacement) wanted.add(placement.imageId);
@@ -654,9 +625,7 @@ export class Screen {
 			const image = await this.#decodeImage(create, load, stored);
 			if (image) drawable.set(id, image);
 		}
-		const direct = placements
-			.filter((placement) => !placement.unicodePlacement)
-			.sort((a, b) => a.zIndex - b.zIndex);
+		const direct = placements.filter((placement) => !placement.unicodePlacement).sort((a, b) => a.zIndex - b.zIndex);
 		const drawDirect = (placement: (typeof direct)[number]) => {
 			const image = drawable.get(placement.imageId);
 			if (!image) return;
@@ -664,29 +633,11 @@ export class Screen {
 			// assumes 10x20px cells when sizing them.
 			const spanCols = placement.numCols || Math.ceil(image.width / 10);
 			const spanRows = placement.numRows || Math.ceil(image.height / 20);
-			ctx.drawImage(
-				image,
-				placement.col * CW,
-				placement.row * CH,
-				spanCols * CW,
-				spanRows * CH,
-			);
+			ctx.drawImage(image, placement.col * CW, placement.row * CH, spanCols * CW, spanRows * CH);
 		};
 		// kitty z-order: negative z-index draws under text, the rest above.
-		for (const placement of direct)
-			if (placement.zIndex < 0) drawDirect(placement);
-		for (const {
-			px,
-			py,
-			ch,
-			fg,
-			deco,
-			bold,
-			italic,
-			underline,
-			strike,
-			span,
-		} of cells) {
+		for (const placement of direct) if (placement.zIndex < 0) drawDirect(placement);
+		for (const { px, py, ch, fg, deco, bold, italic, underline, strike, span } of cells) {
 			if (underline) {
 				// Coarse style fidelity: double gets two bars; straight,
 				// curly, dotted, and dashed all render as one.
@@ -725,22 +676,15 @@ export class Screen {
 				}
 				continue;
 			}
-			ctx.font =
-				`${italic ? "italic " : ""}${bold ? "bold " : ""}` +
-				`${FONT_PX}px ${stack}`;
+			ctx.font = `${italic ? "italic " : ""}${bold ? "bold " : ""}` + `${FONT_PX}px ${stack}`;
 			ctx.fillText(ch, px, py + BASELINE);
 		}
-		for (const placement of direct)
-			if (placement.zIndex >= 0) drawDirect(placement);
+		for (const placement of direct) if (placement.zIndex >= 0) drawDirect(placement);
 		// Placeholder tiles: scale each image to its virtual grid (or the max
 		// extent seen) and draw the cell's slice.
 		const grids = new Map<number, { cols: number; rows: number }>();
 		for (const placement of placements) {
-			if (
-				placement.unicodePlacement &&
-				placement.numCols &&
-				placement.numRows
-			) {
+			if (placement.unicodePlacement && placement.numCols && placement.numRows) {
 				grids.set(placement.imageId, {
 					cols: placement.numCols,
 					rows: placement.numRows,
@@ -759,17 +703,7 @@ export class Screen {
 			if (!image || !grid) continue;
 			const sw = image.width / grid.cols;
 			const sh = image.height / grid.rows;
-			ctx.drawImage(
-				image,
-				holder.col * sw,
-				holder.row * sh,
-				sw,
-				sh,
-				holder.px,
-				holder.py,
-				CW,
-				CH,
-			);
+			ctx.drawImage(image, holder.col * sw, holder.row * sh, sw, sh, holder.px, holder.py, CW, CH);
 		}
 		const cursor = term.cursor;
 		if (cursor.visible) {
@@ -788,6 +722,7 @@ interface Waiter {
 	resolve(value: Record<string, unknown>): void;
 	reject(error: Error): void;
 	timer: NodeJS.Timeout;
+	cleanup(): void;
 }
 
 /** The slice of `Bun.spawn`'s PTY handle this tool touches. */
@@ -839,112 +774,123 @@ function capture(session: Session, chunk: Uint8Array) {
 /** Per-line debug response cap, matching the original IPC line framing. */
 const MAX_LINE_BYTES = 64 * 1024 * 1024;
 
-function connectSocket(
+/** Close an uncorrelated NDJSON stream rather than assigning a late reply to the next request. */
+function closeDebugSocket(session: Session, error: Error) {
+	const sock = session.sock;
+	session.sock = null;
+	session.sockBuf = "";
+	for (const waiter of session.waiters.splice(0)) {
+		waiter.cleanup();
+		waiter.reject(error);
+	}
+	sock?.destroy();
+}
+
+async function connectSocket(
 	session: Session,
 	path: string,
 	timeoutMs: number,
+	signal?: AbortSignal,
 ): Promise<boolean> {
 	const deadline = Date.now() + timeoutMs;
-	const { promise, resolve } = Promise.withResolvers<boolean>();
-	const attempt = () => {
+	while (Date.now() < deadline && session.exit === null) {
+		signal?.throwIfAborted();
 		const sock = net.createConnection(path);
-		// Bound each attempt like the original IPC connect, clamped to the
-		// overall deadline; expiry surfaces as an error and takes the retry path.
-		const timer = setTimeout(
-			() => sock.destroy(new Error("debug socket connect timed out")),
-			Math.max(1, Math.min(1_000, deadline - Date.now())),
-		);
-		const retry = () => {
-			clearTimeout(timer);
-			sock.destroy();
-			if (Date.now() >= deadline || session.exit !== null) resolve(false);
-			else setTimeout(attempt, 150);
-		};
-		sock.on("error", retry);
-		sock.on("connect", () => {
-			clearTimeout(timer);
-			// Established sockets never reconnect: a later error just closes
-			// this socket, so no stale waiter or partial line is reused.
-			sock.on("error", () => {});
-			sock.off("error", retry);
-			session.sockBuf = "";
-			// UTF-8 bytes of the unterminated tail in session.sockBuf.
-			let tailBytes = 0;
-			sock.setEncoding("utf8");
-			sock.on("data", (data: string) => {
-				const newline = data.indexOf("\n");
-				const lineBytes =
-					tailBytes +
-					Buffer.byteLength(newline < 0 ? data : data.slice(0, newline));
-				tailBytes =
-					newline < 0
-						? lineBytes
-						: Buffer.byteLength(data.slice(data.lastIndexOf("\n") + 1));
-				if (lineBytes > MAX_LINE_BYTES || tailBytes > MAX_LINE_BYTES) {
-					session.sockBuf = "";
-					if (session.sock === sock) session.sock = null;
-					sock.destroy();
-					const error = new Error(
-						`debug response line exceeds ${MAX_LINE_BYTES} bytes; socket closed`,
-					);
-					for (const waiter of session.waiters.splice(0)) {
-						clearTimeout(waiter.timer);
-						waiter.reject(error);
-					}
-					return;
-				}
-				session.sockBuf += data;
-				for (;;) {
-					const index = session.sockBuf.indexOf("\n");
-					if (index < 0) return;
-					const line = session.sockBuf.slice(0, index);
-					session.sockBuf = session.sockBuf.slice(index + 1);
-					const waiter = session.waiters.shift();
-					if (!waiter) continue;
-					clearTimeout(waiter.timer);
-					try {
-						waiter.resolve(JSON.parse(line));
-					} catch (error) {
-						waiter.reject(new Error(`bad response line: ${error}`));
-					}
-				}
-			});
-			sock.on("close", () => {
-				if (session.sock === sock) session.sock = null;
-			});
-			session.sock = sock;
-			resolve(true);
+		sock.on("error", () => {});
+		const connected = await new Promise<boolean>((resolve, reject) => {
+			const finish = (connected: boolean, error?: unknown) => {
+				clearTimeout(timer);
+				signal?.removeEventListener("abort", abort);
+				sock.off("connect", ready);
+				sock.off("error", failed);
+				if (!connected) sock.destroy();
+				if (error) reject(error);
+				else resolve(connected);
+			};
+			const ready = () => finish(true);
+			const failed = () => finish(false);
+			const abort = () => finish(false, signal?.reason ?? new Error("TUI operation cancelled"));
+			const timer = setTimeout(failed, Math.max(1, Math.min(1_000, deadline - Date.now())));
+			sock.once("connect", ready);
+			sock.once("error", failed);
+			signal?.addEventListener("abort", abort, { once: true });
 		});
-	};
-	attempt();
-	return promise;
+		if (!connected) {
+			await sleep(Math.max(0, Math.min(150, deadline - Date.now())), signal);
+			continue;
+		}
+		session.sock = sock;
+		session.sockBuf = "";
+		let tailBytes = 0;
+		sock.setEncoding("utf8");
+		sock.on("error", () => {});
+		sock.on("data", (data: string) => {
+			const newline = data.indexOf("\n");
+			const lineBytes = tailBytes + Buffer.byteLength(newline < 0 ? data : data.slice(0, newline));
+			tailBytes = newline < 0 ? lineBytes : Buffer.byteLength(data.slice(data.lastIndexOf("\n") + 1));
+			if (lineBytes > MAX_LINE_BYTES || tailBytes > MAX_LINE_BYTES) {
+				closeDebugSocket(session, new Error(`debug response line exceeds ${MAX_LINE_BYTES} bytes; socket closed`));
+				return;
+			}
+			session.sockBuf += data;
+			for (;;) {
+				const index = session.sockBuf.indexOf("\n");
+				if (index < 0) return;
+				const line = session.sockBuf.slice(0, index);
+				session.sockBuf = session.sockBuf.slice(index + 1);
+				const waiter = session.waiters.shift();
+				if (!waiter) continue;
+				waiter.cleanup();
+				try {
+					waiter.resolve(JSON.parse(line));
+				} catch (error) {
+					waiter.reject(new Error(`bad response line: ${error}`));
+				}
+			}
+		});
+		sock.on("close", () => {
+			if (session.sock === sock) closeDebugSocket(session, new Error("debug socket closed"));
+		});
+		return true;
+	}
+	signal?.throwIfAborted();
+	return false;
 }
 
-/** Sends one debug request and awaits its response line. */
+/** Sends one debug request. Cancellation preserves the PTY but invalidates this reply stream. */
 function request(
 	session: Session,
 	body: Record<string, unknown>,
 	timeoutMs = 10_000,
+	signal?: AbortSignal,
 ): Promise<Record<string, unknown>> {
+	signal?.throwIfAborted();
 	const sock = session.sock;
-	if (!sock) {
+	if (!sock)
 		return Promise.reject(
 			new Error(
-				`session "${session.name}" has no debug socket — it was started without debug:true, or the app does not serve ` +
-					"OMP_TUI_DEBUG introspection (or exited). text/screen/shot/raw/send/resize/stop still work.",
+				`session "${session.name}" has no debug socket — start with debug:true to enable introspection. ` +
+					"After a cancelled/timed-out request the debug connection is closed; screen/shot/raw/send/resize/stop still work.",
 			),
 		);
-	}
-	const { promise, resolve, reject } =
-		Promise.withResolvers<Record<string, unknown>>();
-	const timer = setTimeout(() => {
-		const index = session.waiters.findIndex((waiter) => waiter.timer === timer);
-		if (index >= 0) session.waiters.splice(index, 1);
-		reject(new Error(`debug request timed out: ${JSON.stringify(body)}`));
-	}, timeoutMs);
-	session.waiters.push({ resolve, reject, timer });
-	sock.write(`${JSON.stringify(body)}\n`);
-	return promise;
+	return new Promise((resolve, reject) => {
+		const abort = () =>
+			closeDebugSocket(
+				session,
+				new Error("TUI operation cancelled; debug connection closed", { cause: signal?.reason }),
+			);
+		const timer = setTimeout(
+			() => closeDebugSocket(session, new Error(`debug request timed out: ${JSON.stringify(body)}`)),
+			timeoutMs,
+		);
+		const cleanup = () => {
+			clearTimeout(timer);
+			signal?.removeEventListener("abort", abort);
+		};
+		session.waiters.push({ resolve, reject, timer, cleanup });
+		signal?.addEventListener("abort", abort, { once: true });
+		sock.write(`${JSON.stringify(body)}\n`);
+	});
 }
 
 function need(session: string | undefined): Session {
@@ -957,16 +903,14 @@ function need(session: string | undefined): Session {
 	return found;
 }
 
-function sleep(ms: number): Promise<null> {
-	const { promise, resolve } = Promise.withResolvers<null>();
-	setTimeout(() => resolve(null), ms);
-	return promise;
+function sleep(ms: number, signal?: AbortSignal): Promise<null> {
+	return delay(ms, null, { signal });
 }
 
-async function stopSession(session: Session): Promise<number | null> {
+async function stopSession(session: Session, signal?: AbortSignal): Promise<number | null> {
 	try {
 		if (session.sock) {
-			await request(session, { op: "quit" }, 2_000);
+			await request(session, { op: "quit" }, 2_000, signal);
 		} else if (session.exit === null) {
 			// Apps without the optional OMP_TUI_DEBUG socket get Ctrl-C, the
 			// conventional quit chord.
@@ -975,12 +919,14 @@ async function stopSession(session: Session): Promise<number | null> {
 	} catch {
 		// Fall through to signals.
 	}
-	const exited = await Promise.race([session.proc.exited, sleep(2_000)]);
+	const exited = await Promise.race([session.proc.exited, sleep(2_000, signal)]).catch(() => null);
 	if (exited === null) {
 		session.proc.kill("SIGKILL");
-		await session.proc.exited.catch(() => {});
+		// Closing the PTY releases a child blocked while the terminal drains.
+		session.proc.terminal.close();
+		await Promise.race([session.proc.exited.catch(() => {}), sleep(1_000)]);
 	}
-	session.sock?.destroy();
+	closeDebugSocket(session, new Error("TUI session stopped"));
 	session.proc.terminal.close();
 	session.screen.dispose();
 	rmSync(session.dir, { recursive: true, force: true });
@@ -1019,18 +965,15 @@ function screenshotText(response: Record<string, unknown>): string {
  * After-input screenshot: the renderer's viewport when a debug socket exists
  * (and answers), else the emulator's screen.
  */
-async function settled(
-	session: Session,
-	note: string,
-	waitMs = 180,
-): Promise<string> {
-	await sleep(waitMs);
+async function settled(session: Session, note: string, waitMs = 180, signal?: AbortSignal): Promise<string> {
+	await sleep(waitMs, signal);
 	if (session.sock) {
 		try {
-			const shot = await request(session, { op: "text" }, 3_000);
+			const shot = await request(session, { op: "text" }, 3_000, signal);
 			if (shot.ok !== false) return `${note}\n${screenshotText(shot)}`;
 		} catch {
-			// Renderer unavailable; fall back to the emulator.
+			// Cancellation must reach the host; only renderer failures fall back.
+			signal?.throwIfAborted();
 		}
 	}
 	return `${note}\n${session.screen.snapshot()}`;
@@ -1051,9 +994,7 @@ function renderTree(node: unknown, depth: number, out: string[]) {
 	out.push(
 		"  ".repeat(depth) +
 			`${field(node, "kind")}${typeof id === "string" ? `#${id}` : ""}` +
-			(Array.isArray(rect)
-				? ` [${rect[0]},${rect[1]} ${rect[2]}x${rect[3]}]`
-				: "") +
+			(Array.isArray(rect) ? ` [${rect[0]},${rect[1]} ${rect[2]}x${rect[3]}]` : "") +
 			(flags ? `  ${flags}` : ""),
 	);
 	const children = field(node, "children");
@@ -1093,8 +1034,7 @@ function visible(bytes: Buffer): string {
 		if (byte === 0x1b) out += "\\e";
 		else if (byte === 0x0a) out += "\n";
 		else if (byte === 0x0d) out += "\\r";
-		else if (byte < 0x20 || byte === 0x7f)
-			out += `\\x${byte.toString(16).padStart(2, "0")}`;
+		else if (byte < 0x20 || byte === 0x7f) out += `\\x${byte.toString(16).padStart(2, "0")}`;
 		else out += String.fromCharCode(byte);
 	}
 	return out;
@@ -1150,7 +1090,8 @@ function gated(gate: string, command: string[]): string[] {
 // ─── Tool ────────────────────────────────────────────────────────────────────
 
 const factory = (omp: ToolHost) => {
-	const startSession = async (params: TuiParams): Promise<string> => {
+	const startSession = async (params: TuiParams, signal?: AbortSignal): Promise<string> => {
+		signal?.throwIfAborted();
 		const name = params.name ?? "main";
 		if (sessions.has(name)) {
 			throw new Error(`session "${name}" already running; stop it first`);
@@ -1181,13 +1122,17 @@ const factory = (omp: ToolHost) => {
 		const dir = mkdtempSync(join(tmpdir(), `clssck-tui-${name}-`));
 		const sockPath = join(dir, "debug.sock");
 		const gatePath = join(dir, "spawn.gate");
-		const screen = await Screen.create(cols, rows);
+		const screen = await Screen.create(cols, rows).catch((error) => {
+			rmSync(dir, { recursive: true, force: true });
+			throw error;
+		});
 		// The PTY data callback closes over `session`; Bun.spawn returns
 		// synchronously and the callback fires on the event loop, so the
 		// binding is assigned before the first chunk can arrive.
 		let session: Session;
 		let proc: Child;
 		try {
+			signal?.throwIfAborted();
 			const spawned = Bun.spawn(gated(gatePath, command), {
 				cwd: omp.cwd,
 				env: {
@@ -1243,155 +1188,113 @@ const factory = (omp: ToolHost) => {
 		});
 		sessions.set(name, session);
 
-		const deadline = Date.now() + (params.timeout ?? 15) * 1000;
-		// Only hosts that serve OMP_TUI_DEBUG bind the socket; waiting for it
-		// on any other app would stall `start` for the whole timeout.
-		const connected = params.debug
-			? await connectSocket(session, sockPath, (params.timeout ?? 15) * 1000)
-			: (await sleep(250), false);
-		if (session.exit !== null) {
-			const tail = visible(Buffer.concat(session.raw)).slice(-3000);
-			await stopSession(session).catch(() => {});
-			throw new Error(
-				`"${target}" exited immediately (code ${session.exit}).\n` +
-					`terminal tail: ${tail || "(empty)"}`,
-			);
-		}
-		let text = `session "${name}": ${target} pid=${proc.pid} pty=${cols}x${rows}`;
-		if (connected) {
-			// The socket binds at terminal entry, before the first frame
-			// paints; retry until the snapshot exists so `start` reliably
-			// returns the opening screenshot.
-			let shot = await request(session, { op: "text" });
-			while (
-				shot.ok === false &&
-				String(shot.error ?? "").includes("no frame painted yet") &&
-				session.exit === null &&
-				Date.now() < deadline
-			) {
-				await sleep(50);
-				shot = await request(session, { op: "text" });
+		try {
+			const deadline = Date.now() + (params.timeout ?? 15) * 1000;
+			// Only hosts that serve OMP_TUI_DEBUG bind the socket; waiting for it
+			// on any other app would stall `start` for the whole timeout.
+			const connected = params.debug
+				? await connectSocket(session, sockPath, (params.timeout ?? 15) * 1000, signal)
+				: (await sleep(250, signal), false);
+			if (session.exit !== null) {
+				const tail = visible(Buffer.concat(session.raw)).slice(-3000);
+				await stopSession(session).catch(() => {});
+				throw new Error(
+					`"${target}" exited immediately (code ${session.exit}).\n` + `terminal tail: ${tail || "(empty)"}`,
+				);
 			}
-			text += `\n${screenshotText(shot)}`;
-		} else {
-			text +=
-				`\n(no debug socket: ${params.debug ? "app does not serve OMP_TUI_DEBUG introspection" : "started without debug:true"}; \`send\` injects ` +
-				"input, `screen` renders the emulated display)" +
-				`\n${session.screen.snapshot()}`;
+			let text = `session "${name}": ${target} pid=${proc.pid} pty=${cols}x${rows}`;
+			if (connected) {
+				// The socket binds at terminal entry, before the first frame
+				// paints; retry until the snapshot exists so `start` reliably
+				// returns the opening screenshot.
+				let shot = await request(session, { op: "text" }, undefined, signal);
+				while (
+					shot.ok === false &&
+					String(shot.error ?? "").includes("no frame painted yet") &&
+					session.exit === null &&
+					Date.now() < deadline
+				) {
+					await sleep(50, signal);
+					shot = await request(session, { op: "text" }, undefined, signal);
+				}
+				text += `\n${screenshotText(shot)}`;
+			} else {
+				text +=
+					`\n(no debug socket: ${params.debug ? "app does not serve OMP_TUI_DEBUG introspection" : "started without debug:true"}; \`send\` injects ` +
+					"input, `screen` renders the emulated display)" +
+					`\n${session.screen.snapshot()}`;
+			}
+			return text;
+		} catch (error) {
+			// A start that never returned must not leave an unreported child behind.
+			await stopSession(session, AbortSignal.abort()).catch(() => {});
+			throw error;
 		}
-		return text;
 	};
 
 	return {
 		name: "tui",
 		label: "TUI Debug",
-		description:
-			"Run and debug terminal apps headlessly on a real PTY. start requires " +
-			"exactly one target: file (a TS/JS entry relative to cwd, run with bun) or " +
-			"bin (an executable name/path), plus optional rows/cols and args. Apps that " +
-			"implement the optional OMP host introspection protocol serve the " +
-			"OMP_TUI_DEBUG socket; start them with debug:true to enable frame/tree/values/info and decoder-level " +
-			"keys/type/paste/mouse. Other apps use screen/shot/send/resize/raw, and text " +
-			"falls back to the emulated screen. Ops: text (viewport screenshot as plain text), screen " +
-			"(plain-text screen from kitty's real terminal core — works for any app, no " +
-			"debug socket needed; peek=N prepends N scrollback lines), frame (full " +
-			"document), tree (component tree with ids/rects/focus), values (widget " +
-			"values JSON), info, keys (spec like \"tab C-c enter 'literal'\"), type " +
-			"(literal text through the input decoder), paste (bracketed paste), mouse " +
-			"(x,y,action: click|right-click|middle-click|move|drag|release|wheel-up|" +
-			"wheel-down), send (raw bytes to the terminal, \\e/\\xNN escapes), resize " +
-			"(cols,rows delivered via SIGWINCH), raw (exact captured byte stream: " +
-			"escape-sequence stats + escaped tail — prefer text/screen unless " +
-			"auditing escapes), shot (pixel screenshot of the emulated screen — real " +
-			"colors/styles as a PNG image, rasterized in-process), stop, list. " +
-			"Input ops (keys/type/paste/mouse/send/" +
-			"resize) return an after-screenshot of the resulting display (quiet:true " +
-			"skips it). Sessions persist across calls; injected input rides the " +
-			"app's real input path.",
+		description: [
+			"Run and inspect terminal apps on a persistent PTY.",
+			"",
+			"# Start",
+			"Use exactly one target: `file` (TS/JS entry relative to cwd, run with Bun) or `bin` (executable), plus `args`. `rows`/`cols` set the viewport. Give independent apps unique session names; stop before reusing a name.",
+			"",
+			"# Inspect",
+			"`text`: viewport; `screen`: terminal display (`peek` adds scrollback); `shot`: PNG. `raw`: escaped bytes and sequence counts; use only when diagnosing terminal escapes.",
+			"Start with `debug:true` only for apps serving `OMP_TUI_DEBUG`: `frame` (full document), `tree` (components/focus), `values`, `info`, and decoded `keys`/`type`/`paste`/`mouse` require that socket. Without a socket, use screen/shot/send/resize/raw.",
+			"",
+			"# Input",
+			'`keys:"tab C-c enter"`; `type`/`paste` use literal `text`; `mouse` uses viewport-cell `x`,`y`,`action`. `send` uses raw `text` with \\e/\\xNN escapes. `resize` sets rows/cols. Input returns an after-screenshot unless `quiet:true`.',
+			"",
+			"# Lifecycle",
+			"`list` shows sessions; `stop` terminates one. Sessions persist between calls. Cancelled startup removes its new child. Cancelling a later operation preserves the session; an interrupted debug request closes the debug connection. Continue with screen/send, or stop and restart with debug:true for introspection.",
+		].join("\n"),
 		parameters: omp.zod.object({
 			op: omp.zod
 				.string()
 				.describe(
 					"operation: start | stop | list | text | screen | shot | frame | tree | values | info | keys | type | paste | mouse | send | resize | raw",
 				),
-			name: omp.zod
-				.string()
-				.optional()
-				.describe("session name (default: main)"),
+			name: omp.zod.string().optional().describe("session name (default: main)"),
 			file: omp.zod
 				.string()
 				.optional()
 				.describe("start: TS/JS entry path relative to cwd, run with bun (exactly one of file/bin)"),
-			bin: omp.zod
-				.string()
-				.optional()
-				.describe("start: executable name or path (exactly one of file/bin)"),
-			args: omp.zod
-				.array(omp.zod.string())
-				.optional()
-				.describe("start: program argv"),
-			rows: omp.zod
-				.number()
-				.optional()
-				.describe("start/resize: pty rows (default 30)"),
-			cols: omp.zod
-				.number()
-				.optional()
-				.describe("start/resize: pty cols (default 100)"),
-			keys: omp.zod
-				.string()
-				.optional()
-				.describe("keys: spec, e.g. \"tab tab enter C-c pgdn 'hello'\""),
-			text: omp.zod
-				.string()
-				.optional()
-				.describe("type/paste/send: payload text"),
+			bin: omp.zod.string().optional().describe("start: executable name or path (exactly one of file/bin)"),
+			args: omp.zod.array(omp.zod.string()).optional().describe("start: program argv"),
+			rows: omp.zod.number().optional().describe("start/resize: pty rows (default 30)"),
+			cols: omp.zod.number().optional().describe("start/resize: pty cols (default 100)"),
+			keys: omp.zod.string().optional().describe("keys: spec, e.g. \"tab tab enter C-c pgdn 'hello'\""),
+			text: omp.zod.string().optional().describe("type/paste/send: payload text"),
 			x: omp.zod.number().optional().describe("mouse: zero-based column"),
 			y: omp.zod.number().optional().describe("mouse: zero-based viewport row"),
-			action: omp.zod
-				.string()
-				.optional()
-				.describe("mouse: gesture (default click)"),
-			peek: omp.zod
-				.number()
-				.optional()
-				.describe(
-					"screen: scrollback lines to include; raw: tail bytes (default 2000)",
-				),
-			clear: omp.zod
-				.boolean()
-				.optional()
-				.describe("raw: reset capture after reading"),
-			quiet: omp.zod
-				.boolean()
-				.optional()
-				.describe("input ops: skip the after-screenshot"),
-			debug: omp.zod
-				.boolean()
-				.optional()
-				.describe("start: wait for the OMP_TUI_DEBUG socket (default false)"),
-			timeout: omp.zod
-				.number()
-				.optional()
-				.describe("start with debug: socket wait seconds (default 15)"),
+			action: omp.zod.string().optional().describe("mouse: gesture (default click)"),
+			peek: omp.zod.number().optional().describe("screen: scrollback lines to include; raw: tail bytes (default 2000)"),
+			clear: omp.zod.boolean().optional().describe("raw: reset capture after reading"),
+			quiet: omp.zod.boolean().optional().describe("input ops: skip the after-screenshot"),
+			debug: omp.zod.boolean().optional().describe("start: wait for the OMP_TUI_DEBUG socket (default false)"),
+			timeout: omp.zod.number().optional().describe("start with debug: socket wait seconds (default 15)"),
 		}),
 
 		async execute(
 			_toolCallId: string,
 			params: TuiParams,
 			_onUpdate?: (update: ToolUpdate) => void,
+			_ctx?: unknown,
+			signal?: AbortSignal,
 		): Promise<ToolResult> {
-			const reply = (
-				text: string,
-				details?: Record<string, unknown>,
-			): ToolResult => ({
+			signal?.throwIfAborted();
+			const call = (session: Session, body: Record<string, unknown>) => request(session, body, undefined, signal);
+			const reply = (text: string, details?: Record<string, unknown>): ToolResult => ({
 				content: [{ type: "text", text }],
 				details,
 			});
 
 			switch (params.op) {
 				case "start":
-					return reply(await startSession(params));
+					return reply(await startSession(params, signal));
 				case "list": {
 					const rows = [...sessions.values()].map(
 						(session) =>
@@ -1404,14 +1307,13 @@ const factory = (omp: ToolHost) => {
 				}
 				case "stop": {
 					const session = need(params.name);
-					const code = await stopSession(session);
+					const code = await stopSession(session, signal);
 					return reply(`stopped "${session.name}" (exit ${code})`);
 				}
 				case "text": {
 					const session = need(params.name);
-					if (!session.sock)
-						return reply(session.screen.snapshot(params.peek ?? 0));
-					const response = await request(session, { op: "text" });
+					if (!session.sock) return reply(session.screen.snapshot(params.peek ?? 0));
+					const response = await call(session, { op: "text" });
 					return reply(screenshotText(response), response);
 				}
 				case "screen": {
@@ -1419,11 +1321,9 @@ const factory = (omp: ToolHost) => {
 				}
 				case "shot": {
 					const session = need(params.name);
-					const png = join(
-						tmpdir(),
-						`clssck-tui-${session.name}-${Date.now()}.png`,
-					);
+					const png = join(tmpdir(), `clssck-tui-${session.name}-${Date.now()}.png`);
 					const bytes = await session.screen.png();
+					signal?.throwIfAborted();
 					writeFileSync(png, bytes);
 					return {
 						content: [
@@ -1437,12 +1337,12 @@ const factory = (omp: ToolHost) => {
 					};
 				}
 				case "frame": {
-					const response = await request(need(params.name), { op: "frame" });
+					const response = await call(need(params.name), { op: "frame" });
 					const lines = stringLines(response.lines);
 					return reply(lines.map((line) => `│${line}`).join("\n"), response);
 				}
 				case "tree": {
-					const response = await request(need(params.name), { op: "tree" });
+					const response = await call(need(params.name), { op: "tree" });
 					const out: string[] = [];
 					renderTree(field(response.tree, "root"), 0, out);
 					const overlays = field(response.tree, "overlays");
@@ -1460,58 +1360,47 @@ const factory = (omp: ToolHost) => {
 				}
 				case "values":
 				case "info": {
-					const response = await request(need(params.name), { op: params.op });
+					const response = await call(need(params.name), { op: params.op });
 					return reply(JSON.stringify(response, null, 1), response);
 				}
 				case "keys": {
 					if (!params.keys) throw new Error("keys op needs `keys`");
 					const session = need(params.name);
-					const response = await request(session, {
+					const response = await call(session, {
 						op: "keys",
 						keys: params.keys,
 					});
 					if (!response.ok) throw new Error(String(response.error));
 					const note = `injected ${response.injected} events`;
-					return reply(
-						params.quiet ? note : await settled(session, note),
-						response,
-					);
+					return reply(params.quiet ? note : await settled(session, note, 180, signal), response);
 				}
 				case "type": {
-					if (params.text === undefined)
-						throw new Error("type op needs `text`");
+					if (params.text === undefined) throw new Error("type op needs `text`");
 					const session = need(params.name);
-					const response = await request(session, {
+					const response = await call(session, {
 						op: "bytes",
 						data: params.text,
 					});
 					if (!response.ok) throw new Error(String(response.error));
 					const note = `typed ${params.text.length} chars`;
-					return reply(
-						params.quiet ? note : await settled(session, note),
-						response,
-					);
+					return reply(params.quiet ? note : await settled(session, note, 180, signal), response);
 				}
 				case "paste": {
-					if (params.text === undefined)
-						throw new Error("paste op needs `text`");
+					if (params.text === undefined) throw new Error("paste op needs `text`");
 					const session = need(params.name);
-					const response = await request(session, {
+					const response = await call(session, {
 						op: "paste",
 						text: params.text,
 					});
 					if (!response.ok) throw new Error(String(response.error));
-					return reply(
-						params.quiet ? "pasted" : await settled(session, "pasted"),
-						response,
-					);
+					return reply(params.quiet ? "pasted" : await settled(session, "pasted", 180, signal), response);
 				}
 				case "mouse": {
 					if (params.x === undefined || params.y === undefined) {
 						throw new Error("mouse op needs `x` and `y`");
 					}
 					const session = need(params.name);
-					const response = await request(session, {
+					const response = await call(session, {
 						op: "mouse",
 						x: params.x,
 						y: params.y,
@@ -1519,19 +1408,15 @@ const factory = (omp: ToolHost) => {
 					});
 					if (!response.ok) throw new Error(String(response.error));
 					const note = `mouse ${params.action ?? "click"} at ${params.x},${params.y}`;
-					return reply(
-						params.quiet ? note : await settled(session, note),
-						response,
-					);
+					return reply(params.quiet ? note : await settled(session, note, 180, signal), response);
 				}
 				case "send": {
-					if (params.text === undefined)
-						throw new Error("send op needs `text`");
+					if (params.text === undefined) throw new Error("send op needs `text`");
 					const session = need(params.name);
 					const bytes = unescapeBytes(params.text);
 					session.proc.terminal.write(bytes);
 					const note = `sent ${bytes.length} bytes to the terminal`;
-					return reply(params.quiet ? note : await settled(session, note));
+					return reply(params.quiet ? note : await settled(session, note, 180, signal));
 				}
 				case "resize": {
 					const session = need(params.name);
@@ -1542,7 +1427,7 @@ const factory = (omp: ToolHost) => {
 					session.cols = cols;
 					session.rows = rows;
 					const note = `resized to ${cols}x${rows}; SIGWINCH delivered`;
-					return reply(params.quiet ? note : await settled(session, note, 350));
+					return reply(params.quiet ? note : await settled(session, note, 350, signal));
 				}
 				case "raw": {
 					const session = need(params.name);
@@ -1558,10 +1443,7 @@ const factory = (omp: ToolHost) => {
 					}
 					const peek = params.peek ?? 2000;
 					const tail = peek > 0 ? visible(blob.subarray(-peek)) : "";
-					return reply(
-						`${JSON.stringify(stats)}${tail ? `\n── tail ──\n${tail}` : ""}`,
-						{ stats },
-					);
+					return reply(`${JSON.stringify(stats)}${tail ? `\n── tail ──\n${tail}` : ""}`, { stats });
 				}
 				default:
 					throw new Error(`unknown op ${JSON.stringify(params.op)}`);
@@ -1572,6 +1454,7 @@ const factory = (omp: ToolHost) => {
 			if (event.reason === "shutdown") {
 				for (const session of sessions.values()) {
 					try {
+						closeDebugSocket(session, new Error("TUI host shut down"));
 						session.proc.kill("SIGKILL");
 						session.proc.terminal.close();
 						session.screen.dispose();

@@ -18,7 +18,7 @@ To create your skill:
 4. **Tools/Scripts**: Any scripts or APIs?
 ```
 
-**⚠️ STOP**: Confirm requirements before proceeding.
+Proceed within the user's authorized scope. Ask only when a material requirement or tradeoff remains unresolved.
 
 ### Step 2: Design Structure
 
@@ -27,34 +27,21 @@ Determine if single-file or needs splitting:
 - **With references/**: Detailed docs needed on-demand
 - **With sub-skills**: Distinct workflow branches
 
-Present structure for approval.
+Use the existing repository structure; show alternatives only for an unresolved material choice.
 
-**⚠️ STOP**: Get approval on structure.
+Proceed within the user's authorized scope. Ask only when a material requirement or tradeoff remains unresolved.
 
 ### Step 3: Choose Location
 
-**If your identity is "Snowflake Intelligence":**
+Use OMP discovery, not a foreign host's installation paths. Read `omp://skills.md` before choosing a destination.
 
-Create the skill files in a temporary directory inside the sandbox first, then upload them to the user's workspace:
-1. Create a temp directory: `mkdir -p /tmp/<skill-name>/`
-2. Write all skill files (SKILL.md, scripts, etc.) into `/tmp/<skill-name>/`
-3. Upload each file to `snow://workspace/USER$.PUBLIC.DEFAULT$/versions/live/.snowflake/si/skills/<skill-name>/` using `snow stage copy`. e.g.  `snow stage copy /tmp/my_skill/SKILL.md "snow://workspace/USER$.PUBLIC.DEFAULT$/versions/live/.snowflake/si/skills/my_skill/" --overwrite`
+| Scope | Destination |
+|---|---|
+| Existing pack or user-named repository | Its existing `skills/<name>/SKILL.md`; preserve its manifest and conventions |
+| Project-local skill | `.omp/skills/<name>/SKILL.md` |
+| Personal skill | `~/.omp/agent/skills/<name>/SKILL.md` |
 
-**Else if your identity is CoCo (Cortex Code) built into Snowflake's Snowsight UI:**
-
-Use the `write` tool to create the skill directly in the workspace skills directory — no temp dir, no `snow://` prefix, no `snow stage copy`, no `mkdir`:
-- `write .snowflake/cortex/skills/<skill-name>/SKILL.md`
-- Put any extra files in the same folder, e.g. `.snowflake/cortex/skills/<skill-name>/reference.md`
-
-The skill appears in the `/` picker on the next invocation — there is no registration step. (Users can also create a blank one via **+ → Create skill**.)
-
-**Otherwise:**
-
-Options:
-1. `.cortex/skills/<name>/` - Project-local (only available in this project)
-2. `$HOME/.snowflake/cortex/skills/<name>/` (or `$SNOWFLAKE_HOME/cortex/skills/<name>/` if `$SNOWFLAKE_HOME` is set) - Global (available across all projects)
-
-Create directory: `mkdir -p <path>/<skill-name>`
+Resolve a supplied path before writing. Project scope is the default for project work; use personal scope only when requested. NEVER create `.cortex/`, `.snowflake/cortex/`, Snowflake workspace uploads, or compatibility symlinks for an OMP skill. Read the written file back and verify OMP discovers it; a file's existence alone does not prove discovery.
 
 ### Step 4: Write SKILL.md
 
@@ -73,10 +60,11 @@ description: "Purpose. Use when: [scenarios]. Triggers: keyword1, keyword2."
 ## Workflow
 ### Step 1: [Name]
 [Actions]
-**⚠️ STOP**: [Checkpoint]
+Proceed within the user's authorized scope. Ask only when a material requirement or tradeoff remains unresolved.
 
-## Stopping Points
-- ✋ After Step X
+## Decisions
+
+Ask only when the user's answer changes scope, destination, or a consequential action. Routine implementation continues under existing authorization.
 
 ## Output
 [What skill produces]
@@ -96,7 +84,7 @@ description: "Purpose. Use when: [scenarios]. Triggers: keyword1, keyword2."
 2. Verify < 500 lines
 3. Present result with triggers
 
-**⚠️ STOP**: Final review.
+Proceed within the user's authorized scope. Ask only when a material requirement or tradeoff remains unresolved.
 
 ### Step 7: Compile-Candidate Check
 
@@ -107,11 +95,9 @@ Once the skill is drafted, load `compile-skill/SKILL.md` "When to Use" and apply
 
 Informational, not blocking. The point is to plant the idea now so the author knows the option exists when latency starts to matter.
 
-## Stopping Points
+## Decisions
 
-- ✋ Step 1: Requirements confirmed
-- ✋ Step 2: Structure approved  
-- ✋ Step 6: Final review
+Ask only when the user's answer changes scope, destination, or a consequential action. Routine implementation continues under existing authorization.
 
 ## Output
 
