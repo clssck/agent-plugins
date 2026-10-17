@@ -27,12 +27,7 @@ Bad fit (skip COMPILE, stay on the LLM path):
 
 ### Step 1 — Locate the source skill
 
-Ask for `<skill-name>`. Resolve to a SKILL.md in this order:
-
-1. `.snowflake/cortex/skills/<name>/SKILL.md` (CoCo Snowsight workspace — check first when running in CoCo Snowsight)
-2. `.cortex/skills/<name>/SKILL.md`
-3. `$HOME/.snowflake/cortex/skills/<name>/SKILL.md` (or under `$SNOWFLAKE_HOME`)
-4. Repo-local matches (`**/<name>/SKILL.md` under user-provided skill repos)
+Resolve the supplied path or `read skill://<skill-name>` through OMP's active registry. Consult `omp://skills.md` before searching project `.omp/skills/`, personal `~/.omp/agent/skills/`, or an explicitly named pack repository. NEVER guess the winning copy from a filesystem search.
 
 Read the SKILL.md. Note the data sources, scripts, and commands it touches — those are what `executor.py` will need to hit directly. Confirm the resolved path with the user before proceeding.
 

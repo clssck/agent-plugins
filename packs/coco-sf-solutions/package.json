@@ -17,7 +17,7 @@
   ],
   "ompCompatibility": {
     "profile": "coco",
-    "version": 2
+    "version": 3
   },
   "omp": {}
 }

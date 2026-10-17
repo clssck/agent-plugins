@@ -18,7 +18,7 @@ async function fixture(files: Record<string, string>): Promise<string> {
 }
 
 afterEach(async () => {
-	await Promise.all(temporaryDirectories.splice(0).map(directory => rm(directory, { recursive: true, force: true })));
+	await Promise.all(temporaryDirectories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
 });
 
 describe("CoCo OMP compatibility", () => {
@@ -238,7 +238,7 @@ ASK the user:
 				'     prompt="<content of migrate-spark-scala-to-snowpark-connect/agents/fixer.md>\\n\\n"',
 				'            "CELL_MODE=true\\n"',
 				'            "CELL_SOURCE=<cell.source>\\n"',
-				'            "CELL_ISSUES=<subset of analysis.json matching this cell AND language==\'scala\'>\\n"',
+				"            \"CELL_ISSUES=<subset of analysis.json matching this cell AND language=='scala'>\\n\"",
 				"   )",
 			].join("\n"),
 		});
@@ -278,9 +278,7 @@ ASK the user:
 		});
 
 		const result = await adaptCompatibility(root);
-		expect(result.errors).toEqual([
-			"skills/example/SKILL.md: unsupported skill(command=...) invocation",
-		]);
+		expect(result.errors).toEqual(["skills/example/SKILL.md: unsupported skill(command=...) invocation"]);
 	});
 	test("normalizes compact asks and preserves ids declared after question keys", async () => {
 		const root = await fixture({
@@ -374,7 +372,7 @@ ASK the user:
 				'     prompt="<content of migrate-spark-scala-to-snowpark-connect/agents/fixer.md>\\n\\n"',
 				'            "CELL_MODE=true\\n"',
 				'            "CELL_SOURCE=<cell.source>\\n"',
-				'            "CELL_ISSUES=<subset of analysis.json matching this cell AND language==\'scala\'>\\n"',
+				"            \"CELL_ISSUES=<subset of analysis.json matching this cell AND language=='scala'>\\n\"",
 				"   )",
 			].join("\n"),
 		});
@@ -396,5 +394,47 @@ ASK the user:
 		expect(result.errors).toContain(
 			"skills/status/SKILL.md: OMP ask returns in the same turn; it is not a turn boundary",
 		);
+	});
+});
+
+describe("OMP host workflow adaptation", () => {
+	test("skill authoring chooses OMP locations and preserves later workflow steps", async () => {
+		const root = await fixture({
+			"skills/skill-development/SKILL.md":
+				"---\nname: skill-development\ndescription: Create Cortex Code skills\n---\n# Skill Development\n## Strong Skill Domains\nCortex Code has **native tooling and deep integration** for these domains\n",
+			"skills/skill-development/create-from-scratch/SKILL.md":
+				"# Create\n### Step 3: Choose Location\nOtherwise: `.cortex/skills/demo`\n### Step 4: Write SKILL.md\nKeep this implementation step.\n",
+			"skills/skill-development/summarize-session/SKILL.md":
+				"# Capture\n3. **Location**:\n - `.snowflake/cortex/skills/demo`\n### Step 5: Generate Skill\nKeep parameters.\n",
+			"skills/skill-development/audit-skill/SKILL.md": "Ask for skill path or name. Search `.cortex/skills/`.\n",
+			"skills/skill-development/compile-skill/SKILL.md":
+				"Ask for `<skill-name>`. Resolve to a SKILL.md in this order:\n1. `.cortex/skills/`\nRead the SKILL.md. Keep the executor requirements.\n",
+		});
+		expect((await adaptCompatibility(root)).errors).toEqual([]);
+		for (const name of ["create-from-scratch", "summarize-session"]) {
+			const output = await readFile(path.join(root, `skills/skill-development/${name}/SKILL.md`), "utf8");
+			expect(output).toContain("`.omp/skills/<name>/SKILL.md`");
+			expect(output).toContain("`~/.omp/agent/skills/<name>/SKILL.md`");
+			expect(output).not.toContain("Otherwise:");
+		}
+		expect(await readFile(path.join(root, "skills/skill-development/create-from-scratch/SKILL.md"), "utf8")).toContain(
+			"Keep this implementation step.",
+		);
+		expect(await readFile(path.join(root, "skills/skill-development/compile-skill/SKILL.md"), "utf8")).toContain(
+			"Keep the executor requirements.",
+		);
+		expect((await planCompatibility(root)).changed).toEqual([]);
+	});
+	test("CoCo team integration becomes manual-only while preserving capability gates", async () => {
+		const root = await fixture({
+			"skills/team-workflow/SKILL.md":
+				"---\nname: team-workflow\ndescription: HIGHEST PRIORITY team workflow\n---\nCall team_create and spawn_teammate.\n",
+		});
+		expect((await adaptCompatibility(root)).errors).toEqual([]);
+		const output = await readFile(path.join(root, "skills/team-workflow/SKILL.md"), "utf8");
+		expect(output).toContain("disable-model-invocation: true");
+		expect(output).not.toContain("HIGHEST PRIORITY");
+		expect(output).toContain("blocked: missing <capability>");
+		expect((await planCompatibility(root)).changed).toEqual([]);
 	});
 });
