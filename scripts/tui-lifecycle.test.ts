@@ -40,6 +40,7 @@ async function fixture(mode: "startup" | "read") {
 	await writeFile(
 		app,
 		`
+import net from "node:net";
 import { writeFileSync } from "node:fs";
 const marker = ${JSON.stringify(marker)};
 const mode = ${JSON.stringify(mode)};
@@ -101,10 +102,10 @@ test.skipIf(!canBindSocket)(
 			undefined,
 			abort.signal,
 		);
-		const rejected = expect(starting).rejects.toThrow();
+		const observed = starting.then(() => undefined, error => error);
 		const child = await marker(f.marker);
 		abort.abort();
-		await rejected;
+		expect(await observed).toBeInstanceOf(Error);
 		expect(() => process.kill(child.pid, 0)).toThrow();
 		expect(existsSync(dirname(child.socket))).toBe(false);
 		expect((await tool.execute("list", { op: "list" })).content).toEqual([{ type: "text", text: "no sessions" }]);
@@ -125,10 +126,10 @@ test.skipIf(!canBindSocket)(
 		});
 		const abort = new AbortController();
 		const reading = tool.execute("read", { op: "frame", name: "existing" }, undefined, undefined, abort.signal);
-		const rejected = expect(reading).rejects.toThrow("cancelled");
+		const observed = reading.then(() => undefined, error => error);
 		const child = await marker(f.marker);
 		abort.abort();
-		await rejected;
+		expect(String(await observed)).toContain("cancelled");
 		expect(process.kill(child.pid, 0)).toBe(true);
 		expect((await tool.execute("screen", { op: "screen", name: "existing" })).content[0]).toMatchObject({
 			type: "text",
