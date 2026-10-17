@@ -34,7 +34,7 @@ Three questions per endpoint: how the payload is assembled, what validation exis
 
 ## Trigger Matrix
 
-**Per module, trigger each action class once and diff the samples.** Intercept and isolate mutating actions first. Tag emitted requests as mocked-runtime evidence when their responses were stubbed; they establish client behavior, not backend acceptance.
+**Per module, trigger each action class once and diff the samples.** Use the actual target session and capture unmodified exchanges. Mutating actions require applicable scope, engagement-owned objects, and a recovery plan; correlate the request with the real resulting state.
 
 |Action|Fields that usually appear|
 |---|---|
@@ -51,7 +51,7 @@ Record to `param_samples.json`. Multiple client samples can suggest optionality 
 |Tier|Evidence|
 |---|---|
 |high|field supported by ≥2 distinct relevant action samples, or an explicit backend validation fact; keep the origin and the exact claim|
-|medium|single observed sample, tagged mocked or backend|
+|medium|single observed live sample, linked to caller and request/response|
 |low|static-only candidate (callsite residue)|
 |pending|suspected but never triggered — record it as a limitation|
 
@@ -59,4 +59,4 @@ Record to `param_samples.json`. Multiple client samples can suggest optionality 
 
 **Within scope, an intentionally incomplete request may be sent to read the 400/422 body** (`field 'x' is required`, enum violations). That is parameter recon, not exploitation — keep it non-destructive and rate-limited. Watch for wrapped `data`, GraphQL `variables`, and pre-encryption payloads (`bizData`).
 
-Confidence applies to the stated field or transport claim, not to endpoint reachability or security. A known-empty list under a mock is not evidence that production has no objects.
+Confidence applies to the stated field or transport claim, not to endpoint reachability or security. An empty response establishes only what that caller and filter returned at that time, not that the target has no objects.
