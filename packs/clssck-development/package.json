@@ -1,6 +1,6 @@
 {
   "name": "clssck-development",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "description": "Repository-agnostic development commands, prompt-authoring skills, and a terminal UI debugging tool.",
   "license": "MIT",

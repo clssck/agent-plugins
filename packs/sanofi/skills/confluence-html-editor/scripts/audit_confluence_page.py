@@ -69,15 +69,6 @@ def audit_sources(
         adf_result = adf_as_dict(adf_stats, adf_findings)
         findings.extend(prefixed_findings("ADF", adf_findings))
 
-    if html is None and adf_payload is None:
-        findings.append(
-            {
-                "severity": "error",
-                "message": "Provide --html, --adf, or both",
-                "context": None,
-            }
-        )
-
     return AuditResult(html_result, adf_result, findings)
 
 
@@ -125,22 +116,22 @@ def main() -> int:
     parser.add_argument("--json", action="store_true", help="Emit JSON")
     parser.add_argument("--strict", action="store_true", help="Treat warnings as failures")
     args = parser.parse_args()
+    if not args.html and not args.adf:
+        parser.error("provide --html, --adf, or both")
 
     try:
         adf_payload = read_json(args.adf) if args.adf else None
-    except ValueError as exc:
-        result = AuditResult(
-            None,
-            None,
-            [{"severity": "error", "message": f"ADF: {exc}", "context": None}],
-        )
-    else:
-        result = audit_sources(
-            html=read_text(args.html),
-            adf_payload=adf_payload,
-            title=args.title,
-            expected_adf=parse_expect(args.expect_adf),
-        )
+        html = read_text(args.html)
+    except (OSError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+
+    result = audit_sources(
+        html=html,
+        adf_payload=adf_payload,
+        title=args.title,
+        expected_adf=parse_expect(args.expect_adf),
+    )
 
     if args.json:
         print(json.dumps(result.__dict__, indent=2))

@@ -138,6 +138,28 @@ class CliTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("WARN aws_s3_bucket.later", result.stdout)
 
+    def test_known_null_tags_fail_without_strict(self):
+        result = run({"resource_changes": [resource("aws_s3_bucket.null", {"tags": None})]})
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn("FAIL aws_s3_bucket.null", result.stdout)
+        self.assertIn("missing or empty tag `team`", result.stdout)
+        self.assertNotIn("WARN", result.stdout)
+
+    def test_known_null_tags_all_fail_without_strict(self):
+        result = run({"resource_changes": [resource("aws_s3_bucket.null", {"tags_all": None})]})
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn("FAIL aws_s3_bucket.null", result.stdout)
+        self.assertNotIn("WARN", result.stdout)
+
+    def test_null_map_marked_unknown_warns_not_fails(self):
+        for field in ("tags", "tags_all"):
+            res = resource("aws_s3_bucket.later", {field: None}, after_unknown={field: True})
+            lenient = run({"resource_changes": [res]})
+            self.assertEqual(lenient.returncode, 0, lenient.stdout)
+            self.assertIn("WARN aws_s3_bucket.later", lenient.stdout)
+            self.assertNotIn("FAIL", lenient.stdout)
+            self.assertEqual(run({"resource_changes": [res]}, "--strict").returncode, 1)
+
     def test_asg_without_tags_fails_even_strict(self):
         res = {**resource("aws_autoscaling_group.a", {"tag": []}), "type": "aws_autoscaling_group"}
         result = run({"resource_changes": [res]}, "--strict")

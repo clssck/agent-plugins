@@ -1,7 +1,7 @@
 ---
 description: 'Stage named paths, not everything: guard git add -A/./-u and git commit -a'
 condition:
-  - '\bgit(?:\s+-[Cc]\s+\S+)*\s+add\s+(?:-A|--all|-u|--update|\.)\s*(?:$|[;&|)"\n]|\\n)'
+  - '\bgit(?:\s+-[Cc]\s+\S+)*\s+add\s+(?:(?:-A|--all|-u|--update|--)\s+)*(?:-A|--all|-u|--update|\.)\s*(?:$|[;&|)"\n]|\\n)'
   - '\bgit(?:\s+-[Cc]\s+\S+)*\s+commit\b[^\n;&|]*\s(?:-[A-Za-z]*a[A-Za-z]*|--all)\b'
 scope: "tool:bash"
 interruptMode: always

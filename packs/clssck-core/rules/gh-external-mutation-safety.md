@@ -1,13 +1,15 @@
 ---
 description: Check authorization and target before gh commands that change GitHub state
 condition:
-  - '\bgh\s+(?:pr\s+(?:create|merge|close|reopen|comment|review|edit|ready)|issue\s+(?:create|close|reopen|comment|edit|delete|transfer|lock)|repo\s+(?:create|delete|edit|rename|archive|unarchive|fork|sync)|release\s+(?:create|delete|edit|upload)|secret\s+(?:set|delete)|variable\s+(?:set|delete)|workflow\s+(?:run|enable|disable)|run\s+(?:rerun|cancel|delete)|cache\s+delete|label\s+(?:create|edit|delete))\b'
-  - '\bgh\s+api\b[^\n;&|]*\s(?:(?:-X|--method)[\s=]*(?:POST|PUT|PATCH|DELETE)\b|(?:-f|-F|--field|--raw-field|--input)\b)'
+  - '\bgh\s+(?:pr\s+(?:create|merge|close|reopen|comment|review|edit|ready)|issue\s+(?:create|close|reopen|comment|edit|delete|transfer|lock)|repo\s+(?:create|delete|edit|rename|archive|unarchive|fork|sync)|release\s+(?:create|delete|edit|upload)|secret\s+(?:set|delete)|variable\s+(?:set|delete)|workflow\s+(?:run|enable|disable)|run\s+(?:rerun|cancel|delete)|cache\s+delete|label\s+(?:create|edit|delete)|gist\s+(?:create|delete|edit|rename)|project\s+(?:close|copy|create|delete|edit|field-create|field-delete|item-add|item-archive|item-create|item-delete|item-edit|link|mark-template|unlink))\b'
+  - '(?i)\bgh\s+api\b(?:(?!\\n)[^\n;&|])*\s(?:-X|--method)[\s=]*["''\\]*(?:POST|PUT|PATCH|DELETE)\b'
+  - '\bgh\s+api\b(?!\s+(?:-\S+(?:\s+(?:"[^"]*"|''[^'']*''|\\"[^"]*?\\"|[^-\s]\S*))?\s+)*graphql\b)(?!(?:(?!\\n)[^\n;&|])*\s(?:-X|--method)\b)(?:(?!\\n)[^\n;&|])*\s(?:-[fF]|--field\b|--raw-field\b|--input\b)'
+  - '\bgh\s+api\s+(?:-\S+(?:\s+(?:"[^"]*"|''[^'']*''|\\"[^"]*?\\"|[^-\s]\S*))?\s+)*graphql\b(?:(?!\\n)[^\n;&|])*\s(?:--input\b|(?:-[fF]|--field|--raw-field)[\s=]*["''\\]*query=(?:["'']|\\["''])*(?:[@$]|mutation\b|[^;&|]*?(?:[^0-9A-Za-z_]|\\[nrt])mutation\b))'
 scope: "tool:bash"
 interruptMode: always
 ---
 
-`gh` mutations publish to shared, external state: PRs, issues, repos, releases, workflows, secrets. Run them only when the user requested that action on that target, or a repository instruction delegates it.
+`gh` mutations publish to shared, external state: PRs, issues, repos, releases, workflows, secrets, gists, projects. Run them only when the user requested that action on that target, or a repository instruction delegates it.
 
 ## Name the repo
 
@@ -34,7 +36,7 @@ gh api repos/acme/widgets/issues -f state=open
 gh api -X GET repos/acme/widgets/issues -f state=open
 ```
 
-GraphQL (`gh api graphql -f query=...`) always POSTs; only a `mutation` operation changes state. When the operation text comes from `@file`, `--input`, or a variable, read it first to see which it is.
+GraphQL (`gh api graphql -f query=...`) always POSTs; only a `mutation` operation changes state. The rule flags `mutation` anywhere in inline document text (including multi-operation documents) and operations whose text it cannot see (`@file`, `$variable`, `--input`); read that source first to see which it is.
 
 ```bash
 # Read
@@ -46,7 +48,7 @@ gh api graphql -f query='mutation { addStar(input: {starrableId: "R_kgDOExample"
 
 ## Destructive targets
 
-`repo delete`, `release delete`, `secret delete`, `run delete`, `cache delete`, and DELETE requests need an explicit request naming that target.
+`repo delete`, `release delete`, `secret delete`, `run delete`, `cache delete`, `gist delete`, `project delete`, `project item-delete`, `project field-delete`, and DELETE requests need an explicit request naming that target.
 
 ## Prefer reversible forms
 

@@ -24,7 +24,8 @@
       "skills/gsap-timeline": "skills/gsap-timeline",
       "skills/gsap-utils": "skills/gsap-utils",
       "skills/llms.txt": "skills/llms.txt"
-    }
+    },
+    "tree": "sha256:bb072c206b3e3f3aa0f3f39bc9cd99258441e219ea618b4471527ee3c4d5e36e"
   },
   "omp": {}
 }

@@ -130,11 +130,8 @@ def main() -> int:
             raise ValueError("Input does not contain a Confluence page object")
         result = write_outputs(payload, Path(args.out_dir), args.prefix, args.force)
     except (OSError, ValueError) as exc:
-        if args.json:
-            print(json.dumps({"error": str(exc)}, indent=2))
-        else:
-            print(f"ERROR: {exc}")
-        return 1
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
 
     if args.json:
         print(json.dumps(result, indent=2))

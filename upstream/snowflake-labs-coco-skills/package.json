@@ -39,7 +39,8 @@
     "compatibility": {
       "profile": "coco",
       "version": 2
-    }
+    },
+    "tree": "sha256:fba155641e14f9cb2926cdda461bfe62cb9f9d23434068fbf4b3689a076c9a10"
   },
   "ompSkillReferences": {
     "requires": {

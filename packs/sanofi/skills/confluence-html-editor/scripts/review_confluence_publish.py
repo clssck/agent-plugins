@@ -278,9 +278,16 @@ def main() -> int:
     parser.add_argument("--strict", action="store_true", help="Treat warnings as failures")
     args = parser.parse_args()
 
+    try:
+        proposed_html = read_text(args.proposed) or ""
+        original_html = read_text(args.original)
+    except (OSError, UnicodeDecodeError) as exc:
+        print(f"ERROR: cannot read input: {exc}", file=sys.stderr)
+        return 2
+
     result = review_publish(
-        proposed_html=read_text(args.proposed) or "",
-        original_html=read_text(args.original),
+        proposed_html=proposed_html,
+        original_html=original_html,
         title=args.title,
         operation=args.operation,
         page_id=args.page_id,

@@ -204,11 +204,11 @@ If the HTML update path rejects a large body, do not immediately convert the pag
 
 ### Attachment And Image Discipline
 
-HTML body updates do not upload binary files; follow the Attachments rule in [SKILL.md](skill://confluence-html-editor/SKILL.md).
+HTML body updates do not upload binary files; follow the Attachments rule and the Attachment upload procedure in [SKILL.md](skill://confluence-html-editor/SKILL.md#attachment-upload).
 
 - Preserve existing images, attachment links, and macro extension blocks unless the edit explicitly replaces them.
 - New externally hosted images: full `https://...` URL; verify the image renders after publishing.
-- New local or generated images: upload through `createConfluenceAttachment` first. No MCP upload tool and no user-supervised native-UI path → keep the artifact local, say the upload path is missing, and use an externally hosted URL or wait for the user to attach it. NEVER invent attachment URLs.
+- New local or generated images: upload through the Attachment upload procedure first. No MCP upload tool, a rejected upload command, or a masked credential → keep the artifact local, say the upload path is missing, and use an externally hosted URL or wait for the user to attach it. NEVER invent attachment URLs.
 - Keep editable diagram source (`.drawio`, Mermaid, PlantUML) as an artifact; embed only the rendered or native macro form the site can preserve.
 - After publishing, refetch and confirm images and attachment links survived in the returned HTML or ADF.
 

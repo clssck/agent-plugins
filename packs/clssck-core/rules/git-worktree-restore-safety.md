@@ -1,6 +1,6 @@
 ---
 description: Protect staged, sibling, and untracked work before destructive Git restore or clean operations
-condition: '\bgit(?:\s+-[Cc]\s+\S+)*\s+(?:restore\b|reset\s+--hard\b|clean\s+(?:-[A-Za-z]*f|--force)|checkout\s+(?:-f\b|--force\b|--\s|\.(?:\s|$))|switch\s+(?:-f|--force|--discard-changes)\b|stash\s+(?:drop|clear)\b|worktree\s+remove\b[^\n;&|]*\s(?:-f|--force)\b)'
+condition: '\bgit(?:\s+-[Cc]\s+\S+)*\s+(?:restore\b|reset\s+--hard\b|clean\s+(?:-[A-Za-z]*f|--force)|checkout\s+(?:-f\b|--force\b|--\s|\.(?:\s|$|["''`;&|)]|\\n)|[^\s;&|-][^\s;&|]*\s+(?:--\s|\.(?:\s|$|["''`;&|)]|\\n)))|switch\s+(?:-f|--force|--discard-changes)\b|stash\s+(?:drop|clear)\b|worktree\s+remove\b[^\n;&|]*\s(?:-f|--force)\b)'
 scope: "tool:bash"
 interruptMode: always
 ---
@@ -21,11 +21,12 @@ Unexpected work or the wrong root? Stop and choose a non-destructive path.
 
 ## Restore and reset
 
-Restore or reset only named paths. To keep the index, restore the worktree only.
+Restore or reset only named paths. `git checkout <ref> -- <path>` overwrites both the index and the worktree for that path; to keep the index, restore the worktree only.
 
 ```bash
 # Bad — discards every change, staged work included
 git checkout .
+git checkout HEAD -- src/config.ts
 git reset --hard
 
 # Good

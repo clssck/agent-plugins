@@ -158,11 +158,83 @@ const PLACEHOLDER_RE = /\u{10EEEE}\p{M}*/gu;
 
 /** One completed kitty-graphics transmission (pixels for `shot`). */
 interface StoredImage {
-	bytes: Uint8Array;
+	bytes: Buffer;
+	/** Stored bytes plus worst-case RGBA raster bytes retained while `shot` draws it. */
+	cost: number;
 	/** kitty `f=`: 100 png, 32 rgba, 24 rgb. */
 	format: number;
 	width: number;
 	height: number;
+}
+
+/** A chunked kitty-graphics transmission still receiving payload. */
+interface PendingImage {
+	id: number;
+	format: number;
+	compressed: number;
+	width: number;
+	height: number;
+	chunks: Buffer[];
+	/** Decoded payload bytes accumulated so far. */
+	bytes: number;
+	/** Set once a bound is broken; remaining chunks are swallowed until `m=0`. */
+	rejected: boolean;
+}
+
+// Kitty-graphics bounds. The child controls every byte of a transmission, so
+// each limit is enforced before the matching allocation (base64 decode,
+// concatenation, inflate, rasterization). Images past a bound are dropped
+// whole: `shot` draws nothing for them, and the session keeps running.
+
+/** Largest base64 payload in one graphics escape, in characters (the wasm core drops longer escapes). */
+const KITTY_MAX_CHUNK_CHARS = 1024 * 1024;
+/** Largest decoded payload of one transmission across all its `m=1` chunks, before decompression, in bytes. */
+const KITTY_MAX_TRANSMISSION_BYTES = 64 * 1024 * 1024;
+/** Most payload-bearing chunks accepted in one transmission; bounds Buffer-array overhead for tiny chunks. */
+const KITTY_MAX_TRANSMISSION_CHUNKS = 32 * 1024;
+/** Largest image width or height, in pixels (kitty's own per-side limit). */
+const KITTY_MAX_SIDE_PX = 10_000;
+/** Largest image area, in pixels: 4096×4096, i.e. 64 MiB once rasterized as RGBA. */
+const KITTY_MAX_PIXELS = 4096 * 4096;
+/** Largest decompressed (`o=z`) payload, in bytes: one maximal RGBA image. */
+const KITTY_MAX_DECODED_BYTES = KITTY_MAX_PIXELS * 4;
+/** Total retained source bytes plus worst-case decoded RGBA bytes; oldest images are evicted first. */
+const KITTY_MAX_RETAINED_BYTES = 128 * 1024 * 1024;
+/** Most images kept for `shot`; the oldest are evicted first. */
+const KITTY_MAX_RETAINED_IMAGES = 128;
+
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+/** Whether declared image dimensions fit the per-side and area bounds. */
+function imageSizeAllowed(width: number, height: number): boolean {
+	return (
+		Number.isInteger(width) &&
+		Number.isInteger(height) &&
+		width > 0 &&
+		height > 0 &&
+		width <= KITTY_MAX_SIDE_PX &&
+		height <= KITTY_MAX_SIDE_PX &&
+		width * height <= KITTY_MAX_PIXELS
+	);
+}
+
+/** PNG dimensions from the IHDR chunk; null when the bytes are not a PNG. */
+function pngSize(bytes: Buffer): { width: number; height: number } | null {
+	if (
+		bytes.length < 24 ||
+		!bytes.subarray(0, 8).equals(PNG_SIGNATURE) ||
+		bytes.toString("latin1", 12, 16) !== "IHDR"
+	)
+		return null;
+	return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
+}
+
+/** Exact upper bound on the bytes `Buffer.from(text, "base64")` yields. */
+function base64DecodedBound(text: string): number {
+	let padding = 0;
+	if (text.endsWith("==")) padding = 2;
+	else if (text.endsWith("=")) padding = 1;
+	return Math.max(0, Math.floor((text.length * 3) / 4) - padding);
 }
 
 // ─── PNG rasterizer ──────────────────────────────────────────────────────────
@@ -261,15 +333,10 @@ export class Screen {
 	#term: KittyTerminal;
 	/** Completed image transmissions by image id (insertion order backs eviction). */
 	#images = new Map<number, StoredImage>();
+	/** Sum of retained source bytes plus worst-case decoded RGBA bytes over `#images`. */
+	#retainedBytes = 0;
 	/** In-flight chunked transmission; continuation commands carry no id. */
-	#pending: {
-		id: number;
-		format: number;
-		compressed: number;
-		width: number;
-		height: number;
-		chunks: Buffer[];
-	} | null = null;
+	#pending: PendingImage | null = null;
 
 	constructor(term: KittyTerminal) {
 		this.#term = term;
@@ -289,52 +356,119 @@ export class Screen {
 		// core logs and other host events off the host's stderr.
 		term.onEvent = (event) => {
 			if (event.type === "graphics_command") screen.#graphics(event);
+			// A terminal reset abandons any half-received transmission.
+			else if (event.type === "reset") screen.#pending = null;
 		};
 		return screen;
 	}
 	/**
 	 * Accumulates kitty-graphics transmissions. Chunked payloads (`m=1`)
 	 * arrive as separate commands whose continuations carry no id; pixels are
-	 * stored per image for the `shot` rasterizer.
+	 * stored per image for the `shot` rasterizer. Every size is checked
+	 * before the allocation it governs; a transmission that breaks a bound is
+	 * dropped and its remaining chunks are swallowed up to `m=0`, so the next
+	 * transmission starts clean.
 	 */
 	#graphics(cmd: GraphicsCommand) {
-		if (!this.#pending) {
+		let pending = this.#pending;
+		if (!pending) {
 			// Only transmissions carry pixels; queries/puts/deletes do not.
 			if (cmd.action !== "t" && cmd.action !== "T") return;
-			this.#pending = {
+			const raw = cmd.format === 24 || cmd.format === 32;
+			pending = this.#pending = {
 				id: cmd.id || cmd.image_number,
 				format: cmd.format,
 				compressed: cmd.compressed,
 				width: cmd.data_width,
 				height: cmd.data_height,
 				chunks: [],
+				bytes: 0,
+				// Raw pixels declare their size up front; PNG is checked against its IHDR.
+				rejected:
+					(!raw && cmd.format !== 100) ||
+					(raw && !imageSizeAllowed(cmd.data_width, cmd.data_height)),
 			};
 		}
-		const pending = this.#pending;
-		if (cmd.payload) pending.chunks.push(Buffer.from(cmd.payload, "base64"));
+		if (!pending.rejected && cmd.payload) {
+			const incoming = base64DecodedBound(cmd.payload);
+			// Uncompressed raw data has an exact declared size; reject excess
+			// before decoding or retaining chunks for concatenation.
+			const maxBytes =
+				!pending.compressed && pending.format !== 100
+					? pending.width * pending.height * (pending.format === 24 ? 3 : 4)
+					: KITTY_MAX_TRANSMISSION_BYTES;
+			if (
+				cmd.payload.length > KITTY_MAX_CHUNK_CHARS ||
+				pending.chunks.length >= KITTY_MAX_TRANSMISSION_CHUNKS ||
+				pending.bytes + incoming > maxBytes
+			) {
+				pending.rejected = true;
+			} else {
+				const chunk = Buffer.from(cmd.payload, "base64");
+				pending.bytes += chunk.length;
+				pending.chunks.push(chunk);
+			}
+		}
+		if (pending.rejected) pending.chunks = [];
 		if (cmd.more) return;
 		this.#pending = null;
+		if (pending.rejected) return;
+		this.#store(pending);
+	}
+
+	/** Decodes a completed transmission and retains it, evicting the oldest images over budget. */
+	#store(pending: PendingImage) {
 		let bytes: Buffer =
 			pending.chunks.length === 1
 				? pending.chunks[0]
 				: Buffer.concat(pending.chunks);
+		// Raw pixels have an exact declared size; a compressed payload may not
+		// expand past it. PNG is bounded by the largest RGBA image instead.
+		const expected =
+			pending.format === 100
+				? 0
+				: pending.width * pending.height * (pending.format === 24 ? 3 : 4);
 		if (pending.compressed) {
 			try {
-				bytes = inflateSync(bytes);
+				bytes = inflateSync(bytes, {
+					maxOutputLength: expected || KITTY_MAX_DECODED_BYTES,
+				});
 			} catch {
 				return;
 			}
 		}
+		let { width, height } = pending;
+		if (pending.format === 100) {
+			const size = pngSize(bytes);
+			if (!size || !imageSizeAllowed(size.width, size.height)) return;
+			({ width, height } = size);
+		} else if (bytes.length !== expected) {
+			return;
+		}
+		const cost = bytes.length + width * height * 4;
+		if (cost > KITTY_MAX_RETAINED_BYTES) return;
+		const previous = this.#images.get(pending.id);
+		if (previous) {
+			this.#retainedBytes -= previous.cost;
+			this.#images.delete(pending.id);
+		}
 		this.#images.set(pending.id, {
 			bytes,
+			cost,
 			format: pending.format,
-			width: pending.width,
-			height: pending.height,
+			width,
+			height,
 		});
-		// Bound retained pixels: drop the oldest transmissions past 128.
-		if (this.#images.size > 128) {
+		this.#retainedBytes += cost;
+		// Oldest first, by count and worst-case retained+decoded bytes.
+		while (
+			this.#images.size > KITTY_MAX_RETAINED_IMAGES ||
+			this.#retainedBytes > KITTY_MAX_RETAINED_BYTES
+		) {
 			const oldest = this.#images.keys().next().value;
-			if (oldest !== undefined) this.#images.delete(oldest);
+			if (oldest === undefined) break;
+			this.#retainedBytes -= this.#images.get(oldest)?.cost ?? 0;
+			this.#images.delete(oldest);
 		}
 	}
 
@@ -366,7 +500,7 @@ export class Screen {
 	): Promise<CanvasModule.Image | CanvasModule.Canvas | null> {
 		if (image.format === 100) {
 			try {
-				return await load(Buffer.from(image.bytes));
+				return await load(image.bytes);
 			} catch {
 				return null;
 			}

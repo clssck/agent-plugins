@@ -2,13 +2,14 @@
 // Keeps this repository self-contained. In order:
 //   1. pin    – move every upstream in sources.json to the latest commit of its ref
 //   2. fetch  – copy each upstream into upstream/<name>/ at its pinned commit
-//   3. check  – fail if anything in packs/ or upstream/ would not load in OMP
+//   3. check  – fail on repository-contract problems in packs/ or upstream/ (static: it does not run OMP;
+//               scripts/check-omp-loader.ts loads every pack with OMP's own loaders)
 //   4. readme – regenerate README.md (the workflow only; pass --readme to do it locally)
 // Run by .github/workflows/sync-upstreams.yml; set GITHUB_TOKEN when running locally.
 // `--local` runs only check: no network, no token. A local run leaves README.md to the workflow.
 
 import { YAML } from "bun";
-import { cp, mkdir, mkdtemp, readdir, rename, rm, stat } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, open, readdir, rename, rm, stat } from "node:fs/promises";
 import * as path from "node:path";
 import {
 	adaptCompatibility,
@@ -94,6 +95,8 @@ interface SyncRecord {
 	/** Pack path → upstream path of every copied top-level entry. */
 	origins: Record<string, string>;
 	compatibility?: { profile: CompatibilityProfile; version: number };
+	/** generatedTreeDigest() of the finished pack; the one value the digest itself excludes. */
+	tree?: string;
 }
 
 const ROOT = path.resolve(import.meta.dir, "..");
@@ -106,6 +109,8 @@ const LICENSE_FILE = /^(licen[cs]e|copying|notice)(\.|$)/i;
 const STAGING_PREFIX = ".sync-";
 /** Bump whenever buildUpstream's output changes for an unchanged sources.json entry, so every pack is rebuilt. */
 const BUILD_FORMAT = 8;
+/** Generated packs contain source and prompt assets, never individual files larger than this. */
+const MAX_GENERATED_FILE_BYTES = 16 * 1024 * 1024;
 
 async function readJson<T>(file: string): Promise<T | undefined> {
 	const handle = Bun.file(file);
@@ -236,6 +241,142 @@ export function buildId(upstream: Upstream): string {
 	return new Bun.CryptoHasher("sha256").update(JSON.stringify(inputs)).digest("hex");
 }
 
+type GeneratedManifest = Record<string, unknown> & { sync?: Record<string, unknown> };
+
+/** The exact bytes fetch writes for a generated package.json. */
+function serializeManifest(manifest: unknown): string {
+	return `${JSON.stringify(manifest, null, 2)}\n`;
+}
+
+/** Stream one held regular-file descriptor, bounded even if the file grows after its initial stat. */
+async function consumeGeneratedFile(
+	absolute: string,
+	relative: string,
+	consume: (chunk: Uint8Array) => void,
+): Promise<"100644" | "100755"> {
+	const handle = await open(absolute, "r");
+	try {
+		const info = await handle.stat();
+		if (!info.isFile()) {
+			throw new Error(`generated trees hold only regular files and directories; found ${relative} (not a regular file)`);
+		}
+		if (info.size > MAX_GENERATED_FILE_BYTES) {
+			throw new Error(`generated file exceeds 16 MiB limit: ${relative} (${info.size} bytes)`);
+		}
+		let bytes = 0;
+		for await (const chunk of handle.createReadStream({ autoClose: false })) {
+			const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+			bytes += buffer.length;
+			if (bytes > MAX_GENERATED_FILE_BYTES) {
+				throw new Error(`generated file exceeds 16 MiB limit: ${relative} (${bytes} bytes)`);
+			}
+			consume(buffer);
+		}
+		if (bytes !== info.size) throw new Error(`generated file changed while hashing: ${relative}`);
+		return info.mode & 0o111 ? "100755" : "100644";
+	} finally {
+		await handle.close();
+	}
+}
+
+/** Read the one generated file that must be parsed, under the same streaming size policy. */
+async function readGeneratedText(absolute: string, relative: string): Promise<{ mode: "100644" | "100755"; text: string }> {
+	const decoder = new TextDecoder();
+	const chunks: string[] = [];
+	const mode = await consumeGeneratedFile(absolute, relative, chunk => {
+		const text = decoder.decode(chunk, { stream: true });
+		if (text) chunks.push(text);
+	});
+	const final = decoder.decode();
+	if (final) chunks.push(final);
+	return { mode, text: chunks.join("") };
+}
+
+/** Content digest and mode for one generated file; package.json excludes only its own recorded tree digest. */
+async function digestGeneratedFile(absolute: string, relative: string): Promise<{ hash: string; mode: "100644" | "100755" }> {
+	const hasher = new Bun.CryptoHasher("sha256");
+	if (relative === "package.json") {
+		const { mode, text } = await readGeneratedText(absolute, relative);
+		const manifest = JSON.parse(text) as GeneratedManifest;
+		if (manifest.sync) delete manifest.sync.tree;
+		hasher.update(serializeManifest(manifest));
+		return { hash: hasher.digest("hex"), mode };
+	}
+	const mode = await consumeGeneratedFile(absolute, relative, chunk => hasher.update(chunk));
+	return { hash: hasher.digest("hex"), mode };
+}
+
+/**
+ * Deterministic digest of a generated upstream tree: every regular file's POSIX path, executable bit, and
+ * content hash, in code-unit path order. Individual files are capped at 16 MiB and streamed. package.json
+ * is hashed in its generated serialization without `sync.tree`, so the digest can live inside the tree it
+ * covers. Symlinks and other non-regular entries are rejected, never hashed or shipped.
+ */
+export async function generatedTreeDigest(dir: string): Promise<string> {
+	const files: string[] = [];
+	const rejected: string[] = [];
+	const walk = async (relative: string): Promise<void> => {
+		for (const entry of await readdir(path.join(dir, relative), { withFileTypes: true })) {
+			const child = relative ? `${relative}/${entry.name}` : entry.name;
+			if (entry.isDirectory()) await walk(child);
+			else if (entry.isFile()) files.push(child);
+			else rejected.push(`${child} (${entry.isSymbolicLink() ? "symlink" : "not a regular file"})`);
+		}
+	};
+	await walk("");
+	if (rejected.length > 0) {
+		throw new Error(`generated trees hold only regular files and directories; found ${rejected.sort().join(", ")}`);
+	}
+	files.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+	const tree = new Bun.CryptoHasher("sha256");
+	for (const file of files) {
+		const { hash, mode } = await digestGeneratedFile(path.join(dir, file), file);
+		tree.update(`${mode} ${hash} ${file}\0`);
+	}
+	return `sha256:${tree.digest("hex")}`;
+}
+
+/** Record generatedTreeDigest() as `sync.tree` in dir/package.json; the last write fetch makes to a pack. */
+export async function stampGeneratedTree(dir: string): Promise<void> {
+	const file = path.join(dir, "package.json");
+	const manifest = JSON.parse((await readGeneratedText(file, "package.json")).text) as GeneratedManifest;
+	manifest.sync = { ...manifest.sync, tree: await generatedTreeDigest(dir) };
+	await Bun.write(file, serializeManifest(manifest));
+}
+
+/** Why a generated upstream tree differs from what fetch wrote; empty when it is intact. */
+export async function generatedTreeProblems(dir: string): Promise<string[]> {
+	const file = path.join(dir, "package.json");
+	const handle = Bun.file(file);
+	if (!(await handle.exists())) return ["missing package.json"];
+	let text: string;
+	try {
+		text = (await readGeneratedText(file, "package.json")).text;
+	} catch (error) {
+		return [(error as Error).message];
+	}
+	let manifest: GeneratedManifest;
+	try {
+		manifest = JSON.parse(text) as GeneratedManifest;
+	} catch {
+		return ["package.json is not valid JSON"];
+	}
+	const problems: string[] = [];
+	if (text !== serializeManifest(manifest)) problems.push("package.json is not in the form fetch writes");
+	let actual: string;
+	try {
+		actual = await generatedTreeDigest(dir);
+	} catch (error) {
+		return [...problems, (error as Error).message];
+	}
+	const recorded = manifest.sync?.tree;
+	if (typeof recorded !== "string") problems.push("package.json has no sync.tree digest; rebuild it from sources.json");
+	else if (recorded !== actual) {
+		problems.push(`generated tree was modified (sync.tree ${recorded}, contents ${actual}); rebuild it from sources.json instead of editing it`);
+	}
+	return problems;
+}
+
 /**
  * Move `staged` onto `target`, parking the previous `target` at `backup` (same filesystem) until the
  * move succeeds and putting it back if it fails. Replaces in place: `omp plugin link` points at `target`.
@@ -321,7 +462,10 @@ export async function buildUpstream(upstream: Upstream): Promise<void> {
 				: {}),
 			omp: {},
 		};
-		await Bun.write(path.join(pack, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+		await Bun.write(path.join(pack, "package.json"), serializeManifest(manifest));
+		await stampGeneratedTree(pack).catch((error: Error) => {
+			throw new Error(`${upstream.name}: ${error.message}`);
+		});
 
 		await replaceDir(pack, path.join(UPSTREAM_DIR, upstream.name), path.join(scratch, "previous"));
 	} finally {
@@ -339,8 +483,10 @@ export async function fetchUpstreams(sources: Sources): Promise<void> {
 		console.log(`remove upstream/${name}`);
 	}
 	for (const upstream of sources.upstreams) {
-		const current = await readJson<{ sync?: Partial<SyncRecord> }>(path.join(UPSTREAM_DIR, upstream.name, "package.json"));
-		if (current?.sync?.build === buildId(upstream)) continue;
+		const target = path.join(UPSTREAM_DIR, upstream.name);
+		const current = await readJson<{ sync?: Partial<SyncRecord> }>(path.join(target, "package.json"));
+		// A pack whose tree no longer matches its digest was edited by hand; rebuild it.
+		if (current?.sync?.build === buildId(upstream) && (await generatedTreeProblems(target)).length === 0) continue;
 		await buildUpstream(upstream);
 		console.log(`fetch  ${upstream.name} @ ${upstream.sha.slice(0, 7)}`);
 	}
@@ -561,6 +707,7 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 		if (JSON.stringify(manifest.ompSkillReferences ?? {}) !== JSON.stringify(upstream.skillReferences ?? {})) {
 			errors.push(`${label}: generated ompSkillReferences does not match sources.json`);
 		}
+		for (const problem of await generatedTreeProblems(packDir)) errors.push(`${label}: ${problem}`);
 	}
 	const compatibility = upstream?.compatibility ?? manifest.ompCompatibility?.profile;
 	if (compatibility) {
@@ -867,5 +1014,8 @@ if (import.meta.main) {
 	} else {
 		console.log("readme not checked; pass --readme to regenerate it locally");
 	}
-	console.log(`${packs.length} packs, ${packs.reduce((total, pack) => total + pack.skills.length, 0)} skills: all load in OMP`);
+	// Static contract check only; scripts/check-omp-loader.ts is what proves OMP itself loads the packs.
+	console.log(
+		`${packs.length} packs, ${packs.reduce((total, pack) => total + pack.skills.length, 0)} skills: repository checks passed (OMP loaders not run)`,
+	);
 }

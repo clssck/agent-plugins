@@ -7,6 +7,11 @@
     ".omp/skills": "09143f09618835ecd5ceb46d079b00497b9de4c9",
     ".omp/tools": "b8f9f3c90780df887a22617cb5da8c72a52621f4"
   },
+  "natives": {
+    "package": "@oh-my-pi/pi-natives-linux-x64",
+    "version": "18.10.4",
+    "integrity": "sha512-lZuS16oyg6QY95aujBO5hKYOOtjlZrm7cgHk8zvR2tNi3U6OucNYWFGGNJsFF7cY2dR4kODQjmJl6doguoLaEQ=="
+  },
   "notification": {
     "repository": "clssck/agent-plugins",
     "assignee": "clssck",

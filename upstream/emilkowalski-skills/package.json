@@ -25,7 +25,8 @@
       "skills/prototype": "skills/prototype",
       "skills/review-animations": "skills/review-animations",
       "skills/write-swift": "skills/write-swift"
-    }
+    },
+    "tree": "sha256:0c768f87e938b361a0d22741af099a3424b6fb24af1d220fcae59a1007bb654c"
   },
   "omp": {}
 }

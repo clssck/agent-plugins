@@ -1,0 +1,84 @@
+name: Repository gates
+description: >-
+  Bun tests, the first-party Python helper suites, the static repository check, and the host-loader smoke
+  against the OMP commit pinned in omp-source-lock.json. Run it from a checkout of this repository.
+
+runs:
+  using: composite
+  steps:
+    - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+      with:
+        bun-version: "1.4.3"
+
+    - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+      with:
+        version: "0.13.1"
+        enable-cache: false
+
+    - name: Install root dependencies
+      shell: bash
+      run: bun install --frozen-lockfile
+
+    - name: Bun tests
+      shell: bash
+      run: bun test scripts
+
+    # Keep this list equal to the first-party skills that ship Python helpers with tests.
+    - name: Python helper suites
+      shell: bash
+      run: |
+        set -euo pipefail
+        for skill in iac-terraform datacontract-writing adr-writing confluence-html-editor; do
+          echo "::group::$skill"
+          (cd "packs/sanofi/skills/$skill/scripts" && uv run --no-project --python 3.12 python -B -m unittest discover -p 'test_*.py')
+          echo "::endgroup::"
+        done
+
+    - name: Static repository checks (OMP is not loaded)
+      shell: bash
+      run: bun scripts/sync.ts --check
+
+    - name: Resolve pinned OMP source
+      id: omp
+      shell: bash
+      run: |
+        set -euo pipefail
+        repository="$(jq -er .repository omp-source-lock.json)"
+        commit="$(jq -er .reviewedCommit omp-source-lock.json)"
+        [[ "$repository" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || { echo "::error::invalid repository in omp-source-lock.json"; exit 1; }
+        [[ "$commit" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::reviewedCommit must be a full 40-character SHA"; exit 1; }
+        echo "repository=$repository" >> "$GITHUB_OUTPUT"
+        echo "commit=$commit" >> "$GITHUB_OUTPUT"
+
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        repository: ${{ steps.omp.outputs.repository }}
+        ref: ${{ steps.omp.outputs.commit }}
+        path: .omp-source
+        persist-credentials: false
+
+    - name: Install OMP dependencies
+      shell: bash
+      working-directory: .omp-source
+      run: bun install --frozen-lockfile
+
+    # A workspace checkout has no compiled addon. Install the release addon pinned in the lock, and refuse it
+    # unless its tarball integrity and version match what the lock and the checkout declare.
+    - name: Install pinned OMP native addon
+      shell: bash
+      run: |
+        set -euo pipefail
+        [ "$RUNNER_OS" = "Linux" ] && [ "$RUNNER_ARCH" = "X64" ] || { echo "::error::the pinned native addon is linux-x64 only"; exit 1; }
+        package="$(jq -er .natives.package omp-source-lock.json)"
+        version="$(jq -er .natives.version omp-source-lock.json)"
+        integrity="$(jq -er .natives.integrity omp-source-lock.json)"
+        [ "$package" = "@oh-my-pi/pi-natives-linux-x64" ] || { echo "::error::unexpected native package $package"; exit 1; }
+        [ "$(jq -er .version .omp-source/packages/natives/package.json)" = "$version" ] || { echo "::error::native addon $version does not match the pinned OMP checkout"; exit 1; }
+        tarball="$RUNNER_TEMP/natives.tgz"
+        curl -fsSL --retry 3 -o "$tarball" "https://registry.npmjs.org/$package/-/${package#@oh-my-pi/}-$version.tgz"
+        [ "sha512-$(openssl dgst -sha512 -binary "$tarball" | base64 -w0)" = "$integrity" ] || { echo "::error::native addon integrity mismatch"; exit 1; }
+        tar -xzf "$tarball" -C .omp-source/packages/natives/native --strip-components=1 --wildcards 'package/pi_natives.linux-x64-*.node'
+
+    - name: OMP host-loader smoke
+      shell: bash
+      run: OMP_ROOT="$PWD/.omp-source" bun scripts/check-omp-loader.ts

@@ -134,8 +134,9 @@ def main() -> int:
             tags, pending, block_problems = asg_tags(after, unknown_after.get("tag"))
         elif {"tags_all", "tags"} & (after.keys() | unknown_after.keys()):
             source = "tags_all" if isinstance(after.get("tags_all"), dict) or unknown_after.get("tags_all") else "tags"
-            tags = after.get(source)
             pending, block_problems = unknown_keys(unknown_after.get(source)), []
+            # A null map not marked unknown is a known empty map, so mandatory tags are missing.
+            tags = after.get(source) if after.get(source) is not None or pending is None else {}
         else:
             continue  # not taggable
         checked += 1

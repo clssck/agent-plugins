@@ -461,8 +461,12 @@ def main() -> int:
     parser.add_argument("--strict", action="store_true", help="Treat warnings as failures")
     args = parser.parse_args()
 
-    html = read_text(args.input)
-    original_html = read_text(args.original) if args.original else None
+    try:
+        html = read_text(args.input)
+        original_html = read_text(args.original) if args.original else None
+    except (OSError, UnicodeDecodeError) as exc:
+        print(f"ERROR: cannot read input: {exc}", file=sys.stderr)
+        return 2
     stats, findings = check(html, original_html=original_html, title=args.title)
     errors = [item for item in findings if item.severity == "error"]
     warnings = [item for item in findings if item.severity == "warning"]

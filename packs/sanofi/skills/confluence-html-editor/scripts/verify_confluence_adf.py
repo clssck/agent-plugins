@@ -306,26 +306,9 @@ def main() -> int:
 
     try:
         payload = read_json(args.input)
-    except ValueError as exc:
-        if args.json:
-            print(
-                json.dumps(
-                    {
-                        "stats": as_dict(AdfStats(), [])["stats"],
-                        "findings": [
-                            {
-                                "severity": "error",
-                                "message": str(exc),
-                                "context": None,
-                            }
-                        ],
-                    },
-                    indent=2,
-                )
-            )
-        else:
-            print(f"ERROR: {exc}")
-        return 1
+    except (OSError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
 
     stats, findings = analyze_adf(payload, parse_expect(args.expect))
     errors = [item for item in findings if item.severity == "error"]
