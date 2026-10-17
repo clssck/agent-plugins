@@ -14,16 +14,13 @@ on:
       - ".github/workflows/sync-upstreams.yml"
       - ".github/actions/**"
 
-# Never cancel a run mid-publish: a half-pushed automation branch is worse than a queued run.
+# Serialize syncs so publication finishes before the next run starts.
 concurrency:
   group: sync
   cancel-in-progress: false
 
 permissions:
   contents: read
-
-env:
-  AUTOMATION_BRANCH: automation/sync-upstreams
 
 jobs:
   # Read-only: pins, fetches, regenerates, and runs every gate. Nothing here can write to the repository.
@@ -47,7 +44,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: bun scripts/sync.ts
 
-      # PRs and pushes made with github.token do not trigger Validate, so the same gates run here before anything is proposed.
+      # Pushes made with github.token do not trigger Validate, so run every gate before publication.
       - uses: ./.github/actions/gates
 
       - name: Collect generated changes
@@ -72,47 +69,27 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  # Runs no repository code: applies the gated patch to the default-branch commit, updates the single automation branch,
-  # and opens or refreshes one pull request. A human merges it; nothing is pushed to main.
+  # Runs no repository code: publishes only the gated patch, without force-pushing or rebasing untested changes.
   publish:
     needs: sync
-    if: github.event_name != 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.sync.outputs.changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
     env:
-      GH_TOKEN: ${{ github.token }}
-      GH_REPO: ${{ github.repository }}
-      BASE_BRANCH: main
       BASE_SHA: ${{ github.sha }}
-      CHANGED: ${{ needs.sync.outputs.changed }}
-      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.sha }}
 
-      - name: Nothing to publish
-        if: env.CHANGED != 'true'
-        run: |
-          set -euo pipefail
-          number="$(gh pr list --repo "$GH_REPO" --head "$AUTOMATION_BRANCH" --base "$BASE_BRANCH" --state open --json number --jq '.[0].number // empty')"
-          if [ -n "$number" ]; then
-            gh pr close "$number" --repo "$GH_REPO" --delete-branch --comment "Superseded: $BASE_BRANCH already matches the latest sync ($RUN_URL)."
-          else
-            echo "Already up to date."
-          fi
-
       - name: Download patch
-        if: env.CHANGED == 'true'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: sync-patch
           path: ${{ runner.temp }}/patch
 
-      - name: Update automation branch
-        if: env.CHANGED == 'true'
+      - name: Publish validated updates to main
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -120,34 +97,18 @@ jobs:
           git apply --index --binary "$RUNNER_TEMP/patch/sync.patch"
           git commit -m "chore(sync): update upstream skills"
 
-          # Idempotent: when the existing automation branch already holds this exact tree on this base, leave it (and its PR) alone.
-          remote_line="$(git ls-remote --heads origin "refs/heads/$AUTOMATION_BRANCH")"
-          remote_sha="${remote_line%%$'\t'*}"
-          if [ -n "$remote_sha" ]; then
-            git fetch --depth=2 origin "+refs/heads/$AUTOMATION_BRANCH:refs/remotes/origin/$AUTOMATION_BRANCH"
-            if [ "$(git rev-parse "origin/$AUTOMATION_BRANCH^{tree}")" = "$(git rev-parse 'HEAD^{tree}')" ] \
-              && [ "$(git rev-parse "origin/$AUTOMATION_BRANCH~1")" = "$BASE_SHA" ]; then
-              echo "Automation branch is already current."
-            else
-              # Preserve concurrent human or automation updates: a changed remote makes the lease fail instead of losing work.
-              git push --force-with-lease="refs/heads/$AUTOMATION_BRANCH:$remote_sha" origin "HEAD:refs/heads/$AUTOMATION_BRANCH"
-            fi
-          else
-            git push origin "HEAD:refs/heads/$AUTOMATION_BRANCH"
+          git fetch --depth=1 origin refs/heads/main
+          # A retry after a successful push has nothing left to publish.
+          if [ "$(git rev-parse 'FETCH_HEAD^{tree}')" = "$(git rev-parse 'HEAD^{tree}')" ]; then
+            echo "Main already contains the validated tree."
+            exit 0
           fi
-
-      - name: Open or refresh pull request
-        if: env.CHANGED == 'true'
-        run: |
-          set -euo pipefail
-          title="Update upstream skills"
-          body="$(printf 'Automated upstream sync from %s.\n\nThe gates (Bun tests, Python helper suites, static repository checks, and the pinned OMP host-loader smoke) passed before this branch was pushed. Pull requests opened with `github.token` do not trigger Validate; re-run it by closing and reopening this PR if you want a second run. Review and merge manually; nothing here merges itself.' "$RUN_URL")"
-          number="$(gh pr list --repo "$GH_REPO" --head "$AUTOMATION_BRANCH" --base "$BASE_BRANCH" --state open --json number --jq '.[0].number // empty')"
-          if [ -n "$number" ]; then
-            gh pr edit "$number" --repo "$GH_REPO" --title "$title" --body "$body"
-          else
-            gh pr create --repo "$GH_REPO" --base "$BASE_BRANCH" --head "$AUTOMATION_BRANCH" --title "$title" --body "$body"
+          if [ "$(git rev-parse FETCH_HEAD)" != "$BASE_SHA" ]; then
+            echo "::error::Main changed during validation; run Sync again against the new main."
+            exit 1
           fi
+          # A concurrent push after the check is rejected by Git's fast-forward requirement.
+          git push origin HEAD:refs/heads/main
 
   omp-baseline:
     runs-on: ubuntu-latest
