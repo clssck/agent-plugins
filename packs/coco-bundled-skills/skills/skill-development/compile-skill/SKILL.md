@@ -214,7 +214,7 @@ Load `references/eval_design.md` and run the full rubric (C0–C8). The headline
 
 Pre-register the ship threshold before running (`eval_design.md` §"Pre-registered thresholds").
 
-**STOP** — present the eval table. Ship only if all pre-registered thresholds pass.
+**Gate** — present the eval table. Ship only if all pre-registered thresholds pass.
 
 ## References
 
@@ -222,11 +222,11 @@ Load when needed:
 
 - `references/eval_design.md` — full rubric (C0–C8), pre-registered ship thresholds, leakage controls, degenerate-baseline check. Required reading before Step 6.
 
-## Stopping Points
+## Decisions
 
-- After Step 3: approve bucketed clusters and proposed intents.
-- After Step 5: review coverage table.
-- After Step 6: review eval table against pre-registered thresholds.
+- After Step 3: approve bucketed clusters and proposed intents when a material intent choice remains.
+- Before shipping a compiled skill that changes behavior outside the authorized scope.
+- Present the coverage and eval tables as evidence; pre-registered thresholds gate the ship.
 
 ## Output
 

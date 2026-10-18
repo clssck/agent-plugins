@@ -74,7 +74,7 @@ Write SKILL.md with:
 - Frontmatter (name + description with triggers)
 - Parameter collection step
 - Workflow steps from pattern
-- Stopping points
+- Decisions and authorization boundaries
 - Output description
 
 ### Step 6: Write and Present

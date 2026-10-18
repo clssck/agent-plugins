@@ -99,7 +99,7 @@ A skill is a markdown file that teaches Cortex Code how to complete a specific t
 1. **Structured guidance**: Step-by-step workflows
 2. **Tool references**: What tools to use and when
 3. **Decision logic**: How to handle different scenarios
-4. **User checkpoints**: Where to pause for user input
+4. **Decision points**: Where a user choice changes scope or a consequential action
 
 ### Skill Complexity Levels
 
@@ -149,8 +149,8 @@ description: "Clear description with trigger phrases"
 ## Tools (if applicable)
 [Tool definitions with parameters]
 
-## Stopping Points
-[Where to pause for user input]
+## Decisions
+[Where a user choice changes scope or a consequential action]
 
 ## Output
 [What the skill produces]
@@ -688,12 +688,12 @@ Use this pattern when the tool is useful beyond the skill or has its own release
 
 ## User Interaction Patterns
 
-### Mandatory Stopping Points
+### Decision Points
 
-Mark where the workflow MUST pause:
+Mark where a user choice changes scope or a consequential action:
 
 ```markdown
-**⚠️ MANDATORY STOPPING POINT**: Do NOT proceed until user responds.
+Ask only when the answer changes scope or the authorized action.
 
 Ask user:
 ```
@@ -708,12 +708,12 @@ Please select (1-3):
 ```
 ```
 
-### Approval Gates
+### Authorization Boundaries
 
-Before making changes, get explicit approval:
+Before a consequential action, confirm it matches the user's existing authorization:
 
 ```markdown
-**⚠️ MANDATORY CHECKPOINT**: Before applying changes:
+**Authorization check**: Before applying changes:
 
 Present to user:
 ```
@@ -724,8 +724,8 @@ I will make the following changes:
 Do you approve? (Yes/No/Modify)
 ```
 
-Wait for explicit approval (e.g., "approved", "looks good", "proceed").
-NEVER proceed without user confirmation.
+Routine implementation within the authorized scope continues without a redundant approval.
+Ask before an effect that exceeds the request.
 ```
 
 ### Resume Conditions
@@ -733,12 +733,12 @@ NEVER proceed without user confirmation.
 Clarify when to continue:
 
 ```markdown
-## Stopping Points
+## Decisions
 
-- ✋ After diagnosis if ground truth needed
-- ✋ After analysis for approval
+- After diagnosis if a material choice remains
+- Before an action outside the authorized scope
 
-**Resume rule:** Upon user approval, proceed directly to next step without re-asking.
+**Resume rule:** After the user answers, continue the affected branch without re-asking.
 ```
 
 ---
@@ -916,15 +916,15 @@ Note: Agents cannot spawn other agents. The coordinator spawns all specialists a
 
 For skills involving expensive operations (large queries, API calls, model inference), warn users before executing.
 
-**Pattern:** Add a stopping point before expensive operations that explains the scope:
+**Pattern:** State the scope and cost before expensive operations; ask only when the cost changes the authorized action:
 
 ```markdown
-**⚠️ STOP**: This operation will scan a large dataset.
+**Check first**: This operation will scan a large dataset.
 
 - Scope: [describe what will be processed]
 - Alternatives: [sampling, caching, narrower filter]
 
-Proceed? (Yes/No/Narrow scope)
+Ask only if the scan changes the authorized scope or cost.
 ```
 
 When specific cost or runtime estimates are available, include them to help users make informed decisions.
@@ -1025,7 +1025,7 @@ description: "A skill for working with agents"
 description: "Use for **ALL** requests that mention: create agent, build agent, debug agent. DO NOT attempt agent work manually - invoke this skill first."
 ```
 
-### 2. ❌ Missing Stopping Points
+### 2. ❌ No Authorization Boundary
 
 ```markdown
 # BAD
@@ -1034,7 +1034,7 @@ Apply all the changes identified above.
 
 # GOOD
 ### Step 3: Apply Changes
-**⚠️ MANDATORY CHECKPOINT**: Present changes to user for approval before applying.
+Apply the changes within the user's authorized scope; ask before an effect that exceeds the request.
 ```
 
 ### 3. ❌ Unclear Tool Usage
@@ -1081,7 +1081,7 @@ Step 3: Execute the command.
 - Unknown error: Ask user for guidance
 ```
 
-### 6. ❌ Chaining Without Approval
+### 6. ❌ Chaining Without Authorization
 
 ```markdown
 # BAD
@@ -1089,9 +1089,9 @@ After identifying issues, immediately apply fixes.
 
 # GOOD
 After identifying issues:
-1. Present findings to user
-2. **⚠️ Wait for explicit approval**
-3. Only then apply fixes
+1. Present findings and the changes that match the existing authorization
+2. Ask only if a fix exceeds the authorized scope
+3. Apply the authorized fixes
 ```
 
 ### 7. ❌ Fabricated Commands
@@ -1145,7 +1145,7 @@ These patterns indicate a skill needs attention. Use this checklist when auditin
 | F5 | >5 sub-rules in one step | Medium | Agent drops rules when overloaded |
 | F6 | "for EACH file" without tracking | Medium | Files missed; use file-based state |
 | F7 | State in LLM text only | Medium | Context overflow loses progress |
-| F8 | No stopping points | Medium | Agent chains without approval |
+| F8 | No authorization boundary | Medium | Consequential actions ignore scope |
 | F9 | Contradictory rules | Medium | Nondeterministic behavior |
 | F10 | Scripts miss patterns agent must catch | Low | Detection gaps |
 | F11 | No evals exist | Low | Can't measure skill value |
@@ -1232,7 +1232,7 @@ description: "Completes example tasks with structured guidance. Use when: user w
 
 2. **Present** findings to user
 
-**⚠️ MANDATORY STOPPING POINT**: Get user confirmation before proceeding.
+**Authorization check**: Confirm the requested changes match the user's authorization before proceeding.
 
 ### Step 3: Apply Changes
 
@@ -1264,10 +1264,10 @@ description: "Completes example tasks with structured guidance. Use when: user w
 - `--target`: Resource identifier
 - `--changes`: Changes specification
 
-## Stopping Points
+## Decisions
 
-- ✋ After Step 2 analysis (for approval)
-- ✋ After Step 3 if validation fails
+- After Step 2 analysis if a material change choice remains
+- Before a change that exceeds the authorized scope
 
 ## Success Criteria
 
@@ -1310,8 +1310,8 @@ When creating a new skill, verify:
 **Workflow:**
 - [ ] Steps are numbered and clear
 - [ ] Appropriate degree of freedom (high/medium/low) for each step
-- [ ] Mandatory stopping points marked with ⚠️
-- [ ] No chaining actions without user approval
+- [ ] Consequential actions match the user's authorization
+- [ ] Scope-changing actions ask when authorization is unclear
 
 **Tools/Scripts (if applicable):**
 - [ ] Scripts documented with usage examples

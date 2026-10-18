@@ -19,7 +19,7 @@ Examine the skill and determine refactoring level:
 | **Medium** | 3+ workflow branches, distinct intents | Split into router + sub-skills |
 | **Heavy** | Multi-phase, long-running, parallel work | Coordinator + specialists (agent teams) |
 
-**⚠️ STOP**: Present assessment and recommended level.
+Present the assessment and recommended level. Ask only when the refactoring level changes scope or output.
 
 ### Step 2: Light Refactoring
 
@@ -58,7 +58,7 @@ For skills with distinct workflow branches:
 
 3. **Each sub-skill is self-contained:**
    - Complete workflow for that intent
-   - Own stopping points and output
+   - Own decisions and authorization boundaries
    - Can reference shared `references/`
 
 ### Step 4: Heavy Refactoring
@@ -84,12 +84,12 @@ Before committing:
 - [ ] Line count: `find . -name "*.md" -exec wc -l {} \;`
 - [ ] Test a realistic prompt end-to-end
 
-**⚠️ STOP**: Present refactored structure for approval.
+Present the refactored structure. Ask only when a structural choice changes scope or output.
 
-## Stopping Points
+## Decisions
 
-- ✋ Step 1: After assessment, before refactoring
-- ✋ Step 5: Refactored structure approval
+- After the assessment, if a material structural choice remains
+- Before a refactor that changes the skill's authorized scope or output
 
 ## Output
 

@@ -796,12 +796,126 @@ function adaptHostWorkflows(contents: string, relativeFile: string): string {
 			/## Stopping Points[\s\S]*?(?=## Output)/g,
 			"## Decisions\n\nAsk only when the user's answer changes scope, destination, or a consequential action. Routine implementation continues under existing authorization.\n\n",
 		);
+		contents = contents.replace("- Stopping points\n", "- Decisions and authorization boundaries\n");
 	}
 	if (relativeFile === "skills/skill-development/audit-skill/SKILL.md") {
 		contents = contents.replace("No chaining without approval", "Consequential actions match user authorization");
 		contents = contents.replace(
 			"For each fix: show change → approve → apply.",
 			"Review-only request → report findings. Authorized fixes → apply in scope, verify, and report; ask only about unresolved consequential choices.",
+		);
+		contents = contents.replace("| Stopping points | 🔴 |", "| Decisions and authorization boundaries | 🟡 |");
+		contents = contents.replace("| ⚠️ checkpoints marked | 🔴 |\n", "");
+		contents = contents.replace(
+			/## Stopping Points[\s\S]*?(?=## Output)/,
+			"## Decisions\n\nAsk only when the answer changes which fixes are applied or authorizes writes outside the review scope. Loading a skill and presenting a report are not decisions.\n\n",
+		);
+		contents = contents.replace("**⚠️ STOP**: Present report.", "Present the report.");
+		contents = contents.replace("**⚠️ STOP**: Present results.", "Present the results.");
+		contents = contents.replace(
+			"Inconsistent stopping point markers",
+			"Inconsistent decision or authorization wording",
+		);
+	}
+	if (relativeFile === "skills/skill-development/refactor-skill/SKILL.md") {
+		contents = contents.replace("Own stopping points and output", "Own decisions and authorization boundaries");
+		contents = contents.replace(
+			"**⚠️ STOP**: Present assessment and recommended level.",
+			"Present the assessment and recommended level. Ask only when the refactoring level changes scope or output.",
+		);
+		contents = contents.replace(
+			"**⚠️ STOP**: Present refactored structure for approval.",
+			"Present the refactored structure. Ask only when a structural choice changes scope or output.",
+		);
+		contents = contents.replace(
+			"## Stopping Points\n\n- ✋ Step 1: After assessment, before refactoring\n- ✋ Step 5: Refactored structure approval",
+			"## Decisions\n\n- After the assessment, if a material structural choice remains\n- Before a refactor that changes the skill's authorized scope or output",
+		);
+	}
+	if (relativeFile === "skills/skill-development/compile-skill/SKILL.md") {
+		contents = contents.replace("**STOP** — present the eval table.", "**Gate** — present the eval table.");
+		contents = contents.replace(
+			"## Stopping Points\n\n- After Step 3: approve bucketed clusters and proposed intents.\n- After Step 5: review coverage table.\n- After Step 6: review eval table against pre-registered thresholds.",
+			"## Decisions\n\n- After Step 3: approve bucketed clusters and proposed intents when a material intent choice remains.\n- Before shipping a compiled skill that changes behavior outside the authorized scope.\n- Present the coverage and eval tables as evidence; pre-registered thresholds gate the ship.",
+		);
+	}
+	if (relativeFile === "skills/skill-development/SKILL_BEST_PRACTICES.md") {
+		contents = contents.replace(
+			"4. **User checkpoints**: Where to pause for user input",
+			"4. **Decision points**: Where a user choice changes scope or a consequential action",
+		);
+		contents = contents.replace("### Mandatory Stopping Points", "### Decision Points");
+		contents = contents.replace(
+			"Mark where the workflow MUST pause:",
+			"Mark where a user choice changes scope or a consequential action:",
+		);
+		contents = contents.replace(
+			"**⚠️ MANDATORY STOPPING POINT**: Do NOT proceed until user responds.",
+			"Ask only when the answer changes scope or the authorized action.",
+		);
+		contents = contents.replace("### Approval Gates", "### Authorization Boundaries");
+		contents = contents.replace(
+			"Before making changes, get explicit approval:",
+			"Before a consequential action, confirm it matches the user's existing authorization:",
+		);
+		contents = contents.replace(
+			"**⚠️ MANDATORY CHECKPOINT**: Before applying changes:",
+			"**Authorization check**: Before applying changes:",
+		);
+		contents = contents.replace(
+			'Wait for explicit approval (e.g., "approved", "looks good", "proceed").',
+			"Routine implementation within the authorized scope continues without a redundant approval.",
+		);
+		contents = contents.replace(
+			"NEVER proceed without user confirmation.",
+			"Ask before an effect that exceeds the request.",
+		);
+		contents = contents.replace(
+			"## Stopping Points\n\n- ✋ After diagnosis if ground truth needed\n- ✋ After analysis for approval\n\n**Resume rule:** Upon user approval, proceed directly to next step without re-asking.",
+			"## Decisions\n\n- After diagnosis if a material choice remains\n- Before an action outside the authorized scope\n\n**Resume rule:** After the user answers, continue the affected branch without re-asking.",
+		);
+		contents = contents.replace("### 2. ❌ Missing Stopping Points", "### 2. ❌ No Authorization Boundary");
+		contents = contents.replace(
+			"**⚠️ MANDATORY CHECKPOINT**: Present changes to user for approval before applying.",
+			"Apply the changes within the user's authorized scope; ask before an effect that exceeds the request.",
+		);
+		contents = contents.replace(
+			"**Pattern:** Add a stopping point before expensive operations that explains the scope:",
+			"**Pattern:** State the scope and cost before expensive operations; ask only when the cost changes the authorized action:",
+		);
+		contents = contents.replace(
+			"**⚠️ STOP**: This operation will scan a large dataset.",
+			"**Check first**: This operation will scan a large dataset.",
+		);
+		contents = contents.replace("Proceed? (Yes/No/Narrow scope)", "Ask only if the scan changes the authorized scope or cost.");
+		contents = contents.replace(
+			"| F8 | No stopping points | Medium | Agent chains without approval |",
+			"| F8 | No authorization boundary | Medium | Consequential actions ignore scope |",
+		);
+		contents = contents.replace(
+			"- [ ] Mandatory stopping points marked with ⚠️",
+			"- [ ] Consequential actions match the user's authorization",
+		);
+		contents = contents.replace(
+			"- [ ] No chaining actions without user approval",
+			"- [ ] Scope-changing actions ask when authorization is unclear",
+		);
+		contents = contents.replace(
+			"## Stopping Points\n[Where to pause for user input]",
+			"## Decisions\n[Where a user choice changes scope or a consequential action]",
+		);
+		contents = contents.replace("### 6. ❌ Chaining Without Approval", "### 6. ❌ Chaining Without Authorization");
+		contents = contents.replace(
+			"# GOOD\nAfter identifying issues:\n1. Present findings to user\n2. **⚠️ Wait for explicit approval**\n3. Only then apply fixes",
+			"# GOOD\nAfter identifying issues:\n1. Present findings and the changes that match the existing authorization\n2. Ask only if a fix exceeds the authorized scope\n3. Apply the authorized fixes",
+		);
+		contents = contents.replace(
+			"**⚠️ MANDATORY STOPPING POINT**: Get user confirmation before proceeding.",
+			"**Authorization check**: Confirm the requested changes match the user's authorization before proceeding.",
+		);
+		contents = contents.replace(
+			"## Stopping Points\n\n- ✋ After Step 2 analysis (for approval)\n- ✋ After Step 3 if validation fails",
+			"## Decisions\n\n- After Step 2 analysis if a material change choice remains\n- Before a change that exceeds the authorized scope",
 		);
 	}
 	return contents;
