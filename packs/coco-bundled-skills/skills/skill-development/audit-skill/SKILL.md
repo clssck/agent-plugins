@@ -20,7 +20,7 @@ Review skills against best practices. Supports single-skill and batch modes.
 
 ### Step 1: Load Skill
 
-Ask for skill path or name. Search `.snowflake/cortex/skills/` (CoCo Snowsight workspace), `.cortex/skills/`, `$SNOWFLAKE_HOME/cortex/skills/`, or `$HOME/.snowflake/cortex/skills/` if a name is given.
+Use the supplied skill path. For a loaded name, `read skill://<name>` resolves the active OMP skill; consult `omp://skills.md` for discovery precedence. Otherwise inspect the project's `.omp/skills/`, the user's `~/.omp/agent/skills/`, or an explicitly named pack repository. Multiple matches require resolving the intended skill before editing.
 
 Load and parse: frontmatter, sections, workflow steps, and tools.
 
@@ -42,15 +42,14 @@ If present, also load:
 |-------|----------|
 | < 500 lines | 🟡 |
 | Workflow section | 🔴 |
-| Stopping points | 🔴 |
+| Decisions and authorization boundaries | 🟡 |
 | Output section | 🟡 |
 
 **Workflow:**
 | Check | Severity |
 |-------|----------|
 | Numbered steps | 🟡 |
-| ⚠️ checkpoints marked | 🔴 |
-| No chaining without approval | 🔴 |
+| Consequential actions match user authorization | 🔴 |
 | Clear actions | 🟡 |
 
 **Linting (language + misleading text):**
@@ -100,7 +99,7 @@ Apply the "When to Use" criteria from `compile-skill/SKILL.md`. Surface the answ
 1. [Improvement]
 ```
 
-**⚠️ STOP**: Present report.
+Present the report.
 
 ### Step 4: Apply Fixes (Optional)
 
@@ -112,7 +111,7 @@ Ask:
 4. Skip
 ```
 
-For each fix: show change → approve → apply.
+Review-only request → report findings. Authorized fixes → apply in scope, verify, and report; ask only about unresolved consequential choices.
 
 ---
 
@@ -155,7 +154,7 @@ For each skill in directory, record:
 |------|-------|------|------|----------------|----------|-------|
 ```
 
-**⚠️ STOP**: Present results.
+Present the results.
 
 For Critical/Needs-Work skills, suggest: "Load `refactor-skill/SKILL.md` for deep restructuring."
 
@@ -167,12 +166,9 @@ For Critical/Needs-Work skills, suggest: "Load `refactor-skill/SKILL.md` for dee
 - 🟡 **Warning**: Quality issue
 - 🟢 **Suggestion**: Enhancement
 
-## Stopping Points
+## Decisions
 
-- ✋ LINT Step 1: Confirm skill loaded
-- ✋ LINT Step 3: Present report
-- ✋ LINT Step 4: Approve each fix
-- ✋ TRIAGE Step T4: After severity table
+Ask only when the answer changes which fixes are applied or authorizes writes outside the review scope. Loading a skill and presenting a report are not decisions.
 
 ## Output
 
@@ -218,7 +214,7 @@ Use this appendix to decide what counts as a lint issue and how to grade severit
 4. **Inconsistencies**
    - Terminology shifts without defining the canonical term
    - Placeholder style inconsistency (`{{var}}` vs `{var}` vs `<var>`)
-   - Inconsistent stopping point markers
+   - Inconsistent decision or authorization wording
 
 5. **Cross-references**
    - References to other skills use the wrong name/format (mis-typed kebab-case)

@@ -18,7 +18,7 @@ async function fixture(files: Record<string, string>): Promise<string> {
 }
 
 afterEach(async () => {
-	await Promise.all(temporaryDirectories.splice(0).map(directory => rm(directory, { recursive: true, force: true })));
+	await Promise.all(temporaryDirectories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
 });
 
 describe("CoCo OMP compatibility", () => {
@@ -238,7 +238,7 @@ ASK the user:
 				'     prompt="<content of migrate-spark-scala-to-snowpark-connect/agents/fixer.md>\\n\\n"',
 				'            "CELL_MODE=true\\n"',
 				'            "CELL_SOURCE=<cell.source>\\n"',
-				'            "CELL_ISSUES=<subset of analysis.json matching this cell AND language==\'scala\'>\\n"',
+				"            \"CELL_ISSUES=<subset of analysis.json matching this cell AND language=='scala'>\\n\"",
 				"   )",
 			].join("\n"),
 		});
@@ -278,9 +278,7 @@ ASK the user:
 		});
 
 		const result = await adaptCompatibility(root);
-		expect(result.errors).toEqual([
-			"skills/example/SKILL.md: unsupported skill(command=...) invocation",
-		]);
+		expect(result.errors).toEqual(["skills/example/SKILL.md: unsupported skill(command=...) invocation"]);
 	});
 	test("normalizes compact asks and preserves ids declared after question keys", async () => {
 		const root = await fixture({
@@ -374,7 +372,7 @@ ASK the user:
 				'     prompt="<content of migrate-spark-scala-to-snowpark-connect/agents/fixer.md>\\n\\n"',
 				'            "CELL_MODE=true\\n"',
 				'            "CELL_SOURCE=<cell.source>\\n"',
-				'            "CELL_ISSUES=<subset of analysis.json matching this cell AND language==\'scala\'>\\n"',
+				"            \"CELL_ISSUES=<subset of analysis.json matching this cell AND language=='scala'>\\n\"",
 				"   )",
 			].join("\n"),
 		});
@@ -396,5 +394,166 @@ ASK the user:
 		expect(result.errors).toContain(
 			"skills/status/SKILL.md: OMP ask returns in the same turn; it is not a turn boundary",
 		);
+	});
+});
+
+describe("OMP host workflow adaptation", () => {
+	test("skill authoring chooses OMP locations and preserves later workflow steps", async () => {
+		const root = await fixture({
+			"skills/skill-development/SKILL.md":
+				"---\nname: skill-development\ndescription: Create Cortex Code skills\n---\n# Skill Development\n## Strong Skill Domains\nCortex Code has **native tooling and deep integration** for these domains\n",
+			"skills/skill-development/create-from-scratch/SKILL.md":
+				"# Create\n### Step 3: Choose Location\nOtherwise: `.cortex/skills/demo`\n### Step 4: Write SKILL.md\nKeep this implementation step.\n",
+			"skills/skill-development/summarize-session/SKILL.md":
+				"# Capture\n3. **Location**:\n - `.snowflake/cortex/skills/demo`\n### Step 5: Generate Skill\nKeep parameters.\n",
+			"skills/skill-development/audit-skill/SKILL.md": "Ask for skill path or name. Search `.cortex/skills/`.\n",
+			"skills/skill-development/compile-skill/SKILL.md":
+				"Ask for `<skill-name>`. Resolve to a SKILL.md in this order:\n1. `.cortex/skills/`\nRead the SKILL.md. Keep the executor requirements.\n",
+		});
+		expect((await adaptCompatibility(root)).errors).toEqual([]);
+		for (const name of ["create-from-scratch", "summarize-session"]) {
+			const output = await readFile(path.join(root, `skills/skill-development/${name}/SKILL.md`), "utf8");
+			expect(output).toContain("`.omp/skills/<name>/SKILL.md`");
+			expect(output).toContain("`~/.omp/agent/skills/<name>/SKILL.md`");
+			expect(output).not.toContain("Otherwise:");
+		}
+		expect(await readFile(path.join(root, "skills/skill-development/create-from-scratch/SKILL.md"), "utf8")).toContain(
+			"Keep this implementation step.",
+		);
+		expect(await readFile(path.join(root, "skills/skill-development/compile-skill/SKILL.md"), "utf8")).toContain(
+			"Keep the executor requirements.",
+		);
+		expect((await planCompatibility(root)).changed).toEqual([]);
+	});
+	test("skill creation, capture, audit, refactor, compile, and guidance agree on Decisions semantics", async () => {
+		const root = await fixture({
+			"skills/skill-development/create-from-scratch/SKILL.md": [
+				"# Create",
+				"### Step 3: Choose Location",
+				"Otherwise: `.cortex/skills/demo`",
+				"### Step 4: Write SKILL.md",
+				"**⚠️ STOP**: [Checkpoint]",
+				"## Stopping Points",
+				"- ✋ After Step X",
+				"## Output",
+				"[What skill produces]",
+				"",
+			].join("\n"),
+			"skills/skill-development/summarize-session/SKILL.md": [
+				"# Capture",
+				"3. **Location**:",
+				" - `.snowflake/cortex/skills/demo`",
+				"### Step 5: Generate Skill",
+				"Write SKILL.md with:",
+				"- Stopping points",
+				"## Stopping Points",
+				"- ✋ Step 1: Summary validated",
+				"## Output",
+				"Skill.",
+				"",
+			].join("\n"),
+			"skills/skill-development/audit-skill/SKILL.md": [
+				"# Audit",
+				"Ask for skill path or name. Search `.cortex/skills/`.",
+				"| Stopping points | 🔴 |",
+				"| ⚠️ checkpoints marked | 🔴 |",
+				"| Consequential actions match user authorization | 🔴 |",
+				"**⚠️ STOP**: Present report.",
+				"## Stopping Points",
+				"- ✋ LINT Step 3: Present report",
+				"## Output",
+				"Report.",
+				"",
+			].join("\n"),
+			"skills/skill-development/refactor-skill/SKILL.md": [
+				"# Refactor",
+				"**⚠️ STOP**: Present assessment and recommended level.",
+				"### Step 5: Verify",
+				"**⚠️ STOP**: Present refactored structure for approval.",
+				"## Stopping Points",
+				"",
+				"- ✋ Step 1: After assessment, before refactoring",
+				"- ✋ Step 5: Refactored structure approval",
+				"## Output",
+				"Refactored.",
+				"",
+			].join("\n"),
+			"skills/skill-development/compile-skill/SKILL.md": [
+				"# Compile",
+				"**STOP** — present the eval table.",
+				"## Stopping Points",
+				"",
+				"- After Step 3: approve bucketed clusters and proposed intents.",
+				"- After Step 5: review coverage table.",
+				"- After Step 6: review eval table against pre-registered thresholds.",
+				"## Output",
+				"Compiled.",
+				"",
+			].join("\n"),
+			"skills/skill-development/SKILL_BEST_PRACTICES.md": [
+				"# Best Practices",
+				"4. **User checkpoints**: Where to pause for user input",
+				"### Mandatory Stopping Points",
+				"Mark where the workflow MUST pause:",
+				"**⚠️ MANDATORY STOPPING POINT**: Do NOT proceed until user responds.",
+				"### Approval Gates",
+				"Before making changes, get explicit approval:",
+				"**⚠️ MANDATORY CHECKPOINT**: Before applying changes:",
+				'Wait for explicit approval (e.g., "approved", "looks good", "proceed").',
+				"NEVER proceed without user confirmation.",
+				"## Stopping Points",
+				"- ✋ After diagnosis if ground truth needed",
+				"- ✋ After analysis for approval",
+				"**Resume rule:** Upon user approval, proceed directly to next step without re-asking.",
+				"### 2. ❌ Missing Stopping Points",
+				"**⚠️ MANDATORY CHECKPOINT**: Present changes to user for approval before applying.",
+				"## Stopping Points",
+				"[Where to pause for user input]",
+				"| F8 | No stopping points | Medium | Agent chains without approval |",
+				"- [ ] Mandatory stopping points marked with ⚠️",
+				"- [ ] No chaining actions without user approval",
+				"",
+			].join("\n"),
+		});
+		expect((await adaptCompatibility(root)).errors).toEqual([]);
+		const best = await readFile(path.join(root, "skills/skill-development/SKILL_BEST_PRACTICES.md"), "utf8");
+
+		for (const name of ["create-from-scratch", "summarize-session", "audit-skill", "refactor-skill", "compile-skill"]) {
+			const output = await readFile(path.join(root, "skills/skill-development", name, "SKILL.md"), "utf8");
+			expect(output, name).toContain("## Decisions");
+			expect(output, name).not.toContain("## Stopping Points");
+			expect(output, name).not.toContain("⚠️ STOP");
+		}
+		const summarize = await readFile(path.join(root, "skills/skill-development/summarize-session/SKILL.md"), "utf8");
+		expect(summarize).toContain("- Decisions and authorization boundaries");
+		expect(summarize).not.toContain("- Stopping points");
+		const audit = await readFile(path.join(root, "skills/skill-development/audit-skill/SKILL.md"), "utf8");
+		expect(audit).toContain("| Decisions and authorization boundaries | 🟡 |");
+		expect(audit).not.toContain("| Stopping points |");
+		expect(audit).not.toContain("checkpoints marked");
+		const compile = await readFile(path.join(root, "skills/skill-development/compile-skill/SKILL.md"), "utf8");
+		expect(compile).toContain("**Gate** — present the eval table.");
+		expect(best).toContain("### Decision Points");
+		expect(best).toContain("### Authorization Boundaries");
+		expect(best).toContain("### 2. ❌ No Authorization Boundary");
+		expect(best).toContain("| F8 | No authorization boundary | Medium | Consequential actions ignore scope |");
+		expect(best).toContain("- [ ] Consequential actions match the user's authorization");
+		expect(best).not.toContain("Mandatory Stopping Points");
+		expect(best).not.toContain("MANDATORY STOPPING POINT");
+		expect(best).not.toContain("Approval Gates");
+		expect(best).not.toContain("Missing Stopping Points");
+		expect((await planCompatibility(root)).changed).toEqual([]);
+	});
+	test("CoCo team integration becomes manual-only while preserving capability gates", async () => {
+		const root = await fixture({
+			"skills/team-workflow/SKILL.md":
+				"---\nname: team-workflow\ndescription: HIGHEST PRIORITY team workflow\n---\nCall team_create and spawn_teammate.\n",
+		});
+		expect((await adaptCompatibility(root)).errors).toEqual([]);
+		const output = await readFile(path.join(root, "skills/team-workflow/SKILL.md"), "utf8");
+		expect(output).toContain("disable-model-invocation: true");
+		expect(output).not.toContain("HIGHEST PRIORITY");
+		expect(output).toContain("blocked: missing <capability>");
+		expect((await planCompatibility(root)).changed).toEqual([]);
 	});
 });

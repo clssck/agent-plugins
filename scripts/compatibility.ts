@@ -5,7 +5,7 @@ import * as path from "node:path";
 
 export type CompatibilityProfile = "coco";
 
-export const COMPATIBILITY_VERSION = 2;
+export const COMPATIBILITY_VERSION = 3;
 export const COMPATIBILITY_PROFILE: CompatibilityProfile = "coco";
 
 const MARKER_START = "<!-- omp-compat:start -->";
@@ -148,7 +148,10 @@ const FILE_REWRITES: Record<string, ReadonlyArray<readonly [string, string]>> = 
 const GLOBAL_REWRITES: ReadonlyArray<readonly [string, string]> = [
 	["../../../cortex-agent/create-cortex-agent/TOOL_CREATION.md", "skill://agent-studio/agent/edit/SKILL.md"],
 	["../../../cortex-agent/create-cortex-agent/ADHOC_TESTING.md", "skill://agent-studio/agent/test/SKILL.md"],
-	["../../../sql/references/sql-authoring-rules.md", "skill://cortex-ai-function-studio/references/ai-function-rules.md"],
+	[
+		"../../../sql/references/sql-authoring-rules.md",
+		"skill://cortex-ai-function-studio/references/ai-function-rules.md",
+	],
 	["../../sql/references/sql-authoring-rules.md", "skill://cortex-ai-function-studio/references/ai-function-rules.md"],
 ];
 
@@ -244,7 +247,7 @@ function adaptImplicitAskPayloads(contents: string): string {
 			if (depth === 0) break;
 		}
 		const payload = lines.slice(start + 1, end);
-		const questions = payload.findIndex(line => /^\s*["']questions["']\s*:\s*\[\s*$/.test(line));
+		const questions = payload.findIndex((line) => /^\s*["']questions["']\s*:\s*\[\s*$/.test(line));
 		let arrayDepth = 0;
 		let arrayEnd = -1;
 		for (let payloadIndex = questions; payloadIndex >= 0 && payloadIndex < payload.length; payloadIndex++) {
@@ -257,8 +260,8 @@ function adaptImplicitAskPayloads(contents: string): string {
 		const hasOtherFields =
 			questions < 0 ||
 			arrayEnd < 0 ||
-			payload.slice(0, questions).some(line => line.trim()) ||
-			payload.slice(arrayEnd + 1).some(line => line.trim());
+			payload.slice(0, questions).some((line) => line.trim()) ||
+			payload.slice(arrayEnd + 1).some((line) => line.trim());
 		if (depth !== 0 || hasOtherFields) {
 			output.push(prompt);
 			continue;
@@ -313,7 +316,8 @@ function closingParenthesis(contents: string, open: number): number | undefined 
 
 function askCalls(contents: string): AskCall[] {
 	const calls: AskCall[] = [];
-	const pattern = /^([ \t]*(?:[A-Za-z_][\w]*[ \t]*=[ \t]*)?)(AskUserQuestion|ask_user_question|ask_question|ask)[ \t]*\(/gm;
+	const pattern =
+		/^([ \t]*(?:[A-Za-z_][\w]*[ \t]*=[ \t]*)?)(AskUserQuestion|ask_user_question|ask_question|ask)[ \t]*\(/gm;
 	for (const match of contents.matchAll(pattern)) {
 		const open = (match.index ?? 0) + match[0].length - 1;
 		const end = closingParenthesis(contents, open);
@@ -378,13 +382,13 @@ function normalizeQuestionIds(body: string): string {
 	for (const match of propertyMatches(body, "question")) {
 		const key = (match.index ?? 0) + match[0].search(/["']question["']/);
 		const span = spans
-			.filter(candidate => candidate.start < key && candidate.end > key)
+			.filter((candidate) => candidate.start < key && candidate.end > key)
 			.sort((a, b) => a.end - a.start - (b.end - b.start))[0];
 		if (span) questionObjects.set(span.start, { span, key });
 	}
 	const questions = [...questionObjects.values()].sort((a, b) => a.span.start - b.span.start);
 	const usedIds = new Set(
-		[...body.matchAll(/(?:^|[{,])\s*["']id["']\s*:\s*["']([^"']+)["']/gm)].map(match => match[1]),
+		[...body.matchAll(/(?:^|[{,])\s*["']id["']\s*:\s*["']([^"']+)["']/gm)].map((match) => match[1]),
 	);
 	const inserts: Array<{ at: number; text: string }> = [];
 	let generated = 0;
@@ -441,10 +445,13 @@ function adaptSkillCalls(contents: string, relativeFile: string, skillNames: Rea
 			return uri ? `read ${uri}` : whole;
 		},
 	);
-	adapted = adapted.replace(/skill\s*\(\s*(["'])([a-z0-9][a-z0-9_-]*)\1\s*\)/gi, (whole, _quote: string, name: string) => {
-		const uri = skillUri(name, skillNames);
-		return uri ? `read ${uri}` : whole;
-	});
+	adapted = adapted.replace(
+		/skill\s*\(\s*(["'])([a-z0-9][a-z0-9_-]*)\1\s*\)/gi,
+		(whole, _quote: string, name: string) => {
+			const uri = skillUri(name, skillNames);
+			return uri ? `read ${uri}` : whole;
+		},
+	);
 	adapted = adapted.replace(
 		/\b(skill:\/\/[a-z0-9][a-z0-9_-]*(?:\/[a-z0-9._-]+)*\/SKILL\.md):(<[^>\n]+>|[a-z0-9][a-z0-9-]*)/gi,
 		"$1 $2",
@@ -519,7 +526,7 @@ function externalCapabilities(contents: string): string[] {
 function compatibilityBlock(contents: string, relativeFile: string): string | undefined {
 	if (isCortexCodeGuide(relativeFile)) return undefined;
 	const notes: string[] = [];
-	if (askCalls(contents).some(call => hasQuestionsField(contents.slice(call.open + 1, call.end)))) {
+	if (askCalls(contents).some((call) => hasQuestionsField(contents.slice(call.open + 1, call.end)))) {
 		notes.push(
 			"- Choices use OMP's \`ask\` tool. At approval gates, only an explicit user response grants approval; timeout, cancellation, or an automatic/default selection does not.",
 		);
@@ -527,11 +534,11 @@ function compatibilityBlock(contents: string, relativeFile: string): string | un
 	const capabilities = externalCapabilities(contents);
 	if (capabilities.length > 0) {
 		notes.push(
-			`- Selected paths may require external capabilities not built into OMP: ${capabilities.map(name => `\`${name}\``).join(", ")}. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report \`blocked: missing <capability>\`; never substitute an unrelated shell command or claim execution.`,
+			`- Selected paths may require external capabilities not built into OMP: ${capabilities.map((name) => `\`${name}\``).join(", ")}. Before using one, verify a configured tool providing that capability is available and authenticated. If the selected path requires an unavailable capability, stop and report \`blocked: missing <capability>\`; never substitute an unrelated shell command or claim execution.`,
 		);
 	}
 	if (notes.length === 0) return undefined;
-	return `${MARKER_START}\n> **OMP compatibility**\n>\n${notes.map(note => `> ${note}`).join("\n")}\n${MARKER_END}`;
+	return `${MARKER_START}\n> **OMP compatibility**\n>\n${notes.map((note) => `> ${note}`).join("\n")}\n${MARKER_END}`;
 }
 
 function stripCompatibilityBlock(contents: string): string {
@@ -555,7 +562,12 @@ function hasPositiveLine(contents: string, pattern: RegExp): boolean {
 	for (let index = 0; index < lines.length; index++) {
 		if (!pattern.test(lines[index])) continue;
 		const context = `${lines[index - 1] ?? ""} ${lines[index]}`;
-		if (/\b(?:do not|don't|never|no separate|unsupported|instead of|not supported|not a registered|were? replaced)\b/i.test(context)) continue;
+		if (
+			/\b(?:do not|don't|never|no separate|unsupported|instead of|not supported|not a registered|were? replaced)\b/i.test(
+				context,
+			)
+		)
+			continue;
 		return true;
 	}
 	return false;
@@ -564,16 +576,19 @@ function hasPositiveLine(contents: string, pattern: RegExp): boolean {
 function lintContents(contents: string, relativeFile: string, skillNames: ReadonlySet<string>): string[] {
 	const errors: string[] = [];
 	const cocoReference = isCortexCodeGuide(relativeFile);
+	if (
+		relativeFile.startsWith("skills/skill-development/") &&
+		hasPositiveLine(contents, /(?:\.cortex\/skills|\.snowflake\/cortex\/skills|snow:\/\/workspace)/)
+	) {
+		errors.push(`${relativeFile}: skill installation instructions must use OMP discovery paths`);
+	}
 	if (!cocoReference && /\b(?:AskUserQuestion|ask_user_question|ask_question)\b/.test(contents)) {
 		errors.push(`${relativeFile}: unsupported user-question tool name`);
 	}
 	if (!cocoReference && /\bmultiSelect\b/.test(contents)) {
 		errors.push(`${relativeFile}: unsupported ask multiSelect field`);
 	}
-	if (
-		!cocoReference &&
-		/\bASK the user:\s*(?:\n\s*)?\{[\s\S]{0,2000}?["']questions["']\s*:/.test(contents)
-	) {
+	if (!cocoReference && /\bASK the user:\s*(?:\n\s*)?\{[\s\S]{0,2000}?["']questions["']\s*:/.test(contents)) {
 		errors.push(`${relativeFile}: implicit question payload was not adapted`);
 	}
 	if (!cocoReference && /^\s*\{\s*\n\s*["']questions["']\s*:\s*\[/m.test(contents)) {
@@ -596,7 +611,7 @@ function lintContents(contents: string, relativeFile: string, skillNames: Readon
 			continue;
 		}
 		const questions = propertyMatches(body, "question").length;
-		const ids = [...body.matchAll(/(?:^|[{,])\s*["']id["']\s*:\s*["']([^"']+)["']/gm)].map(id => id[1]);
+		const ids = [...body.matchAll(/(?:^|[{,])\s*["']id["']\s*:\s*["']([^"']+)["']/gm)].map((id) => id[1]);
 		if (questions === 0 || questions !== ids.length || new Set(ids).size !== ids.length) {
 			errors.push(`${relativeFile}: every ask question needs a unique id`);
 		}
@@ -617,10 +632,7 @@ function lintContents(contents: string, relativeFile: string, skillNames: Readon
 	if (!cocoReference && /\bskill\s*\(\s*command\s*[:=]/i.test(contents)) {
 		errors.push(`${relativeFile}: unsupported skill(command=...) invocation`);
 	}
-	if (
-		!cocoReference &&
-		hasPositiveLine(contents, /\bskill\s*\(\s*["'][a-z0-9][a-z0-9_-]*["']\s*\)/i)
-	) {
+	if (!cocoReference && hasPositiveLine(contents, /\bskill\s*\(\s*["'][a-z0-9][a-z0-9_-]*["']\s*\)/i)) {
 		errors.push(`${relativeFile}: unsupported positional skill invocation`);
 	}
 	if (
@@ -657,7 +669,7 @@ function lintContents(contents: string, relativeFile: string, skillNames: Readon
 	for (const [index, [, expected]] of (FILE_REWRITES[relativeFile] ?? []).entries()) {
 		if (!contents.includes(expected)) errors.push(`${relativeFile}: compatibility rewrite ${index + 1} did not match`);
 	}
-	const hasAsk = calls.some(call => hasQuestionsField(contents.slice(call.open + 1, call.end)));
+	const hasAsk = calls.some((call) => hasQuestionsField(contents.slice(call.open + 1, call.end)));
 	if (!cocoReference && hasAsk && !contents.includes(MARKER_START)) {
 		errors.push(`${relativeFile}: missing OMP ask approval invariant`);
 	}
@@ -684,21 +696,235 @@ async function compatibilityInputs(packDir: string): Promise<CompatibilityInputs
 		if (declared) skillNames.add(declared);
 	}
 	return {
-		files: [
-			...(await markdownFiles(skillsDir)),
-			...(await markdownFiles(path.join(packDir, "commands"))),
-		].sort(),
+		files: [...(await markdownFiles(skillsDir)), ...(await markdownFiles(path.join(packDir, "commands")))].sort(),
 		skillNames,
 	};
 }
 
-async function adaptedContents(
-	packDir: string,
-	file: string,
-	skillNames: ReadonlySet<string>,
-): Promise<string> {
+/** Adapt host-owned workflow decisions, leaving Cortex Code product references untouched. */
+function adaptHostWorkflows(contents: string, relativeFile: string): string {
+	if (relativeFile === "skills/team-workflow/SKILL.md") {
+		contents = contents.replace(
+			/^description:.*$/m,
+			'description: "Manual Cortex Code team integration. Use only when explicitly invoking this workflow with configured Cortex Code team tools and CLI. Not OMP-native task orchestration; unavailable capabilities block execution."',
+		);
+		if (!/^disable-model-invocation:/m.test(contents)) {
+			contents = contents.replace(/^(name: team-workflow)\n/m, "$1\ndisable-model-invocation: true\n");
+		}
+	}
+	if (!relativeFile.startsWith("skills/skill-development/")) return contents;
+	if (relativeFile === "skills/skill-development/SKILL.md") {
+		contents = contents.replace(
+			/^description:.*$/m,
+			'description: "Capture sessions as OMP skills, refactor skill workflows, or compile deterministic fast paths. Use when turning completed work into a reusable workflow or optimizing an existing skill. General skill writing, descriptions, and quality review belong to skill-authoring."',
+		);
+		contents = contents.replace(
+			/# Skill Development[\s\S]*/,
+			[
+				"# Skill Development",
+				"",
+				"Build reusable OMP skills from completed work. Read `omp://skills.md` for discovery, frontmatter, and invocation semantics.",
+				"",
+				"## Routing",
+				"",
+				"| Task | Read |",
+				"|---|---|",
+				"| Create | `skill://skill-development/create-from-scratch/SKILL.md` |",
+				"| Capture session | `skill://skill-development/summarize-session/SKILL.md` |",
+				"| Audit | `skill://skill-development/audit-skill/SKILL.md` |",
+				"| Refactor | `skill://skill-development/refactor-skill/SKILL.md` |",
+				"| Compile deterministic fast path | `skill://skill-development/compile-skill/SKILL.md` |",
+				"",
+				"## Workflow",
+				"",
+				"1. Resolve scope from the request. Review/audit alone reports findings; write/fix/refactor completes the authorized edits.",
+				"2. Read the selected workflow and its required references. Inspect existing repository conventions and actual tool schemas.",
+				"3. Ask only for materially different tradeoffs the user must decide. Use conservative established defaults for routine choices; existing authorization remains valid.",
+				"4. Keep host paths and calls OMP-native. External capabilities require a configured, authenticated tool; missing capability means blocked.",
+				"5. Read back written files, validate references and frontmatter, and verify OMP discovery. Report evidence and remaining limitations.",
+				"",
+			].join("\n"),
+		);
+	}
+	const location = [
+		"Use OMP discovery, not a foreign host's installation paths. Read `omp://skills.md` before choosing a destination.",
+		"",
+		"| Scope | Destination |",
+		"|---|---|",
+		"| Existing pack or user-named repository | Its existing `skills/<name>/SKILL.md`; preserve its manifest and conventions |",
+		"| Project-local skill | `.omp/skills/<name>/SKILL.md` |",
+		"| Personal skill | `~/.omp/agent/skills/<name>/SKILL.md` |",
+		"",
+		"Resolve a supplied path before writing. Project scope is the default for project work; use personal scope only when requested. NEVER create `.cortex/`, `.snowflake/cortex/`, Snowflake workspace uploads, or compatibility symlinks for an OMP skill. Read the written file back and verify OMP discovers it; a file's existence alone does not prove discovery.",
+	].join("\n");
+	if (relativeFile === "skills/skill-development/create-from-scratch/SKILL.md") {
+		contents = contents.replace(/(### Step 3: Choose Location\n)[\s\S]*?(?=### Step 4:)/, "$1\n" + location + "\n\n");
+	}
+	if (relativeFile === "skills/skill-development/summarize-session/SKILL.md") {
+		contents = contents.replace(
+			/3\. \*\*Location\*\*:[\s\S]*?(?=### Step 5:)/,
+			"3. **Location**:\n\n" + location + "\n\n",
+		);
+	}
+	if (relativeFile === "skills/skill-development/audit-skill/SKILL.md") {
+		contents = contents.replace(
+			/Ask for skill path or name\. Search [^\n]*/,
+			"Use the supplied skill path. For a loaded name, `read skill://<name>` resolves the active OMP skill; consult `omp://skills.md` for discovery precedence. Otherwise inspect the project's `.omp/skills/`, the user's `~/.omp/agent/skills/`, or an explicitly named pack repository. Multiple matches require resolving the intended skill before editing.",
+		);
+	}
+	if (relativeFile === "skills/skill-development/compile-skill/SKILL.md") {
+		contents = contents.replace(
+			/Ask for `<skill-name>`\. Resolve to a SKILL\.md in this order:[\s\S]*?(?=Read the SKILL\.md\.)/,
+			"Resolve the supplied path or `read skill://<skill-name>` through OMP's active registry. Consult `omp://skills.md` before searching project `.omp/skills/`, personal `~/.omp/agent/skills/`, or an explicitly named pack repository. NEVER guess the winning copy from a filesystem search.\n\n",
+		);
+	}
+	// Match OMP's ask semantics: routine implementation choices do not force repeated approvals.
+	if (/skills\/skill-development\/(?:create-from-scratch|summarize-session)\/SKILL\.md$/.test(relativeFile)) {
+		contents = contents.replace(
+			/\*\*⚠️ STOP\*\*: [^\n]*/g,
+			"Proceed within the user's authorized scope. Ask only when a material requirement or tradeoff remains unresolved.",
+		);
+		contents = contents.replace(
+			"Present structure for approval.",
+			"Use the existing repository structure; show alternatives only for an unresolved material choice.",
+		);
+		contents = contents.replace(
+			"Present pattern for approval",
+			"State the extracted pattern and resolve material ambiguity",
+		);
+		contents = contents.replace(
+			/## Stopping Points[\s\S]*?(?=## Output)/g,
+			"## Decisions\n\nAsk only when the user's answer changes scope, destination, or a consequential action. Routine implementation continues under existing authorization.\n\n",
+		);
+		contents = contents.replace("- Stopping points\n", "- Decisions and authorization boundaries\n");
+	}
+	if (relativeFile === "skills/skill-development/audit-skill/SKILL.md") {
+		contents = contents.replace("No chaining without approval", "Consequential actions match user authorization");
+		contents = contents.replace(
+			"For each fix: show change → approve → apply.",
+			"Review-only request → report findings. Authorized fixes → apply in scope, verify, and report; ask only about unresolved consequential choices.",
+		);
+		contents = contents.replace("| Stopping points | 🔴 |", "| Decisions and authorization boundaries | 🟡 |");
+		contents = contents.replace("| ⚠️ checkpoints marked | 🔴 |\n", "");
+		contents = contents.replace(
+			/## Stopping Points[\s\S]*?(?=## Output)/,
+			"## Decisions\n\nAsk only when the answer changes which fixes are applied or authorizes writes outside the review scope. Loading a skill and presenting a report are not decisions.\n\n",
+		);
+		contents = contents.replace("**⚠️ STOP**: Present report.", "Present the report.");
+		contents = contents.replace("**⚠️ STOP**: Present results.", "Present the results.");
+		contents = contents.replace(
+			"Inconsistent stopping point markers",
+			"Inconsistent decision or authorization wording",
+		);
+	}
+	if (relativeFile === "skills/skill-development/refactor-skill/SKILL.md") {
+		contents = contents.replace("Own stopping points and output", "Own decisions and authorization boundaries");
+		contents = contents.replace(
+			"**⚠️ STOP**: Present assessment and recommended level.",
+			"Present the assessment and recommended level. Ask only when the refactoring level changes scope or output.",
+		);
+		contents = contents.replace(
+			"**⚠️ STOP**: Present refactored structure for approval.",
+			"Present the refactored structure. Ask only when a structural choice changes scope or output.",
+		);
+		contents = contents.replace(
+			"## Stopping Points\n\n- ✋ Step 1: After assessment, before refactoring\n- ✋ Step 5: Refactored structure approval",
+			"## Decisions\n\n- After the assessment, if a material structural choice remains\n- Before a refactor that changes the skill's authorized scope or output",
+		);
+	}
+	if (relativeFile === "skills/skill-development/compile-skill/SKILL.md") {
+		contents = contents.replace("**STOP** — present the eval table.", "**Gate** — present the eval table.");
+		contents = contents.replace(
+			"## Stopping Points\n\n- After Step 3: approve bucketed clusters and proposed intents.\n- After Step 5: review coverage table.\n- After Step 6: review eval table against pre-registered thresholds.",
+			"## Decisions\n\n- After Step 3: approve bucketed clusters and proposed intents when a material intent choice remains.\n- Before shipping a compiled skill that changes behavior outside the authorized scope.\n- Present the coverage and eval tables as evidence; pre-registered thresholds gate the ship.",
+		);
+	}
+	if (relativeFile === "skills/skill-development/SKILL_BEST_PRACTICES.md") {
+		contents = contents.replace(
+			"4. **User checkpoints**: Where to pause for user input",
+			"4. **Decision points**: Where a user choice changes scope or a consequential action",
+		);
+		contents = contents.replace("### Mandatory Stopping Points", "### Decision Points");
+		contents = contents.replace(
+			"Mark where the workflow MUST pause:",
+			"Mark where a user choice changes scope or a consequential action:",
+		);
+		contents = contents.replace(
+			"**⚠️ MANDATORY STOPPING POINT**: Do NOT proceed until user responds.",
+			"Ask only when the answer changes scope or the authorized action.",
+		);
+		contents = contents.replace("### Approval Gates", "### Authorization Boundaries");
+		contents = contents.replace(
+			"Before making changes, get explicit approval:",
+			"Before a consequential action, confirm it matches the user's existing authorization:",
+		);
+		contents = contents.replace(
+			"**⚠️ MANDATORY CHECKPOINT**: Before applying changes:",
+			"**Authorization check**: Before applying changes:",
+		);
+		contents = contents.replace(
+			'Wait for explicit approval (e.g., "approved", "looks good", "proceed").',
+			"Routine implementation within the authorized scope continues without a redundant approval.",
+		);
+		contents = contents.replace(
+			"NEVER proceed without user confirmation.",
+			"Ask before an effect that exceeds the request.",
+		);
+		contents = contents.replace(
+			"## Stopping Points\n\n- ✋ After diagnosis if ground truth needed\n- ✋ After analysis for approval\n\n**Resume rule:** Upon user approval, proceed directly to next step without re-asking.",
+			"## Decisions\n\n- After diagnosis if a material choice remains\n- Before an action outside the authorized scope\n\n**Resume rule:** After the user answers, continue the affected branch without re-asking.",
+		);
+		contents = contents.replace("### 2. ❌ Missing Stopping Points", "### 2. ❌ No Authorization Boundary");
+		contents = contents.replace(
+			"**⚠️ MANDATORY CHECKPOINT**: Present changes to user for approval before applying.",
+			"Apply the changes within the user's authorized scope; ask before an effect that exceeds the request.",
+		);
+		contents = contents.replace(
+			"**Pattern:** Add a stopping point before expensive operations that explains the scope:",
+			"**Pattern:** State the scope and cost before expensive operations; ask only when the cost changes the authorized action:",
+		);
+		contents = contents.replace(
+			"**⚠️ STOP**: This operation will scan a large dataset.",
+			"**Check first**: This operation will scan a large dataset.",
+		);
+		contents = contents.replace("Proceed? (Yes/No/Narrow scope)", "Ask only if the scan changes the authorized scope or cost.");
+		contents = contents.replace(
+			"| F8 | No stopping points | Medium | Agent chains without approval |",
+			"| F8 | No authorization boundary | Medium | Consequential actions ignore scope |",
+		);
+		contents = contents.replace(
+			"- [ ] Mandatory stopping points marked with ⚠️",
+			"- [ ] Consequential actions match the user's authorization",
+		);
+		contents = contents.replace(
+			"- [ ] No chaining actions without user approval",
+			"- [ ] Scope-changing actions ask when authorization is unclear",
+		);
+		contents = contents.replace(
+			"## Stopping Points\n[Where to pause for user input]",
+			"## Decisions\n[Where a user choice changes scope or a consequential action]",
+		);
+		contents = contents.replace("### 6. ❌ Chaining Without Approval", "### 6. ❌ Chaining Without Authorization");
+		contents = contents.replace(
+			"# GOOD\nAfter identifying issues:\n1. Present findings to user\n2. **⚠️ Wait for explicit approval**\n3. Only then apply fixes",
+			"# GOOD\nAfter identifying issues:\n1. Present findings and the changes that match the existing authorization\n2. Ask only if a fix exceeds the authorized scope\n3. Apply the authorized fixes",
+		);
+		contents = contents.replace(
+			"**⚠️ MANDATORY STOPPING POINT**: Get user confirmation before proceeding.",
+			"**Authorization check**: Confirm the requested changes match the user's authorization before proceeding.",
+		);
+		contents = contents.replace(
+			"## Stopping Points\n\n- ✋ After Step 2 analysis (for approval)\n- ✋ After Step 3 if validation fails",
+			"## Decisions\n\n- After Step 2 analysis if a material change choice remains\n- Before a change that exceeds the authorized scope",
+		);
+	}
+	return contents;
+}
+
+async function adaptedContents(packDir: string, file: string, skillNames: ReadonlySet<string>): Promise<string> {
 	const relativeFile = path.relative(packDir, file);
 	let contents = stripCompatibilityBlock(await readFile(file, "utf8"));
+	contents = adaptHostWorkflows(contents, relativeFile);
 	contents = adaptAliases(contents, relativeFile, skillNames);
 	contents = adaptKnownReferences(contents, relativeFile);
 	contents = await deLinkMissingReferences(contents, file);
@@ -738,15 +964,12 @@ export async function adaptCompatibility(packDir: string): Promise<Compatibility
 
 export async function lintCompatibility(packDir: string): Promise<string[]> {
 	const plan = await planCompatibility(packDir);
-	return [
-		...plan.changed.map(file => `${file}: OMP compatibility output is stale`),
-		...plan.errors,
-	];
+	return [...plan.changed.map((file) => `${file}: OMP compatibility output is stale`), ...plan.errors];
 }
 
 if (import.meta.main) {
 	const write = process.argv.includes("--write");
-	const packDirs = process.argv.slice(2).filter(argument => argument !== "--write");
+	const packDirs = process.argv.slice(2).filter((argument) => argument !== "--write");
 	if (packDirs.length === 0) {
 		console.error("usage: bun scripts/compatibility.ts [--write] <pack-dir>...");
 		process.exit(2);

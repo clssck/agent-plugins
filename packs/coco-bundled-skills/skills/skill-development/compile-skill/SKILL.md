@@ -27,12 +27,7 @@ Bad fit (skip COMPILE, stay on the LLM path):
 
 ### Step 1 — Locate the source skill
 
-Ask for `<skill-name>`. Resolve to a SKILL.md in this order:
-
-1. `.snowflake/cortex/skills/<name>/SKILL.md` (CoCo Snowsight workspace — check first when running in CoCo Snowsight)
-2. `.cortex/skills/<name>/SKILL.md`
-3. `$HOME/.snowflake/cortex/skills/<name>/SKILL.md` (or under `$SNOWFLAKE_HOME`)
-4. Repo-local matches (`**/<name>/SKILL.md` under user-provided skill repos)
+Resolve the supplied path or `read skill://<skill-name>` through OMP's active registry. Consult `omp://skills.md` before searching project `.omp/skills/`, personal `~/.omp/agent/skills/`, or an explicitly named pack repository. NEVER guess the winning copy from a filesystem search.
 
 Read the SKILL.md. Note the data sources, scripts, and commands it touches — those are what `executor.py` will need to hit directly. Confirm the resolved path with the user before proceeding.
 
@@ -219,7 +214,7 @@ Load `references/eval_design.md` and run the full rubric (C0–C8). The headline
 
 Pre-register the ship threshold before running (`eval_design.md` §"Pre-registered thresholds").
 
-**STOP** — present the eval table. Ship only if all pre-registered thresholds pass.
+**Gate** — present the eval table. Ship only if all pre-registered thresholds pass.
 
 ## References
 
@@ -227,11 +222,11 @@ Load when needed:
 
 - `references/eval_design.md` — full rubric (C0–C8), pre-registered ship thresholds, leakage controls, degenerate-baseline check. Required reading before Step 6.
 
-## Stopping Points
+## Decisions
 
-- After Step 3: approve bucketed clusters and proposed intents.
-- After Step 5: review coverage table.
-- After Step 6: review eval table against pre-registered thresholds.
+- After Step 3: approve bucketed clusters and proposed intents when a material intent choice remains.
+- Before shipping a compiled skill that changes behavior outside the authorized scope.
+- Present the coverage and eval tables as evidence; pre-registered thresholds gate the ship.
 
 ## Output
 
