@@ -230,7 +230,12 @@ for (const [toolName, args, expected] of [
 	["snowflake_sql_execute", { sql: "DELETE FROM orders WHERE id = 7" }, true],
 	["mcp__warehouse__query", { query: "TRUNCATE TABLE orders" }, true],
 	["customConnector", { statement: "UPDATE orders SET status = 'closed' WHERE id = 7" }, true],
-	["mcp__warehouse__query", { query: "SELECT id FROM orders LIMIT 1" }, false],
+	["mcp__warehouse__query", { query: "DELETE\nFROM orders WHERE id = 7" }, true],
+	["mcp__warehouse__query", { query: "DROP\nTABLE orders" }, true],
+	["mcp__warehouse__query", { query: "DELETE\tFROM orders WHERE id = 7" }, true],
+	["customConnector", { statement: "UPDATE\norders\nSET status = 'closed' WHERE id = 7" }, true],
+	["bash", { command: "alembic\ndowngrade -1" }, true],
+	["mcp__warehouse__query", { query: "SELECT\nid FROM orders LIMIT 1" }, false],
 ] as const) {
 	const manager = new ruleRuntime.TtsrManager({ enabled: true });
 	if (!sqlRule || !manager.addRule(sqlRule)) {
