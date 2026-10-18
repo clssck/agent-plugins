@@ -1,6 +1,6 @@
 # Parameter Recon
 
-Cards for `api-recon` Phases 1b and 3b. Paths come from the static harvest; parameter fields are reverse-engineered separately.
+Cards for `api-recon` parameter discovery and runtime action coverage. Paths come from the static harvest; parameter fields are reverse-engineered separately.
 
 ## Transport Shapes
 
@@ -34,7 +34,7 @@ Three questions per endpoint: how the payload is assembled, what validation exis
 
 ## Trigger Matrix
 
-**Per module, trigger each action class once and diff the samples.** Outbound bodies under mocks are still real — the request, not the mock, is the truth.
+**Per module, trigger each action class once and diff the samples.** Use the actual target session and capture unmodified exchanges. Mutating actions require applicable scope, engagement-owned objects, and a recovery plan; correlate the request with the real resulting state.
 
 |Action|Fields that usually appear|
 |---|---|
@@ -44,17 +44,19 @@ Three questions per endpoint: how the payload is assembled, what validation exis
 |Create/edit|full entity|
 |Bulk/export/sort|`ids[]`, export type, `sortField`|
 
-Record to `param_samples.json`; required versus optional is decided by multi-sample diffs or validation/error evidence, NEVER by one sample.
+Record to `param_samples.json`. Multiple client samples can suggest optionality but cannot establish backend requiredness. Use an explicit server validation response for a backend requirement; retain unknown when the observation does not decide it.
 
 ## Confidence Tiers
 
 |Tier|Evidence|
 |---|---|
-|high|observed in ≥2 samples or confirmed by a validation error|
-|medium|single observed sample|
+|high|field supported by ≥2 distinct relevant action samples, or an explicit backend validation fact; keep the origin and the exact claim|
+|medium|single observed live sample, linked to caller and request/response|
 |low|static-only candidate (callsite residue)|
 |pending|suspected but never triggered — record it as a limitation|
 
 ## Error-Based Reverse Check
 
 **Within scope, an intentionally incomplete request may be sent to read the 400/422 body** (`field 'x' is required`, enum violations). That is parameter recon, not exploitation — keep it non-destructive and rate-limited. Watch for wrapped `data`, GraphQL `variables`, and pre-encryption payloads (`bizData`).
+
+Confidence applies to the stated field or transport claim, not to endpoint reachability or security. An empty response establishes only what that caller and filter returned at that time, not that the target has no objects.
