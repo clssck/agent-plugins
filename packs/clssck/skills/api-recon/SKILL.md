@@ -54,6 +54,7 @@ Record scope and use existing authorization. A discovered domain, redirect, or c
 - Explicit static method declarations are evidence about code, not server behavior. One observed request does not decide whether a parameter is required.
 - Cover nav/sidebar, tabs, row actions, toolbars, and uncovered route bindings. Record action classes per module: list, search, advanced filter, create/edit, bulk/export, sort. Exercise only the real actions permitted for this phase; record a scoped-out action as untested rather than simulating completion.
 - Distinguish `static_candidate`, `frontend_observation`, and `backend_observation`. A rendered menu or client role flag does not establish server permission; record the actual caller, request, response, and resulting state.
+- Blank modules or bootstrap-only routes: reconstruct the permission/menu tree from in-scope code read-only, record the code evidence, and rerun permitted runtime observation. NEVER stub or fabricate a successful response to force a route.
 - Report coverage as counts with denominators: discovered routes versus visited routes, action classes observed versus identified, sources fetched versus discovered. Unknown denominators stay unknown; NEVER claim complete coverage from a sample.
 - Retry only with a changed information source or hypothesis. Repeated identical results exhaust that approach; missing credentials or unsupported interception do not become reasons to sweep identifiers.
 - Optional non-destructive backend validation and service metadata paths (`/healthz`, `/readyz`, `/version`, `/metrics`, `/openapi.json`) require applicable scope and budgets; record them as candidates before any permitted check. A 400 response supports only the parameter facts it actually reveals. Honor backoff; do not deliberately trip the limiter.
@@ -72,3 +73,16 @@ All paths are relative to the chosen recon directory. Keep the existing file nam
 | `params_merged.json`, `api_merged.txt`, `site_map.json` | Merged inventory, provenance, route/action/source counts, gaps, and limitations |
 
 Preserve every discovered service and endpoint as an observation or candidate with status; do not silently drop failures or unresolved dynamic paths. Transfer the inventory to `exploitation`; record at minimum origin, method, path, parameters with confidence, caller/identity, evidence reference, status (`static_candidate`, `frontend_observation`, or `backend_observation`), and untested gaps. Use the [shared evidence and handoff records](skill://pentest-tradecraft/references/assessment-records.md) for the extended schema when available; the local fields above are sufficient for a standalone handoff.
+
+## Completion
+
+Claim recon complete only when all hold:
+
+- Static inventory records discovered, fetched, failed, and skipped chunks with counts; unresolved dynamic paths stay marked.
+- At least one runtime mode observed actual target requests and responses; a blocked or missing session is recorded as a limitation.
+- Auth gates come from observed session/permission behavior or in-scope code paths, not key names.
+- Parameter candidates carry transport, source, confidence, and at least one action sample per covered class; unknown requiredness stays unknown.
+- Coverage reports denominators for routes, action classes, and sources; uncovered items are listed.
+- Deliverables are written to `recon/`; eval memory is not the deliverable.
+
+A clean negative or blocked phase stays `not_tested`. NEVER substitute a fabricated session, stubbed success, or mock response for missing access.
