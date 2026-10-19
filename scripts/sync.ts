@@ -58,7 +58,7 @@ interface Item {
 
 interface Pack {
 	name: string;
-	/** Directory relative to the repository root, e.g. `packs/clssck-core`. */
+	/** Directory relative to the repository root, e.g. `packs/clssck`. */
 	dir: string;
 	/** The pack's `package.json` version. */
 	version: string;
@@ -920,15 +920,14 @@ export async function renderReadme(sources: Sources, packs: Pack[], commits?: Re
 		"```bash",
 		"omp plugin install github:clssck/agent-plugins   # omp keeps its own copy of this repo",
 		"AP=~/.omp/plugins/node_modules/agent-plugins",
-		"omp plugin link $AP/packs/clssck-core              # link each pack you want",
-		"omp plugin link $AP/packs/clssck-development",
+		"omp plugin link $AP/packs/clssck                  # link each pack you want",
 		"omp plugin link $AP/upstream/gsap-skills",
 		"```",
 		"",
 		"`omp plugin upgrade agent-plugins` pulls the latest commit; linked packs follow automatically because they point into omp's copy. The package name is required: bare `omp plugin upgrade` only upgrades marketplace packages. Run `omp plugin doctor` afterward to catch removed or renamed pack targets. Re-link only when adding, renaming, or removing a pack; routine re-links reset its enabled state and feature selection. `omp plugin disable <name>` / `enable <name>` toggles a pack, `omp plugin uninstall <name>` removes it, and `/extensions` toggles individual skills, rules, and agents.",
 		"Packs are linked independently. If the catalog's \`Requires\` column names another pack, link that provider too; repository checks validate every declared cross-pack skill target.",
 		"",
-		"Upgrade note for existing installs: if a machine links `sanofi` without `clssck-core`, link `clssck-core` before upgrading. The `dbt-command-scope` and `dbt-test-arguments` guards moved to `clssck-core` in 1.2.0.",
+		"Upgrade note for existing installs: `clssck-core` and `clssck-development` were replaced by `clssck`; link `packs/clssck` and unlink the old packs. If a machine links `sanofi` without `clssck`, link `clssck` before upgrading. The `dbt-command-scope` and `dbt-test-arguments` guards live in `clssck`.",
 		"",
 		"Packs that load are not guaranteed to work with every host capability. Generated upstreams are copied at pinned commits and record build provenance; source repositories remain untouched. Missing links are repaired or de-linked, and \`skill://\` references are validated against pack-scoped dependency declarations. When a required capability or host path is unavailable, stop and report it; NEVER improvise a substitute.",
 		"",

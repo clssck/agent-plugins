@@ -1,0 +1,13 @@
+{
+  "name": "clssck",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Personal OMP skills, rules, agents, and commands.",
+  "license": "MIT AND Apache-2.0",
+  "author": {
+    "name": "clssck"
+  },
+  "homepage": "https://github.com/clssck/agent-plugins/tree/main/packs/clssck",
+  "repository": "https://github.com/clssck/agent-plugins",
+  "omp": {}
+}

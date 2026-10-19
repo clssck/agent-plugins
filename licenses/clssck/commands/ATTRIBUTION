@@ -1,0 +1,11 @@
+The `clssck` commands derive from oh-my-pi command templates.
+
+Source: https://github.com/can1357/oh-my-pi
+Source commit: 5d0aaffaf1f987503ce129a642fb6e30339615af
+License: MIT (see LICENSE-oh-my-pi)
+
+Copied path:
+- .omp/commands/ -> packs/clssck/commands/
+
+The commands have since been adapted and are maintained by clssck. Credit for
+the original command templates belongs to the oh-my-pi authors.

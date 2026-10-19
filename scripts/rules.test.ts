@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { readdir } from "node:fs/promises";
 import * as path from "node:path";
 
-const RULES = path.join(path.resolve(import.meta.dir, ".."), "packs", "clssck-core", "rules");
+const RULES = path.join(path.resolve(import.meta.dir, ".."), "packs", "clssck", "rules");
 
 /**
  * Local approximation of how a rule `condition` is compiled: a leading `(?ims)` group becomes native RegExp flags.

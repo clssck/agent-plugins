@@ -3,9 +3,7 @@
   "ref": "main",
   "reviewedCommit": "b91db66e9b0b65a2c977e6a5bc74b0f4b1d58d1c",
   "trees": {
-    ".omp/commands": "1b7b7b8390f2d6b458f7f9d61ffa0adece0590dd",
-    ".omp/skills": "09143f09618835ecd5ceb46d079b00497b9de4c9",
-    ".omp/tools": "b8f9f3c90780df887a22617cb5da8c72a52621f4"
+    ".omp/commands": "1b7b7b8390f2d6b458f7f9d61ffa0adece0590dd"
   },
   "natives": {
     "package": "@oh-my-pi/pi-natives-linux-x64",

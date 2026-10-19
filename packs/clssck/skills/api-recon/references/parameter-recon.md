@@ -26,6 +26,8 @@ Cards for `api-recon` parameter discovery and runtime action coverage. Paths com
 
 **Output stays bounded** — matched lines only; page files with the tool's `skip`, and tighten the pattern or window to surface more matches inside one file. NEVER paste bundle fragments into the conversation: record candidates in `recon/param_candidates.json` as `{path, fields[], source, confidence}`.
 
+Keep the working candidate map in an `eval` variable keyed by path and transport; merge new matches there and write `recon/param_candidates.json` after each batch. Do not reparse the same chunks in a new process. A subagent gets the JSON path, not the variable.
+
 ## Binding Chains
 
 **Walk from the UI control to the payload:** form submit → transform → request builder; table search → `getFieldsValue()`/state → params; route segment/query → loader; interceptors inject global fields (tenant, pagination, signature); enum selects reveal allowed values. The DevTools call stack from the request up to the packer function is the fastest confirmation path.

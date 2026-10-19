@@ -29,10 +29,10 @@ terms that apply, and this note adds no restriction to them.
 
 This license covers all material authored in this repository, including root
 files, .github/, configuration, scripts/, rule sources, and the first-party
-packs under packs/ (clssck-core, clssck-development, and sanofi).
+packs under packs/ (clssck and sanofi).
 Exceptions:
-- packs/clssck-core/skills/cli-creator/ remains under Apache-2.0; see
-  licenses/clssck-core/cli-creator/LICENSE.txt.
+- packs/clssck/skills/cli-creator/ remains under Apache-2.0; see
+  licenses/clssck/cli-creator/LICENSE.txt.
 - The `Command Scope` section of packs/sanofi/skills/dbt/SKILL.md and reference
   files in packs/sanofi/skills/dbt/ adapted from dbt-labs/dbt-agent-skills
   remain under Apache-2.0; see licenses/sanofi/dbt/.

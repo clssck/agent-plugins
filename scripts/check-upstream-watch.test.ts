@@ -30,7 +30,7 @@ const source: WatchSource = {
 	ref: "main",
 	path: "skills",
 	reviewedCommit: REVIEWED,
-	target: "packs/clssck-core/skills",
+	target: "packs/clssck/skills",
 	issueTitle: TITLE,
 };
 const config: WatchConfig = { repository: REPOSITORY, assignee: "clssck", sources: [source] };
@@ -189,7 +189,7 @@ describe("issueBody", () => {
 		expect(body).toContain("main:skills");
 		expect(body).toContain(`[${REVIEWED.slice(0, 12)}](https://github.com/emilkowalski/skills/commit/${REVIEWED})`);
 		expect(body).toContain(`[${LATEST.slice(0, 12)}](https://github.com/emilkowalski/skills/commit/${LATEST})`);
-		expect(body).toContain("`packs/clssck-core/skills`");
+		expect(body).toContain("`packs/clssck/skills`");
 	});
 
 	test("includes the compare URL", () => {

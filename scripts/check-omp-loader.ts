@@ -7,11 +7,10 @@
  * The check runs the omp-plugins provider in explicit-only mode for skills, commands,
  * rules, and tools; parses task agents with OMP's fatal agent parser; and imports/binds every
  * declared extension. Repository expectations must match the host by name and file with no warnings.
- * It also exercises the packaged TUI over a PTY and connector SQL rules through OMP's TTSR manager.
+
  */
 
 import * as path from "node:path";
-import { checkTuiLifecycle } from "./omp-runtime-cases";
 import { check } from "./sync";
 
 const ROOT = path.resolve(import.meta.dir, "..");
@@ -254,15 +253,7 @@ const loadedCustom = await customToolLoader.loadCustomTools(customPaths, ROOT, [
 for (const error of loadedCustom.errors) problems.push("OMP custom-tool factory: " + error.path + ": " + error.error);
 if (loadedCustom.tools.length !== customPaths.length)
 	problems.push("OMP did not instantiate every discovered custom tool");
-const tui = loadedCustom.tools.find((item: { tool: { name: string } }) => item.tool.name === "tui");
-if (tui) {
-	try {
-		await checkTuiLifecycle(tui.tool);
-	} catch (error) {
-		problems.push("OMP TUI lifecycle: " + String(error));
-	}
-} else problems.push("OMP custom-tool loader did not instantiate tui");
-totals.push(loadedCustom.tools.length + " custom-tool factories; connector SQL runtime cases");
+totals.push(loadedCustom.tools.length + " custom-tool factories; connector SQL and manual-skill runtime cases");
 
 const extensionPaths: string[] = [];
 for (const pack of packs) {

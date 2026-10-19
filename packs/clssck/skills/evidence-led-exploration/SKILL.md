@@ -10,6 +10,10 @@ Keeps facts about the subject separate from the history of exploring it. Short i
 
 Ledger template → [investigation-ledger.md](skill://evidence-led-exploration/references/investigation-ledger.md). Worker or session boundary → [handoff-packet.md](skill://evidence-led-exploration/references/handoff-packet.md).
 
+## OMP execution
+
+Use `eval` for the working ledgers: keep subject claims, branches, and probes in Python/JS variables for cheap queries and diffs, and persist the canonical ledger with `write`/`edit` after each merge. Eval state is not durable and subagents have separate kernels; the file is the handoff source. Use `read`/`grep`/`glob` for evidence, `find` when the location or behavior is unknown, `bash` for real binaries, and `artifact://` for bulky output. Use `task`/`workpool` for isolated workers and `wait` for their handles; worker output is at `agent://<id>` and its transcript at `history://<id>`. Use `local://<name>.md` for a shared handoff, `web_search` for external sources (cite URL and access time), `todo` for execution phases, and `ask` for material branch choices; the ledger remains canonical. Memory (`recall`/`reflect`) can seed a hypothesis but never replaces cited evidence. Do not build a custom ledger CLI.
+
 ## Invoke when
 
 **Use explicitly when ≥1 holds:**
@@ -20,6 +24,8 @@ Ledger template → [investigation-ledger.md](skill://evidence-led-exploration/r
 - Deferred leads need to wake when later evidence changes their value.
 
 **NEVER for** a single lookup, a known linear procedure, or an established next step. Domain skill defines the execution method → it wins; this skill owns ledger structure, branch management, contradictions, handoff only. NEVER run a second competing loop.
+
+For an authorized penetration test, `pentest-tradecraft` owns scope, the check/finding records, cleanup, and handoff. Use this ledger only for an unresolved investigation branch, never as a replacement for the assessment records.
 
 ## Invariants
 
@@ -80,7 +86,7 @@ Cite both evidence sets; identify whether they differ by time, version, environm
 
 ## Parallel workers
 
-Each worker gets one branch, an immutable snapshot of relevant subject records, explicit scope, a requested return format. Workers return evidence + proposed ledger deltas; NEVER silently rewrite shared conclusions. Coordinator merges deltas serially, records conflicts, wakes dependent leads, blocks duplicate probes unless independent reproduction is intentional.
+Each worker gets one branch, an immutable snapshot of relevant subject records, explicit scope, a requested return format. Workers return evidence + proposed ledger deltas; NEVER silently rewrite shared conclusions. Coordinator merges deltas serially, records conflicts, wakes dependent leads, blocks duplicate probes unless independent reproduction is intentional. Target traffic still follows the domain skill's budget and one-integration-owner rule; parallel branches do not authorize concurrent probes.
 
 ## Stop and handoff
 

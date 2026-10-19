@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-// Watches the OMP sources clssck-development was adapted from. It never syncs files:
+// Watches the OMP command sources `clssck` was adapted from. It never syncs files:
 // a change opens (or refreshes) one assigned issue so a maintainer can review and adopt it by hand.
 
 import * as path from "node:path";
@@ -78,7 +78,7 @@ function issueBody(lock: SourceLock, head: string, current: Record<string, strin
 		return `| \`${sourcePath}\` | ${reviewed} | ${latest} |`;
 	});
 	return [
-		`@${lock.notification.assignee} OMP changed sources that \`clssck-development\` was adapted from.`,
+		`@${lock.notification.assignee} OMP changed command sources that \`clssck\` was adapted from.`,
 		"",
 		"| Source path | Reviewed tree | Current tree |",
 		"| --- | --- | --- |",
@@ -86,7 +86,7 @@ function issueBody(lock: SourceLock, head: string, current: Record<string, strin
 		"",
 		`Compare: https://github.com/${lock.repository}/compare/${lock.reviewedCommit}...${head}`,
 		"",
-		"`clssck-development` is first-party and is not synced. Review the diff, adapt anything useful by hand, then update `omp-source-lock.json` to the reviewed commit and trees.",
+		"`clssck` is first-party and is not synced. Review the diff, adapt anything useful by hand, then update `omp-source-lock.json` to the reviewed commit and tree.",
 		"",
 		marker,
 	].join("\n");

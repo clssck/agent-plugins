@@ -7,7 +7,7 @@ description: Build a durable, installable CLI from API docs, OpenAPI specs, SDKs
 
 Builds a real CLI an agent runs by command name from any working directory, plus a companion omp skill that teaches it. Durable tools only: a short script in the current repo solves the task? Write the script there. The CLI is the agent's command layer — composable discover/resolve/read/write primitives with stable `--json`, no TTY assumptions, and no secret leakage — because an agent drives it cold, repeatedly, without a human to answer prompts.
 
-License: Apache-2.0; see `licenses/clssck-core/cli-creator/LICENSE.txt`. Command, JSON, and companion-skill contract → [agent-cli-patterns.md](skill://cli-creator/references/agent-cli-patterns.md). Per-runtime install → [install-and-packaging.md](skill://cli-creator/references/install-and-packaging.md).
+License: Apache-2.0; see `licenses/clssck/cli-creator/LICENSE.txt`. Command, JSON, and companion-skill contract → [agent-cli-patterns.md](skill://cli-creator/references/agent-cli-patterns.md). Per-runtime install → [install-and-packaging.md](skill://cli-creator/references/install-and-packaging.md).
 
 ## Scope the tool
 
@@ -111,7 +111,7 @@ After the CLI works, create or update a normal omp skill that teaches it.
 |Location|Path|Use when|
 |---|---|---|
 |User skills|`~/.omp/agent/skills/<tool-name>/SKILL.md` (Windows: `$env:USERPROFILE\.omp\agent\skills\<tool-name>\SKILL.md`)|Personal tool, default|
-|Pack|`skills/<tool-name>/SKILL.md` in an agent-plugins pack, e.g. `clssck-core`|User names a pack or repo|
+|Pack|`skills/<tool-name>/SKILL.md` in an agent-plugins pack, e.g. `clssck`|User names a pack or repo|
 |Project|`.omp/skills/<tool-name>/SKILL.md`|Tool belongs to one repository|
 
 - **Layout:** one level deep, `<skills-root>/<tool-name>/SKILL.md`; folder name = `name`.
