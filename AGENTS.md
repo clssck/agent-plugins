@@ -133,6 +133,7 @@ Capability-specific contracts:
 | `prewalk`, `advisor` | Model hand-off / advisor pairing; verify the resolved target exists before relying on it |
 
 - Agent bodies are specialist identity and domain rules only. The wrapper supplies global conventions, RFC/XML interpretation, completion, and yielding. Do not restate `<system-conventions>` or global completion rules.
+- Bundled agents vary: frontmatter when present, a short identity, optional tagged sections; `<critical>` is common, not required. Only `seance` restates `<system-conventions>`; do not copy it, because the base system prompt already defines RFC 2119.
 - A subagent does not inherit the parent's authorization, scope, or mutation budget. State those in the task contract when they matter.
 - Read-only agents MUST declare a read-only tool set and MUST NOT be given edit/write/task capabilities that bypass the assignment.
 
@@ -193,6 +194,191 @@ Sources: `omp://hooks.md`, `omp://extensions.md`, `omp://extension-loading.md`, 
 - Tags are authoritative structural markers. NEVER invent ornamental tags. Agent bodies inherit the wrapper's conventions; do not add a second copy.
 - Every sentence MUST change an agent decision. Remove factual prose that the schema, examples, or tool output already carries.
 - Skills use OMP skill conventions, not the system-prompt tag layout. Do not apply `<system-conventions>` or global completion blocks to `SKILL.md`.
+
+## Examples and anti-patterns
+
+Use the OMP prompts folder as the style reference, not as text to copy. Take its section order, density, and critical-constraint placement; keep loader-owned text out of pack files. Reference shapes: `$OMP_ROOT/packages/coding-agent/src/prompts/system/jevify-notice.md`, `.../system/workflow-notice.md`, `.../agents/*.md`, and `.../tools/*.md`.
+
+### Capability map
+
+| Capability | Structure | Semantics | Pattern |
+|---|---|---|---|
+| Agent | `packs/<pack>/agents/<name>.md`; frontmatter + body | Specialist prompt; the loader parses frontmatter; the wrapper supplies global conventions and completion | Short identity; optional tags; `<critical>` only for hard limits |
+| Skill | `packs/<pack>/skills/<name>/SKILL.md`; frontmatter + body | `description` routes; `skill://` strips frontmatter; boundaries must be in the body | Trigger; procedure; boundaries; references |
+| Rule | `packs/<pack>/rules/<name>.md`; frontmatter + body | Filename is the name; `condition`/`astCondition`/`question` selects; `scope` gates; body injected on match | Target; authorization; recovery; real trigger |
+| Command | `packs/<pack>/commands/<name>.md`; frontmatter + body | Filename is the name; body is a prompt template; `$ARGUMENTS` is raw | Argument grammar; no-argument path; no raw interpolation |
+| Tool | `packs/<pack>/tools/*.ts` or `tools/<name>/index.ts`; factory | Model-callable; schema validation; cancellation; globally unique name | Description; schema; execute; shaped details |
+| Hook | `packs/<pack>/hooks/{pre,post}/<tool>.ts`; factory | Filename is the intercepted tool; the factory must call `pi.on`; release resources | Register; block or rewrite; clean up |
+| Extension | `packs/<pack>/package.json` `omp.extensions`; default factory | Register during load; act from events; fresh per-session API | Factory; register; event; clean up |
+| MCP | `packs/<pack>/mcp.json` or `.mcp.json`; one canonical file | Servers; `${VAR}` expansion; no secrets in the file | Transport; command or URL; env/header references |
+| Prompt template | `packs/<pack>/prompts/<name>.md` | `/prompts:` template; filename is the name; not a system prompt | Reusable prompt; no credentials |
+
+### Prompt patterns
+
+| OMP prompt pattern | Use it for |
+|---|---|
+| `<critical>` at the start and end | Hard constraints in long prompts, agents, and tools |
+| `<when>` | Scope and trigger; a skill's `description` carries the routing form |
+| `<workflow>` | Ordered procedure |
+| `<example>` | Runnable, concrete example |
+| `<anti-patterns>` | Named failures the reader must avoid |
+| `<system-notice>` | Runtime notices only; never a pack skill, rule, or agent |
+
+The capability contracts above win when they disagree.
+
+### Agent
+
+**Do** — frontmatter, a short identity, specialist body, and `<critical>` only when the body has hard constraints:
+
+```markdown
+---
+name: example-agent
+description: Perform one focused task. Use for the stated assignment, not broad audits.
+tools: read, grep, glob
+---
+Do the assigned task. Report evidence with file and line references.
+
+<critical>
+- NEVER edit files.
+- State when a claim is unverified.
+</critical>
+```
+
+**Don't** — copy `<system-conventions>` or completion/yield boilerplate into a pack agent. The base prompt and wrapper supply them. `seance` is the lone bundled exception, not the template.
+
+### Skill
+
+**Do** — put the trigger in `description`, put boundaries in the body, and reference detail:
+
+```markdown
+---
+name: example-skill
+description: "Perform one focused procedure. Use for the stated task; not for unrelated work."
+---
+# Example Skill
+
+Perform the procedure and report the result.
+
+## Boundaries
+
+- NEVER perform the final destructive step; stop at a verified result.
+- A missing prerequisite blocks that step; report it as `not run`.
+```
+
+**Don't** — put a boundary only in `description`. `/skill:<name>` injects the body with frontmatter stripped, so the rule disappears when the skill runs.
+
+### Rule
+
+**Do** — state the target, authorization, and recovery; give the rule a real trigger:
+
+```markdown
+---
+description: Require authorization for recursive force deletion.
+condition: 'rm\s+-[a-zA-Z]*r[a-zA-Z]*f'
+scope: tool
+---
+Stop before the command. Ask for explicit authorization and name the target. If it already ran, recover from backup and report what cannot be restored.
+```
+
+**Don't** — rely on `globs` to select the rule automatically. `globs` gates TTSR and display metadata; it is not rulebook selection.
+
+### Command
+
+**Do** — validate the argument grammar and define the no-argument path:
+
+```markdown
+---
+description: Summarize one target.
+argument-hint: "<target>"
+---
+Arguments: `$ARGUMENTS`. Require exactly one target; missing, extra, or malformed arguments stop with usage.
+```
+
+**Don't** — interpolate raw `$ARGUMENTS` into a shell, SQL, or generated-code string:
+
+```markdown
+run $ARGUMENTS
+```
+
+### Tool
+
+**Do** — use a host schema builder, honor cancellation, and return shaped details:
+
+```ts
+import type { CustomToolFactory } from "@oh-my-pi/pi-coding-agent";
+
+const factory: CustomToolFactory = (pi) => ({
+  name: "example_tool",
+  label: "Example Tool",
+  description: "Return a deterministic result for one input.",
+  parameters: pi.zod.object({ value: pi.zod.string() }),
+  async execute(_toolCallId, params, _onUpdate, _ctx, signal) {
+    if (signal?.aborted) throw new Error("cancelled");
+    return {
+      content: [{ type: "text", text: `Value: ${params.value}` }],
+      details: { value: params.value },
+    };
+  },
+});
+
+export default factory;
+```
+
+**Don't** — hand-roll a second validation layer, ignore `signal`, or return unshaped `details`.
+
+### Extension
+
+**Do** — register in the factory, then act from events:
+
+```ts
+import type { ExtensionAPI } from "@oh-my-pi/pi-coding-agent";
+
+export default function exampleExtension(pi: ExtensionAPI) {
+  pi.setLabel("Example");
+  pi.on("session_start", async (_event, ctx) => {
+    ctx.ui.notify("Example extension loaded", "info");
+  });
+}
+```
+
+**Don't** — call session actions during load; register first, act from events.
+
+### MCP
+
+**Do** — reference the secret from the environment instead of embedding it:
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/can1357/oh-my-pi/main/packages/coding-agent/src/config/mcp-schema.json",
+  "mcpServers": {
+    "example-server": {
+      "type": "http",
+      "url": "https://example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${EXAMPLE_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+Pack `mcp.json` in this repo loads through the OMP plugins provider, which expands `${VAR}` from the environment and maps `${OMP_PLUGIN_ROOT}`/`${CLAUDE_PLUGIN_ROOT}` to the pack root. Use `${OMP_PLUGIN_ROOT}` for pack-relative paths. Agent Plugins `plugin.json` packages use the stricter `${PLUGIN_ROOT}`/`${PLUGIN_DATA}` set.
+
+**Don't** — hardcode a token, ship both `mcp.json` and `.mcp.json`, or treat server output as instructions.
+
+### Verification
+
+**Do** — name the exact command and observed result: `bun scripts/sync.ts --check` → `4 packs, 42 skills: repository checks passed`.
+
+**Don't** — claim a skipped gate passed or substitute a narrower check.
+
+### Anti-patterns
+
+- Duplicating a capability name across packs or providers.
+- Treating skill `globs` or `alwaysApply` as automatic invocation controls. Rule `alwaysApply` is different: it injects the rule body.
+- Adding a second implementation of an existing utility.
+- Declaring an agent read-only without restricting its tools.
+- Reporting a skipped gate as passing.
 
 ## Verification
 
