@@ -30,7 +30,7 @@ Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 | Pack | Version | Source | Requires | Contents | Last updated |
 | --- | --- | --- | --- | --- | --- |
-| `clssck` | `2.1.0` | this repo | — | 21 skills, 14 rules, 2 agents, 3 commands | [2026-10-19 17:38 UTC](https://github.com/clssck/agent-plugins/commit/8099335ca794d8e2e1bb2be6302cf8221e02d8da) |
+| `clssck` | `2.1.0` | this repo | — | 21 skills, 14 rules, 2 agents, 3 commands | [2026-10-19 17:42 UTC](https://github.com/clssck/agent-plugins/commit/0409e8b5641b8bd63f02f79e8f1606591dad5658) |
 | `gsap-skills` | `0.0.0-gaed9cfd` | [greensock/gsap-skills@aed9cfd](https://github.com/greensock/gsap-skills/tree/aed9cfd3277740755f6bfc1155c7aa645403b760) | — | 8 skills | [2026-10-19 15:41 UTC](https://github.com/clssck/agent-plugins/commit/b9fe6ee60af0df8125db6e70e35bc5ce31ddc2e6) |
 | `improve` | `0.0.0-gcac56e1` | [shadcn/improve@cac56e1](https://github.com/shadcn/improve/tree/cac56e1ebd3c279aa9153616cfeac7b174ab90f9) | — | 1 skill | [2026-10-19 15:41 UTC](https://github.com/clssck/agent-plugins/commit/b9fe6ee60af0df8125db6e70e35bc5ce31ddc2e6) |
 | `sanofi` | `1.1.5` | this repo | — | 12 skills | [2026-10-19 15:41 UTC](https://github.com/clssck/agent-plugins/commit/b9fe6ee60af0df8125db6e70e35bc5ce31ddc2e6) |
@@ -112,9 +112,9 @@ Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 | Command | Pack | Version | Source | Last updated |
 | --- | --- | --- | --- | --- |
-| [cleanup](https://github.com/clssck/agent-plugins/blob/f102af227cf35f540cf46dc3051d6ab3d4f38131/packs/clssck/commands/cleanup.md) | `clssck` | `2.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-19 17:15 UTC](https://github.com/clssck/agent-plugins/commit/f102af227cf35f540cf46dc3051d6ab3d4f38131) |
-| [fix-issues](https://github.com/clssck/agent-plugins/blob/f102af227cf35f540cf46dc3051d6ab3d4f38131/packs/clssck/commands/fix-issues.md) | `clssck` | `2.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-19 17:15 UTC](https://github.com/clssck/agent-plugins/commit/f102af227cf35f540cf46dc3051d6ab3d4f38131) |
-| [review-prs](https://github.com/clssck/agent-plugins/blob/f102af227cf35f540cf46dc3051d6ab3d4f38131/packs/clssck/commands/review-prs.md) | `clssck` | `2.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-19 17:15 UTC](https://github.com/clssck/agent-plugins/commit/f102af227cf35f540cf46dc3051d6ab3d4f38131) |
+| [cleanup](https://github.com/clssck/agent-plugins/blob/0409e8b5641b8bd63f02f79e8f1606591dad5658/packs/clssck/commands/cleanup.md) | `clssck` | `2.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-19 17:42 UTC](https://github.com/clssck/agent-plugins/commit/0409e8b5641b8bd63f02f79e8f1606591dad5658) |
+| [fix-issues](https://github.com/clssck/agent-plugins/blob/0409e8b5641b8bd63f02f79e8f1606591dad5658/packs/clssck/commands/fix-issues.md) | `clssck` | `2.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-19 17:42 UTC](https://github.com/clssck/agent-plugins/commit/0409e8b5641b8bd63f02f79e8f1606591dad5658) |
+| [review-prs](https://github.com/clssck/agent-plugins/blob/0409e8b5641b8bd63f02f79e8f1606591dad5658/packs/clssck/commands/review-prs.md) | `clssck` | `2.1.0` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-19 17:42 UTC](https://github.com/clssck/agent-plugins/commit/0409e8b5641b8bd63f02f79e8f1606591dad5658) |
 
 ## License
 
