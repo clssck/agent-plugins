@@ -1,5 +1,0 @@
-uv.lock
-__pycache__/
-*.py[cod]
-.venv/
-.migration-ui/

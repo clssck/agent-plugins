@@ -10,6 +10,7 @@ on:
       - "packs/**"
       - "sources.json"
       - "omp-source-lock.json"
+      - "upstream-watch.json"
       - "scripts/**"
       - ".github/workflows/sync-upstreams.yml"
       - ".github/actions/**"
@@ -128,3 +129,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: bun scripts/check-omp-source.ts --notify
+
+  # Vendored upstreams are never synced: a change opens one assigned issue so a maintainer can port it by hand.
+  upstream-watch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: "1.4.3"
+
+      - name: Report vendored upstream changes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: bun scripts/check-upstream-watch.ts --notify

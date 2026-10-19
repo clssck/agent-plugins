@@ -185,6 +185,23 @@ class CliTests(unittest.TestCase):
         self.assertEqual(ok.returncode, 0, ok.stdout)
         self.assertIn("checked 1 taggable resources: 0 failing, 0 unknown", ok.stdout)
 
+    def test_asg_unknown_propagate_at_launch_warns_and_fails_strict(self):
+        blocks = [{"key": k, "value": v, "propagate_at_launch": True} for k, v in GOOD.items()]
+        blocks[0] = {"key": "team", "value": GOOD["team"], "propagate_at_launch": None}
+        marks = [{} for _ in blocks]
+        marks[0] = {"propagate_at_launch": True}
+        res = {
+            **resource("aws_autoscaling_group.later", {"tag": blocks}, after_unknown={"tag": marks}),
+            "type": "aws_autoscaling_group",
+        }
+        plan = {"resource_changes": [res]}
+        lenient = run(plan)
+        self.assertEqual(lenient.returncode, 0, lenient.stdout)
+        self.assertIn("WARN aws_autoscaling_group.later: propagate_at_launch unknown until apply: `team`", lenient.stdout)
+        self.assertNotIn("FAIL", lenient.stdout)
+        self.assertIn("0 failing, 1 unknown", lenient.stdout)
+        self.assertEqual(run(plan, "--strict").returncode, 1)
+
     def test_utf16_bom_input_accepted(self):
         raw = json.dumps({"resource_changes": [resource("aws_s3_bucket.ok", {"tags_all": GOOD})]}).encode("utf-16")
         self.assertEqual(run(None, raw=raw).returncode, 0)

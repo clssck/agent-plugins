@@ -42,10 +42,7 @@ adapted in the packs written here live in licenses/, never inside those skill
 directories; vendored packs and upstream/ copies keep the license files their
 upstreams ship.
 
-Everything else is a vendored copy of third-party work and remains under its
-own terms. The five coco-* packs under packs/ are copies of Snowflake Cortex
-Code bundled plugins; each carries its own LICENSE and ATTRIBUTION file. The
-directories under upstream/ are copies of the repositories listed in
+The directories under upstream/ are copies of the repositories listed in
 sources.json at their pinned commits; each carries the license files shipped by
 its repository, including any per-skill LICENSE files inside skills/. See the
-files inside each pack directory for the terms that apply to it.
+files inside each upstream directory for the terms that apply to it.

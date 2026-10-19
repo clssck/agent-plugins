@@ -260,6 +260,8 @@ ALB or CloudFront without access logs. Low–Medium.
 
 ## 7. Secrets
 
+**Reporting secrets (SM-01–SM-03, EN-07):** NEVER reproduce a credential value, any part of it, its length, or a hash, in findings, summaries, or remediation. Report file:line, a redacted placeholder (`"<REDACTED:credential-kind>"`), the credential kind, and rotation guidance (revoke and rotate; version-control history and state keep the old value). `grep` output is working material only; do not paste it into the report.
+
 ### SM-01: Hardcoded credentials
 
 `grep` patterns: `AKIA[0-9A-Z]{16}`, `(password|secret|api_?key|token)\s*[=:]\s*["'][^"']{6,}`, private key headers. Exclude placeholders and variable references. Confirmed hit = High; Critical only when the secret is shown live and grants a reachable path to sensitive data or a privileged action (severity model). Rotate the secret either way.

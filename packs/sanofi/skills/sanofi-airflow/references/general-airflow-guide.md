@@ -177,7 +177,7 @@ def pipeline():
 
     @task.bash
     def run_dbt() -> str:
-        return "dbt run --project-dir /path --target {{ var.value.MWAA_ENV }}"
+        return "dbt run --project-dir /path --target {{ var.value.MWAA_ENV }} --select tag:<x>"
 
     @task(trigger_rule="all_done")
     def cleanup(**context) -> bool:
@@ -193,6 +193,8 @@ def pipeline():
 
 pipeline()
 ```
+
+`--select tag:<x>` scopes the run to one tag; replace it with the project's real selector. Omitting selection builds the whole project: only when the user explicitly asked for that (see [orchestrating-dbt.md](orchestrating-dbt.md)).
 
 ### Run state and failure masking
 

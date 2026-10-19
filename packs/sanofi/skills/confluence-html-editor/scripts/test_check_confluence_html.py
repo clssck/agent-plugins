@@ -154,6 +154,51 @@ class CheckConfluenceHtmlTests(unittest.TestCase):
         self.assertTrue(any("Task item count dropped from 2 to 1" in message for _, message in messages))
         self.assertTrue(any("Decision item count dropped from 1 to 0" in message for _, message in messages))
 
+    def test_dropped_local_id_anchor_is_reported(self) -> None:
+        original_html = """
+        <p><span data-type="status" data-color="green" data-local-id="anchor-a">Pass</span></p>
+        <p><span data-type="status" data-color="blue" data-local-id="anchor-b">Review</span></p>
+        """
+        new_html = """
+        <p><span data-type="status" data-color="green" data-local-id="anchor-a">Pass</span></p>
+        <p><span data-type="status" data-color="blue">Review</span></p>
+        """
+
+        _, findings = check(new_html, original_html=original_html)
+
+        dropped = [item for item in findings if item.message == "data-local-id dropped from original"]
+        self.assertEqual(["anchor-b"], [item.context for item in dropped])
+        self.assertEqual([], [item for item in findings if "anchor-a" in str(item.context)])
+
+    def test_preserved_local_ids_are_not_reported(self) -> None:
+        original_html = '<p><span data-type="status" data-color="green" data-local-id="anchor-a">Pass</span></p>'
+        new_html = '<p><span data-type="status" data-color="green" data-local-id="anchor-a">Passed</span></p>'
+
+        self.assertEqual([], severities(new_html, original_html=original_html))
+
+    def test_duplicated_local_id_against_original_is_reported(self) -> None:
+        original_html = '<p><span data-type="status" data-color="green" data-local-id="anchor-a">Pass</span></p>'
+        new_html = """
+        <p><span data-type="status" data-color="green" data-local-id="anchor-a">Pass</span></p>
+        <p><span data-type="status" data-color="green" data-local-id="anchor-a">Pass</span></p>
+        """
+
+        messages = severities(new_html, original_html=original_html)
+
+        self.assertIn(("warning", "Duplicate data-local-id: anchor-a"), messages)
+        self.assertFalse(any("data-local-id dropped" in message for _, message in messages))
+
+    def test_local_id_dropped_when_duplicate_count_shrinks(self) -> None:
+        original_html = """
+        <p><span data-type="status" data-color="green" data-local-id="same">Pass</span></p>
+        <p><span data-type="status" data-color="blue" data-local-id="same">Review</span></p>
+        """
+        new_html = '<p><span data-type="status" data-color="green" data-local-id="same">Pass</span></p>'
+
+        messages = severities(new_html, original_html=original_html)
+
+        self.assertIn(("warning", "data-local-id dropped from original"), messages)
+
     def test_void_tags_do_not_create_unclosed_tag_warnings(self) -> None:
         html = """
         <p><img src="https://example.com/chart.png"><input type="checkbox"><br></p>

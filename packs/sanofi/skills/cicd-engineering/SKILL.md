@@ -60,7 +60,7 @@ Load only what the task needs.
 | `update-service --force-new-deployment` to ship a new image | Render task definition with digest, then deploy it |
 | `workflow_run` job checks out `github.sha` | Use `workflow_run.id`/`head_sha`; deploy CI's recorded digest |
 | Callee requests `pull-requests: read` the caller never granted | Grant at the calling job; callee cannot elevate |
-| `terraform init` job without `environment:` for `JFROG_TOKEN` | Bind the environment on every job that initializes |
+| Job receiving `JFROG_TOKEN`/AWS credentials, or running credentialed `terraform init`/plan/apply, without `environment:` | Bind the protected environment and approval gate on every credentialed job; secretless PR `init -backend=false`/`validate` needs none |
 | Sonar scan without gate wait, excluded from `Build Complete` | `sonar.qualitygate.wait=true`, job in `needs` |
 | OIDC trust copied as `repo:ORG/REPO:...` | Confirm the repo's `sub` format (name or owner/repo IDs) first |
 | Tag pin of an action still on `node20` | Upgrade to a release declaring `node24`; Node 20 is gone from runners |

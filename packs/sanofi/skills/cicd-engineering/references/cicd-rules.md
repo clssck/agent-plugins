@@ -430,7 +430,7 @@ One reusable workflow (`sonarcloud.yaml`) serves pull-request analysis and the m
 
 ### 6.5 JFrog Artifactory for Terraform modules
 
-Private Terraform modules come from Sanofi's JFrog Artifactory. The JFrog token MUST be a GitHub Environment secret (not repo-level) → every job running `terraform init` MUST set `environment:`. Credentials written at runtime only (`hashicorp/setup-terraform` `cli_config_credentials_*` inputs, or a `.terraformrc` created in the job). See [security-hardening.md](skill://cicd-engineering/references/security-hardening.md#7-jfrog-credentials-via-terraformrc).
+Private Terraform modules come from Sanofi's JFrog Artifactory. The JFrog token MUST be a GitHub Environment secret (not repo-level) → every job receiving it MUST set `environment:`, and that environment MUST have required reviewers or a `main`-only deployment branch rule. `pull_request` validation MUST be secretless: no `environment:`, no `secrets.*`, no `id-token: write`. Same-repository PRs run PR-controlled Terraform, so credentialed `init`/`plan` MUST run only after an environment approval gate or from a trusted ref (`workflow_dispatch` on `main`). Credentials written at runtime only (`hashicorp/setup-terraform` `cli_config_credentials_*` inputs, or a `.terraformrc` created in the job). See [security-hardening.md](skill://cicd-engineering/references/security-hardening.md#7-jfrog-credentials-via-terraformrc) and the [Terraform template](skill://cicd-engineering/references/pipeline-templates.md#terraform-plan--apply).
 
 ---
 

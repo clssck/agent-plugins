@@ -56,6 +56,15 @@ Save to `audits/iac-security-review-YYYY-MM-DD.md`. Copy the structure below. Om
 {snippet in the source language}
 ```
 
+**Evidence (secret findings only: SM-01–SM-03, EN-07, or any credential value; use this block instead of the one above)**: `path/to/file` line X. NEVER include the value, any part of it, its length, or a hash:
+```hcl
+{surrounding syntax with value replaced by "<REDACTED:credential-kind>"}
+```
+
+**Credential**: {kind, e.g. AWS access key ID, database password, private key; where it is exposed: source, tfvars, state, environment variable, user data}
+
+**Rotation**: {revoke and rotate now, as exposure in version control history persists after removal; the secret store or reference to use instead; where to check for use}
+
 **Exposure analysis**: {intended exposure, reachable operations, authorization at each layer, data or privilege impact; mark application behavior as unknown when not visible in IaC}
 
 **Exploit path** (Critical/High, Confirmed only): {steps supported by the code; no invented endpoints or data}
@@ -64,7 +73,7 @@ Save to `audits/iac-security-review-YYYY-MM-DD.md`. Copy the structure below. Om
 
 **Remediation**:
 ```hcl
-{corrected code in the same framework}
+{corrected code in the same framework; secret findings reference a secret store, never the value}
 ```
 
 **Effort**: Minimal / Low / Moderate / High / Extensive

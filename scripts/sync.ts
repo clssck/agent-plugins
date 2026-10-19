@@ -11,13 +11,6 @@
 import { YAML } from "bun";
 import { cp, mkdir, mkdtemp, open, readdir, rename, rm, stat } from "node:fs/promises";
 import * as path from "node:path";
-import {
-	adaptCompatibility,
-	COMPATIBILITY_PROFILE,
-	COMPATIBILITY_VERSION,
-	lintCompatibility,
-	type CompatibilityProfile,
-} from "./compatibility";
 import { githubGraphql as graphql, githubRepositoryField as repositoryField } from "./github";
 
 interface OmpSkillReferences {
@@ -32,8 +25,6 @@ interface Upstream {
 	description: string;
 	/** Upstream path → pack path, e.g. `{ "skills": "skills" }`. */
 	include: Record<string, string>;
-	/** Versioned local transformation applied after copying, without modifying the source repository. */
-	compatibility?: CompatibilityProfile;
 	/** Cross-pack and optional skill:// targets used by this pack. */
 	skillReferences?: OmpSkillReferences;
 }
@@ -94,7 +85,6 @@ interface SyncRecord {
 	build: string;
 	/** Pack path → upstream path of every copied top-level entry. */
 	origins: Record<string, string>;
-	compatibility?: { profile: CompatibilityProfile; version: number };
 	/** generatedTreeDigest() of the finished pack; the one value the digest itself excludes. */
 	tree?: string;
 }
@@ -234,9 +224,7 @@ export function buildId(upstream: Upstream): string {
 		upstream.sha,
 		upstream.description,
 		Object.entries(upstream.include),
-		upstream.compatibility,
 		upstream.skillReferences,
-		upstream.compatibility ? COMPATIBILITY_VERSION : undefined,
 	];
 	return new Bun.CryptoHasher("sha256").update(JSON.stringify(inputs)).digest("hex");
 }
@@ -433,23 +421,13 @@ export async function buildUpstream(upstream: Upstream): Promise<void> {
 			claim(entry.name, entry.name);
 			await cp(path.join(checkout, entry.name), path.join(pack, entry.name));
 		}
-		if (upstream.compatibility) {
-			if (upstream.compatibility !== COMPATIBILITY_PROFILE) {
-				throw new Error(`${upstream.name}: unknown compatibility profile "${upstream.compatibility}"`);
-			}
-			const result = await adaptCompatibility(pack);
-			if (result.errors.length > 0) throw new Error(`${upstream.name}: ${result.errors.join("; ")}`);
-		}
 		const sync: SyncRecord = {
 			build: buildId(upstream),
 			origins: Object.fromEntries(Object.entries(origins).sort(([a], [b]) => a.localeCompare(b))),
-			...(upstream.compatibility
-				? { compatibility: { profile: upstream.compatibility, version: COMPATIBILITY_VERSION } }
-				: {}),
 		};
 		const manifest = {
 			name: upstream.name,
-			version: `${upstream.compatibility ? "0.0.1" : "0.0.0"}-g${upstream.sha.slice(0, 7)}`,
+			version: `0.0.0-g${upstream.sha.slice(0, 7)}`,
 			private: true,
 			description: upstream.description,
 			homepage: `https://github.com/${upstream.repo}/tree/${upstream.sha}`,
@@ -457,9 +435,6 @@ export async function buildUpstream(upstream: Upstream): Promise<void> {
 			gitHead: upstream.sha,
 			sync,
 			...(upstream.skillReferences ? { ompSkillReferences: upstream.skillReferences } : {}),
-			...(upstream.compatibility
-				? { ompCompatibility: { profile: upstream.compatibility, version: COMPATIBILITY_VERSION } }
-				: {}),
 			omp: {},
 		};
 		await Bun.write(path.join(pack, "package.json"), serializeManifest(manifest));
@@ -671,7 +646,6 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 		gitHead?: string;
 		repository?: string;
 		sync?: Partial<SyncRecord>;
-		ompCompatibility?: { profile?: CompatibilityProfile; version?: number };
 		ompSkillReferences?: OmpSkillReferences;
 		omp?: { extensions?: string[] };
 	}>(path.join(packDir, "package.json"));
@@ -684,7 +658,7 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 	if (!manifest.version) errors.push(`${label}: package.json has no version`);
 	if (typeof manifest.omp !== "object") errors.push(`${label}: package.json needs an "omp" object, or OMP ignores the pack`);
 	if (upstream) {
-		const expectedVersion = `${upstream.compatibility ? "0.0.1" : "0.0.0"}-g${upstream.sha.slice(0, 7)}`;
+		const expectedVersion = `0.0.0-g${upstream.sha.slice(0, 7)}`;
 		if (manifest.version !== expectedVersion) errors.push(`${label}: generated version must be ${expectedVersion}`);
 		if (manifest.gitHead !== upstream.sha) errors.push(`${label}: package.json gitHead does not match sources.json`);
 		if (githubRepository(manifest.repository) !== upstream.repo) {
@@ -693,31 +667,11 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 		if (manifest.sync?.build !== buildId(upstream)) {
 			errors.push(`${label}: generated output is stale; rebuild it from sources.json`);
 		}
-		const syncCompatibility = manifest.sync?.compatibility;
-		if (upstream.compatibility) {
-			if (
-				syncCompatibility?.profile !== upstream.compatibility ||
-				syncCompatibility?.version !== COMPATIBILITY_VERSION
-			) {
-				errors.push(`${label}: sync metadata must record OMP compatibility ${upstream.compatibility}@${COMPATIBILITY_VERSION}`);
-			}
-		} else if (manifest.sync?.compatibility) {
-			errors.push(`${label}: unexpected compatibility metadata in generated output`);
-		}
 		if (JSON.stringify(manifest.ompSkillReferences ?? {}) !== JSON.stringify(upstream.skillReferences ?? {})) {
 			errors.push(`${label}: generated ompSkillReferences does not match sources.json`);
 		}
 		for (const problem of await generatedTreeProblems(packDir)) errors.push(`${label}: ${problem}`);
 	}
-	const compatibility = upstream?.compatibility ?? manifest.ompCompatibility?.profile;
-	if (compatibility) {
-		if (compatibility !== COMPATIBILITY_PROFILE) errors.push(`${label}: unknown OMP compatibility profile "${compatibility}"`);
-		if (manifest.ompCompatibility?.profile !== compatibility || manifest.ompCompatibility.version !== COMPATIBILITY_VERSION) {
-			errors.push(`${label}: package.json must record OMP compatibility ${compatibility}@${COMPATIBILITY_VERSION}`);
-		}
-		for (const error of await lintCompatibility(packDir)) errors.push(`${label}: ${error}`);
-	}
-
 	const skills: Item[] = [];
 	for (const entry of await entries(path.join(packDir, "skills"))) {
 		if (!entry.isDirectory() && !entry.isSymbolicLink()) continue;
@@ -819,7 +773,7 @@ export async function check(sources: Sources, errors: string[]): Promise<Pack[]>
 
 function failOn(errors: string[]): void {
 	if (errors.length === 0) return;
-	console.error(`${errors.length} pack compatibility problem(s):`);
+	console.error(`${errors.length} repository problem(s):`);
 	for (const error of errors) console.error(`  - ${error}`);
 	process.exit(1);
 }
@@ -876,6 +830,12 @@ export function upstreamPath(pack: Pack, packPath: string): string {
 	// Recorded entries never overlap, so at most one matches.
 	for (const [to, from] of Object.entries(pack.origins ?? {})) {
 		if (packPath === to || packPath.startsWith(`${to}/`)) return `${from}${packPath.slice(to.length)}`;
+	}
+	// A curated include maps a skill directory's entries, not the directory itself.
+	// Resolve the directory from its discovered SKILL.md entry.
+	const skillFile = `${packPath}/SKILL.md`;
+	for (const [to, from] of Object.entries(pack.origins ?? {})) {
+		if (to === skillFile) return path.posix.dirname(from);
 	}
 	throw new Error(`${pack.name}: ${packPath} has no recorded upstream origin; rerun fetch`);
 }
@@ -962,7 +922,7 @@ export async function renderReadme(sources: Sources, packs: Pack[], commits?: Re
 		"AP=~/.omp/plugins/node_modules/agent-plugins",
 		"omp plugin link $AP/packs/clssck-core              # link each pack you want",
 		"omp plugin link $AP/packs/clssck-development",
-		"omp plugin link $AP/upstream/emilkowalski-skills",
+		"omp plugin link $AP/upstream/gsap-skills",
 		"```",
 		"",
 		"`omp plugin upgrade agent-plugins` pulls the latest commit; linked packs follow automatically because they point into omp's copy. The package name is required: bare `omp plugin upgrade` only upgrades marketplace packages. Run `omp plugin doctor` afterward to catch removed or renamed pack targets. Re-link only when adding, renaming, or removing a pack; routine re-links reset its enabled state and feature selection. `omp plugin disable <name>` / `enable <name>` toggles a pack, `omp plugin uninstall <name>` removes it, and `/extensions` toggles individual skills, rules, and agents.",
@@ -970,7 +930,7 @@ export async function renderReadme(sources: Sources, packs: Pack[], commits?: Re
 		"",
 		"Upgrade note for existing installs: if a machine links `sanofi` without `clssck-core`, link `clssck-core` before upgrading. The `dbt-command-scope` and `dbt-test-arguments` guards moved to `clssck-core` in 1.2.0.",
 		"",
-		"Packs that load are not guaranteed to work with every host capability. Generated CoCo upstreams are adapted on deterministic staged copies and record pinned build provenance; committed \`packs/coco-*\` are adapted in place in this repository. In both cases source repositories and named source releases remain untouched. Foreign question, skill, task, todo, and fetch interfaces become OMP semantics; external capabilities are gated; missing links are repaired or de-linked; and \`skill://\` references are validated against pack-scoped dependency declarations. When a required capability or host path is unavailable, stop and report it; NEVER improvise a substitute.",
+		"Packs that load are not guaranteed to work with every host capability. Generated upstreams are copied at pinned commits and record build provenance; source repositories remain untouched. Missing links are repaired or de-linked, and \`skill://\` references are validated against pack-scoped dependency declarations. When a required capability or host path is unavailable, stop and report it; NEVER improvise a substitute.",
 		"",
 		"Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).",
 		"",

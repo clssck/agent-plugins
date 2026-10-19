@@ -397,6 +397,9 @@ def check(html: str, original_html: str | None = None, title: str | None = None)
             )
         )
         findings.extend(
+            counter_drop_findings("data-local-id", old_inventory.local_ids, inventory.local_ids)
+        )
+        findings.extend(
             counter_drop_findings("Link href", old_inventory.link_hrefs, inventory.link_hrefs)
         )
         findings.extend(

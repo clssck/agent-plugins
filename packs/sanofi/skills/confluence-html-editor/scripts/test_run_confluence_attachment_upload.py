@@ -32,6 +32,9 @@ if stdin_log:
         handle.write(sys.stdin.buffer.read())
 print(os.environ.get("FAKE_CURL_STDOUT", ""))
 print(os.environ.get("FAKE_CURL_STDERR", ""), file=sys.stderr)
+status = int(os.environ.get("FAKE_CURL_HTTP_STATUS", "0"))
+if status >= 400 and ("--fail" in sys.argv or "--fail-with-body" in sys.argv):
+    sys.exit(22)
 sys.exit(int(os.environ.get("FAKE_CURL_EXIT", "0")))
 """
 
@@ -132,6 +135,54 @@ class AttachmentUploadHelperTests(unittest.TestCase):
         self.assert_exit(result, 0)
         argv = json.loads(self.log.read_text(encoding="utf-8"))
         self.assertEqual("@-", argv[argv.index("--data-binary") + 1])
+
+    def fail_flags(self, argv: list[str]) -> list[str]:
+        return [arg for arg in argv if arg in {"--fail", "--fail-with-body"}]
+
+    def test_fail_is_added_when_command_omits_it(self) -> None:
+        for label, command in {
+            "form": self.command(),
+            "data-binary": f"curl -X PUT -H 'Authorization: Bearer {SECRET_TOKEN}' --data-binary '@{self.upload}' '{UPLOAD_URL}'",
+            "silent only": self.command(extra="-s -S"),
+        }.items():
+            with self.subTest(label):
+                self.log.unlink(missing_ok=True)
+                self.assert_exit(self.run_helper(command), 0)
+                argv = json.loads(self.log.read_text(encoding="utf-8"))
+                self.assertEqual(["--fail"], self.fail_flags(argv))
+
+    def test_explicit_fail_flags_are_kept_without_duplication(self) -> None:
+        cases = {
+            "--fail": ["--fail"],
+            "-f": ["--fail"],
+            "-sSf": ["--fail"],
+            "--fail-with-body": ["--fail-with-body"],
+        }
+        for extra, expected in cases.items():
+            with self.subTest(extra):
+                self.log.unlink(missing_ok=True)
+                self.assert_exit(self.run_helper(self.command(extra=extra)), 0)
+                argv = json.loads(self.log.read_text(encoding="utf-8"))
+                self.assertEqual(expected, self.fail_flags(argv))
+
+    def test_conflicting_fail_flags_are_rejected(self) -> None:
+        for extra in ("--fail --fail-with-body", "-f --fail-with-body"):
+            with self.subTest(extra):
+                result = self.assert_rejected(self.command(extra=extra))
+                self.assertIn("mutually exclusive", result.stderr)
+
+    def test_dry_run_shows_injected_fail_flag(self) -> None:
+        result = self.run_helper(self.command(), dry_run=True)
+
+        self.assert_exit(result, 0)
+        self.assertIn("--fail", result.stderr)
+
+    def test_http_error_status_surfaces_as_failure(self) -> None:
+        for label, extra in {"fail omitted": "", "explicit --fail": "--fail", "fail-with-body": "--fail-with-body"}.items():
+            with self.subTest(label):
+                result = self.run_helper(self.command(extra=extra), extra_env={"FAKE_CURL_HTTP_STATUS": "500"})
+                self.assert_exit(result, 3)
+                self.assert_no_leak(result)
 
     def test_line_continuations_are_joined(self) -> None:
         command = (

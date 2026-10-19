@@ -14,7 +14,8 @@ provider `default_tags` propagation is honoured. Exit codes: 0 = compliant,
 1 = violations, 2 = unreadable input. Tags (or individual tag values) unknown
 until apply are listed as warnings; add --strict to treat them as violations.
 `aws_autoscaling_group` is checked through its `tag` blocks (default_tags
-does not reach it); each mandatory tag needs propagate_at_launch = true.
+does not reach it); each mandatory tag needs propagate_at_launch = true, and a
+propagate_at_launch unknown until apply is a warning (a violation with --strict).
 """
 
 from __future__ import annotations
@@ -75,32 +76,37 @@ def unknown_keys(marker: object) -> frozenset[str] | None:
     return frozenset()
 
 
-def asg_tags(after: dict, marker: object) -> tuple[dict | None, frozenset[str] | None, list[str]]:
-    """Normalize `aws_autoscaling_group` `tag` blocks into a map, unknown keys, and block problems."""
+def asg_tags(after: dict, marker: object) -> tuple[dict | None, frozenset[str] | None, frozenset[str], list[str]]:
+    """Normalize `aws_autoscaling_group` `tag` blocks into a map, unknown keys, unknown-propagation keys, and block problems."""
     blocks = after.get("tag") or []
     if marker is True or not isinstance(blocks, list):
-        return None, None, []
+        return None, None, frozenset(), []
     marks = marker if isinstance(marker, list) else []
     tags: dict = {}
     unknown: set[str] = set()
+    unknown_propagation: set[str] = set()
     problems: list[str] = []
     for index, block in enumerate(blocks):
         raw = marks[index] if index < len(marks) else {}
         if raw is True:
-            return None, None, []  # whole block unknown
+            return None, None, frozenset(), []  # whole block unknown
         mark = raw if isinstance(raw, dict) else {}
         key = (block or {}).get("key")
         if mark.get("key"):
-            return None, None, []  # a key unknown until apply could be any required tag
+            return None, None, frozenset(), []  # a key unknown until apply could be any required tag
         if not key:
             continue
         if mark.get("value"):
             unknown.add(key)
         else:
             tags[key] = block.get("value")
-        if key in REQUIRED and block.get("propagate_at_launch") is not True and not mark.get("propagate_at_launch"):
+        if key not in REQUIRED:
+            continue
+        if mark.get("propagate_at_launch"):
+            unknown_propagation.add(key)
+        elif block.get("propagate_at_launch") is not True:
             problems.append(f"tag `{key}` must set propagate_at_launch = true")
-    return tags, frozenset(unknown), problems
+    return tags, frozenset(unknown), frozenset(unknown_propagation), problems
 
 
 def main() -> int:
@@ -131,10 +137,10 @@ def main() -> int:
         unknown_after = change.get("after_unknown") or {}
         if rc.get("type") == "aws_autoscaling_group":
             # default_tags does not reach ASGs; their tags are `tag` blocks.
-            tags, pending, block_problems = asg_tags(after, unknown_after.get("tag"))
+            tags, pending, pending_propagation, block_problems = asg_tags(after, unknown_after.get("tag"))
         elif {"tags_all", "tags"} & (after.keys() | unknown_after.keys()):
             source = "tags_all" if isinstance(after.get("tags_all"), dict) or unknown_after.get("tags_all") else "tags"
-            pending, block_problems = unknown_keys(unknown_after.get(source)), []
+            pending, pending_propagation, block_problems = unknown_keys(unknown_after.get(source)), frozenset(), []
             # A null map not marked unknown is a known empty map, so mandatory tags are missing.
             tags = after.get(source) if after.get(source) is not None or pending is None else {}
         else:
@@ -149,6 +155,11 @@ def main() -> int:
         unresolved = [key for key in REQUIRED if key in pending and not tags.get(key)]
         if unresolved:
             unknown.append((rc["address"], "values unknown until apply: " + ", ".join(f"`{key}`" for key in unresolved)))
+        propagation = [key for key in REQUIRED if key in pending_propagation]
+        if propagation:
+            unknown.append(
+                (rc["address"], "propagate_at_launch unknown until apply: " + ", ".join(f"`{key}`" for key in propagation))
+            )
 
     for address, problems in violations:
         print(f"FAIL {address}")

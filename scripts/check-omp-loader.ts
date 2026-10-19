@@ -7,7 +7,7 @@
  * The check runs the omp-plugins provider in explicit-only mode for skills, commands,
  * rules, and tools; parses task agents with OMP's fatal agent parser; and imports/binds every
  * declared extension. Repository expectations must match the host by name and file with no warnings.
- * It then runs the packaged builtin prompt probe offline (`--show`) against the same checkout.
+ * It also exercises the packaged TUI over a PTY and connector SQL rules through OMP's TTSR manager.
  */
 
 import * as path from "node:path";
@@ -61,7 +61,6 @@ const extensionLoader = (await import(path.join(AGENT_SRC, "extensibility/extens
 };
 const customToolLoader = await import(path.join(AGENT_SRC, "extensibility/custom-tools/loader.ts"));
 const ruleRuntime = await import(path.join(AGENT_SRC, "export/ttsr.ts"));
-const skillRuntime = await import(path.join(AGENT_SRC, "extensibility/skills.ts"));
 const utils = (await import(path.join(OMP_ROOT, "packages/utils/src/frontmatter.ts"))) as {
 	parseFrontmatter(content: string, options?: { source?: unknown; level?: "off" | "warn" | "fatal" }): unknown;
 };
@@ -248,17 +247,6 @@ for (const [toolName, args, expected] of [
 	}
 }
 
-// Manual-only keeps URI/slash invocation while removing this CoCo integration from automatic routing.
-const bundledSkills = await skillRuntime.loadSkillsFromDir({
-	dir: path.join(ROOT, "packs/coco-bundled-skills/skills"),
-	source: "omp-plugins:user",
-});
-const team = bundledSkills.skills.find((skill: { name: string }) => skill.name === "team-workflow");
-if (!team?.hide) problems.push("OMP did not hide team-workflow from automatic skill selection");
-if (!team || !skillRuntime.parseSkillInvocation("/skill:team-workflow")) {
-	problems.push("team-workflow lost its explicit OMP skill invocation");
-}
-
 const customPaths = packs.flatMap((pack) =>
 	pack.tools.map((item) => ({ path: path.resolve(ROOT, pack.dir, item.file) })),
 );
@@ -274,7 +262,7 @@ if (tui) {
 		problems.push("OMP TUI lifecycle: " + String(error));
 	}
 } else problems.push("OMP custom-tool loader did not instantiate tui");
-totals.push(loadedCustom.tools.length + " custom-tool factories; connector SQL and manual-skill runtime cases");
+totals.push(loadedCustom.tools.length + " custom-tool factories; connector SQL runtime cases");
 
 const extensionPaths: string[] = [];
 for (const pack of packs) {
@@ -291,20 +279,6 @@ if (extensionPaths.length > 0) {
 	}
 }
 totals.push(extensionPaths.length + " " + (extensionPaths.length === 1 ? "extension" : "extensions"));
-
-const probePath = path.join(ROOT, "packs/clssck-development/skills/tool-prompt-optimization/scripts/probe-builtin.ts");
-const probeSmoke = Bun.spawnSync({
-	cmd: [process.execPath, probePath, "--tool", "github", "--show"],
-	cwd: OMP_ROOT,
-	stdin: "ignore",
-	stdout: "ignore",
-	stderr: "pipe",
-	env: process.env,
-});
-if (!probeSmoke.success) {
-	const stderr = new TextDecoder().decode(probeSmoke.stderr).trim();
-	problems.push("clssck-development: packaged builtin prompt probe failed" + (stderr ? ": " + stderr : ""));
-}
 
 if (problems.length > 0) {
 	console.error("OMP loader (" + OMP_ROOT + ") disagrees with repository expectations:");

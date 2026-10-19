@@ -7,7 +7,7 @@
   "repository": "https://github.com/greensock/gsap-skills",
   "gitHead": "aed9cfd3277740755f6bfc1155c7aa645403b760",
   "sync": {
-    "build": "2019c4902d50cde57e4eba899bb2db86d5d1dc12bc14ff1b0c919a5a46f0dd9c",
+    "build": "32a12725f52ff0a9bcc319bd0b9bd926b9f365e6c8ebf2fd5453030eb48a56a4",
     "origins": {
       "examples/nuxt": "examples/nuxt",
       "examples/react": "examples/react",
@@ -25,7 +25,7 @@
       "skills/gsap-utils": "skills/gsap-utils",
       "skills/llms.txt": "skills/llms.txt"
     },
-    "tree": "sha256:bb072c206b3e3f3aa0f3f39bc9cd99258441e219ea618b4471527ee3c4d5e36e"
+    "tree": "sha256:39c01d58f76ecaa0165b41b046dc468414fdce4e44dc4a5b8b4a5440ed567d8b"
   },
   "omp": {}
 }

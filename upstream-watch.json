@@ -1,0 +1,15 @@
+{
+	"repository": "clssck/agent-plugins",
+	"assignee": "clssck",
+	"sources": [
+		{
+			"name": "emilkowalski-skills",
+			"repository": "emilkowalski/skills",
+			"ref": "main",
+			"path": "skills",
+			"reviewedCommit": "2d228630ba1446365f614a108cb8252f1feda202",
+			"target": "packs/clssck-core/skills",
+			"issueTitle": "Emil design skills upstream changed"
+		}
+	]
+}

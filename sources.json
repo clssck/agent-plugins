@@ -3,31 +3,11 @@
   "description": "OMP extension packs: my own rules, agents, and skills, plus skills from other repositories, refreshed daily.",
   "upstreams": [
     {
-      "name": "emilkowalski-skills",
-      "repo": "emilkowalski/skills",
-      "ref": "main",
-      "sha": "2d228630ba1446365f614a108cb8252f1feda202",
-      "description": "Skills for Designers and Engineers.",
-      "include": {
-        "skills": "skills"
-      }
-    },
-    {
       "name": "improve",
       "repo": "shadcn/improve",
       "ref": "main",
       "sha": "cac56e1ebd3c279aa9153616cfeac7b174ab90f9",
-      "description": "Point it at a codebase and it figures out what's worth doing — bugs, perf, tech debt, what to build next — then writes plans any agent can execute. It never edits your code.",
-      "include": {
-        "skills": "skills"
-      }
-    },
-    {
-      "name": "lavish-axi",
-      "repo": "kunchenguid/lavish-axi",
-      "ref": "main",
-      "sha": "1ea519f41b2b6c039f9b2410216503f9e64038f5",
-      "description": "HTML is the new markdown. Lavish is the new editor for your HTML artifacts.",
+      "description": "Point it at a codebase and it figures out what's worth doing — bugs, perf, tech debt, what to build next — then writes plans any agent can execute. It never edits your code. Advisory workflows only; its executor recipe targets a different agent runtime.",
       "include": {
         "skills": "skills"
       }
@@ -41,24 +21,6 @@
       "include": {
         "skills": "skills",
         "examples": "examples"
-      }
-    },
-    {
-      "name": "snowflake-labs-coco-skills",
-      "repo": "Snowflake-Labs/coco-skills",
-      "ref": "main",
-      "sha": "2bcd5726917eb7b80199ba6de832dc0c72d4d046",
-      "description": "Curated Agent Skills for Cortex Code (CoCo), Snowflake's CLI for building with AI.",
-      "compatibility": "coco",
-      "skillReferences": {
-        "requires": {
-          "coco-bundled-skills": [
-            "snowflake-notebooks"
-          ]
-        }
-      },
-      "include": {
-        "skills": "skills"
       }
     }
   ]

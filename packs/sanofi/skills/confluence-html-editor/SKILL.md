@@ -1,11 +1,11 @@
 ---
 name: confluence-html-editor
-description: "Create, update, polish, redesign, audit, or repair a Confluence page's HTML or ADF through Atlassian Rovo MCP tools. Use when given a Confluence page URL to change or publish; preserves native macros and workflow state, verifies after every write. Not for answering questions from Confluence — use search-company-knowledge; not for ADRs or post-mortems — use adr-writing, incident-postmortem."
+description: "Create, update, polish, redesign, audit, or repair a Confluence page's HTML or ADF through Atlassian Rovo MCP tools. Use when given a Confluence page URL to change or publish, including formatting and publishing an approved ADR; preserves native macros and workflow state, verifies after every write. Not for answering questions from Confluence — use search-company-knowledge; not for ADR content, decision, status, or review — use adr-writing; not for post-mortems — use incident-postmortem."
 ---
 
 # Confluence HTML Editor
 
-HTML-first Confluence page editing through Atlassian Rovo MCP: create, update, audit, repair. Governing principle: the live page is the authority. Preserve native objects (macros, mentions, task and decision state, inline comments), write against the latest `snapshotToken`, and verify by refetching, because Confluence normalizes HTML on save and silently drops what it cannot represent.
+HTML-first Confluence page editing through Atlassian Rovo MCP: create, update, audit, repair. Governing principle: the live page is the authority. Preserve native objects (macros, mentions, task and decision state, inline comments), write against the latest `snapshotToken`, and verify by refetching, because Confluence normalizes HTML on save and silently drops what it cannot represent. ADRs: this skill owns Confluence HTML/ADF formatting, page mechanics, and publishing of an approved ADR; adr-writing owns its content, decision, status, and review — NEVER change those while publishing.
 
 ## Prerequisite: Atlassian MCP server
 

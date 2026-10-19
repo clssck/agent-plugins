@@ -52,7 +52,7 @@ NEVER use `gh api repos/OWNER/REPO/git/ref/tags/TAG --jq .object.sha` alone: for
 - **Allowlist**: confirm each action/version is permitted by the Sanofi org allowlist. Allowlist pins a tag? Use that exact tag instead of the SHA.
 - **ARC runner image**: runner release `2.329.0` or later (the registration minimum), and each new release within 30 days. Container jobs need Docker/BuildKit. Sonar scan action v8 verifies its scanner signature by default, so `gpg` and `dirmngr` MUST be on `PATH`. Confirm with the platform team; NEVER assume fleet versions. Runner enforcement: [security-hardening.md §5](skill://cicd-engineering/references/security-hardening.md#5-self-hosted-runner-risks).
 - **Python jobs**: `setup-uv` downloads uv, and `uv sync` downloads the `.python-version` interpreter when the image lacks it; confirm runner egress. Private package index: `[[tool.uv.index]]` in `pyproject.toml` or `UV_DEFAULT_INDEX`.
-- **Environments** `dev`, `test`, `prod`: each holds `AWS_ACCOUNT_ID` and `JFROG_TOKEN` (Terraform repos). `prod` has required reviewers and a `main`-only deployment branch rule.
+- **Environments** `dev`, `test`, `prod`: each holds `AWS_ACCOUNT_ID` and `JFROG_TOKEN` (Terraform repos). Every environment holding `JFROG_TOKEN` or trusted by an AWS role MUST have required reviewers or a `main`-only deployment branch rule: same-repository `pull_request` runs and feature-branch dispatches otherwise reach its secrets unreviewed. `prod` has both.
 - **Repository/org secrets**: `SONAR_TOKEN`; CodeGuard `CHECKMARX_*` secrets.
 - **Branch protection**: require the `Build Complete` check. It fails unless every quality, audit, and Sonar job succeeded.
 
@@ -397,11 +397,17 @@ Sources: <https://docs.sonarsource.com/sonarqube-cloud/analyzing-source-code/ci-
 
 ## Terraform plan + apply
 
-`JFROG_TOKEN` is an Environment secret (see [cicd-rules.md §6.5](skill://cicd-engineering/references/cicd-rules.md#65-jfrog-artifactory-for-terraform-modules)), so every job that runs `terraform init` binds an environment. `setup-terraform` writes the JFrog credential into a runtime-only CLI config file.
+PR validation and credentialed planning are separate jobs. `pull_request` runs from same-repository branches receive repository secrets and, in any job that binds an environment, that environment's secrets and OIDC role; only fork PRs run without secrets. A PR job binding `dev` would run PR-controlled Terraform (providers, `external` data sources, `local-exec`) with `JFROG_TOKEN` and AWS credentials.
+
+- `validate` runs on every trigger with no `environment:`, no secrets, and no `id-token`.
+- `plan` and `apply` run only on `workflow_dispatch` and bind the target environment. `JFROG_TOKEN` is an Environment secret (see [cicd-rules.md §6.5](skill://cicd-engineering/references/cicd-rules.md#65-jfrog-artifactory-for-terraform-modules)); `setup-terraform` writes it into a runtime-only CLI config file.
+- Prerequisite: each target environment has required reviewers or a `main`-only deployment branch rule ([Prerequisites](#prerequisites)). Without one, anyone who can push a branch can dispatch `plan` from it and reach the credentials.
+- Secretless `terraform init -backend=false` works only when every module source resolves without credentials (local paths, public registry). Root module sources private JFrog modules? Keep only `terraform fmt -check` in `validate`; the gated `plan` job runs `terraform validate` after `init`.
+- Need a plan on the PR itself? Bind that job to a dedicated environment with required reviewers, so each PR run waits for approval before it receives credentials.
 
 ```yaml
 name: "Infrastructure"
-run-name: ${{ github.workflow }} - ${{ inputs.env || 'dev' }} - ${{ inputs.action || 'plan' }}
+run-name: ${{ github.workflow }} - ${{ github.event_name == 'workflow_dispatch' && format('{0} - {1}', inputs.env, inputs.action) || 'validate' }}
 
 on:
   pull_request:
@@ -425,14 +431,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: terraform-${{ inputs.env || 'dev' }}
+  group: terraform-${{ inputs.env || github.ref }}
   cancel-in-progress: false
 
 jobs:
   validate:
-    name: Validate
+    name: Validate (secretless)
     runs-on: atmos-aws-arc-runner-set
-    environment: ${{ inputs.env || 'dev' }}
     defaults:
       run:
         working-directory: infrastructure/terraform
@@ -441,18 +446,16 @@ jobs:
         with:
           persist-credentials: false
       - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
-        with:
-          cli_config_credentials_hostname: "sanofi.jfrog.io"
-          cli_config_credentials_token: ${{ secrets.JFROG_TOKEN }}
       - run: terraform fmt -check -recursive
       - run: terraform init -backend=false
       - run: terraform validate
 
   plan:
-    name: Plan (${{ inputs.env || 'dev' }})
+    name: Plan (${{ inputs.env }})
     needs: validate
+    if: github.event_name == 'workflow_dispatch'
     runs-on: atmos-aws-arc-runner-set
-    environment: ${{ inputs.env || 'dev' }}
+    environment: ${{ inputs.env }}
     permissions:
       contents: read
       id-token: write
@@ -460,7 +463,7 @@ jobs:
       run:
         working-directory: infrastructure/terraform
     env:
-      TF_ENV: ${{ inputs.env || 'dev' }}
+      TF_ENV: ${{ inputs.env }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -473,9 +476,10 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/App_githubrunners_accelerator_${{ inputs.env || 'dev' }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/App_githubrunners_accelerator_${{ inputs.env }}
           aws-region: eu-west-1
       - run: terraform init
+      - run: terraform validate
       - name: Terraform Plan
         id: plan
         run: |
@@ -487,7 +491,7 @@ jobs:
           exit 0
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: tfplan-${{ inputs.env || 'dev' }}
+          name: tfplan-${{ inputs.env }}
           path: infrastructure/terraform/tfplan
           retention-days: 7
       - name: Plan Summary

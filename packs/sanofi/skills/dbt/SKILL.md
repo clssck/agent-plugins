@@ -1,6 +1,6 @@
 ---
 name: dbt
-description: "Build, review, test, and run Sanofi dbt Core projects on Snowflake. Use when working with models, sources, snapshots, seeds, incremental design, data and unit tests, docs and meta, contracts and versions, selectors, state:modified CI, upgrades and deprecations, failed-run triage, Elementary, WAP, feature flags, or native snow dbt. Not for generic dbt-on-Snowflake mechanics — dbt-projects-on-snowflake; ODCS contracts — datacontract-writing; DAGs — sanofi-airflow."
+description: "Build, review, test, and run Sanofi dbt Core projects on Snowflake. Use when working with models, sources, snapshots, seeds, incremental design, data and unit tests, docs and meta, contracts and versions, selectors, state:modified CI, upgrades and deprecations, failed-run triage, Elementary, WAP, feature flags, or native snow dbt. Not for generic dbt-on-Snowflake mechanics; ODCS contracts — datacontract-writing; DAGs — sanofi-airflow."
 ---
 
 # Sanofi dbt
@@ -38,7 +38,7 @@ Every command that writes to Snowflake rebuilds whatever it selects, so scope pr
 
 - **Adapter ≠ native.** NEVER route ordinary dbt Core work to the native reference just because the adapter is Snowflake.
 - **Docs/tests plus placement, Elementary, orchestration, or package change** → add `general-dbt-guide.md` (and `project-setup.md` or `operations.md` as routed).
-- **Scope splits:** ODCS data contracts → datacontract-writing. DAG authoring → sanofi-airflow. Generic dbt-on-Snowflake mechanics → dbt-projects-on-snowflake.
+- **Scope splits:** ODCS data contracts → datacontract-writing. DAG authoring → sanofi-airflow. Generic dbt-on-Snowflake mechanics are out of scope.
 - **Multi-area order:** placement and naming → SQL and materialization → docs and properties → tests → selectors, CI, run commands.
 - **Docs before tests** when both requested. Docs exist → check documented grain matches the model, then tests.
 

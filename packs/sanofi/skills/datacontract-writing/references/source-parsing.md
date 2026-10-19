@@ -51,7 +51,7 @@ Read `meta` from both `columns[].config.meta` (dbt 1.10+, backported to 1.9) and
 | `primary_key` (model-level, several columns) | `primaryKey` + `primaryKeyPosition` in `columns:` order; schema-level `duplicateValues` |
 | `unique` | `unique: true` (single column) |
 | `foreign_key` (`to`, `to_columns`) | `relationships` (property or schema level); resolve `ref()`/`source()` to the table name |
-| `check` (`expression`) | `type: sql` rule with the expression |
+| `check` (`expression`) | `type: sql` violation count, as for DDL [`CHECK (expr)`](#table-constraints) |
 
 On Snowflake only `not_null` is enforced; `primary_key`, `foreign_key`, `unique` are metadata only. `check` is not definable.
 
@@ -211,7 +211,7 @@ Parse `CREATE [OR REPLACE] TABLE|VIEW` and `ALTER TABLE ... ADD CONSTRAINT`. One
 | `FOREIGN KEY (a) REFERENCES t(c)` | Property `relationships` |
 | `FOREIGN KEY (a, b) REFERENCES t(x, y)` | Schema-level `relationships`, `from: [a, b]`, `to: [t.x, t.y]` |
 | `CHECK (col IN (...))` | `invalidValues`, `arguments.validValues`, `mustBe: 0` |
-| `CHECK (expr)` | `type: sql` rule with the expression as a query |
+| `CHECK (expr)` | `type: sql` violation count: `query: "SELECT COUNT(*) FROM ${table} WHERE NOT (expr)"`, `mustBe: 0`. A predicate alone is not a query. `NOT (expr)` is NULL when `expr` is NULL, and `WHERE` drops those rows, matching `CHECK` (NULL passes). NEVER `(expr) IS NOT TRUE` or `COALESCE(expr, FALSE)`, which count rows the constraint accepts. Add `OR (expr) IS NULL` only when the user asks to reject NULL results |
 
 Example schema-level relationship:
 

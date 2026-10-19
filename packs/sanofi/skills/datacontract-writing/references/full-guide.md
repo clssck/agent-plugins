@@ -78,7 +78,8 @@ Rules are suggestions. Present them; the user approves. Place rules on a schema 
 | `CHECK (col IN (...))` | `invalidValues` with `arguments.validValues` | property |
 | Single-column FK | `relationships` entry with `to: table.column` | property |
 | Composite FK | Schema-level `relationships` with `from`/`to` arrays | schema |
-| Table exists | `rowCount` `mustBeGreaterOrEqualTo: 1` | schema |
+| Table exists | Metadata check, NEVER `rowCount`: `type: sql` on `information_schema.tables` with literal schema and table names, `mustBe: 1`, dimension `coverage`. A query on `${table}` errors when the table is missing | schema |
+| Table must not be empty | `rowCount` `mustBeGreaterOrEqualTo: 1`, dimension `completeness`, description `Table must not be empty` (see [odcs-template.md](skill://datacontract-writing/references/odcs-template.md)). Add only when the source or user requires data; an existing empty table passes existence | schema |
 | Recency column | `type: sql`, dimension `timeliness` | property |
 
 Bad/Good:

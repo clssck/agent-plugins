@@ -108,4 +108,4 @@ Document is complete only when every line holds:
 - No item `UNASSIGNED`; each has owner, deadline, tracking link — else status stays Draft.
 - SEV1/SEV2 inside the 5-day window, or the slip recorded as a `process` action item.
 
-**Circulate** to responders and the IC's manager; SEV1 also → engineering leadership channel.
+**Circulation is a proposed handoff**: name the intended audience (responders and the IC's manager; SEV1 also the engineering leadership channel) and ask the user to send. Send or publish only when the user explicitly authorized it and supplied the actual destination (channel, list, or recipients) — never infer one. Draft-only and review-only requests end at the document and the proposal.

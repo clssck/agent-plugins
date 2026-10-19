@@ -1,0 +1,12 @@
+Emil Kowalski design and animation skills
+
+Source: https://github.com/emilkowalski/skills
+Pinned commit: 2d228630ba1446365f614a108cb8252f1feda202
+License: MIT (see LICENSE in this directory)
+Vendored into: packs/clssck-core/skills/
+
+The skills were copied from the pinned commit and adapted for OMP. Local changes
+fix reduced-motion handling, touch zoom preservation, routing handoffs, and
+animation guidance; further changes are recorded in git history. The upstream
+project is not synced automatically. When it changes, the watch workflow opens
+an issue and a maintainer ports the relevant changes here.

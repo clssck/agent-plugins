@@ -2,17 +2,17 @@
   "name": "improve",
   "version": "0.0.0-gcac56e1",
   "private": true,
-  "description": "Point it at a codebase and it figures out what's worth doing — bugs, perf, tech debt, what to build next — then writes plans any agent can execute. It never edits your code.",
+  "description": "Point it at a codebase and it figures out what's worth doing — bugs, perf, tech debt, what to build next — then writes plans any agent can execute. It never edits your code. Advisory workflows only; its executor recipe targets a different agent runtime.",
   "homepage": "https://github.com/shadcn/improve/tree/cac56e1ebd3c279aa9153616cfeac7b174ab90f9",
   "repository": "https://github.com/shadcn/improve",
   "gitHead": "cac56e1ebd3c279aa9153616cfeac7b174ab90f9",
   "sync": {
-    "build": "8920cdafe9bdddf9fbeaa307bbfc5ae218c32f0db4f0667ca45d25f05e56604d",
+    "build": "9e1eb954ae32e194e287d9c763686d647e707a18c638c727c8b5e36cad3f1915",
     "origins": {
       "LICENSE.md": "LICENSE.md",
       "skills/improve": "skills/improve"
     },
-    "tree": "sha256:84afeb58683e955be68cc0fe447176569aa26cf9385866fab818a26d99cad3f3"
+    "tree": "sha256:199938dd0b4edbafc5bf749054b65ffb83925c04cc8b2d85ba6c116b5318a688"
   },
   "omp": {}
 }

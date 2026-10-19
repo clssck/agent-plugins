@@ -1,13 +1,13 @@
 ---
 name: sanofi-airflow
-description: "Author, review, deploy, and troubleshoot Airflow DAGs on Sanofi MWAA (shared central or dedicated tenant). Use when working with parse-time safety, sanofi-airflow-utils ConfigLoader and secrets, failure alerts, access_control roles, CI S3 sync, the Airflow 2.11 → 3.x migration, or running dbt via dbt_run.sh or DbtClient. Not for generic Airflow — coco-airflow; dbt models/SQL — dbt skill; generic CI/CD — cicd-engineering; generic review — omp /review."
+description: "Author, review, deploy, and troubleshoot Airflow DAGs on Sanofi MWAA (shared central or dedicated tenant). Use when working with parse-time safety, sanofi-airflow-utils ConfigLoader and secrets, failure alerts, access_control roles, CI S3 sync, the Airflow 2.11 → 3.x migration, or running dbt via dbt_run.sh or DbtClient. Not for generic Airflow; dbt models/SQL — dbt skill; generic CI/CD — cicd-engineering; generic review — omp /review."
 ---
 
 # Sanofi Airflow
 
 Sanofi conventions for DAGs on AWS MWAA: shared central environment (2.11) and dedicated tenants (3.x). Covers parse-time safety, `sanofi-airflow-utils` config/secrets, failure alerts, access roles, CI/S3 sync, Airflow 3 migration, and dbt via `dbt_run.sh`/`DbtClient`. The governing principle: **the shared scheduler imports every `.py` under `dags/` every 30-60s, so one bad DAG degrades every tenant**. Parse safety comes first, before correctness of task logic.
 
-This skill holds platform facts only. Run omp `/review` on the diff for generic defects, then apply this skill for Sanofi-specific ones. Generic Airflow → coco-airflow · dbt models/SQL/YAML/tests → dbt skill · generic CI/CD → cicd-engineering.
+This skill holds platform facts only. Run omp `/review` on the diff for generic defects, then apply this skill for Sanofi-specific ones. Generic Airflow is out of scope · dbt models/SQL/YAML/tests → dbt skill · generic CI/CD → cicd-engineering.
 
 ## Core Rules
 

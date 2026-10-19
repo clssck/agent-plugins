@@ -30,7 +30,8 @@ Print the bin directory, confirm it is on `PATH`, and only then claim the tool i
 ## Rust
 
 - MUST pass `--locked`. Without it `cargo install` ignores the packaged `Cargo.lock` and re-resolves dependencies, so the installed binary can differ from the one you tested.
-- User-chosen PATH directory: `cargo install --path . --locked --root <dir>`.
+- `--root` is the install prefix, not the executable directory: Cargo writes the binary to `<root>/bin/`. For an approved PATH directory such as `~/.local/bin`, pass its parent: `cargo install --path . --locked --root ~/.local`, which installs `~/.local/bin/<tool-name>`. Passing `--root ~/.local/bin` installs to `~/.local/bin/bin/<tool-name>`, which is not on PATH.
+- Approved PATH directory not named `bin`? Install under a private root and link the executable into it: `cargo install --path . --locked --root <prefix> && ln -sf <prefix>/bin/<tool-name> <path-dir>/<tool-name>`. Then confirm `command -v <tool-name>` resolves to `<path-dir>/<tool-name>`.
 
 ## Go
 

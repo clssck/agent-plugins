@@ -24,7 +24,7 @@ Scope: Terraform authoring → iac-terraform · CI/CD workflows → cicd-enginee
 - **NEVER treat missing local configuration as proven exposure.** Absent + AWS default, account/org control, or shared module → Needs confirmation.
 - **NEVER rate Critical without evidence** of reachability, authorization gap, and sensitive data or privilege.
 - **NEVER invent application behavior or attack chains.** Unknown → say unknown.
-- **Evidence:** MUST cite file:line and snippet per finding.
+- **Evidence:** MUST cite file:line and snippet per finding. **Exception — secret findings** (SM-01–SM-03, EN-07, any finding whose evidence contains a credential value): NEVER reproduce the value, in whole or in part, in the report, summary, or remediation. Cite file:line, replace the value with a redacted placeholder (`"<REDACTED:aws-access-key-id>"`), and state credential kind plus rotation guidance. Keep surrounding syntax so the finding stays locatable; no prefix, suffix, length, or hash of the value.
 - **Remediation:** MUST be in the finding's own framework.
 - **Coverage:** MUST run all applicable control groups; list skipped ones with reason.
 - **Sanofi controls (SN-\*):** Sanofi repositories only.
@@ -92,7 +92,7 @@ Report: audits/iac-security-review-YYYY-MM-DD.md
 
 Before handing over the report:
 
-- Every finding: file:line, snippet, status, framework-native fix.
+- Every finding: file:line, snippet, status, framework-native fix. Secret findings: redacted placeholder, credential kind, rotation guidance; no raw value anywhere in the report.
 - No Critical without reachability + impact evidence.
 - Absent-property findings checked against aws-defaults.md.
 - Sanofi section applied only for Sanofi repos; otherwise skip stated.

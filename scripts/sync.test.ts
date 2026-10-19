@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { chmod, mkdir, mkdtemp, rm, symlink, truncate, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
-import { generatedTreeDigest, generatedTreeProblems, stampGeneratedTree } from "./sync";
+import { generatedTreeDigest, generatedTreeProblems, stampGeneratedTree, upstreamPath } from "./sync";
 
 let dir: string;
 
@@ -22,6 +22,27 @@ beforeEach(async () => {
 	dir = await mkdtemp(path.join(tmpdir(), "sync-integrity-"));
 });
 afterEach(() => rm(dir, { recursive: true, force: true }));
+
+describe("upstream paths", () => {
+	test("resolves a curated skill directory from its SKILL.md origin", () => {
+		const pack: Parameters<typeof upstreamPath>[0] = {
+			name: "demo-skills",
+			dir: "upstream/demo-skills",
+			version: "0.0.0-g2d22863",
+			attribution: false,
+			skillReferences: {},
+			skills: [],
+			rules: [],
+			agents: [],
+			commands: [],
+			tools: [],
+			extensions: 0,
+			origins: { "skills/animate/SKILL.md": "skills/animate/SKILL.md" },
+		};
+		expect(upstreamPath(pack, "skills/animate")).toBe("skills/animate");
+		expect(upstreamPath(pack, "skills/animate/SKILL.md")).toBe("skills/animate/SKILL.md");
+	});
+});
 
 describe("generated tree integrity", () => {
 	test("a stamped tree has no problems", async () => {

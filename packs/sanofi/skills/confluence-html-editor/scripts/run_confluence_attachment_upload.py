@@ -22,9 +22,11 @@ if it matches a strict upload shape:
   rejected: downloadConfluenceAttachment is unsupported.
 
 curl runs as an argv list (shell=False) with .curlrc disabled, https-only
-protocols, no redirects, and URL globbing off. It reads the already-validated,
-open file descriptor through stdin; header values, text form values, URL
-queries, and curl response streams are never printed.
+protocols, no redirects, and URL globbing off. HTTP errors always fail curl:
+--fail is added when the command has neither --fail nor --fail-with-body, and
+a command naming both is rejected. curl reads the already-validated, open file
+descriptor through stdin; header values, text form values, URL queries, and
+curl response streams are never printed.
 
 Usage: uv run "$(realpath skill://confluence-html-editor/scripts/run_confluence_attachment_upload.py)" --command-file "$(realpath local://attachment-command.txt)" --file /abs/path/diagram.png
 
@@ -68,6 +70,7 @@ FLAG_OPTIONS = {
     "--globoff": "--globoff",
 }
 COMBINABLE_SHORT_FLAGS = set("sSfg")
+FAIL_FLAGS = {"--fail", "--fail-with-body"}
 VALUE_OPTIONS = {
     "-X": "method",
     "--request": "method",
@@ -114,6 +117,7 @@ class UploadCommand:
     options: list[str] = field(default_factory=list)
     display: list[str] = field(default_factory=list)
     file_path: str | None = None
+    fail_flags: set[str] = field(default_factory=set)
 
 
 def read_command(path: str) -> str:
@@ -207,6 +211,13 @@ def set_file(command: UploadCommand, path: str) -> None:
     if not path or path == "-":
         raise Rejected("file body must name a local file, not stdin")
     command.file_path = path
+
+
+def add_flag(command: UploadCommand, flag: str) -> None:
+    if flag in FAIL_FLAGS:
+        command.fail_flags.add(flag)
+    command.options.append(flag)
+    command.display.append(flag)
 
 
 def add_header(command: UploadCommand, value: str) -> None:
@@ -310,9 +321,7 @@ def parse_command(text: str) -> UploadCommand:
         if name in REDIRECT_OPTIONS:
             raise Rejected(f"{name} is unsupported; the helper never follows redirects")
         if token in FLAG_OPTIONS:
-            flag = FLAG_OPTIONS[token]
-            command.options.append(flag)
-            command.display.append(flag)
+            add_flag(command, FLAG_OPTIONS[token])
             continue
         if token in VALUE_OPTIONS:
             if index >= len(tokens):
@@ -327,9 +336,7 @@ def parse_command(text: str) -> UploadCommand:
             letters = token[1:]
             if set(letters) <= COMBINABLE_SHORT_FLAGS:
                 for letter in letters:
-                    flag = FLAG_OPTIONS["-" + letter]
-                    command.options.append(flag)
-                    command.display.append(flag)
+                    add_flag(command, FLAG_OPTIONS["-" + letter])
                 continue
             if any(f"-{letter}" in DOWNLOAD_OPTIONS | REDIRECT_OPTIONS for letter in letters):
                 raise Rejected(f"{name} includes a download or redirect option; unsupported")
@@ -338,6 +345,11 @@ def parse_command(text: str) -> UploadCommand:
         raise Rejected("command has no URL")
     if command.file_path is None:
         raise Rejected("command sends no file (`-F name=@path` or `--data-binary @path`); download commands are unsupported")
+    if len(command.fail_flags) > 1:
+        raise Rejected("--fail and --fail-with-body are mutually exclusive")
+    if not command.fail_flags:
+        # Without --fail, curl exits 0 on HTTP 4xx/5xx and a failed upload looks successful.
+        add_flag(command, "--fail")
     return command
 
 
@@ -404,6 +416,7 @@ def verify_file(command: UploadCommand, expected: str) -> BinaryIO:
 
 def build_argv(curl: str, command: UploadCommand) -> tuple[list[str], list[str]]:
     assert command.url is not None
+    assert len(command.fail_flags) == 1, "parse_command guarantees exactly one HTTP-failure flag"
     argv = [curl, *ENFORCED_PREFIX, *command.options, "--url", command.url]
     display = ["curl", *ENFORCED_PREFIX, *command.display, "--url", redact_url(command.url)]
     return argv, display

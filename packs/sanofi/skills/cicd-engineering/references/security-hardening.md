@@ -109,11 +109,13 @@ jobs:
    - First workflow (`pull_request`): build and test (no secrets needed)
    - Second workflow (`workflow_run`): post results using secrets
 
-**Safe alternative:**
+**Safe alternative (secretless validation):**
+
+`pull_request` is secretless only for fork PRs. A same-repository PR runs the workflow file from its own head and receives repository secrets, plus environment secrets and OIDC roles for any job that sets `environment:` with no protection. Keep `pull_request` jobs free of `secrets.*`, `environment:`, and `id-token: write`; run anything credentialed behind a protected environment (below).
 
 ```yaml
 on:
-  pull_request: # Runs in fork context, no secrets access
+  pull_request: # No secrets referenced; no environment; no id-token
 
 jobs:
   build:
@@ -122,6 +124,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: npm ci && npm test
 ```
+
+**Credentialed work triggered by a PR:** a job that needs secrets or OIDC (e.g. `terraform plan`) MUST either (a) bind an environment with required reviewers, so each run waits for approval before credentials are released, or (b) run only from a trusted ref (`push` to `main`, or `workflow_dispatch` with an environment `main`-only deployment branch rule). Environment secrets are released only after the environment's protection rules pass. Terraform template: [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md#terraform-plan--apply).
 
 **Platform changes that affect these workflows:**
 
@@ -332,6 +336,7 @@ Trust-policy rules:
 
 - `sub` pins the specific repo AND environment; use the format the repo actually emits
 - Prod role can only be assumed by jobs in the `prod` environment, which has approval gates and a `main`-only deployment branch rule
+- Every environment whose role a workflow can assume MUST have required reviewers or a `main`-only deployment branch rule; with neither, any same-repository branch or `pull_request` job that sets `environment:` assumes the role unreviewed
 - AWS account ID stored as a GitHub secret, not hardcoded
 - Region typically `eu-west-1` for Sanofi EMEA workloads
 
@@ -353,7 +358,8 @@ For Terraform workflows that pull private modules from Sanofi's JFrog Artifactor
 
 **Security considerations:**
 
-- `JFROG_TOKEN` MUST be a GitHub Environment secret (not repo-level), so every job running `terraform init` sets `environment:` (including validation jobs)
+- `JFROG_TOKEN` MUST be a GitHub Environment secret (not repo-level), so every job that receives it sets `environment:`; that environment MUST have required reviewers or a `main`-only deployment branch rule, and PR-triggered jobs MUST NOT bind it without the approval gate
+- Secretless `pull_request` validation (`terraform fmt -check`, plus `init -backend=false` and `validate` when every module source resolves without credentials) sets no `environment:` and uses no JFrog token; credentialed `init` and `plan` run in a gated job
 - The credentials file lives only on the runner; `hashicorp/setup-terraform` writes it from `cli_config_credentials_hostname` and `cli_config_credentials_token`
 - Never commit `.terraformrc` to the repository
 - Scope the JFrog token to read-only access for CI (write only for publish jobs)
