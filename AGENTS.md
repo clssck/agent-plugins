@@ -204,8 +204,8 @@ Use the OMP prompts folder as the style reference, not as text to copy. Take its
 | Capability | Structure | Semantics | Pattern |
 |---|---|---|---|
 | Agent | `packs/<pack>/agents/<name>.md`; frontmatter + body | Specialist prompt; the loader parses frontmatter; the wrapper supplies global conventions and completion | Short identity; optional tags; `<critical>` only for hard limits |
-| Skill | `packs/<pack>/skills/<name>/SKILL.md`; frontmatter + body | `description` routes; `skill://` strips frontmatter; boundaries must be in the body | Trigger; procedure; boundaries; references |
-| Rule | `packs/<pack>/rules/<name>.md`; frontmatter + body | Filename is the name; `condition`/`astCondition`/`question` selects; `scope` gates; body injected on match | Target; authorization; recovery; real trigger |
+| Skill | `packs/<pack>/skills/<name>/SKILL.md`; frontmatter + body | `description` routes; `/skill:` injects the body without frontmatter, so boundaries go in the body; `skill://` returns the raw file | Trigger; procedure; boundaries; references |
+| Rule | `packs/<pack>/rules/<name>.md`; frontmatter + body | Filename is the name. `description` alone makes a rulebook entry; `condition`/`astCondition`/`question` add TTSR matching; `alwaysApply` injects the body into the system prompt; `scope` gates TTSR | Target; authorization; recovery; trigger or description |
 | Command | `packs/<pack>/commands/<name>.md`; frontmatter + body | Filename is the name; body is a prompt template; `$ARGUMENTS` is raw | Argument grammar; no-argument path; no raw interpolation |
 | Tool | `packs/<pack>/tools/*.ts` or `tools/<name>/index.ts`; factory | Model-callable; schema validation; cancellation; globally unique name | Description; schema; execute; shaped details |
 | Hook | `packs/<pack>/hooks/{pre,post}/<tool>.ts`; factory | Filename is the intercepted tool; the factory must call `pi.on`; release resources | Register; block or rewrite; clean up |
@@ -274,7 +274,7 @@ Perform the procedure and report the result.
 ```markdown
 ---
 description: Require authorization for recursive force deletion.
-condition: 'rm\s+-[a-zA-Z]*r[a-zA-Z]*f'
+condition: '\brm\s+-[a-zA-Z]*(?:[rR][a-zA-Z]*f|f[a-zA-Z]*[rR])'
 scope: tool
 ---
 Stop before the command. Ask for explicit authorization and name the target. If it already ran, recover from backup and report what cannot be restored.
@@ -336,6 +336,7 @@ import type { ExtensionAPI } from "@oh-my-pi/pi-coding-agent";
 export default function exampleExtension(pi: ExtensionAPI) {
   pi.setLabel("Example");
   pi.on("session_start", async (_event, ctx) => {
+    if (!ctx.hasUI) return;
     ctx.ui.notify("Example extension loaded", "info");
   });
 }
