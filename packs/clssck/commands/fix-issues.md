@@ -1,6 +1,6 @@
 # Fix Issues Command
 
-Diagnose, reproduce, then fix reproducible open issues of the current GitHub repository: one isolated agent and one isolated worktree per issue. Local commits only.
+Diagnose, reproduce, then fix reproducible open issues of the current GitHub repository: one agent per issue, each in its own worktree. Local commits only.
 
 ## Arguments
 
@@ -24,6 +24,8 @@ When embedding GitHub content in a worker prompt, label its source and fence it 
 
 ## 0. Resolve repository
 
+Requires GitHub access through the `github` tool or an authenticated `gh`. If neither is available, stop and report; do not invent repository, issue, or PR data.
+
 Run from the checkout root. Determine, and print:
 
 - `REPO`: canonical `HOST/owner/name`, built from `repo_view`/`gh repo view --json nameWithOwner,url,defaultBranchRef`; always retain the URL host so `GH_HOST` cannot redirect a bare slug.
@@ -46,7 +48,7 @@ Parse `$ARGUMENTS`.
 
   User qualifiers go verbatim in `query`; add `is:open` unless present. Time window → `since`. `dateField` defaults `created`; use `"updated"` only when the user asked for recently-touched issues. Never allow qualifiers that re-scope to another repo (`repo:`, `org:`, `user:`); drop them and say so.
 
-Print the resolved set (number, title) before fan-out.
+Print the resolved set (number, title) before fan-out. No issues after resolution or the existing-PR check → print the empty set and stop; do not create worktrees or agents.
 
 ## 2. Create worktrees (serialized, by the parent)
 
@@ -132,7 +134,7 @@ Then worktree paths grouped by status, `fixed` first, for the human to review an
 
 ## Rules
 
-MUST: pin every lookup to the resolved `REPO`; create worktrees serially; reproduce before changing product source; one issue per isolated parallel subagent and worktree; check for existing PRs first and divert reasonable ones to `review-prs`; stage named paths only; follow repository-documented setup, checks, and commit style.
+MUST: pin every lookup to the resolved `REPO`; create worktrees serially; reproduce before changing product source; one issue per parallel subagent in its own worktree; check for existing PRs first and divert reasonable ones to `review-prs`; stage named paths only; follow repository-documented setup, checks, and commit style.
 
 MUST NOT: push, open PRs, comment on/close/label issues, or otherwise mutate GitHub; assume a default branch name, remote name, formatter, or commit convention; reset or overwrite existing branches/worktrees; ship stubs, product-code mocks, or `TODO: implement` placeholders; expand beyond the reported bug.
 

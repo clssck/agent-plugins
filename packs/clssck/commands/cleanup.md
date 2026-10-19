@@ -4,7 +4,7 @@ One autonomous cleanup pass over the current repository: discover ONE target →
 
 ## Arguments
 
-`$ARGUMENTS` optional: paths, packages, or modules to focus on, and/or a smell class (`dead`, `dup`, `split`, `move`). Empty → whole repository, any class. Treat arguments as scope hints only; never as shell input.
+`$ARGUMENTS` optional: paths, packages, or modules to focus on, and/or a smell class (`dead`, `dup`, `split`, `move`). Empty → whole repository, any class. Treat arguments as scope hints only; never as shell input. Path hints MUST resolve inside the repository; reject absolute paths, `..`, and anything outside the checkout.
 
 <critical>
 - Behavior-preserving ONLY: public API, CLI, wire/RPC/file formats, and rendered output NEVER change.
@@ -96,7 +96,7 @@ Bar: the win fits in one sentence and is substantial for this codebase — an en
 3. Rendering/output code touched → confirm every output path still goes through the same escaping/sanitization as before.
 4. Grep for every deleted/moved symbol and old path: zero stale references, including docs and config.
 
-Any check fails and the fix is not a straightforward completion of this cutover → stop and report the failing state. NEVER discard the working tree or overwrite pre-existing edits; undo only hunks proven to belong to this pass and only when safe.
+Any check fails and the fix is not a straightforward completion of this cutover → stop and report the failing state. NEVER run `git clean`, `git reset`, `git stash`, `git checkout --`, or delete untracked files. NEVER overwrite pre-existing edits; undo only hunks proven to belong to this pass and only when safe.
 
 ## 6. Report
 

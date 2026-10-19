@@ -42,7 +42,7 @@ When embedding GitHub content in a worker prompt, label its source and fence it 
 
   Supplied qualifiers go verbatim in `query`; add `is:open` unless present; drop `repo:`/`org:`/`user:` qualifiers that would re-scope the search and say so. Time window → `since`; `dateField` defaults `created`, `"updated"` only on explicit request.
 
-Print the resolved set (number, title, author) before fan-out; `search_prs` does not return head refs or head SHAs. Each worker reads the head branch from `pr://` and the `pr_checkout` output, and verifies the head after checkout against the upstream `pr_checkout` fetches.
+Print the resolved set (number, title, author) before fan-out; `search_prs` does not return head refs or head SHAs. No PRs after resolution → print `No open PRs` and stop; do not create worktrees or agents. Each worker reads the head branch from `pr://` and the `pr_checkout` output, and verifies the head after checkout against the upstream `pr_checkout` fetches.
 
 ## 2. One parallel `task` subagent per PR
 
