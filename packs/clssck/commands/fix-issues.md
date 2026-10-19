@@ -46,7 +46,7 @@ Parse `$ARGUMENTS`.
   github { op: "search_issues", repo: REPO, query: "is:open", since: "3d", limit: 50 }
   ```
 
-  User qualifiers go verbatim in `query`; add `is:open` unless present. Time window → `since`. `dateField` defaults `created`; use `"updated"` only when the user asked for recently-touched issues. Never allow qualifiers that re-scope to another repo (`repo:`, `org:`, `user:`); drop them and say so.
+  User qualifiers go verbatim in `query`; add `is:open` unless present. Time window → `since`. `dateField` defaults `created`; use `"updated"` only when the user asked for recently-touched issues. Never allow qualifiers that re-scope to another repo (`repo:`, `org:`, `user:`); drop them and say so. A search error (including HTTP 4xx/5xx such as an unknown `author:`) is not an empty set: report the exact error and stop; do not create worktrees or claim no issues.
 
 Print the resolved set (number, title) before fan-out. No issues after resolution or the existing-PR check → print the empty set and stop; do not create worktrees or agents.
 

@@ -40,7 +40,7 @@ When embedding GitHub content in a worker prompt, label its source and fence it 
   github { op: "search_prs", repo: REPO, query: "is:open", since: "3d", limit: 50 }
   ```
 
-  Supplied qualifiers go verbatim in `query`; add `is:open` unless present; drop `repo:`/`org:`/`user:` qualifiers that would re-scope the search and say so. Time window → `since`; `dateField` defaults `created`, `"updated"` only on explicit request.
+  Supplied qualifiers go verbatim in `query`; add `is:open` unless present; drop `repo:`/`org:`/`user:` qualifiers that would re-scope the search and say so. Time window → `since`; `dateField` defaults `created`, `"updated"` only on explicit request. A search error (including HTTP 4xx/5xx such as an unknown `author:`) is not an empty set: report the exact error and stop; do not print `No open PRs` or create worktrees or agents.
 
 Print the resolved set (number, title, author) before fan-out; `search_prs` does not return head refs or head SHAs. No PRs after resolution → print `No open PRs` and stop; do not create worktrees or agents. Each worker reads the head branch from `pr://` and the `pr_checkout` output, and verifies the head after checkout against the upstream `pr_checkout` fetches.
 
