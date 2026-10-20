@@ -41,6 +41,14 @@ ENV_TO_CE = {"dev": "DEV", "test": "TEST", "prod": "PROD"}
 COST_CENTER = re.compile(r"^(cc|dp|apm)-\S+$")
 APPLICATION_ID = re.compile(r"^APM[0-9]{7}$")
 CONTACT = re.compile(r"@sanofi\.com$")
+NAME = re.compile(r"[A-Za-z0-9_-]+")
+# Official SemVer 2.0.0 grammar (https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string).
+SEMVER = re.compile(
+    r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+    r"(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?"
+    r"(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?",
+    re.ASCII,
+)
 
 
 def validate(tags: dict, unknown: frozenset[str] = frozenset()) -> list[str]:
@@ -64,6 +72,12 @@ def validate(tags: dict, unknown: frozenset[str] = frozenset()) -> list[str]:
         problems.append(f"`contact` must be an @sanofi.com email, got `{contact}`")
     if tags.get("team") and re.search(r"\s", tags["team"]):
         problems.append("`team` must be a single word")
+    name = tags.get("name")
+    if name and not NAME.fullmatch(name):
+        problems.append(f"`name` must be alphanumeric, `-` or `_`, got `{name}`")
+    version = tags.get("version")
+    if version and not SEMVER.fullmatch(version):
+        problems.append(f"`version` must be SemVer (MAJOR.MINOR.PATCH), got `{version}`")
     return problems
 
 

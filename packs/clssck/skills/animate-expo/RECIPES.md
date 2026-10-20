@@ -381,6 +381,8 @@ const armed = useSharedValue(false);
 useAnimatedReaction(
   () => pullDistance.get() > REFRESH_THRESHOLD,
   (isArmed, wasArmed) => {
+    // previous is null on the first run; skip it so mount doesn't buzz
+    if (wasArmed === null) return;
     if (isArmed !== wasArmed) {
       armed.set(isArmed);
       scheduleOnRN(Haptics.impactAsync, Haptics.ImpactFeedbackStyle.Light);

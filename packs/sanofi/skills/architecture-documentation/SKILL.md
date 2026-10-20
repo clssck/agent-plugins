@@ -29,7 +29,7 @@ Classification follows runtime responsibility, never repo layout or team ownersh
 4. **Produce** model narrative, relationship labels, requested diagram content. Repository holds C4 as code (Structurizr DSL, C4-PlantUML, Mermaid C4) → detect with `glob`/`grep`, edit that format in place → [diagrams-as-code.md](skill://architecture-documentation/references/diagrams-as-code.md).
 5. **Version** the logical artifact and record change history.
 6. **Validate** with [c4-notation-checklist.md](skill://architecture-documentation/references/c4-notation-checklist.md) before presenting or handing off.
-7. **Hand off** live Confluence work to `confluence-html-editor` with prepared content and target-page context.
+7. **Hand off** live Confluence work to `confluence-html-editor` with prepared content and target-page context. Save the content with `write` to `local://<identifier>.html` (identifier per Version and Attribute) and pass that path; `confluence-html-editor` reads `local://` files, and a long body stays out of the conversation.
 
 ## Classify Elements
 

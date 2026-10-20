@@ -39,7 +39,8 @@ A contract represents a **database schema** (one or more tables), not one table.
 | `VARCHAR(n)`, `CHAR(n)`, `TEXT`, `CLOB` | `string` | |
 | `INTEGER`, `INT`, `BIGINT`, `SMALLINT`, `TINYINT`, `SERIAL` | `integer` | |
 | `DECIMAL`, `NUMERIC`, `FLOAT`, `DOUBLE`, `REAL` | `number` | |
-| `BOOLEAN`, `BOOL`, `BIT` | `boolean` | |
+| `BOOLEAN`, `BOOL`, `BIT(1)`, SQL Server `BIT` | `boolean` | |
+| PostgreSQL `BIT(n)`/`BIT VARYING(n)`, MySQL `BIT(M)` with width > 1 | `string` | Bit string, not boolean; width in physicalType |
 | `DATE` | `date` | |
 | `TIMESTAMP`, `DATETIME`, `TIMESTAMPTZ` | `timestamp` | |
 | `TIME`, `TIMETZ` | `time` | |

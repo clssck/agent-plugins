@@ -142,15 +142,22 @@ Remediate with the standalone `aws_s3_bucket_server_side_encryption_configuratio
 
 | Framework | Check |
 |-----------|-------|
-| TF | `storage_encrypted = false` or absent on `aws_db_instance` / `aws_rds_cluster` |
-| CDK | `storageEncrypted: false` or absent on `DatabaseInstance` / `DatabaseCluster` |
-| CFN | `StorageEncrypted: false` or absent |
+| TF | `storage_encrypted = false` or absent on `aws_db_instance` / `aws_rds_cluster` (Aurora: see below) |
+| CDK | `storageEncrypted: false` or absent on `DatabaseInstance` / `DatabaseCluster` (Aurora: see below) |
+| CFN | `StorageEncrypted: false` or absent (Aurora: see below) |
 
-Absent = unencrypted for RDS instance and cluster resources (provider default `false`; only `engine_mode = "serverless"` clusters default to `true`). High (Confirmed when explicitly false or absent in a resource defined here). `aws_redshift_cluster` `encrypted` defaults to `true` only on provider ≥ 6.0: on 5.x or an unknown version, absent = Needs confirmation.
+Absent = `false` (provider default `false`; only `engine_mode = "serverless"` clusters default to `true`). What `false` means depends on the engine:
+
+- RDS DB instance, or an `aws_rds_cluster` with a non-Aurora `engine` (Multi-AZ DB cluster; the Aurora default below does not cover it): absent or `false` = unencrypted. High (Confirmed when explicitly false or absent in a resource defined here).
+- Aurora cluster (`aurora-mysql` / `aurora-postgresql`): since February 2026, new clusters are encrypted with AWS owned keys even when `StorageEncrypted` is `false` (also with an explicit `false`). `describe-db-clusters` then shows `StorageEncryptionType: sse-rds`. Existing clusters keep their earlier state; snapshots, backups, and clones of an unencrypted cluster stay unencrypted. Absent or `false` in the template is therefore not evidence of unencrypted storage. High (Confirmed) only with evidence that the deployed cluster is unencrypted: `StorageEncryptionType: none`, or a creation date before the change with no restore or re-creation since. A cluster this change would newly create → no finding. A cluster whose creation date or encryption type is unknown → Needs confirmation.
+
+Requiring an AWS KMS key is policy only: if policy requires a CMK and `kms_key_id` / `KmsKeyId` is absent, report Medium, "CMK policy".
+
+`aws_redshift_cluster` `encrypted` defaults to `true` only on provider ≥ 6.0: on 5.x or an unknown version, absent = Needs confirmation.
 
 ### EN-03: EBS
 
-`aws_ebs_volume`, root/ebs block devices without `encrypted = true`. Account-level EBS default encryption may apply: Needs confirmation unless explicitly `false`. High if explicit `false`, Medium otherwise.
+`aws_ebs_volume`, root/ebs block devices without `encrypted = true`. When account/Region EBS encryption by default is on, every new volume is encrypted, and a volume-level `false` cannot turn it off. The setting does not touch existing volumes. Before grading, establish the effective default: `aws_ebs_encryption_by_default` (`enabled`) for that account/Region, or `aws ec2 get-ebs-encryption-by-default` output. If the default is shown off, or the volume predates it: High if explicit `false`, Medium if absent. No evidence of the default → Needs confirmation, whether the value is explicit `false` or absent.
 
 ### EN-04: SQS and SNS
 
@@ -272,7 +279,12 @@ Secrets in Lambda/ECS environment variables, connection strings, user data. High
 
 ### SM-03: State and variable files
 
-`*.tfvars` / `*.auto.tfvars` with secrets committed; remote state backend without `encrypt = true` or without locking (S3 backend: `use_lockfile = true`; `dynamodb_table` alone is deprecated, Informational). Medium.
+`*.tfvars` / `*.auto.tfvars` with secrets committed: Medium.
+
+Remote state backend, two separate checks:
+
+- Encryption: S3 applies SSE-S3 to every new object, so a backend without `encrypt = true` is not a finding. Judge the state bucket's encryption instead: when it is defined here, apply EN-01. If policy requires a CMK and neither the bucket default nor the backend `kms_key_id` uses `aws:kms`, report Medium, "CMK policy". If the bucket is defined elsewhere and a CMK policy applies → Needs confirmation.
+- Locking: no lock → Medium. S3 backend: `use_lockfile = true`; `dynamodb_table` alone is deprecated, Informational.
 
 ## 8. Sanofi Policy (Sanofi projects only)
 

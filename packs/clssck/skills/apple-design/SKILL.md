@@ -93,7 +93,7 @@ Apple deliberately replaced the physics triplet (mass/stiffness/damping) with tw
 | Rotation | `0.8` | `0.4` |
 | Drawer / sheet | `0.8` | `0.3` |
 
-**Web mapping (Motion / Framer Motion):** the `bounce` + `duration` spring API maps closely to Apple's damping + response. A safe house style is `damping: 1.0` springs everywhere by default; reserve bounce for momentum-driven, physical interactions.
+**Web mapping (Motion / Framer Motion):** the `bounce` + `duration` spring API maps closely to Apple's damping + response — Apple's damping ratio `1.0` is Motion's `bounce: 0`. Don't pass the ratio as Motion's `damping`: that is a physics force coefficient (default `10`), so `damping: 1` oscillates heavily. A safe house style is `bounce: 0` springs everywhere by default; reserve bounce for momentum-driven, physical interactions.
 
 ```js
 import { animate } from 'motion';
@@ -222,6 +222,8 @@ Also: avoid full-viewport moving backgrounds, slow looping oscillations (near 0.
   .toolbar { background: white; backdrop-filter: none; }
 }
 ```
+
+Verify the reduced-motion path rather than trusting the media query: in `browser`, `tab.emulate({ reducedMotion: true })`, trigger the transition, and check `tab.styles(selector, ['transform', 'transition'])`. Transparency and contrast preferences can't be emulated there (nor reduced motion in Tern tabs); verify those by reading the CSS.
 
 ## 15. Typography — optical sizing, tracking, leading
 

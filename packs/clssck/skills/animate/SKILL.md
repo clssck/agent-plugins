@@ -153,7 +153,13 @@ Ships with the animation, every time.
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  .element { animation: fade 0.2s ease; } /* keep opacity/color, drop transform-based motion */
+  /* gentler, not zero: keep the opacity fade, drop all movement */
+  .element {
+    transform: none;              /* no offset/scale at rest or mid-flight */
+    transition-property: opacity; /* transform stops transitioning; the fade stays */
+    animation-name: fade-in;      /* swap movement keyframes; give exits an opacity-only fade-out */
+  }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -191,6 +197,8 @@ Self-check before you finish. Each of these is an automatic block in `review-ani
 | Ungated `:hover` motion | `@media (hover: hover) and (pointer: fine)` |
 | Missing `prefers-reduced-motion` | Gentler variant, not zero |
 | Everything entering at once | 30–80ms stagger |
+
+When the page runs locally, check what code cannot prove in an OMP `browser` tab. Open Chromium (`app: { tern: false }`), start `tab.recordStart(path, { contactSheet: true })`, trigger the motion, then call `tab.recordStop()`. Treat the returned contact sheet as a coarse overview: if a small motion, origin, or stagger is absent, inspect the recording at intermediate timestamps instead of assuming it did not happen. Re-run after `tab.emulate({ reducedMotion: true })` to inspect the reduced-motion variant. Without a browser tool or running app, leave these to the feel-check.
 
 ## Output
 

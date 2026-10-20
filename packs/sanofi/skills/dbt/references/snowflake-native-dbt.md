@@ -6,7 +6,7 @@ Scope split: normal model SQL, project structure, tests, documentation, incremen
 
 ## Sources and Currency
 
-Before implementing, verify command syntax, supported dbt versions, commands, and flags against:
+Before implementing, `read` the pages below that cover the command and verify syntax, supported dbt versions, commands, and flags:
 
 - [Manage dbt Projects with Snowflake CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli/data-pipelines/dbt-projects)
 - [`snow dbt` command reference](https://docs.snowflake.com/en/developer-guide/snowflake-cli/command-reference/dbt-commands/overview)

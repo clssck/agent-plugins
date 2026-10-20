@@ -57,6 +57,20 @@ A closing `## Checklist` MAY summarize the skill's verifiable rules; every item 
 - **Unknown ≠ success:** missing error, empty output, or absent response NEVER reports as passing. Baseline failures stay baseline; NEVER restate pre-existing breakage as a regression or a pass.
 - Final report states coverage gaps and limitations: what was not reached, why.
 
+## Validate
+
+Static gates, run from the agent-plugins repo root (what each one proves is in CONTRIBUTING.md):
+
+```bash
+bun scripts/sync.ts --local   # description present, concrete skill:// targets resolve, names unambiguous; no network, never loads OMP
+bun test scripts              # sync, rule, and README behavior
+OMP_ROOT=/path/to/oh-my-pi bun scripts/check-omp-loader.ts   # OMP's own loaders accept every pack; needs an OMP checkout with a built native addon
+```
+
+- **Passing the gates ≠ the skill works:** they check discovery and structure, not behavior. Behavior check: `task` one fresh subagent with `# Target` = the user's real request and instruction "read `skill://<name>`, then do it" — children start blank, so the skill alone carries the workflow. Then read its transcript at `history://<id>`: wrong turns, skipped gates, and improvised steps are skill defects; fix the text, rerun.
+- **Which copy runs:** a working-tree edit reaches a session only through a source OMP currently loads (for this repo's normal development flow, `omp plugin link ~/Projects/agent-plugins/packs/clssck`; custom directories or explicit extension roots are alternatives). `read skill://<name>` shows which copy resolves before you trust a trial.
+- **Description retrieval:** `judge_batch` (eval) over 10+ real user phrasings, half that should trigger and half that should not, state `{description, request}` per phrasing, one `bool` question ("would an agent pick this skill for this request?"). A small-model proxy: use it to find missed triggers and sibling collisions, label the result inferred, and NEVER treat it as proof of routing.
+
 ## Anti-patterns
 
 |Wrong|Right|

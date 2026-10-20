@@ -24,7 +24,7 @@ Governing principle: an ADR records a decision and its evidence, never a fabrica
 | Write | Record a decision | [write-workflow.md](skill://adr-writing/references/write-workflow.md) |
 | Review | Evaluate or fact-check an existing ADR | [review-workflow.md](skill://adr-writing/references/review-workflow.md), [review-checklist.md](skill://adr-writing/references/review-checklist.md) |
 
-- **NEVER self-review** an ADR written in the same conversation; shared context removes independence.
+- **NEVER self-review** an ADR written in the same conversation; shared context removes independence. Review requested on such an ADR → spawn a `task` agent (children start blank) with the file path and [review-workflow.md](skill://adr-writing/references/review-workflow.md), and relay its findings. Spawning unavailable → say the review was not independent.
 
 | Need | Reference |
 |---|---|

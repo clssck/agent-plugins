@@ -68,7 +68,7 @@ Precedence: env var with the service's standard name (`GITHUB_TOKEN`) > user con
 
 ## Build
 
-1. **Inventory the source:** resources, auth, pagination, IDs, file flows, rate limits, dangerous writes. OpenAPI available → inspect before naming commands.
+1. **Inventory the source:** resources, auth, pagination, IDs, file flows, rate limits, dangerous writes. OpenAPI available → inspect before naming commands. Wrapping an official SDK or version-sensitive library (`clap`, `commander`, `reqwest`) → pull its current API docs from the `context7` MCP server, else `web_search` the vendor docs; NEVER code against a remembered SDK surface.
 2. **Sketch the command surface in chat before coding:** binary name, discovery, resolve, read, write, raw escape hatch, auth/config choice, install command. Short, shell-friendly names; shape, JSON policy, pagination, exit codes per [agent-cli-patterns.md](skill://cli-creator/references/agent-cli-patterns.md).
 3. Scaffold with a README or equivalent.
 4. Implement `doctor`, discovery, resolve, reads, one narrow draft or dry-run write if requested, raw escape hatch.
@@ -102,6 +102,8 @@ Get-Command <tool-name>; <tool-name> --help; <tool-name> --json doctor
 
 Not on PATH → run the wrapper or binary by absolute path from the fresh directory; NEVER install just to pass the smoke test.
 
+**TTY behavior:** the omp `bash` tool runs with no TTY on stdin or stdout, so the smoke commands above are the no-TTY check; set a short `timeout` so a prompt that waits instead of failing fast shows up as a timeout, not a stall. Interactive prompts or a TUI → drive the ordinary CLI on a real PTY with `xd://tui` (`{"op":"start","bin":"<tool-name>","args":[…]}`, then `screen`, `send` the terminal input, and `stop`); reserve `keys` for OMP/pi-tui hosts with the debug socket. If `xd://tui` is unavailable, use `bash` with `pty: true`.
+
 Done = all hold: `--help`, `--version`, `--json doctor`, discovery, resolve, reads, raw escape hatch present · runs without a TTY (no prompts without one, documented nonzero exit codes, `NO_COLOR` honored, network timeout set) · `--json` errors carry no credentials · Python is a uv project or PEP 723 script, nothing `pip install`ed into system Python · no live write without approval.
 
 ## Companion skill
@@ -118,4 +120,4 @@ After the CLI works, create or update a normal omp skill that teaches it.
 - **Frontmatter:** `name` + `description`; `disable-model-invocation: true` only for a manual-only skill (OMP extension frontmatter — omit it from standard `plugin.json` packages; strict validation rejects unknown fields). Description = retrieval surface: purpose + concrete "Use when" triggers; `Not for …` only against sibling confusion. Authoring style → `skill-authoring`.
 - **Body:** `# Title`, dense intro, `##` sections (task names for procedures, noun names for reference), bold-lead rules. Detail in `references/*.md`; link every runtime asset with `skill://<tool-name>/...`. Skeleton → [agent-cli-patterns.md](skill://cli-creator/references/agent-cli-patterns.md#companion-skill).
 - **Bundled scripts:** PEP 723 header with `#!/usr/bin/env -S uv run --script`; invoke as `uv run "$(realpath skill://<tool-name>/scripts/<file>.py)"` in the omp `bash` tool. Bare `skill://` path fails in external programs; `realpath` prints the physical path.
-- **Verify:** `read skill://<tool-name>` resolves, every link resolves, example commands run from a fresh directory.
+- **Verify:** `read skill://<tool-name>` resolves, every link resolves, example commands run from a fresh directory. Pack skill → also `bun scripts/sync.ts --local` from the repo root (`skill-authoring` → Validate).

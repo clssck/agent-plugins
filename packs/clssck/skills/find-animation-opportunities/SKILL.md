@@ -100,12 +100,12 @@ Sweep for these seams — each is a known class of genuine opportunity:
 **The delight budget**
 - Rare, high-emotion moments rendered flat — first-run, empty states, success/completion, celebration. These are the only places bounce, stagger generosity, or a longer beat are welcome.
 
-Useful sweeps: grep for conditional renders with no transition (`{isOpen &&`, `display: none` toggles), `onClick` handlers on elements with no `:active`/transition styles, `details`/accordion markup, drag handlers, `.map(` renders of entering lists, empty-state and success components.
+Useful sweeps: `grep` for `display: none` toggles, `onClick` handlers on elements with no `:active`/transition styles, `details`/accordion markup, drag handlers, and empty-state and success components. For conditional renders with no transition, use `ast-grep` with `lang: "tsx"` (one pattern per call, narrow `path`): `$C && <$T $$$ />` and `$C && <$T $$$>$$$</$T>` for JSX, `$C ? $A : null` for ternaries. For entering lists, `.map(` renders. A match is a candidate, not a finding — check whether the parent already animates presence (`AnimatePresence`, `@starting-style`, a transition on the wrapper).
 
 ## Workflow
 
 1. **Recon.** Identify the stack, motion libraries, existing easing/duration tokens (suggestions must extend these, not invent parallel ones), and the product's personality — a crisp dashboard earns fewer and subtler suggestions than a playful consumer app. Build a rough frequency map of the surfaces you'll judge.
-2. **Sweep** the hunt list above. Done when every seam class has either yielded candidates with `file:line` evidence or been explicitly cleared.
+2. **Sweep** the hunt list above. Done when every seam class has either yielded candidates with `file:line` evidence or been explicitly cleared. For a whole app, fan the seam classes (or app areas) out as read-only `scout` agents in one OMP `task` call (`tasks[]`), putting the recon facts and the Gate in the shared `context`; each returns candidates with `file:line` and no verdicts — you gate them. When the app is already running (or the user gave a URL), confirm a "teleporting state" candidate in an OMP `browser` tab: trigger it (`tab.click`) and `tab.screenshot()` right away — a fully settled frame suggests nothing bridges the change. Never start a dev server yourself; without a running app, code evidence is enough.
 3. **Gate** every candidate through all four questions. Be ruthless.
 4. **Report** in the format below. If nothing survives, say so plainly; that's a good result, not a failure.
 

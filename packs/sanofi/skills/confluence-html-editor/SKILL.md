@@ -81,6 +81,8 @@ uv run "$(realpath skill://confluence-html-editor/scripts/review_confluence_publ
 uv run "$(realpath skill://confluence-html-editor/scripts/verify_confluence_adf.py)" "$(realpath local://fetched-adf.json)" --expect panels,statuses,layouts,tasks,decisions,inline_cards,dates
 ```
 
+   Mermaid, draw.io, images, or embed cards added or touched → also check the rendered page; ADF can hold a valid-looking extension that renders as "Error while loading diagram". In `eval`, `browser.open({ name: "confluence", url: pageUrl, app: { relay: true } })` opens the page in the user's signed-in Chrome; once macros load, `tab.screenshot({ fullPage: true })`, inspect each diagram and image, then `browser.close({ name: "confluence" })`. View only: NEVER click, edit, or comment through the tab, because actions are attributed to the user. Relay unavailable or a sign-in page → report the rendered check as not run; NEVER claim the render verified.
+
    One clear correction, then verify again. Write damaged the page → `restoreConfluenceContentVersion` to the prior version, then report. NEVER loop speculative writes.
 7. **Report** link, version, changes, unresolved issues.
 
@@ -92,7 +94,7 @@ Atlassian tools discovered, live schema read, exact parameter names used · fetc
 
 ### After publishing
 
-Refetched · ADF verified for rich pages · no local paths, base64 images, CSS, or scripts in the returned body.
+Refetched · ADF verified for rich pages · rendered check for diagrams, images, embeds run or reported as not run · no local paths, base64 images, CSS, or scripts in the returned body.
 
 ### Attachment upload
 

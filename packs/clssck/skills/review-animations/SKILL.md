@@ -24,6 +24,8 @@ The substantive bar comes from Emil Kowalski's animation philosophy (animations.
 
 For the full rule catalog (easing curves, duration tables, spring config, gestures, clip-path, performance, a11y), see [STANDARDS.md](STANDARDS.md). Load it whenever a finding needs a precise value or citation.
 
+When the target is a GitHub PR, read it through `pr://<N>/diff` (changed files), then `pr://<N>/diff/<i>` per file or `pr://<N>/diff/all`.
+
 ## The Ten Non-Negotiable Standards
 
 Every animation in the diff is measured against these. A violation is a finding.
@@ -40,7 +42,7 @@ Every animation in the diff is measured against these. A violation is a finding.
 
 6. **Interruptibility.** Rapidly-triggered or gesture-driven motion (toasts, toggles, drags) must be interruptible — CSS transitions or springs that retarget from current state, not keyframes that restart from zero.
 
-7. **GPU-only properties.** Animate `transform` and `opacity` only. Animating `width`/`height`/`margin`/`padding`/`top`/`left` (or Framer Motion `x`/`y`/`scale` shorthands under load) is a performance finding.
+7. **GPU-only properties.** Animate `transform` and `opacity` only. Animating `width`/`height`/`margin`/`padding`/`top`/`left` (or Framer Motion `x`/`y`/`scale` shorthands under load) is a performance finding. The sole exception is `height` (incl. `auto`) on accordions/collapses, which no transform can reproduce (content reflow); pair it with opacity and don't flag it.
 
 8. **Accessibility.** `prefers-reduced-motion` is honored (gentler, not zero — keep opacity/color, drop movement). Hover animations are gated behind `@media (hover: hover) and (pointer: fine)`.
 
@@ -59,7 +61,7 @@ Flag these on sight, hard:
 - UI duration > 300ms with no stated reason
 - `transform-origin: center` on a trigger-anchored popover/dropdown/tooltip
 - Keyframes on toasts, toggles, or anything added/triggered rapidly
-- Animating layout properties (`width`/`height`/`margin`/`padding`/`top`/`left`)
+- Animating layout properties (`width`/`height`/`margin`/`padding`/`top`/`left`) — except `height` on accordions/collapses (standard 7)
 - Framer Motion `x`/`y`/`scale` props on motion that runs while the page is busy
 - Updating a CSS variable on a parent to drive a child transform (style recalc storm)
 - Missing `prefers-reduced-motion` handling on movement

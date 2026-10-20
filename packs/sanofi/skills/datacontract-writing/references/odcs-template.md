@@ -212,7 +212,8 @@ NEVER emit `type: table` on the schema object.
 |-------|-------|
 | `name` | Required |
 | `logicalType` | `string`, `date`, `timestamp`, `time`, `number`, `integer`, `object`, `array`, `boolean` |
-| `logicalTypeOptions` | Per-type options (`maxLength`, `format`, `timezone`, `minimum`, ...). `array` takes `items` |
+| `logicalTypeOptions` | Per-type options (`maxLength`, `format`, `timezone`, `minimum`, ...). `array` takes `maxItems`, `minItems`, `uniqueItems` |
+| `items` | Element definition for `logicalType: array`; sibling of `logicalTypeOptions`, not inside it |
 | `physicalType` | Exact source type |
 | `primaryKey`, `primaryKeyPosition` | Position starts at 1 |
 | `required` | `true` = NOT NULL. Inverse of `isNullable` |

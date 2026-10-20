@@ -155,7 +155,7 @@ Always prefer structured tasks.
 Structured tasks (`async let`, task groups) are scoped like local variables: they can't outlive the block, they're awaited automatically, and they inherit cancellation, priority, and task-local values through the task tree. Unstructured tasks (`Task { }`, `Task.detached`) give you none of that automatically.
 
 - **`async let`** for a fixed, statically known number of concurrent children.
-- **`withTaskGroup`** when the number is dynamic. Task groups conform to `AsyncSequence` — iterate results as they land. Use **`withDiscardingTaskGroup`** when children return nothing: it frees each child's resources immediately and cancels siblings on the first error.
+- **`withTaskGroup`** when the number is dynamic. Task groups conform to `AsyncSequence` — iterate results as they land. Use **`withDiscardingTaskGroup`** when children return nothing: it frees each child's resources immediately. Its children can't throw; use **`withThrowingDiscardingTaskGroup`** when they can — the first child error cancels the siblings and is rethrown.
 - **`Task { }`** only when the work's lifetime doesn't fit a scope — reacting to a delegate callback, a button tap, a view appearing. It inherits actor isolation and priority; you must manage cancellation yourself.
 - **`Task.detached`** almost never. It inherits nothing — not isolation, not priority, not task-locals. If you need a detached root, put a task group _inside_ it rather than detaching repeatedly.
 
@@ -204,7 +204,7 @@ The workflow: **write concrete types → notice repeated code across them → fa
 - **Write `some P` by default. Change to `any P` when you need to store arbitrary types.** Same discipline as `let` before `var`.
 - `some P` — one fixed underlying type per scope. You keep every type relationship, including associated types, and the compiler can specialize.
 - `any P` — type-erased box, dynamic type varies at runtime. Needed for heterogeneous collections, for optionality of the underlying type, and to hide the abstraction entirely. You pay for it: associated-type relationships are erased to their upper bounds, and calls are opaque to the optimizer.
-- **You cannot call a method that takes an associated type on an `any P`.** Erasure works in producing position (the result is erased to its upper bound) but not consuming position. The fix is to pass the existential into a function taking `some P` — the compiler unboxes it, and inside that scope the type is fixed again.
+- **You cannot call a method that takes an unconstrained associated type on an `any P`.** Erasure works in producing position (the result is erased to its upper bound) but not consuming position. A constrained existential fixes the type, so it works there: `any RangeReplaceableCollection<Int>` accepts `append(4)`. Otherwise, pass the existential into a function taking `some P` — the compiler unboxes it, and inside that scope the type is fixed again.
 - **Constrained existentials and opaque types** — `some Collection<Element>`, `any Collection<any Animal>` — let you hide `LazyFilterSequence<[Animal]>` while still exposing the element type. Declare primary associated types on your own protocols (`protocol Container<Item>`) for the type callers actually supply, not for implementation details like `Iterator`.
 - **Same-type requirements in `where` clauses** are how you pin down relationships across protocols (`where Self.CropType.FeedType == Self`). Without them, "grow then harvest" doesn't typecheck, and wrong conformances compile.
 
@@ -291,7 +291,7 @@ Use **Swift Testing** for new tests. XCTest remains required for exactly three t
 Reach for a macro when you're writing code the compiler could derive — and only then.
 
 - **Macros are type-checked before expansion.** Arguments are checked against the macro's declared signature, so misuse is a clean error at the call site, not a mess inside generated code.
-- **Freestanding (`#foo`)** produce an expression or declaration. **Attached (`@Foo`)** augment a declaration in one of five roles: member, peer, accessor, member-attribute, conformance. Roles compose — `@Observable` is member + member-attribute + conformance.
+- **Freestanding (`#foo`)** produce an expression or declaration. **Attached (`@Foo`)** augment a declaration in one of five roles: member, peer, accessor, member-attribute, extension. Roles compose — `@Observable` is member + member-attribute + extension.
 - **Test macros as pure syntax-tree transforms** with `assertMacroExpansion`. It's the fastest loop, and it's how you avoid bugs in code nobody reads. Set a breakpoint in `expansion` and `po` the syntax node to learn its shape.
 - **Emit real diagnostics when the macro doesn't apply.** Throw an error, or use `context.addDiagnostic` for warnings and fix-its at a specific location. Never let a macro silently generate code that won't compile.
 - Expanded code is ordinary Swift: inspectable ("Expand Macro"), debuggable, steppable.
@@ -355,7 +355,7 @@ The order matters, and mixing steps is how migrations stall.
 
 1. **Build with the new compiler first.** Source compatibility means this should just work, in Swift 5 mode.
 2. **Per target, enable complete concurrency checking** (Swift 5 mode + all Swift 6 warnings). Start with the **UI/app layer**, not the frameworks below it — much of it is already main-actor-annotated by the SDK, so the fix rate is high.
-3. **Fix the warnings, cheapest first.** Expect hundreds of warnings from a handful of root causes: `var` globals that should be `let`, free functions that belong on `@MainActor`, one public struct that needs `: Sendable`. A single line can clear dozens.
+3. **Fix the warnings, cheapest first.** Expect hundreds of warnings from a handful of root causes: `var` globals that should be `let`, free functions that belong on `@MainActor`, one public struct that needs `: Sendable`. A single line can clear dozens. Group them from the full build log (`swift build`, or `xcodebuild` for an Xcode project) to find those root causes. When sourcekit-lsp is running, `xd://lsp` `code_actions` on a flagged line lists the compiler's fix-its, and `apply: true` with a `query` applies one; use that instead of a hand edit.
 4. **Flip the target to the Swift 6 language mode** to lock the work in.
 5. **Move to the next target and repeat.**
 6. **Refactor afterwards, separately.** Never combine a significant refactor with enabling data-race safety — you'll have to back out both.

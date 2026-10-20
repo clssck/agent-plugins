@@ -17,11 +17,12 @@ Exact props, types, and defaults. Options passed to `toast()` override the same 
 | `mobileOffset` | `string \| number \| object` | `'16px'` | Offset when screen width < 600px. |
 | `swipeDirections` | `array` | based on position | Allowed swipe-to-dismiss directions. |
 | `dir` | `string` | `'ltr'` | Text directionality. |
-| `hotkey` | `string` | `⌥/alt + T` | Keyboard shortcut that focuses the toaster area. |
+| `hotkey` | `string[]` | `['altKey', 'KeyT']` | Keys (event modifier names or `KeyboardEvent.code` values) that focus the toaster area together. |
 | `invert` | `boolean` | `false` | Dark toasts in light mode and vice versa. |
 | `toastOptions` | `object` | – | Default options applied to every toast (any `toast()` option below). |
 | `gap` | `number` | `14` | Gap between toasts when expanded. |
 | `icons` | `object` | – | Replace default icons: `{ success, info, warning, error, loading }`; `null` removes one. |
+| `containerAriaLabel` | `string` | `'Notifications'` | ARIA label for the toast container; the hotkey label is appended. |
 
 ## `toast()` options
 
@@ -48,7 +49,6 @@ Exact props, types, and defaults. Options passed to `toast()` override the same 
 | `unstyled` | `boolean` | `false` | Removes all default styles. |
 | `onDismiss` | `(toast) => void` | – | Fires when the close button is clicked or the toast is swiped away. |
 | `onAutoClose` | `(toast) => void` | – | Fires when the toast closes automatically after `duration`. |
-| `containerAriaLabel` | `string` | `'Notifications'` | ARIA label for the toast container. |
 
 ## Functions
 

@@ -60,7 +60,7 @@ Apply [security-controls.md](skill://iac-security-review/references/security-con
 
 - **Suppressions:** `grep` `checkov:skip`, `trivy:ignore`, `kics-scan`; judge each suppressed control yourself.
 - **Scanner cross-check:** MAY run; rules in [scanners.md](skill://iac-security-review/references/scanners.md). Hits are re-graded, never copied; scanner already installed or install approved by the user.
-- **Large repos:** delegate per directory with `task`; merge findings centrally.
+- **Large repos:** use one batched OMP `task` call with a `security-reviewer` per independent directory. Give every child the recorded scope, its directory, the applicable control/reference paths, the evidence-and-redaction rules above, and an instruction to return `findings`, `reviewed_paths`, and `deferred` only. The agent is read-only and has no `bash`; keep scanner runs, cross-directory paths, final control grading, and report integration with the parent.
 
 ### 4. Cross-Resource
 

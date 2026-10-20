@@ -60,7 +60,7 @@ Confirm engine and version with `dbt --version` before applying any row.
 | `DBT_ENV_SECRET_*` | Only in `profiles.yml` and `packages.yml`; NEVER in sources, macros, vars, SQL |
 | `--full-refresh` vs `full_refresh: false` | Config wins; the flag does not override `false` |
 | Unit test YAML | Under `model-paths`, NEVER `tests/` |
-| Native `snow dbt` | Re-verify CLI minimums, flags, and the `DBT_VERSION` pin against current Snowflake docs |
+| Native `snow dbt` | `read` the current pages in [snowflake-native-dbt.md](skill://dbt/references/snowflake-native-dbt.md#sources-and-currency) for CLI minimums, flags, and the `DBT_VERSION` pin |
 | Deprecation warnings | None new; fix, never silence as the fix |
 
 ## Command Scope

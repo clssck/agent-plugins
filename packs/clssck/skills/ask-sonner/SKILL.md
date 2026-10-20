@@ -52,7 +52,7 @@ toast.success('Uploaded', { id });
 
 **Links or components in the text** — pass a function for the title or description: `toast(() => <a href="…">View</a>)`.
 
-**Multiple toasters** — give each an `id` and target with `toast('…', { toasterId: 'canvas' })`. Without `toasterId`, every toaster renders the toast.
+**Multiple toasters** — give each an `id` and target with `toast('…', { toasterId: 'canvas' })`. A Toaster with an `id` renders only toasts whose `toasterId` matches; a toast without `toasterId` renders only in Toasters without an `id` — if every Toaster has an `id`, untargeted toasts never show.
 
 **Close callbacks** — `onDismiss` fires on close button or swipe; `onAutoClose` fires on timeout. They are separate; there is no single "closed" callback.
 
@@ -70,6 +70,8 @@ Climb only as far as the change requires; jumping to the top rung too early is f
 **Theme** — `theme` defaults to `'light'` and does not track the OS. Pass `theme="system"`, or wire your theme provider: `<Toaster theme={resolvedTheme} />` from `next-themes`.
 
 ## Troubleshooting
+
+If the app runs, reproduce before matching a row: record the current toast state, trigger one toast with unique text or a stable test id, then use `tab.evaluate` to count only matching `[data-sonner-toast]` elements. Zero means that toast never rendered (read `tab.errors()` and `tab.console()`); more than one with the same identity is a duplicate; one that the user cannot see points to stacking or styling (`tab.screenshot()`, `tab.styles(...)`). A global count of every visible toast is not duplicate evidence. Without a browser, work from the table.
 
 | Symptom | Cause → fix |
 | --- | --- |

@@ -47,6 +47,8 @@ Tells engineers which repo to consult for L3 deep-dives or code changes.
 4. Widen the path set one directory at a time only when an unresolved relationship or
    dependency requires more evidence.
 
+   Several independent roots (separate repositories, or services under `apps/`) → spawn one `scout` per root in a single `task` batch; each returns runtime, data-store, and integration evidence as `path:line`. Scouts gather evidence only. Classify containers and draw the boundary yourself from the combined reports. Spawning unavailable → search root by root as above.
+
 ### No Docker or infrastructure files found
 
 **Cause**: serverless or platform-managed deployment not visible in the repo.

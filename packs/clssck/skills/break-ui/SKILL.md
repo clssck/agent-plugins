@@ -86,7 +86,7 @@ View the worst case and look for each failure signature below. Check it:
 - with **browser zoom at 200%** (or root font size raised), because text grows and boxes don't;
 - in **dark mode** and **RTL** (`dir="rtl"` on a wrapper) if the product supports either.
 
-If browser tooling is available, screenshot both states at each width and compare. If it isn't, reason from the CSS and say which findings you verified visually and which you inferred.
+Run the dev server and drive it with `eval`'s `browser`: `browser.open` the demo URL, then for each width (`tab.emulate({ viewport })`) and environment, flip the toggle with `tab.click`, take `tab.screenshot({ format: "png" })` of both states (it returns the saved file path; an explicit `format` saves it full-resolution, so it can serve as a diff baseline later), and check `tab.errors()` / `tab.console()` for errors. In the worst-case state, measure overflow instead of eyeballing it: `tab.evaluate` a function that returns every element whose `scrollWidth > clientWidth`, or whose `getBoundingClientRect()` extends past its parent's or the viewport's right edge, and treat each hit as a candidate break. Keep the Demo screenshot paths for Phase 6. Close the tab with `browser.close` when done. To compare screenshots, give their paths to the `vision` agent. If nothing can be served, reason from the CSS and say which findings you verified visually and which you inferred.
 
 #### Failure signatures
 
@@ -132,7 +132,7 @@ Present the findings in the format below, leave the toggle running, and stop. Th
 
 ### Phase 6 — Fix on request
 
-When the user says which to fix, apply those fixes in the component, using the project's existing conventions and tokens. Then flip the toggle through every state again (Demo too: a fix for the worst case must not regress the demo) and confirm each fixed break is gone.
+When the user says which to fix, apply those fixes in the component, using the project's existing conventions and tokens. Then flip the toggle through every state again (Demo too: a fix for the worst case must not regress the demo) and confirm each fixed break is gone. For Demo, at each width run `tab.diffScreenshot(<Phase 4 Demo path>)`: `changed: false` means the changed-pixel ratio did not exceed the tool's threshold; otherwise open the returned `diffPath` (changed pixels in magenta) and confirm every change is intended.
 
 Keep the worst-case fixture afterward unless the user says otherwise. It's the regression test for the next time someone touches the component. The toggle stays dev-only either way.
 

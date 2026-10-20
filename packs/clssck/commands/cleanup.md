@@ -28,7 +28,7 @@ Instructions conflict with this command → repository instructions win. No docu
 
 ## 1. Discover
 
-Use LSP (references, diagnostics, unused-symbol hints), compiler/linter warnings from documented checks, and targeted `grep`/`find`. Read every candidate before judging it; tool output is evidence, not verdict.
+Use `xd://lsp` (`diagnostics` over a path/glob for unused-symbol hints; `references` with `symbol` for callsite counts), compiler/linter warnings from documented checks, `ast_grep` for syntax-shaped smells (duplicated call shapes, parallel switch/if chains on one discriminant), and targeted `grep`/`find`. Read every candidate before judging it; tool output is evidence, not verdict.
 
 **Dead weight** — highest value/risk
 - Exported symbols with zero in-repo references. Symbols reachable from the public surface are PROTECTED: external consumers are invisible.
@@ -60,7 +60,7 @@ Bar: the win fits in one sentence and is substantial for this codebase — an en
 ## 3. Execute
 
 **Dead weight / redundant checks**
-- Delete dead symbols and tests that only mirror them. Deletion requires BOTH: LSP references (or exhaustive grep where no LSP exists) show no callsites — a missed callsite is a bug; and the symbol is not reachable from the public surface. Either fails → keep.
+- Delete dead symbols and tests that only mirror them. Deletion requires BOTH: `xd://lsp` `references` (or exhaustive `grep` where no server covers the language) show no callsites — a missed callsite is a bug; and the symbol is not reachable from the public surface. Either fails → keep.
 - Narrow once at the IO boundary; internal code receives the narrowed type. Delete downstream null-propagation on non-nullable values, fallbacks on non-optional values, re-narrowing, and casts papering over flow.
 - Genuinely sometimes-absent value → fix the TYPE upstream; NEVER add downstream guards.
 - Swallow-and-limp error handling → delete or propagate. Catch only precise, expected errors.
@@ -69,6 +69,7 @@ Bar: the win fits in one sentence and is substantial for this codebase — an en
 - 2+ copies → one function in the nearest common domain module; cross-package → the repo's existing shared package. NEVER create a junk drawer.
 - Literal/flag variants → one function with a named-options parameter; NEVER boolean positionals.
 - Keep the hardened copy (timeouts, caps, sanitization, error context), not a fresh copy lacking it.
+- Migrate callsites with one `ast_edit` op per call shape over the affected paths; matches are staged, so inspect the proposal, then apply with a write to `xd://resolve` (or discard via `xd://reject`). Hand-edit only shapes a pattern cannot express, or every callsite when `ast_edit` is unavailable.
 
 **God objects**
 - Split along existing seams into domain-named, single-responsibility modules.
@@ -76,7 +77,7 @@ Bar: the win fits in one sentence and is substantial for this codebase — an en
 - Update every importer; NEVER keep a re-export shim. A split that introduces an interface, base class, event bus, or DI where a direct call existed has failed.
 
 **Hierarchy**
-- Move files with LSP rename/move support where available so imports update everywhere; otherwise update every importer explicitly.
+- Move files with `xd://lsp` `rename_file` (moves the file and rewrites every import); rename internal symbols with `rename`, never text replace. No server for the language → update every importer explicitly.
 - Group by domain, not kind; collapse single-file directories; delete empty barrels. The result MUST read as always designed.
 
 **Perf** — opportunistic, only in code already touched
@@ -91,7 +92,7 @@ Bar: the win fits in one sentence and is substantial for this codebase — an en
 
 ## 5. Verify
 
-1. Run the repository's documented formatter on edited files only, then its type-check/lint for affected packages: clean.
+1. Run the repository's documented formatter on edited files only, then its type-check/lint for affected packages: clean. No documented type-check for a language → `xd://lsp` `diagnostics` on the edited files, reported as such.
 2. Run tests scoped to affected packages/files using the documented test command.
 3. Rendering/output code touched → confirm every output path still goes through the same escaping/sanitization as before.
 4. Grep for every deleted/moved symbol and old path: zero stale references, including docs and config.

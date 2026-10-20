@@ -65,11 +65,39 @@ class ValidateTests(unittest.TestCase):
             "CE_Application_ID": ("APM12", "must be APM + 7 digits"),
             "contact": ("someone@example.com", "@sanofi.com"),
             "team": ("platform team", "single word"),
+            "name": ("two words", "`name` must be alphanumeric"),
+            "version": ("latest", "`version` must be SemVer"),
         }
         for key, (value, expected) in cases.items():
             with self.subTest(key=key):
                 problems = validate({**GOOD, key: value})
                 self.assertTrue(any(expected in problem for problem in problems), problems)
+
+    def test_name_accepts_alphanumeric_hyphen_underscore(self):
+        for value in ("user-service", "user_service", "UserService2", "a", "-", "_"):
+            with self.subTest(name=value):
+                self.assertEqual(validate({**GOOD, "name": value}), [])
+
+    def test_name_rejects_other_characters(self):
+        for value in ("user.service", "user service", "user/service", "service!", "café", "user-service\n"):
+            with self.subTest(name=value):
+                problems = validate({**GOOD, "name": value})
+                self.assertTrue(any("`name` must be alphanumeric" in problem for problem in problems), problems)
+
+    def test_version_accepts_semver(self):
+        for value in ("0.0.0", "1.0.0", "10.20.30", "1.0.0-rc.1", "1.0.0-alpha-1", "1.0.0+build.5", "1.0.0-beta+exp.sha.5114f85"):
+            with self.subTest(version=value):
+                self.assertEqual(validate({**GOOD, "version": value}), [])
+
+    def test_version_rejects_non_semver(self):
+        for value in ("latest", "v1.0.0", "1.0", "1", "1.0.0.0", "01.0.0", "1.0.0-", "1.0.0-01", "1.0.0 ", "1.0.0\n", "１.０.０"):
+            with self.subTest(version=value):
+                problems = validate({**GOOD, "version": value})
+                self.assertTrue(any("`version` must be SemVer" in problem for problem in problems), problems)
+
+    def test_unknown_name_and_version_are_not_format_errors(self):
+        tags = {key: value for key, value in GOOD.items() if key not in ("name", "version")}
+        self.assertEqual(validate(tags, frozenset({"name", "version"})), [])
 
     def test_apm_cost_center_must_match_application_id(self):
         problems = validate({**GOOD, "CE_Application_ID": "APM7654321"})

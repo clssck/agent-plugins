@@ -70,20 +70,26 @@ Hunt for: `@keyframes` on toasts/toggles/rapidly-triggered UI, gesture handlers 
 
 ## 5. Performance
 
-- **Animate `transform` and `opacity` only.** `width`/`height`/`margin`/`padding`/`top`/`left` trigger layout + paint + composite.
+- **Animate `transform` and `opacity` only.** `width`/`height`/`margin`/`padding`/`top`/`left` trigger layout + paint + composite. The sole exception is `height` (incl. `auto`) on accordions/collapses, which no transform can reproduce (content reflow); pair it with opacity and don't flag it.
 - **`transition: all`** animates unintended properties off-GPU — always a finding.
 - **Framer Motion `x`/`y`/`scale` shorthands are not hardware-accelerated** — they run on the main thread and drop frames under load. Target: the full transform string, `animate={{ transform: "translateX(100px)" }}`.
 - **Don't drive child transforms via a CSS variable on the parent** — it recalcs styles for all children. Set `transform` directly on the element.
 - CSS (and WAAPI) beat rAF-based JS under load — use CSS for predetermined motion, JS/springs for dynamic and gesture-driven motion.
 - Keep transition-time `filter: blur()` under 20px — heavy blur is expensive, especially in Safari.
 
-Hunt for: `transition: all`, animated layout properties, Framer Motion shorthand props on busy pages, `setProperty('--x', …)` driving child transforms, rAF loops doing what CSS could.
+Hunt for: `transition: all`, animated layout properties (except accordion/collapse `height`), Framer Motion shorthand props on busy pages, `setProperty('--x', …)` driving child transforms, rAF loops doing what CSS could.
 
 ## 6. Accessibility
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  .element { animation: fade 0.2s ease; } /* keep opacity/color, drop movement */
+  /* gentler, not zero: keep the opacity fade, drop all movement */
+  .element {
+    transform: none;              /* no offset/scale at rest or mid-flight */
+    transition-property: opacity; /* transform stops transitioning; the fade stays */
+    animation-name: fade-in;      /* swap movement keyframes; give exits an opacity-only fade-out */
+  }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 }
 @media (hover: hover) and (pointer: fine) {
   .element:hover { transform: scale(1.05); } /* touch fires false hovers on tap */

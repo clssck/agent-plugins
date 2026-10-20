@@ -68,7 +68,7 @@ Existing branch or path `fix/issue-<N>` → do NOT reset/overwrite it; use `fix/
 
 ## 3. Parallel subagents
 
-Launch parallel `task` subagents, one per remaining issue, each assigned its own `WT`. Provide: the `## Trust boundary` section copied verbatim, `REPO`, `BASE`, `<remote>`, `MAIN`, `WT`, issue number, issue title/body summary fenced per that section, the documented conventions from step 0, and this workflow. Agents do not coordinate with each other; if two fixes would plainly touch the same code, the later report notes the overlap for the human.
+Launch one `task` call (`tasks[]`) with one default-agent task per remaining issue, each assigned its own `WT`; set `solutionSpace` to the issue's openness (cause open until reproduced; fix limited to the reported bug) and leave `isolated` unset: `WT` is the worktree, and an `isolated` task worktree can apply its changes back to `MAIN`. Provide: the `## Trust boundary` section copied verbatim, `REPO`, `BASE`, `<remote>`, `MAIN`, `WT`, issue number, issue title/body summary fenced per that section, the documented conventions from step 0, and this workflow. Agents do not coordinate with each other; if two fixes would plainly touch the same code, the later report notes the overlap for the human.
 
 ### a. Read
 

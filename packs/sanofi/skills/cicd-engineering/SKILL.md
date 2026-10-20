@@ -27,7 +27,8 @@ Load only what the task needs.
    - Unknown runner label → `atmos-aws-arc-runner-set` must be under `self-hosted-runner.labels` in `.github/actionlint.yaml`.
    - v1.7.12 also rejects the newer `cache-mode` key and `vulnerability-alerts` permission (see Failure Modes).
    - No `actionlint` → parse each YAML file; check every `needs.<job>.outputs.<name>` and `secrets.<NAME>` reference resolves.
-6. Report changed behavior, required secrets/environments/variables, manual platform setup.
+6. Verify on GitHub when a run exists: `xd://github` `op: run_watch` (omit `run` → every run for the current HEAD, fast-fails on the first failed job; a failing run the user names → `run: <id or URL>`, raise `tail` for more lines per failed job). Failure logs land in a session artifact: diagnose from that log, not from the YAML alone. NEVER push to trigger a run without the user's go-ahead.
+7. Report changed behavior, required secrets/environments/variables, manual platform setup.
 
 ## Rules
 
@@ -63,7 +64,7 @@ Load only what the task needs.
 | Job receiving `JFROG_TOKEN`/AWS credentials, or running credentialed `terraform init`/plan/apply, without `environment:` | Bind the protected environment and approval gate on every credentialed job; secretless PR `init -backend=false`/`validate` needs none |
 | Sonar scan without gate wait, excluded from `Build Complete` | `sonar.qualitygate.wait=true`, job in `needs` |
 | OIDC trust copied as `repo:ORG/REPO:...` | Confirm the repo's `sub` format (name or owner/repo IDs) first |
-| Tag pin of an action still on `node20` | Upgrade to a release declaring `node24`; Node 20 is gone from runners |
+| Tag pin of an action still on `node20` | Upgrade to a release declaring `node24`; Node 20 is gone from runners. Check with `xd://github` `op: file_read`, `path: action.yml` (or `action.yaml`), `branch: <tag>` → `runs.using` |
 | Delete `cache-mode`/`vulnerability-alerts` because `actionlint` flags them | Keep them; valid GitHub syntax that `actionlint` v1.7.12 does not know yet |
 | Rely on Dependabot alerts for SHA-pinned actions | Alerts cover only semver-tagged actions; keep the version comment and Dependabot version updates |
 | Environment rule `refs/heads/feature` for a `pull_request` job | PR jobs evaluate `refs/pull/N/merge`; `pull_request_target` evaluates the default branch |

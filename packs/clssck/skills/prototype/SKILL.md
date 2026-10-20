@@ -66,7 +66,7 @@ The picker's markup, styles, keyboard wiring, and placement come from [PICKER.md
 
 ### Phase 5 — Verify and hand off
 
-Run the harness. Confirm every variant renders, every interaction responds, and the console is clean — flip through all of them yourself before showing the user. If browser tooling is available, screenshot each variant.
+Run the harness and drive it with `eval`'s `browser`: `browser.open` the harness URL, switch through the picker (`tab.click` or keyboard shortcuts via `tab.press`), assert the selected variant's own rendered content/state changed, exercise its distinguishing interaction, take a `tab.screenshot({ format: "png" })`, and check `tab.errors()` / `tab.console()`. A `tab.diffScreenshot(previousVariantPath)` MAY supplement that assertion, but a viewport diff alone proves nothing because the picker chrome also changes. Confirm every variant renders, every interaction responds, and the console is clean before showing the user anything. Close the tab with `browser.close`. Give screenshot paths to the `vision` agent for visual comparison.
 
 Then present the set and **stop — the choice belongs to the user**:
 

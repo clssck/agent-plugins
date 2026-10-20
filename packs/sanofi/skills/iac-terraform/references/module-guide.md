@@ -18,22 +18,17 @@ Module usage for Sanofi AWS Terraform: discovery, call pattern, validation, vers
 
 ## Discovery
 
-Run first. GitHub integration if available; else `gh` (same syntax in bash, zsh, PowerShell). No repository access → stop, report; NEVER guess module inputs.
+Use OMP's native GitHub device first. Send the JSON below to `xd://github` with `write`; `file_read` reads repository files without cloning, and `search_code` discovers paths while applying the named repository scope automatically. Omit `branch` to use the default branch. No repository access → stop and report; NEVER guess module inputs.
 
-```bash
-# Catalog and service modules
-gh api repos/Sanofi-InnerSource/terraform-aws-library/contents/README.md -H "Accept: application/vnd.github.raw"
-gh api repos/Sanofi-InnerSource/terraform-aws-library/contents/src/SERVICE --jq '.[].name'
-
-# Module documentation and inputs
-gh api repos/Sanofi-InnerSource/terraform-aws-library/contents/src/SERVICE/MODULE/README.md -H "Accept: application/vnd.github.raw"
-gh api repos/Sanofi-InnerSource/terraform-aws-library/contents/src/SERVICE/MODULE/variables.tf -H "Accept: application/vnd.github.raw"
-
-# Accepted RFCs: path is a search qualifier, not a flag
-gh search code 'tagging path:accepted' --repo Sanofi-Accelerator/Request-for-Comments
+```json
+{"op":"file_read","repo":"Sanofi-InnerSource/terraform-aws-library","path":"README.md"}
+{"op":"search_code","repo":"Sanofi-InnerSource/terraform-aws-library","query":"path:src/SERVICE filename:README.md","limit":100}
+{"op":"file_read","repo":"Sanofi-InnerSource/terraform-aws-library","path":"src/SERVICE/MODULE/README.md"}
+{"op":"file_read","repo":"Sanofi-InnerSource/terraform-aws-library","path":"src/SERVICE/MODULE/variables.tf"}
+{"op":"search_code","repo":"Sanofi-Accelerator/Request-for-Comments","query":"tagging path:accepted","limit":100}
 ```
 
-Confluence CODE-space docs → `search-company-knowledge` skill. No integration at all → user-provided references.
+Replace `SERVICE` and `MODULE` only after discovery. If `xd://github` is unavailable, run the equivalent `gh api`/`gh search code` commands through OMP `bash`; `path:` is a search qualifier, not a flag. Confluence CODE-space docs → `search-company-knowledge` skill. No integration at all → user-provided references.
 
 ## Module call pattern
 

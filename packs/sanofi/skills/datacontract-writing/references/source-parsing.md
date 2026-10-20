@@ -149,7 +149,7 @@ Constraints:
 | Named / composite UNIQUE | `SELECT GET_DDL('TABLE', '"{DB}"."{SCHEMA}"."{TABLE}"');` | Parse `UNIQUE (a, b)` → schema-level `duplicateValues` |
 | Foreign keys | `SHOW IMPORTED KEYS IN TABLE "{DB}"."{SCHEMA}"."{TABLE}";` | Group by `fk_name`, order by `key_sequence` |
 
-Foreign keys: one column → property `relationships` (`to: pk_table_name.pk_column_name`). Several columns sharing a `fk_name` → schema-level `relationships` with `from: [a, b]` and `to: [t.x, t.y]`. NEVER emit independent per-column checks for a composite key.
+Foreign keys: one column → property `relationships` (`to: pk_table_name.pk_column_name`). Several columns sharing a `fk_name` → schema-level `relationships` with `from: [source_table.a, source_table.b]` and `to: [t.x, t.y]`. NEVER emit independent per-column checks for a composite key.
 
 Snowflake does not enforce PK/UNIQUE/FK on standard tables; treat them as declared metadata and say so in the contract description when relevant.
 
@@ -209,7 +209,7 @@ Parse `CREATE [OR REPLACE] TABLE|VIEW` and `ALTER TABLE ... ADD CONSTRAINT`. One
 | `UNIQUE (a)` | `unique: true` on `a` |
 | `UNIQUE (a, b)` | Schema-level `duplicateValues` with `arguments.properties: [a, b]` |
 | `FOREIGN KEY (a) REFERENCES t(c)` | Property `relationships` |
-| `FOREIGN KEY (a, b) REFERENCES t(x, y)` | Schema-level `relationships`, `from: [a, b]`, `to: [t.x, t.y]` |
+| `FOREIGN KEY (a, b) REFERENCES t(x, y)` | Schema-level `relationships`, `from: [source_table.a, source_table.b]`, `to: [t.x, t.y]` |
 | `CHECK (col IN (...))` | `invalidValues`, `arguments.validValues`, `mustBe: 0` |
 | `CHECK (expr)` | `type: sql` violation count: `query: "SELECT COUNT(*) FROM ${table} WHERE NOT (expr)"`, `mustBe: 0`. A predicate alone is not a query. `NOT (expr)` is NULL when `expr` is NULL, and `WHERE` drops those rows, matching `CHECK` (NULL passes). NEVER `(expr) IS NOT TRUE` or `COALESCE(expr, FALSE)`, which count rows the constraint accepts. Add `OR (expr) IS NULL` only when the user asks to reject NULL results |
 

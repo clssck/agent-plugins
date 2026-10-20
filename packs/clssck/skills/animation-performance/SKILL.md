@@ -43,7 +43,7 @@ Start here. Match what the user is seeing, then read the matching section.
 | Problem | Solution |
 | --- | --- |
 | Animation stutters | Animate `transform`/`opacity`, not `width`/`height`/`top`/`margin` |
-| Shadow animation is choppy | `filter: drop-shadow()` |
+| Shadow animation is choppy | Fade `opacity` of a pseudo-element carrying the final `box-shadow`; `filter: drop-shadow()` only for an equivalent shadow |
 | Jank only during navigation or loading | Move the animation to CSS or WAAPI so it runs off the main thread |
 | Framer Motion `x`/`y` drops frames | Animate the full `transform` string |
 | Hand-rolled animation drops frames in React | Write to `ref.current.style`, not state |
@@ -88,7 +88,7 @@ Every property enters this pipeline at one of three points, and the cost differs
 | `width` / `height` to grow or shrink the whole element | `scale()` (content and borders scale with it) |
 | `top` / `left` / `margin` to move | `translate()` (percentages are relative to the element's own size) |
 | Fading in or out | `opacity` for the fade, but opacity alone doesn't hide anything: at `0` the element still takes up space, takes focus and gets clicks. Once the fade ends, take it out of layout with `display: none`, or hide it with `visibility: hidden` and add `inert` if it has focusable content |
-| `box-shadow` | `filter: drop-shadow(…)` |
+| `box-shadow` | `opacity` of a pseudo-element that already carries the final `box-shadow`. `filter: drop-shadow(…)` only when it draws the same shadow: it follows the alpha mask (text, transparent areas) rather than the box, and has no `spread` or `inset` |
 
 The last one is the one people miss. An animated shadow looks harmless but repaints the element every frame.
 
@@ -205,7 +205,7 @@ Work down this list. It's ordered by how often each one is the cause:
 6. **Any animated `blur()` above 20px?**
 7. **Still shifting or stuttering?** Now add `will-change: transform` to the animating element.
 
-Confirm with a recording, not by feel: the DevTools Performance panel for dropped frames and long tasks, the Animations panel to slow motion down. Profile on a real mid-range phone over remote debugging. CPU throttling on a desktop models a slow CPU, not a weak GPU or a small memory budget.
+Confirm with a recording, not by feel. When the page runs locally, measure it in an OMP Chromium tab (inside Tern open with `app: { tern: false }`): throttle with `tab.emulate({ cpuThrottling: 4 })`, read `tab.metrics()` before and after the interaction, and collect `long-animation-frame` entries with a `PerformanceObserver`. Whole-page `LayoutCount` and `RecalcStyleDuration` deltas are signals only; unrelated work and legitimate mount/layout can change them. Use `tab.traceStart()` / `tab.traceStop()` plus the source to attribute layout, style recalculation, or main-thread work before naming a cause. Without a browser tool or running app, use the DevTools Performance panel for dropped frames and long tasks; test on a real phone before claiming mobile smoothness.
 
 ### Phase 3: Report
 
@@ -216,7 +216,7 @@ For each finding:
 Cause: [which of the causes above]
 Before: `transition: all 200ms` (animates `padding`, triggers layout)
 After: `transition: transform 200ms` with `scale(0.97)`
-Verified: from code / needs a device recording
+Verified: from code / measured on a throttled desktop / needs a device recording
 ```
 
 Order findings by cost: layout before paint, busy-main-thread before idle. Then stop. Apply fixes when asked.

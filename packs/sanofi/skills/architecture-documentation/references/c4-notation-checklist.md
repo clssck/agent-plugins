@@ -146,7 +146,7 @@ All levels tell one coherent story.
 ### Readable Source and Render
 
 - [ ] The chosen native artifact opens in the repository's supported tool or renders
-      correctly in its intended destination.
+      correctly in its intended destination. An exported SVG → `read` it as `<file>.svg:img`; a PNG → `read` it; look at the image for legibility, legend, arrowheads, and clipped labels instead of judging from source alone. No export or renderer available → say the render was not inspected.
 - [ ] The source of truth, rendered output, attachment, and version identifier agree
       where more than one artifact is maintained.
 - [ ] Existing Confluence macros, attachments, and page structure are preserved by the

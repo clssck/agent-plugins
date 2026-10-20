@@ -109,7 +109,7 @@ Slow where the user is deciding, fast where the system responds.
 
 ## Performance
 
-- **Only animate `transform` and `opacity`** — they skip layout/paint and run on the GPU. `padding`/`margin`/`height`/`width`/`top`/`left` trigger all three rendering steps.
+- **Only animate `transform` and `opacity`** — they skip layout/paint and run on the GPU. `padding`/`margin`/`height`/`width`/`top`/`left` trigger all three rendering steps. The sole exception is `height` (incl. `auto`) on accordions/collapses, which no transform can reproduce (content reflow); pair it with opacity.
 - **Don't drive child transforms via a CSS variable on the parent** — it recalcs styles for all children. Set `transform` directly on the element.
   ```js
   element.style.setProperty('--swipe-amount', `${d}px`); // bad: recalc on all children
@@ -161,7 +161,13 @@ Stagger group entrances; 30–80ms between items. Longer delays feel slow. Stagg
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  .element { animation: fade 0.2s ease; } /* keep opacity/color, drop transform-based motion */
+  /* gentler, not zero: keep the opacity fade, drop all movement */
+  .element {
+    transform: none;              /* no offset/scale at rest or mid-flight */
+    transition-property: opacity; /* transform stops transitioning; the fade stays */
+    animation-name: fade-in;      /* swap movement keyframes; give exits an opacity-only fade-out */
+  }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 }
 @media (hover: hover) and (pointer: fine) {
   .element:hover { transform: scale(1.05); } /* gate hover motion — touch fires false hovers on tap */

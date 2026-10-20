@@ -160,13 +160,17 @@ Springs feel more natural than duration-based animations because they simulate r
 Tying visual changes directly to mouse position feels artificial because it lacks motion. Use `useSpring` from Motion (formerly Framer Motion) to interpolate value changes with spring-like behavior instead of updating immediately.
 
 ```jsx
-import { useSpring } from 'framer-motion';
+import { useMotionValue, useSpring, useTransform } from 'framer-motion';
+
+// mouseX is a MotionValue (useMotionValue), updated from pointermove
+const mouseX = useMotionValue(0);
 
 // Without spring: feels artificial, instant
-const rotation = mouseX * 0.1;
+const rotation = useTransform(mouseX, (v) => v * 0.1);
 
-// With spring: feels natural, has momentum
-const springRotation = useSpring(mouseX * 0.1, {
+// With spring: feels natural, has momentum. Pass the MotionValue, not a number —
+// a number is only the initial value and never retargets on re-render.
+const springRotation = useSpring(rotation, {
   stiffness: 100,
   damping: 10,
 });
@@ -530,10 +534,13 @@ Animations can cause motion sickness. Reduced motion means fewer and gentler ani
 
 ```css
 @media (prefers-reduced-motion: reduce) {
+  /* gentler, not zero: keep the opacity fade, drop all movement */
   .element {
-    animation: fade 0.2s ease;
-    /* No transform-based motion */
+    transform: none;              /* no offset/scale at rest or mid-flight */
+    transition-property: opacity; /* transform stops transitioning; the fade stays */
+    animation-name: fade-in;      /* swap movement keyframes; give exits an opacity-only fade-out */
   }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 }
 ```
 
@@ -649,7 +656,7 @@ Things to look for in slow motion:
 
 ### Frame-by-frame inspection
 
-Step through animations frame by frame in Chrome DevTools (Animations panel). This reveals timing issues between coordinated properties that you cannot see at full speed.
+Step through animations frame by frame in Chrome DevTools (Animations panel). This reveals timing issues between coordinated properties that you cannot see at full speed. With no one at the screen, record it in `browser`: `tab.recordStart('motion.mp4', { fps: 60, contactSheet: true })`, trigger the interaction, then call `tab.recordStop()` (requires ffmpeg). Treat its changed-frame contact sheet as an overview; if a subtle or small-area motion is missing, inspect the recording at intermediate timestamps rather than assuming only the first/last states occurred.
 
 ### Test on real devices
 
