@@ -30,7 +30,7 @@ Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 | Pack | Version | Source | Requires | Contents | Last updated |
 | --- | --- | --- | --- | --- | --- |
-| `clssck` | `2.1.6` | this repo | — | 21 skills, 14 rules, 2 agents, 3 commands | [2026-10-20 19:32 UTC](https://github.com/clssck/agent-plugins/commit/459d0bd9fcba06ab72542563f434a1ff0221aa27) |
+| `clssck` | `2.1.6` | this repo | — | 21 skills, 14 rules, 2 agents, 3 commands | [2026-10-20 19:36 UTC](https://github.com/clssck/agent-plugins/commit/8c8e4cea0ce82237fdbcff3cb93be3c45ecadb12) |
 | `improve` | `0.0.0-gcac56e1` | [shadcn/improve@cac56e1](https://github.com/shadcn/improve/tree/cac56e1ebd3c279aa9153616cfeac7b174ab90f9) | — | 1 skill | [2026-10-19 15:41 UTC](https://github.com/clssck/agent-plugins/commit/b9fe6ee60af0df8125db6e70e35bc5ce31ddc2e6) |
 | `sanofi` | `1.1.6` | this repo | — | 12 skills | [2026-10-20 09:09 UTC](https://github.com/clssck/agent-plugins/commit/216a52ab3c51d68d424c85a23e0da93ac4dad781) |
 
@@ -96,7 +96,7 @@ Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 | Agent | Pack | Version | Source | Last updated |
 | --- | --- | --- | --- | --- |
-| [designer](https://github.com/clssck/agent-plugins/blob/459d0bd9fcba06ab72542563f434a1ff0221aa27/packs/clssck/agents/designer.md) | `clssck` | `2.1.6` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-20 19:32 UTC](https://github.com/clssck/agent-plugins/commit/459d0bd9fcba06ab72542563f434a1ff0221aa27) |
+| [designer](https://github.com/clssck/agent-plugins/blob/8c8e4cea0ce82237fdbcff3cb93be3c45ecadb12/packs/clssck/agents/designer.md) | `clssck` | `2.1.6` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-20 19:36 UTC](https://github.com/clssck/agent-plugins/commit/8c8e4cea0ce82237fdbcff3cb93be3c45ecadb12) |
 | [vision](https://github.com/clssck/agent-plugins/blob/29560e42fafabac9c537f600e36e2cc00782f3dd/packs/clssck/agents/vision.md) | `clssck` | `2.1.6` | [clssck/agent-plugins](https://github.com/clssck/agent-plugins) | [2026-10-20 19:23 UTC](https://github.com/clssck/agent-plugins/commit/29560e42fafabac9c537f600e36e2cc00782f3dd) |
 
 ## Commands
