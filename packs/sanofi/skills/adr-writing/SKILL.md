@@ -17,24 +17,7 @@ Governing principle: an ADR records a decision and its evidence, never a fabrica
 - **Qualified titles:** `use-postgresql-for-user-profiles`, not `use-postgresql`.
 - **Match house style:** `read` 1-2 existing ADRs; match header style, section order, table alignment. None → [adr.template.md](skill://adr-writing/assets/adr.template.md).
 
-## Modes
-
-| Mode | Trigger | Procedure |
-|---|---|---|
-| Write | Record a decision | [write-workflow.md](skill://adr-writing/references/write-workflow.md) |
-| Review | Evaluate or fact-check an existing ADR | [review-workflow.md](skill://adr-writing/references/review-workflow.md), [review-checklist.md](skill://adr-writing/references/review-checklist.md) |
-
-- **NEVER self-review** an ADR written in the same conversation; shared context removes independence. Review requested on such an ADR → spawn a `task` agent (children start blank) with the file path and [review-workflow.md](skill://adr-writing/references/review-workflow.md), and relay its findings. Spawning unavailable → say the review was not independent.
-
-| Need | Reference |
-|---|---|
-| Jira/Confluence sources, comment threads, tiny links | [atlassian-integration.md](skill://adr-writing/references/atlassian-integration.md); runnable decoder → [decode_tiny_link.py](skill://adr-writing/scripts/decode_tiny_link.py) |
-| Pricing, Cost Annex, Confluence charts | [cost-analysis.md](skill://adr-writing/references/cost-analysis.md) |
-| Depth/style: 2 options, no optional sections | [example-minimal.md](skill://adr-writing/references/example-minimal.md) |
-| Depth/style: Cost Annex, Options Ruled Out, Drivers | [example-comprehensive.md](skill://adr-writing/references/example-comprehensive.md) |
-| Publishing an approved ADR to Confluence (formatting, page mechanics) | confluence-html-editor skill; content stays as approved here |
-
-## Writing Rules
+<critical>
 
 - **Date:** today, `YYYY-MM-DD`.
 - **Status:** `accepted` ONLY when the decision is made. Undecided → `proposed`, no invented choice; see [write-workflow.md](skill://adr-writing/references/write-workflow.md).
@@ -50,17 +33,27 @@ Governing principle: an ADR records a decision and its evidence, never a fabrica
 - **Optional sections** (Drivers, Technical Story, Links, Consequences, Options Ruled Out, Cost Annex): omit when empty; NEVER leave placeholders.
 - **Links:** context from Jira/Confluence → original URL in Links.
 - **Tables:** pad cells so pipes align.
+</critical>
 
-## Single Mandated Option
+<instruction>
 
-1. Ask what alternatives were considered, even briefly.
-2. Named alternative → full option with pros/cons.
-3. None exist (policy mandates it) → state the constraint in Context, record one chosen option.
-4. Options Ruled Out entry ONLY for an alternative actually evaluated, with its source.
-5. NEVER refuse; constraint-driven decisions still need records.
-6. NEVER fabricate a rejected alternative to reach two options.
+| Mode | Trigger | Procedure |
+|---|---|---|
+| Write | Record a decision | [write-workflow.md](skill://adr-writing/references/write-workflow.md) |
+| Review | Evaluate or fact-check an existing ADR | [review-workflow.md](skill://adr-writing/references/review-workflow.md), [review-checklist.md](skill://adr-writing/references/review-checklist.md) |
 
-## Anti-Patterns
+- **NEVER self-review** an ADR written in the same conversation; shared context removes independence. Review requested on such an ADR → spawn a `task` agent (children start blank) with the file path and [review-workflow.md](skill://adr-writing/references/review-workflow.md), and relay its findings. Spawning unavailable → say the review was not independent.
+
+| Need | Reference |
+|---|---|
+| Jira/Confluence sources, comment threads, tiny links | [atlassian-integration.md](skill://adr-writing/references/atlassian-integration.md); runnable decoder → [decode_tiny_link.py](skill://adr-writing/scripts/decode_tiny_link.py) |
+| Pricing, Cost Annex, Confluence charts | [cost-analysis.md](skill://adr-writing/references/cost-analysis.md) |
+| Depth/style: 2 options, no optional sections | [example-minimal.md](skill://adr-writing/references/example-minimal.md) |
+| Depth/style: Cost Annex, Options Ruled Out, Drivers | [example-comprehensive.md](skill://adr-writing/references/example-comprehensive.md) |
+| Publishing an approved ADR to Confluence (formatting, page mechanics) | confluence-html-editor skill; content stays as approved here |
+</instruction>
+
+<caution>
 
 | Bad | Good |
 |---|---|
@@ -71,13 +64,21 @@ Governing principle: an ADR records a decision and its evidence, never a fabrica
 | Options B/C with pros/cons, no reason rejected | Decision Outcome names why each non-chosen option lost |
 | "MWAA cannot use custom SQS queues" | Distinguish MWAA's internal task queue from business queues DAGs may use; cite the exact limitation |
 
-## Troubleshooting
-
 | Situation | Action |
 |---|---|
 | No existing ADRs | Start at `ADR-001` |
 | Duplicate numbers | Scan all files; renumber only the new ADR |
 | Confluence/Jira unavailable | Record refs as Links; ask user to paste content |
+</caution>
+
+## Single Mandated Option
+
+1. Ask what alternatives were considered, even briefly.
+2. Named alternative → full option with pros/cons.
+3. None exist (policy mandates it) → state the constraint in Context, record one chosen option.
+4. Options Ruled Out entry ONLY for an alternative actually evaluated, with its source.
+5. NEVER refuse; constraint-driven decisions still need records.
+6. NEVER fabricate a rejected alternative to reach two options.
 
 ## Upstream MADR 4
 

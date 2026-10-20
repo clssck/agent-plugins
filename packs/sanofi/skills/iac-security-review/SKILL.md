@@ -18,7 +18,7 @@ Scope: Terraform authoring → iac-terraform · CI/CD workflows → cicd-enginee
 | [scanners.md](skill://iac-security-review/references/scanners.md) | Optional Checkov/Trivy/KICS cross-check, uv install, safe invocation, suppressions, 2026 supply-chain warnings |
 | [report.template.md](skill://iac-security-review/assets/report.template.md) | Report structure |
 
-## Guardrails
+<critical>
 
 - **NEVER modify IaC files.**
 - **NEVER treat missing local configuration as proven exposure.** Absent + AWS default, account/org control, or shared module → Needs confirmation.
@@ -29,8 +29,9 @@ Scope: Terraform authoring → iac-terraform · CI/CD workflows → cicd-enginee
 - **Coverage:** MUST run all applicable control groups; list skipped ones with reason.
 - **Sanofi controls (SN-\*):** Sanofi repositories only.
 - **Executive summary:** MUST emit even when clean.
+</critical>
 
-## Workflow
+<procedure>
 
 ### 1. Discovery
 
@@ -79,16 +80,18 @@ Findings: X Critical, Y High, Z Medium, W Low (N need confirmation)
 Files scanned: N ({frameworks})
 Report: audits/iac-security-review-YYYY-MM-DD.md
 ```
+</procedure>
 
-## Edge Cases
+<caution>
 
 | Scenario | Action |
 |----------|--------|
 | Unrecognized resource type | Informational; manual review |
 | Module without visible source | Needs confirmation; name the module |
 | Central control absent from scope (trail, org BPA, WAF policy) | Not evidenced; request evidence |
+</caution>
 
-## Verification
+<critical>
 
 Before handing over the report:
 
@@ -99,3 +102,4 @@ Before handing over the report:
 - Scanner hits re-graded, not copied.
 - Skipped controls listed with reasons.
 - No IaC file modified.
+</critical>

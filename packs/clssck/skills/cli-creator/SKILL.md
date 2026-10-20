@@ -9,7 +9,7 @@ Builds a real CLI an agent runs by command name from any working directory, plus
 
 License: Apache-2.0; see `licenses/clssck/cli-creator/LICENSE.txt`. Command, JSON, and companion-skill contract → [agent-cli-patterns.md](skill://cli-creator/references/agent-cli-patterns.md). Per-runtime install → [install-and-packaging.md](skill://cli-creator/references/install-and-packaging.md).
 
-## Scope the tool
+<instruction>
 
 Name three things before scaffolding:
 
@@ -22,7 +22,9 @@ Name three things before scaffolding:
 - **Location:** `~/code/clis/<tool-name>` (PowerShell: `$env:USERPROFILE\code\clis\<tool-name>`) unless the user names a repository. New directory = local write; state the location first.
 - **MUST check the name is free:** `command -v <tool-name> || true` (PowerShell: `Get-Command <tool-name> -ErrorAction SilentlyContinue`). Taken → clearer install name, or ask.
 
-## Platform preflight
+</instruction>
+
+<instruction>
 
 Detect OS, active shell, toolchains, repository convention, and a user-writable PATH directory before generating install commands. **NEVER emit PowerShell syntax for a POSIX shell or the reverse.**
 
@@ -41,7 +43,9 @@ $env:TEMP
 - New TypeScript/JavaScript CLI, no existing convention or Node-only constraint → **prefer Bun** (`bun install`, `bun run`, `bun test`, `bun build --compile`). Fall back to npm/pnpm when the repo already uses them, the target requires Node/npm, or a dependency fails under Bun; Bun is not compatible with every Node SDK.
 - Search source material with `grep`, `glob`, `read`; NEVER shell `rg`/`find`/`Select-String`.
 
-## Choose the runtime
+</instruction>
+
+<instruction>
 
 |Runtime|Choose when|Defaults|
 |---|---|---|
@@ -55,7 +59,9 @@ $env:TEMP
 - Install target matching repo and platform (`make install-local`, or a PowerShell script on Windows); document what it depends on (toolchain, `uv`, runtime version).
 - **Install into a user-approved, user-writable PATH directory;** NEVER assume `~/.local/bin`. NEVER `pip install` into system Python (PEP 668).
 
-## Auth and config
+</instruction>
+
+<critical>
 
 Precedence: env var with the service's standard name (`GITHUB_TOKEN`) > user config in a documented OS-appropriate directory (`~/.config/<tool-name>`; Windows `$env:APPDATA\<tool-name>`) > `--token-file <path>` or token on stdin (`--with-token`, as `gh auth login` does) for headless setup.
 
@@ -66,7 +72,9 @@ Precedence: env var with the service's standard name (`GITHUB_TOKEN`) > user con
 - NEVER commit copied cookies, bearer tokens, customer secrets, full production payloads.
 - Screenshots show workflow and vocabulary only; NEVER API evidence without a request, export, docs page, or fixture.
 
-## Build
+</critical>
+
+<procedure>
 
 1. **Inventory the source:** resources, auth, pagination, IDs, file flows, rate limits, dangerous writes. OpenAPI available → inspect before naming commands. Wrapping an official SDK or version-sensitive library (`clap`, `commander`, `reqwest`) → pull its current API docs from the `context7` MCP server, else `web_search` the vendor docs; NEVER code against a remembered SDK surface.
 2. **Sketch the command surface in chat before coding:** binary name, discovery, resolve, read, write, raw escape hatch, auth/config choice, install command. Short, shell-friendly names; shape, JSON policy, pagination, exit codes per [agent-cli-patterns.md](skill://cli-creator/references/agent-cli-patterns.md).
@@ -87,7 +95,9 @@ Precedence: env var with the service's standard name (`GITHUB_TOKEN`) > user con
 - **Live write needed for confidence → ask first;** reversible or draft-only.
 - Raw escape hatch: reads first; NEVER non-GET/HEAD against a live service unless the user asked for that write.
 
-## Verification
+</procedure>
+
+<procedure>
 
 Installed on PATH:
 
@@ -105,6 +115,8 @@ Not on PATH → run the wrapper or binary by absolute path from the fresh direct
 **TTY behavior:** the omp `bash` tool runs with no TTY on stdin or stdout, so the smoke commands above are the no-TTY check; set a short `timeout` so a prompt that waits instead of failing fast shows up as a timeout, not a stall. Interactive prompts or a TUI → drive the ordinary CLI on a real PTY with `xd://tui` (`{"op":"start","bin":"<tool-name>","args":[…]}`, then `screen`, `send` the terminal input, and `stop`); reserve `keys` for OMP/pi-tui hosts with the debug socket. If `xd://tui` is unavailable, use `bash` with `pty: true`.
 
 Done = all hold: `--help`, `--version`, `--json doctor`, discovery, resolve, reads, raw escape hatch present · runs without a TTY (no prompts without one, documented nonzero exit codes, `NO_COLOR` honored, network timeout set) · `--json` errors carry no credentials · Python is a uv project or PEP 723 script, nothing `pip install`ed into system Python · no live write without approval.
+
+</procedure>
 
 ## Companion skill
 

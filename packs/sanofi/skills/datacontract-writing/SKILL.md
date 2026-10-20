@@ -18,17 +18,7 @@ Governing principle: source metadata is the only authority. A contract that gues
 | [source-parsing.md](skill://datacontract-writing/references/source-parsing.md) | dbt, Snowflake (`snow` CLI), SQL DDL extraction |
 | [datacontract-cli.md](skill://datacontract-writing/references/datacontract-cli.md) | `datacontract` CLI: lint, diff, import drafts, tests; import output fixes |
 
-## Workflow
-
-1. **Identify the source of truth:** a dbt project, Snowflake schema, DDL, spreadsheet, or pasted schema.
-2. **Extract** identity, columns, types, nullability, keys, and descriptions. Use `glob`/`grep`/`read` for files and `bash` for `snow`.
-3. **Map types and constraints** per [source-parsing.md](skill://datacontract-writing/references/source-parsing.md).
-4. **Add quality rules** only with source evidence or a user request.
-5. **Mark uncertain values** `# REVIEW:`. NEVER invent meaning.
-6. **Write** one `datacontracts/{name}.odcs.yaml` with `write`, unless the task is review-only.
-7. **Validate** (below) and report the result.
-
-## Authoring rules
+<critical>
 
 - **Precedence:** source metadata beats inferred names or examples.
 - **No fabrication:** NEVER fabricate owners, SLAs, thresholds, or types.
@@ -41,6 +31,19 @@ Governing principle: source metadata is the only authority. A contract that gues
 - **Naming:** preserve source-system names unless asked to normalize.
 - **Snowflake:** metadata queries only. NEVER read data rows; this includes `datacontract test` without `--metadata-only`.
 - **Nested `id` values:** use `[A-Za-z0-9_-]` only. Colons fail the CLI's v3.1.0 lint ([odcs-template.md](skill://datacontract-writing/references/odcs-template.md#v320-delta)).
+
+</critical>
+
+<procedure>
+
+1. **Identify the source of truth:** a dbt project, Snowflake schema, DDL, spreadsheet, or pasted schema.
+2. **Extract** identity, columns, types, nullability, keys, and descriptions. Use `glob`/`grep`/`read` for files and `bash` for `snow`.
+3. **Map types and constraints** per [source-parsing.md](skill://datacontract-writing/references/source-parsing.md).
+4. **Add quality rules** only with source evidence or a user request.
+5. **Mark uncertain values** `# REVIEW:`. NEVER invent meaning.
+6. **Write** one `datacontracts/{name}.odcs.yaml` with `write`, unless the task is review-only.
+7. **Validate** (below) and report the result.
+</procedure>
 
 ## Validation
 

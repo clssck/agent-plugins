@@ -9,7 +9,7 @@ Sanofi conventions for dbt project structure, model development, documentation, 
 
 Every command that writes to Snowflake rebuilds whatever it selects, so scope precedes execution and the narrowest proving command precedes any broad one.
 
-## Ground Rules
+<critical>
 
 - **Inspect first.** MUST read the real dbt project before writing; derive every name and setting from files and manifests.
 - **Examples are patterns.** NEVER copy example names verbatim.
@@ -19,7 +19,9 @@ Every command that writes to Snowflake rebuilds whatever it selects, so scope pr
 - **Grain key.** Documented, tested (`unique` + `not_null`), matching the model SQL.
 - **Native execution.** Native-project steps need authorization; NEVER force deploy, drop, or change a schedule without approval.
 
-## Routing
+</critical>
+
+<instruction>
 
 | Request | `read` first |
 |---|---|
@@ -41,6 +43,8 @@ Every command that writes to Snowflake rebuilds whatever it selects, so scope pr
 - **Scope splits:** ODCS data contracts → datacontract-writing. DAG authoring → sanofi-airflow. Generic dbt-on-Snowflake mechanics are out of scope.
 - **Multi-area order:** placement and naming → SQL and materialization → docs and properties → tests → selectors, CI, run commands.
 - **Docs before tests** when both requested. Docs exist → check documented grain matches the model, then tests.
+
+</instruction>
 
 ## Version-Sensitive Rules
 

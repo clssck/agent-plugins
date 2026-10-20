@@ -19,7 +19,16 @@ A diagnostic skill. It does ONE thing: make motion land every frame. It does not
 
 Imagine [Sonner](https://sonner.emilkowal.ski/) running at 30fps. Same easing, same durations, same code. Nobody would have cared. Performance isn't a polish pass applied after the motion is good; it's what lets good motion register at all.
 
-## Operating Posture
+<critical>
+
+1. **`transform` and `opacity` by default.** Anything else needs a reason. If a cheaper property produces the same visual, use it, even when the expensive one "seems fine".
+2. **Name the cause before changing code.** Every fix you propose names which of the causes below it addresses. "Added `will-change`, seems smoother" is not a diagnosis.
+3. **Never conclude "it's fine" from a fast machine.** Say which findings you verified from code and which need a recording on a real device.
+4. **Never `transition: all`.** List the exact properties. `all` animates whatever changes next, including layout properties nobody intended to animate.
+5. **Don't trade correctness for a best-effort optimization.** Hardware acceleration is something the browser may grant. Which properties you animate is something you control. Spend effort on the second.
+</critical>
+
+<instruction>
 
 You are a design engineer who has shipped drawers, toasts, and dashboards to real devices and has had each of the traps below bite in production. You know the developer's MacBook is the least representative device the animation will ever run on.
 
@@ -27,14 +36,78 @@ Two failure modes, and the first is worse:
 
 1. **"It's smooth on my machine."** A fast laptop hides almost every problem in this skill. The bar is a mid-range phone, and on a 120Hz screen the budget is half what you think.
 2. **Sprinkling `will-change` and calling it fixed.** It's the last step, not the first. Most jank is the wrong property or a busy main thread, and `will-change` fixes neither.
+</instruction>
 
-## Hard Rules
+<instruction>
 
-1. **`transform` and `opacity` by default.** Anything else needs a reason. If a cheaper property produces the same visual, use it, even when the expensive one "seems fine".
-2. **Name the cause before changing code.** Every fix you propose names which of the causes below it addresses. "Added `will-change`, seems smoother" is not a diagnosis.
-3. **Never conclude "it's fine" from a fast machine.** Say which findings you verified from code and which need a recording on a real device.
-4. **Never `transition: all`.** List the exact properties. `all` animates whatever changes next, including layout properties nobody intended to animate.
-5. **Don't trade correctness for a best-effort optimization.** Hardware acceleration is something the browser may grant. Which properties you animate is something you control. Spend effort on the second.
+No. Main-thread animation only suffers when the page is busy during it, which is rare, and now you know how to spot it.
+
+Framer Motion gives you things CSS can't: real springs, shared layout animations, exit animations for unmounted components, momentum gestures. The question is whether you need those, not whether JS animation is allowed.
+
+**The working split:** CSS for simple motion and anything that plays while the page is busy; Framer Motion for complex, interruptible, gesture-driven motion.
+</instruction>
+
+<procedure>
+
+### Phase 1: Find what animates
+
+List every animation in scope with its driver and properties:
+
+| Element | Driver | Properties | Plays during |
+| --- | --- | --- | --- |
+| Tab indicator | `motion/react` `layoutId` | layout | route change |
+| Drawer | CSS transition | `transform` | user drag |
+| Card hover | CSS transition | `all` | hover |
+
+Expand `transition: all` and Motion shorthands into what they actually animate.
+
+### Phase 2: Diagnose
+
+Work down this list. It's ordered by how often each one is the cause:
+
+1. **Which properties animate?** Anything other than `transform`/`opacity` is the first suspect: layout properties first, then `box-shadow` and `border-radius`, which don't look like layout and are easy to miss.
+2. **Does the jank coincide with the page being busy?** Navigation, fetching, hydration, a long task. Move the animation to CSS or WAAPI.
+3. **Is React re-rendering per frame?** State updates in rAF, pointer, or scroll handlers.
+4. **Does it get worse as content grows?** An inherited CSS variable, or too many nodes animating at once.
+5. **Is a CSS variable animated at all?** Directly, or through Motion's `x`/`y`/`scale`.
+6. **Any animated `blur()` above 20px?**
+7. **Still shifting or stuttering?** Now add `will-change: transform` to the animating element.
+
+Confirm with a recording, not by feel. When the page runs locally, measure it in an OMP Chromium tab (inside Tern open with `app: { tern: false }`): throttle with `tab.emulate({ cpuThrottling: 4 })`, read `tab.metrics()` before and after the interaction, and collect `long-animation-frame` entries with a `PerformanceObserver`. Whole-page `LayoutCount` and `RecalcStyleDuration` deltas are signals only; unrelated work and legitimate mount/layout can change them. Use `tab.traceStart()` / `tab.traceStop()` plus the source to attribute layout, style recalculation, or main-thread work before naming a cause. Without a browser tool or running app, use the DevTools Performance panel for dropped frames and long tasks; test on a real phone before claiming mobile smoothness.
+
+### Phase 3: Report
+
+For each finding:
+
+```
+**[Element]**: `file.tsx:42`
+Cause: [which of the causes above]
+Before: `transition: all 200ms` (animates `padding`, triggers layout)
+After: `transition: transform 200ms` with `scale(0.97)`
+Verified: from code / measured on a throttled desktop / needs a device recording
+```
+
+Order findings by cost: layout before paint, busy-main-thread before idle. Then stop. Apply fixes when asked.
+</procedure>
+
+<caution>
+
+Both of these use `transform` and still drop frames.
+
+**Inherited CSS variables.** Vaul's drag got laggy once a drawer held more than ~20 items, with no re-renders involved. The drag distance was written to a CSS variable that `translateY()` read:
+
+```js
+// Recalculates styles for every descendant, every frame
+const style = { "--swipe-amount": `${draggedDistance}px` };
+
+// Only touches this element
+const style = { transform: `translateY(${draggedDistance}px)` };
+```
+
+CSS variables inherit, so changing one on a parent triggers style recalculation for every child. The more content, the slower each frame. Suspect this whenever a `transform` animation degrades as content grows. It's the same reason Framer Motion's shorthands aren't accelerated.
+
+**Blur.** `filter: blur()` gets expensive fast, especially in Safari. Keep animated blur under 20px; 2–5px is enough to soften a crossfade.
+</caution>
 
 ## The Symptom Table
 
@@ -139,24 +212,6 @@ ref.current.style.transform = `translateY(${nextY}px)`;
 
 Look for state updates inside `requestAnimationFrame`, `pointermove`, `scroll`, or drag handlers.
 
-## Two Traps That Look Correct
-
-Both of these use `transform` and still drop frames.
-
-**Inherited CSS variables.** Vaul's drag got laggy once a drawer held more than ~20 items, with no re-renders involved. The drag distance was written to a CSS variable that `translateY()` read:
-
-```js
-// Recalculates styles for every descendant, every frame
-const style = { "--swipe-amount": `${draggedDistance}px` };
-
-// Only touches this element
-const style = { transform: `translateY(${draggedDistance}px)` };
-```
-
-CSS variables inherit, so changing one on a parent triggers style recalculation for every child. The more content, the slower each frame. Suspect this whenever a `transform` animation degrades as content grows. It's the same reason Framer Motion's shorthands aren't accelerated.
-
-**Blur.** `filter: blur()` gets expensive fast, especially in Safari. Keep animated blur under 20px; 2–5px is enough to soften a crossfade.
-
 ## `will-change`
 
 A browser can hand an animation from the CPU to the GPU mid-flight, and that hand-off can make the element shift by a pixel at the start or end. `will-change` promotes the element up front so no hand-off happens:
@@ -170,53 +225,3 @@ A browser can hand an animation from the CPU to the GPU mid-flight, and that han
 **Add it only once you see the shift or measured dropped frames.** Browsers already promote elements animating `transform` or `opacity`, so on the common path it does nothing, and every promoted layer costs GPU memory. Put it on the element that animates, never on `*` or large containers.
 
 Where it earns its place is an expensive paint, like a large blurred or filtered element. Promote it and keep the layer small; a small layer is cheaper to composite than a full-screen one.
-
-## Should You Avoid JS Animation?
-
-No. Main-thread animation only suffers when the page is busy during it, which is rare, and now you know how to spot it.
-
-Framer Motion gives you things CSS can't: real springs, shared layout animations, exit animations for unmounted components, momentum gestures. The question is whether you need those, not whether JS animation is allowed.
-
-**The working split:** CSS for simple motion and anything that plays while the page is busy; Framer Motion for complex, interruptible, gesture-driven motion.
-
-## Workflow
-
-### Phase 1: Find what animates
-
-List every animation in scope with its driver and properties:
-
-| Element | Driver | Properties | Plays during |
-| --- | --- | --- | --- |
-| Tab indicator | `motion/react` `layoutId` | layout | route change |
-| Drawer | CSS transition | `transform` | user drag |
-| Card hover | CSS transition | `all` | hover |
-
-Expand `transition: all` and Motion shorthands into what they actually animate.
-
-### Phase 2: Diagnose
-
-Work down this list. It's ordered by how often each one is the cause:
-
-1. **Which properties animate?** Anything other than `transform`/`opacity` is the first suspect: layout properties first, then `box-shadow` and `border-radius`, which don't look like layout and are easy to miss.
-2. **Does the jank coincide with the page being busy?** Navigation, fetching, hydration, a long task. Move the animation to CSS or WAAPI.
-3. **Is React re-rendering per frame?** State updates in rAF, pointer, or scroll handlers.
-4. **Does it get worse as content grows?** An inherited CSS variable, or too many nodes animating at once.
-5. **Is a CSS variable animated at all?** Directly, or through Motion's `x`/`y`/`scale`.
-6. **Any animated `blur()` above 20px?**
-7. **Still shifting or stuttering?** Now add `will-change: transform` to the animating element.
-
-Confirm with a recording, not by feel. When the page runs locally, measure it in an OMP Chromium tab (inside Tern open with `app: { tern: false }`): throttle with `tab.emulate({ cpuThrottling: 4 })`, read `tab.metrics()` before and after the interaction, and collect `long-animation-frame` entries with a `PerformanceObserver`. Whole-page `LayoutCount` and `RecalcStyleDuration` deltas are signals only; unrelated work and legitimate mount/layout can change them. Use `tab.traceStart()` / `tab.traceStop()` plus the source to attribute layout, style recalculation, or main-thread work before naming a cause. Without a browser tool or running app, use the DevTools Performance panel for dropped frames and long tasks; test on a real phone before claiming mobile smoothness.
-
-### Phase 3: Report
-
-For each finding:
-
-```
-**[Element]**: `file.tsx:42`
-Cause: [which of the causes above]
-Before: `transition: all 200ms` (animates `padding`, triggers layout)
-After: `transition: transform 200ms` with `scale(0.97)`
-Verified: from code / measured on a throttled desktop / needs a device recording
-```
-
-Order findings by cost: layout before paint, busy-main-thread before idle. Then stop. Apply fixes when asked.

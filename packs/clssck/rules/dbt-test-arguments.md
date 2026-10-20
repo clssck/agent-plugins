@@ -6,6 +6,7 @@ condition:
 scope: "tool:edit(**/*.{yml,yaml}), tool:write(**/*.{yml,yaml})"
 interruptMode: never
 ---
+<critical>
 
 Generic data test parameters belong under `arguments:`. Parameters written beside the test name (`values:`, `to:`, `field:`, `expression:`) raise `MissingArgumentsPropertyInGenericTestDeprecation`.
 
@@ -64,3 +65,4 @@ Applies under `tests:` or `data_tests:`, including package tests such as `dbt_ut
 ## Legacy files
 
 Legacy file on a modern dbt? Migrate the tests you touch; `uvx dbt-autofix deprecations --dry-run` lists the rest.
+</critical>

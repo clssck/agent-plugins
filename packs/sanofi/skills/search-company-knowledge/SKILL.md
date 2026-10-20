@@ -44,7 +44,17 @@ Source: [Rovo MCP supported tools](https://developer.atlassian.com/cloud/rovo-mc
 
 `search` and `getTeamworkGraphObject` may each cost up to 10 Rovo credits per call; another reason to search narrowly and fetch selectively.
 
-## Workflow
+<critical>
+
+- **Scope.** Search only systems relevant to the question; NEVER sweep everything by default.
+- **Source choice.** Prefer canonical, recent docs. Use Jira for implementation reality, bugs, decisions, status.
+- **Conflicts.** Name both sources and which looks current, with the reason.
+- **Gaps.** State missing, old, inaccessible, or conflicting material explicitly. NEVER invent.
+- **Access errors.** Report permission failures; NEVER retry around them. An org Data Security Policy can block MCP reads (OAuth only) even when the user can open the item in the browser. Blocked Jira items drop out of searches, JQL included, and return "does not exist or you don't have permission". Say so; NEVER claim the item doesn't exist.
+- **Read only.** NEVER create, edit, or transition anything from this skill.
+</critical>
+
+<procedure>
 
 1. Get the `cloudId` once (`getAccessibleAtlassianResources`). Several sites → pick by the user's hint or ask.
 2. Extract the shortest useful query: system names, acronyms, error text, ticket keys.
@@ -54,15 +64,18 @@ Source: [Rovo MCP supported tools](https://developer.atlassian.com/cloud/rovo-mc
 6. Weak results → retry once or twice with variants (synonyms, acronym expansion, error codes) before declaring a gap.
 7. Synthesize by topic, not by source.
 8. Cite every substantive claim.
+</procedure>
 
-## Rules
+<critical>
 
-- **Scope.** Search only systems relevant to the question; NEVER sweep everything by default.
-- **Source choice.** Prefer canonical, recent docs. Use Jira for implementation reality, bugs, decisions, status.
-- **Conflicts.** Name both sources and which looks current, with the reason.
-- **Gaps.** State missing, old, inaccessible, or conflicting material explicitly. NEVER invent.
-- **Access errors.** Report permission failures; NEVER retry around them. An org Data Security Policy can block MCP reads (OAuth only) even when the user can open the item in the browser. Blocked Jira items drop out of searches, JQL included, and return "does not exist or you don't have permission". Say so; NEVER claim the item doesn't exist.
-- **Read only.** NEVER create, edit, or transition anything from this skill.
+Before answering:
+
+- Atlassian tools discovered; schemas read.
+- Query minimal; variants tried before "not found".
+- Only needed results fetched.
+- Conflicts, staleness, gaps called out.
+- Every claim has a title and link or issue key.
+</critical>
 
 ## Answer Shape
 
@@ -76,13 +89,3 @@ Source: [Rovo MCP supported tools](https://developer.atlassian.com/cloud/rovo-mc
 | "Docs say 30 min." (ticket says 15) | "Docs say 30 min; PROJ-456 shows 15 min in practice (load balancer)." |
 
 More query patterns, CQL/JQL examples, and scenario templates: [workflow.md](skill://search-company-knowledge/references/workflow.md).
-
-## Verification
-
-Before answering:
-
-- Atlassian tools discovered; schemas read.
-- Query minimal; variants tried before "not found".
-- Only needed results fetched.
-- Conflicts, staleness, gaps called out.
-- Every claim has a title and link or issue key.

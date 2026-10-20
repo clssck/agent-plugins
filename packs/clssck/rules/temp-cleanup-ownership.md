@@ -8,6 +8,7 @@ condition:
 scope: "tool:bash, tool:eval"
 interruptMode: always
 ---
+<critical>
 
 Delete only the exact temp paths this session created, after their owning process exits. `/tmp` and `$TMPDIR` are shared with every other process, session, and tool on the machine; a glob or a time window also matches their live files.
 
@@ -48,3 +49,4 @@ shutil.rmtree(scratch)
 
 - Can't trace a path to a command you ran? Leave it, and list it in the report.
 - Deleted something you can't trace? Say so explicitly: it cannot be recovered.
+</critical>

@@ -6,6 +6,7 @@ condition:
 scope: "tool:bash"
 interruptMode: always
 ---
+<critical>
 
 A dbt command's blast radius is its selection. An unselected build can touch every model in the target; `--empty` and `--full-refresh` can replace stored data.
 
@@ -64,3 +65,4 @@ Afterwards, compare row counts with what you recorded before, and run the tests 
 dbt build --select fct_orders --target prod --full-refresh
 dbt test --select fct_orders --target prod
 ```
+</critical>

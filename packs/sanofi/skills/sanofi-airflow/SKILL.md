@@ -9,7 +9,7 @@ Sanofi conventions for DAGs on AWS MWAA: shared central environment (2.11) and d
 
 This skill holds platform facts only. Run omp `/review` on the diff for generic defects, then apply this skill for Sanofi-specific ones. Generic Airflow is out of scope · dbt models/SQL/YAML/tests → dbt skill · generic CI/CD → cicd-engineering.
 
-## Core Rules
+<critical>
 
 - **Inspect the real repo first.** Derive `dags/` layout, `dag_id`/`task_id` convention, `default_args`, config/secrets loader, tags, roles, Airflow major version (2.11 vs 3.x), and dbt-run mechanism from files.
 - **Examples are patterns.** NEVER copy example names, roles, paths, or versions verbatim.
@@ -20,7 +20,9 @@ This skill holds platform facts only. Run omp `/review` on the diff for generic 
 - **NEVER deploy to shared MWAA to test a DAG.** Prove changes locally or in CI.
 - **Verification source:** the repo's README, Makefile, CI, or scripts > the [Validation Ladder](#validation-ladder).
 
-## Routing
+</critical>
+
+<instruction>
 
 | Task | `read` |
 |---|---|
@@ -30,21 +32,11 @@ This skill holds platform facts only. Run omp `/review` on the diff for generic 
 - **Read every reference covering an area the change touches, and only those.**
 - **Multi-area change order:** parse safety + DAG config → task logic → orchestration wiring → alerting/access/tags → deploy and run commands.
 
-## Local Environment
+</instruction>
 
-MWAA installs `requirements.txt` with `pip3` plus an Airflow constraints file. Mirror that locally with uv. NEVER `pip install` into system or Homebrew Python.
+<procedure>
 
-```bash
-uv venv --python 3.12   # MWAA 2.11 and 3.x run Python 3.12
-uv pip install "apache-airflow==<version>" -r requirements.txt \
-  -c "https://raw.githubusercontent.com/apache/airflow/constraints-<version>/constraints-3.12.txt"
-uv run --no-project airflow dags list-import-errors
-```
-
-- **Existing tooling wins.** If the repo already uses poetry, pip-tools, or `uv.lock`, keep it (`uv run` for uv projects). Recommend uv only for new work.
-- **One-off CLIs without install:** `uvx ruff@latest ...`, `uvx pre-commit run --all-files`.
-
-## Validation Ladder
+### Validation Ladder
 
 Run the smallest step that proves the change. Steps 1-3 are static or import-only. Step 4 executes task code.
 
@@ -66,6 +58,47 @@ Run the smallest step that proves the change. Steps 1-3 are static or import-onl
 
 No local Airflow → state the exact command and the missing prerequisite. NEVER discover parse errors by deploying.
 
+</procedure>
+
+<caution>
+
+### Failure Masking
+
+| Bad | Good |
+|---|---|
+| Sole leaf `cleanup` with `trigger_rule="all_done"` → run succeeds after upstream failure | Add a sibling leaf with default `all_success` downstream of the work task → run fails, cleanup still runs |
+| Failure callback raises | Catch and log inside the callback |
+
+Pattern and code: [general-airflow-guide.md](skill://sanofi-airflow/references/general-airflow-guide.md) (TaskFlow API, Alerting).
+
+### Airflow 3 Traps
+
+| Bad (2.x habit on a 3.x tenant) | Good |
+|---|---|
+| Bare cron/preset `schedule="@daily"` with tasks or dbt vars reading `data_interval_start/end` | 3.x default `CronTriggerTimetable` → zero-width interval (start == end). Use `CronDataIntervalTimetable` or `CronTriggerTimetable(..., interval=...)` explicitly |
+| `context["data_interval_start"]` / `context["logical_date"]` in an Asset- or API-triggered DAG | Those runs have `logical_date=None` and no interval → `KeyError`. Check `dag_run.logical_date` / `context.get(...)` and fall back, or pass the window via params |
+| `execution_date`, `prev_ds`, `next_ds`, `yesterday_ds`, `conf` in context or Jinja | `logical_date`, `data_interval_*`, `dag_run`, DAG `params` |
+| `ti.xcom_pull(key=...)` without `task_ids` | Pass `task_ids=`; 3.x pulls only from the current task by default |
+| SQLAlchemy session / ORM models on the metadata DB inside a task | Task SDK (`airflow.sdk.Variable`, `Connection`) or the REST API (`/api/v2`) |
+| `SubDagOperator`, `sla`, `sla_miss_callback` | TaskGroups; Deadline Alerts (3.1+) |
+
+Import map, config renames, removed features, MWAA migration rules: [general-airflow-guide.md](skill://sanofi-airflow/references/general-airflow-guide.md) (Airflow 3 Migration).
+</caution>
+
+## Local Environment
+
+MWAA installs `requirements.txt` with `pip3` plus an Airflow constraints file. Mirror that locally with uv. NEVER `pip install` into system or Homebrew Python.
+
+```bash
+uv venv --python 3.12   # MWAA 2.11 and 3.x run Python 3.12
+uv pip install "apache-airflow==<version>" -r requirements.txt \
+  -c "https://raw.githubusercontent.com/apache/airflow/constraints-<version>/constraints-3.12.txt"
+uv run --no-project airflow dags list-import-errors
+```
+
+- **Existing tooling wins.** If the repo already uses poetry, pip-tools, or `uv.lock`, keep it (`uv run` for uv projects). Recommend uv only for new work.
+- **One-off CLIs without install:** `uvx ruff@latest ...`, `uvx pre-commit run --all-files`.
+
 ## Review Gates
 
 A change is not done until every applicable gate holds:
@@ -80,25 +113,3 @@ A change is not done until every applicable gate holds:
 | Failure state | No `all_done` cleanup task masking upstream failure ([Failure Masking](#failure-masking)) |
 | Ignore file | Syntax matches the environment's `dag_ignore_file_syntax` |
 | Proof | Import/parse time verified locally; execution commands run only against DEV |
-
-## Failure Masking
-
-| Bad | Good |
-|---|---|
-| Sole leaf `cleanup` with `trigger_rule="all_done"` → run succeeds after upstream failure | Add a sibling leaf with default `all_success` downstream of the work task → run fails, cleanup still runs |
-| Failure callback raises | Catch and log inside the callback |
-
-Pattern and code: [general-airflow-guide.md](skill://sanofi-airflow/references/general-airflow-guide.md) (TaskFlow API, Alerting).
-
-## Airflow 3 Traps
-
-| Bad (2.x habit on a 3.x tenant) | Good |
-|---|---|
-| Bare cron/preset `schedule="@daily"` with tasks or dbt vars reading `data_interval_start/end` | 3.x default `CronTriggerTimetable` → zero-width interval (start == end). Use `CronDataIntervalTimetable` or `CronTriggerTimetable(..., interval=...)` explicitly |
-| `context["data_interval_start"]` / `context["logical_date"]` in an Asset- or API-triggered DAG | Those runs have `logical_date=None` and no interval → `KeyError`. Check `dag_run.logical_date` / `context.get(...)` and fall back, or pass the window via params |
-| `execution_date`, `prev_ds`, `next_ds`, `yesterday_ds`, `conf` in context or Jinja | `logical_date`, `data_interval_*`, `dag_run`, DAG `params` |
-| `ti.xcom_pull(key=...)` without `task_ids` | Pass `task_ids=`; 3.x pulls only from the current task by default |
-| SQLAlchemy session / ORM models on the metadata DB inside a task | Task SDK (`airflow.sdk.Variable`, `Connection`) or the REST API (`/api/v2`) |
-| `SubDagOperator`, `sla`, `sla_miss_callback` | TaskGroups; Deadline Alerts (3.1+) |
-
-Import map, config renames, removed features, MWAA migration rules: [general-airflow-guide.md](skill://sanofi-airflow/references/general-airflow-guide.md) (Airflow 3 Migration).

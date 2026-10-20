@@ -21,7 +21,16 @@ Mobile changes three things about animation, and everything in this skill follow
 2. **There are two runtimes.** Worklets (Reanimated 4) makes this explicit: the React Native runtime, where React renders and your app logic runs, and the UI runtime, where worklets run every frame (plus optional worker runtimes for background work). An animation that touches the RN runtime stutters the moment the app does anything else. The whole craft is keeping motion on the UI runtime.
 3. **The user's finger is on the element.** Gestures are the primary input, so interruptibility and velocity handoff aren't polish — they're the baseline.
 
-## Operating Posture
+<critical>
+
+1. **Run the sequence in order.** Steps 1 and 2 gate everything.
+2. **Reanimated, not core `Animated`.** Core `Animated` can't be driven by a gesture without crossing the bridge, and `useNativeDriver` refuses anything but transform and opacity anyway. Reanimated worklets run on the UI thread and keep running while JS is busy.
+3. **No approximated values.** Curves and spring configs come from the tables below.
+4. **Reduced motion ships with the animation**, not as a follow-up.
+5. **Feel is judged on a release build on the slowest device you support.** Nothing else counts as verified.
+</critical>
+
+<instruction>
 
 You are a senior mobile engineer building the animation yourself. Make the call, state the reasoning in one line, write the code. Never present motion options as a menu.
 
@@ -29,16 +38,9 @@ Two failure modes, and the first is worse:
 
 1. **Animating something that shouldn't animate.** The gate below exists to produce zero lines of code sometimes.
 2. **Animating the right thing on the wrong thread** — a `setState` per frame, a `PanResponder`, an animated `height`. It looks fine in dev on your phone and drops to 20fps on a three-year-old Android.
+</instruction>
 
-## Hard Rules
-
-1. **Run the sequence in order.** Steps 1 and 2 gate everything.
-2. **Reanimated, not core `Animated`.** Core `Animated` can't be driven by a gesture without crossing the bridge, and `useNativeDriver` refuses anything but transform and opacity anyway. Reanimated worklets run on the UI thread and keep running while JS is busy.
-3. **No approximated values.** Curves and spring configs come from the tables below.
-4. **Reduced motion ships with the animation**, not as a follow-up.
-5. **Feel is judged on a release build on the slowest device you support.** Nothing else counts as verified.
-
-## The Build Sequence
+<procedure>
 
 ### 1. Should this animate at all?
 
@@ -202,8 +204,9 @@ withSpring(0, { duration: 300, dampingRatio: 0.8, reduceMotion: ReduceMotion.Sys
 Reduced motion means **fewer and gentler**, not zero: keep opacity and color changes that explain a state change, drop translation, scale, parallax and overshoot. Screen transitions become `animation: 'fade'`.
 
 **Text scales.** `allowFontScaling` is on by default, so any height you measured at default type size is wrong at 200%. Never animate to a hardcoded height — measure with `onLayout`, or animate a transform instead.
+</procedure>
 
-## Setup that silently breaks motion
+<caution>
 
 Check these first when "the animation just doesn't run":
 
@@ -211,22 +214,9 @@ Check these first when "the animation just doesn't run":
 - `GestureHandlerRootView` must wrap the app, or gestures do nothing with no error.
 - Reanimated 4 requires the New Architecture. Check the installed `react-native-reanimated` major in `package.json` before writing code: on 3.x, `runOnJS` is still the API and `react-native-worklets` isn't installed. For an API this skill doesn't pin down, look it up for that version through the context7 MCP server, or `web_search` when it isn't connected.
 - **Expo Go is not a performance environment.** Judge feel in a release build; a dev build's JS thread is slow enough to hide exactly the problems you're looking for.
+</caution>
 
-## 120fps
-
-On ProMotion iPhones, third-party animations are capped at 60fps unless `CADisableMinimumFrameDurationOnPhone` is set. Recent Expo SDKs set it by default — confirm it's there, and add it if not:
-
-```json
-{ "expo": { "ios": { "infoPlist": { "CADisableMinimumFrameDurationOnPhone": true } } } }
-```
-
-Then the frame budget is 8ms, not 16. This is also why a UI-thread animation matters more on mobile than it does on web.
-
-## Recipes
-
-For ready-to-build implementations — press feedback, drag-to-dismiss sheet, swipe-to-delete, collapsing header, list entrances, keyboard-synced UI, tab indicator, screen transitions — see [RECIPES.md](RECIPES.md). Load it whenever the request matches one; start from the recipe rather than from a blank file.
-
-## Never Ship
+<critical>
 
 | Never | Instead |
 | --- | --- |
@@ -247,6 +237,21 @@ For ready-to-build implementations — press feedback, drag-to-dismiss sheet, sw
 | Hard stop at a boundary | rubber-band resistance |
 | A haptic per frame, or as the only feedback | one per commit, always paired with a visual |
 | Judging feel in Expo Go or the simulator | release build, slowest supported device |
+</critical>
+
+## 120fps
+
+On ProMotion iPhones, third-party animations are capped at 60fps unless `CADisableMinimumFrameDurationOnPhone` is set. Recent Expo SDKs set it by default — confirm it's there, and add it if not:
+
+```json
+{ "expo": { "ios": { "infoPlist": { "CADisableMinimumFrameDurationOnPhone": true } } } }
+```
+
+Then the frame budget is 8ms, not 16. This is also why a UI-thread animation matters more on mobile than it does on web.
+
+## Recipes
+
+For ready-to-build implementations — press feedback, drag-to-dismiss sheet, swipe-to-delete, collapsing header, list entrances, keyboard-synced UI, tab indicator, screen transitions — see [RECIPES.md](RECIPES.md). Load it whenever the request matches one; start from the recipe rather than from a blank file.
 
 ## Output
 

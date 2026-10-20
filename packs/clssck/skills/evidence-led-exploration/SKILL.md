@@ -10,11 +10,13 @@ Keeps facts about the subject separate from the history of exploring it. Short i
 
 Ledger template → [investigation-ledger.md](skill://evidence-led-exploration/references/investigation-ledger.md). Worker or session boundary → [handoff-packet.md](skill://evidence-led-exploration/references/handoff-packet.md).
 
-## OMP execution
+<instruction>
 
 Use `eval` for the working ledgers: keep subject claims, branches, and probes in Python/JS variables for cheap queries and diffs, and persist the canonical ledger with `write`/`edit` after each merge. Eval state is not durable and subagents have separate kernels; the file is the handoff source. Use `read`/`grep`/`glob` for evidence, `find` when the location or behavior is unknown, `bash` for real binaries, and `artifact://` for bulky output. Use `task`/`workpool` for isolated workers and `wait` for their handles; worker output is at `agent://<id>` and its transcript at `history://<id>`. Use `local://<name>.md` for a shared handoff, `web_search` for external sources (cite URL and access time), `todo` for execution phases, and `ask` for material branch choices; the ledger remains canonical. Memory (`recall`/`reflect`) can seed a hypothesis but never replaces cited evidence. Do not build a custom ledger CLI.
 
-## Invoke when
+</instruction>
+
+<instruction>
 
 **Use explicitly when ≥1 holds:**
 
@@ -27,7 +29,9 @@ Use `eval` for the working ledgers: keep subject claims, branches, and probes in
 
 For an authorized penetration test, `pentest-tradecraft` owns scope, the check/finding records, cleanup, and handoff. Use this ledger only for an unresolved investigation branch, never as a replacement for the assessment records.
 
-## Invariants
+</instruction>
+
+<critical>
 
 - **Every claim MUST be evidence-linked or `inferred`.** Repetition never promotes an inference to fact.
 - **Record a failed probe** when it rules out an explanation, narrows scope, or prevents duplicate work. Negative evidence holds only for the tested input, time, version, environment, scope.
@@ -38,6 +42,8 @@ For an authorized penetration test, `pentest-tradecraft` owns scope, the check/f
 - **Branches record parent + origin;** derived work traces to the evidence or branch that created it.
 - **Investigation NEVER widens authorization.** Task scope, safety constraints, mutation approvals persist.
 
+</critical>
+
 ## Two ledgers
 
 |Ledger|Tracks|Rule|
@@ -47,7 +53,7 @@ For an authorized penetration test, `pentest-tradecraft` owns scope, the check/f
 
 Stable IDs shared across evidence, claims, branches, probes. Append or supersede; NEVER renumber.
 
-## Exploration loop
+<procedure>
 
 1. **Frame:** objective, observable done condition, scope, constraints, current unknowns.
 2. **Inventory:** seed the subject ledger from available evidence; label gaps and inferences.
@@ -58,6 +64,8 @@ Stable IDs shared across evidence, claims, branches, probes. Append or supersede
 7. **Reconcile:** update claim status, record contradictions, transition the branch.
 8. **Wake:** re-evaluate every deferred lead whose `wake_when` may now hold.
 9. **Continue or hand off:** next frontier item, stop on the done condition, or emit a handoff packet.
+
+</procedure>
 
 ## Branch lifecycle
 
@@ -80,16 +88,20 @@ Transitions: `open → active → terminal | blocked | deferred`; `blocked`/`def
 
 Required confirmation prohibited, unavailable, or out of scope → claim stays `inferred`; name the unrun check in the handoff.
 
-## Contradictions
+<caution>
 
 Cite both evidence sets; identify whether they differ by time, version, environment, scope, or source; state one next discriminator. Mark affected claims `disputed` until resolved. NEVER pick the preferred story by intuition.
+
+</caution>
 
 ## Parallel workers
 
 Each worker gets one branch, an immutable snapshot of relevant subject records, explicit scope, a requested return format. Workers return evidence + proposed ledger deltas; NEVER silently rewrite shared conclusions. Coordinator merges deltas serially, records conflicts, wakes dependent leads, blocks duplicate probes unless independent reproduction is intentional. Target traffic still follows the domain skill's budget and one-integration-owner rule; parallel branches do not authorize concurrent probes.
 
-## Stop and handoff
+<critical>
 
 Stop when: done condition met · all useful branches terminal · next step needs an external prerequisite · remaining probes exceed scope or risk. Outcome and stop reason are separate fields: `resolved / unresolved / inconclusive` ≠ `done_condition_met / external_prerequisite / frontier_exhausted / scope_or_risk_limit / budget_limit`.
 
 **MUST produce a [handoff packet](skill://evidence-led-exploration/references/handoff-packet.md) before stopping:** evidence-linked facts, contradictions, branch states, artifacts, exactly one best next action; exhausted paths named. Objective and done condition MUST be observable; every blocked or deferred branch carries an observable predicate.
+
+</critical>

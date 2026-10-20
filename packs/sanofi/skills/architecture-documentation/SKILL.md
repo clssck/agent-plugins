@@ -21,7 +21,17 @@ Classification follows runtime responsibility, never repo layout or team ownersh
 - **No storage format here:** NEVER build or paste a Confluence storage-format payload.
 - **Tool-neutral visuals:** use the repository's native format or a tool-neutral diagram spec. Model and narrative MUST stay useful without an editable visual.
 
-## Workflow
+<critical>
+
+- Boundary and audience stated before modeling.
+- Each element classified by responsibility, not repo or team.
+- Version, changelog, attribution recorded.
+- [c4-notation-checklist.md](skill://architecture-documentation/references/c4-notation-checklist.md) passed.
+- Existing diagram-as-code source edited in place, not replaced.
+- Live publishing handed to `confluence-html-editor`.
+</critical>
+
+<procedure>
 
 1. **Boundary and audience first.** Establish the user-facing system boundary and audience BEFORE inferring from teams, repos, or deployment config. Unclear → `ask`.
 2. **Smallest scope.** Inspect the least code and infrastructure that answers the C4 question; widen only on evidence. Use `glob` and `grep`; NEVER shell `rg`/`find`. Patterns → [codebase-analysis-patterns.md](skill://architecture-documentation/references/codebase-analysis-patterns.md).
@@ -30,6 +40,7 @@ Classification follows runtime responsibility, never repo layout or team ownersh
 5. **Version** the logical artifact and record change history.
 6. **Validate** with [c4-notation-checklist.md](skill://architecture-documentation/references/c4-notation-checklist.md) before presenting or handing off.
 7. **Hand off** live Confluence work to `confluence-html-editor` with prepared content and target-page context. Save the content with `write` to `local://<identifier>.html` (identifier per Version and Attribute) and pass that path; `confluence-html-editor` reads `local://` files, and a long body stays out of the conversation.
+</procedure>
 
 ## Classify Elements
 
@@ -70,15 +81,6 @@ Match requested scope and audience. L1 + L2 suffice for most teams; NEVER add le
 - **Identifier:** `{system-name}-L{level}-v{version}`; keep the repo's native extension.
 - **Author:** named person, or `AI-assisted (architecture-documentation)`. NEVER rewrite existing attribution.
 - Changelog format, naming variants, Jira linkage, archive → [versioning-guide.md](skill://architecture-documentation/references/versioning-guide.md).
-
-## Before Handoff
-
-- Boundary and audience stated before modeling.
-- Each element classified by responsibility, not repo or team.
-- Version, changelog, attribution recorded.
-- [c4-notation-checklist.md](skill://architecture-documentation/references/c4-notation-checklist.md) passed.
-- Existing diagram-as-code source edited in place, not replaced.
-- Live publishing handed to `confluence-html-editor`.
 
 ## References
 

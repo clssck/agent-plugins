@@ -4,6 +4,7 @@ condition: '\bgit(?:\s+-[Cc]\s+\S+)*\s+push\b(?!(?:(?!\\n)[^\n;&|])*\s(?:--dry-r
 scope: "tool:bash"
 interruptMode: always
 ---
+<critical>
 
 A push publishes work to shared, external state. Push only when the user requested it or a repository instruction delegates it.
 
@@ -47,3 +48,4 @@ Deleting remote refs (`--delete`, `:<branch>`) requires an explicit request nami
 # Only after the user names feature/old-spike for deletion
 git push origin --delete feature/old-spike
 ```
+</critical>

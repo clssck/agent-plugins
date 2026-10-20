@@ -17,20 +17,7 @@ Sanofi GitHub Actions rules and verified templates: workflows, quality and secur
 
 Load only what the task needs.
 
-## Workflow
-
-1. `glob` `.github/workflows/*.y*ml`; `read` them with manifests, lockfiles, build scripts.
-2. Classify: build/test · publish · release · deploy · Terraform · SAST/SCA.
-3. Apply Rules below; load `cicd-rules.md` for exact wording.
-4. Reuse the repo's own scripts and package manager. NEVER invent a parallel build path.
-5. Validate with `uvx --from actionlint-py actionlint` (or installed `actionlint`).
-   - Unknown runner label → `atmos-aws-arc-runner-set` must be under `self-hosted-runner.labels` in `.github/actionlint.yaml`.
-   - v1.7.12 also rejects the newer `cache-mode` key and `vulnerability-alerts` permission (see Failure Modes).
-   - No `actionlint` → parse each YAML file; check every `needs.<job>.outputs.<name>` and `secrets.<NAME>` reference resolves.
-6. Verify on GitHub when a run exists: `xd://github` `op: run_watch` (omit `run` → every run for the current HEAD, fast-fails on the first failed job; a failing run the user names → `run: <id or URL>`, raise `tail` for more lines per failed job). Failure logs land in a session artifact: diagnose from that log, not from the YAML alone. NEVER push to trigger a run without the user's go-ahead.
-7. Report changed behavior, required secrets/environments/variables, manual platform setup.
-
-## Rules
+<critical>
 
 | Area | Rule |
 | --- | --- |
@@ -52,8 +39,25 @@ Load only what the task needs.
 | **Retention** | Set `retention-days`; key caches on lockfile hashes |
 | **Action updates** | Enable Dependabot `github-actions` so SHA pins move through reviewed PRs ([security-hardening.md §1](skill://cicd-engineering/references/security-hardening.md#1-supply-chain-attacks-via-compromised-actions)) |
 | **GxP** | Production promotion needs environment approval and a retained audit record |
+</critical>
 
-## Failure Modes
+<procedure>
+
+1. `glob` `.github/workflows/*.y*ml`; `read` them with manifests, lockfiles, build scripts.
+2. Classify: build/test · publish · release · deploy · Terraform · SAST/SCA.
+3. Apply Rules below; load `cicd-rules.md` for exact wording.
+4. Reuse the repo's own scripts and package manager. NEVER invent a parallel build path.
+5. Validate with `uvx --from actionlint-py actionlint` (or installed `actionlint`).
+   - Unknown runner label → `atmos-aws-arc-runner-set` must be under `self-hosted-runner.labels` in `.github/actionlint.yaml`.
+   - v1.7.12 also rejects the newer `cache-mode` key and `vulnerability-alerts` permission (see Failure Modes).
+   - No `actionlint` → parse each YAML file; check every `needs.<job>.outputs.<name>` and `secrets.<NAME>` reference resolves.
+6. Verify on GitHub when a run exists: `xd://github` `op: run_watch` (omit `run` → every run for the current HEAD, fast-fails on the first failed job; a failing run the user names → `run: <id or URL>`, raise `tail` for more lines per failed job). Failure logs land in a session artifact: diagnose from that log, not from the YAML alone. NEVER push to trigger a run without the user's go-ahead.
+7. Report changed behavior, required secrets/environments/variables, manual platform setup.
+</procedure>
+
+<caution>
+
+### Failure Modes
 
 | Bad | Good |
 | --- | --- |
@@ -69,8 +73,9 @@ Load only what the task needs.
 | Rely on Dependabot alerts for SHA-pinned actions | Alerts cover only semver-tagged actions; keep the version comment and Dependabot version updates |
 | Environment rule `refs/heads/feature` for a `pull_request` job | PR jobs evaluate `refs/pull/N/merge`; `pull_request_target` evaluates the default branch |
 | Trust policy assumes only workflows reach the role | Dependabot OIDC tokens carry `event_name: dynamic`; GitHub states AWS lacks custom-claim conditions → keep an exact `sub` plus an environment with deployment rules |
+</caution>
 
-## Before Reporting
+<critical>
 
 - Every `uses:` pinned or allowlisted; pins verified against the tag's commit.
 - Every `needs.*.outputs.*` and `secrets.*` reference resolves to a declared output/secret.
@@ -79,6 +84,7 @@ Load only what the task needs.
 - Required secrets, environments, branch rules, allowlist changes listed in the report.
 - No `pull_request_target`/`workflow_run` job checks out or runs PR code; cache access on those triggers read-only.
 - Production images have a provenance attestation, or the report says why not.
+</critical>
 
 ## Sibling Skills
 

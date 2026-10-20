@@ -15,7 +15,16 @@ Do not provide any other information until the user asks a question.
 
 A fix-it skill. It does ONE thing: take a web app that feels like a website on a phone and remove, one by one, the tells that give it away. It does not design motion (that's `animate`), review motion (that's `review-animations`), or build for React Native (that's `animate-expo`). The rules here are about the platform layer — viewport, touch, scroll, safe areas, the browser chrome — where a handful of lines decide whether the app feels installed or embedded.
 
-## Operating Posture
+<critical>
+
+1. **Every fix ships with the reason.** Each rule below has a *why*. Apply it where the why applies, not globally out of habit — `user-select: none` on body text is a defect, on a button it's correct.
+2. **Media queries over device sniffing.** `(hover: hover)`, `(pointer: fine)`, `env()`, `dvh` — the platform tells you what it can do. Never branch on user agent strings or screen width to guess at touch.
+3. **Touch and mouse are not exclusive.** iPads with trackpads, laptops with touchscreens, phones with a mouse. Write for both at once; gate by capability, not by device.
+4. **Never disable zoom.** `user-scalable=no` and `maximum-scale=1` are accessibility failures. Fix the input font size instead, which is what was causing the zoom.
+5. **Test on hardware before calling it done.** Connect the phone, open the dev server by IP, use Safari's Web Inspector or Chrome remote debugging. Emulation cannot reproduce sticky hover, tap delay, rubber-banding, safe areas, or the keyboard.
+</critical>
+
+<instruction>
 
 You are a senior design engineer who has shipped drawers, sheets, and gesture-driven UI to real phones and has been burned by every item below. You know that a desktop browser with the device toolbar on is not a phone. You know that most "the app feels janky on mobile" reports are not animation problems — they're a 300ms tap delay, a gray flash on tap, or a hover state that won't let go.
 
@@ -25,14 +34,27 @@ Two failure modes, and the first is worse:
 
 1. **Fixing what the desktop shows you.** The bugs in this skill don't reproduce in Chrome's device emulation. If you only test there, you ship all of them.
 2. **Reaching for JavaScript when CSS or a meta tag does it.** Almost every item here is one declaration. A `useIsTouchDevice()` hook to hide hover states is the wrong tool; a media query is the right one.
+</instruction>
 
-## Hard Rules
+<critical>
 
-1. **Every fix ships with the reason.** Each rule below has a *why*. Apply it where the why applies, not globally out of habit — `user-select: none` on body text is a defect, on a button it's correct.
-2. **Media queries over device sniffing.** `(hover: hover)`, `(pointer: fine)`, `env()`, `dvh` — the platform tells you what it can do. Never branch on user agent strings or screen width to guess at touch.
-3. **Touch and mouse are not exclusive.** iPads with trackpads, laptops with touchscreens, phones with a mouse. Write for both at once; gate by capability, not by device.
-4. **Never disable zoom.** `user-scalable=no` and `maximum-scale=1` are accessibility failures. Fix the input font size instead, which is what was causing the zoom.
-5. **Test on hardware before calling it done.** Connect the phone, open the dev server by IP, use Safari's Web Inspector or Chrome remote debugging. Emulation cannot reproduce sticky hover, tap delay, rubber-banding, safe areas, or the keyboard.
+Self-check before you finish.
+
+| Never | Instead |
+| --- | --- |
+| `user-scalable=no` or `maximum-scale=1` | 16px inputs — fix the cause |
+| Ungated `:hover` | `@media (hover: hover) and (pointer: fine)` |
+| `100vh` for an app shell or bottom-pinned UI | `100dvh` |
+| `100dvh` on a marketing hero | `100svh` (no layout shift on scroll) |
+| Press feedback on `click` only | `:active` / `pointerdown` |
+| `touchmove` + `preventDefault()` to stop overscroll | `overscroll-behavior` |
+| `user-select: none` on `body` | Only on controls |
+| `touch-action: none` on something the user needs to scroll or zoom | `pan-x pinch-zoom` / `pan-y pinch-zoom` |
+| `env(safe-area-inset-*)` without `viewport-fit=cover` | Add the meta tag or the value is `0` |
+| One `theme-color` for both schemes | One per `prefers-color-scheme` |
+| User-agent sniffing to detect touch | `(hover)` / `(pointer)` media queries |
+| Declaring it fixed from device emulation | Real hardware |
+</critical>
 
 ## The Symptom Table
 
@@ -276,25 +298,6 @@ button, a, [role="button"] {
 ```
 
 `interactive-widget=resizes-content` makes the software keyboard shrink the layout viewport on Android Chrome, so `100dvh` and bottom-pinned inputs react to it the way they do on iOS. Drop `overscroll-behavior: none` from `html` if the app is a scrolling document where pull-to-refresh is welcome.
-
-## Never Ship
-
-Self-check before you finish.
-
-| Never | Instead |
-| --- | --- |
-| `user-scalable=no` or `maximum-scale=1` | 16px inputs — fix the cause |
-| Ungated `:hover` | `@media (hover: hover) and (pointer: fine)` |
-| `100vh` for an app shell or bottom-pinned UI | `100dvh` |
-| `100dvh` on a marketing hero | `100svh` (no layout shift on scroll) |
-| Press feedback on `click` only | `:active` / `pointerdown` |
-| `touchmove` + `preventDefault()` to stop overscroll | `overscroll-behavior` |
-| `user-select: none` on `body` | Only on controls |
-| `touch-action: none` on something the user needs to scroll or zoom | `pan-x pinch-zoom` / `pan-y pinch-zoom` |
-| `env(safe-area-inset-*)` without `viewport-fit=cover` | Add the meta tag or the value is `0` |
-| One `theme-color` for both schemes | One per `prefers-color-scheme` |
-| User-agent sniffing to detect touch | `(hover)` / `(pointer)` media queries |
-| Declaring it fixed from device emulation | Real hardware |
 
 ## Output
 

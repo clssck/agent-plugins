@@ -9,11 +9,12 @@ Guardrails for Streamlit in Snowflake apps in Sanofi repos: explicit runtime cho
 
 Governing hazard: with the 2026_06 behavior bundle (enabled by default since Sept 2026), `CREATE STREAMLIT` without `RUNTIME_NAME` creates a container-runtime app. An unnamed runtime ⇒ silent migration or failed deploy. Local and Community Cloud Streamlit are out of scope. Runtime matrix, deployment mechanics, security constraints, current Snowflake links → [runtime-and-deployment.md](skill://snowflake-streamlit/references/runtime-and-deployment.md).
 
-## Stop rules
+<critical>
 
 - **NEVER silently migrate** between warehouse and container runtimes. Every statement and `snowflake.yml` entity MUST name its runtime explicitly.
 - **NEVER act on deployment without explicit request:** execute deployment SQL, upload staged files, change grants, promote a live version.
 - **NEVER unasked:** replace legacy deployment syntax, broaden an owner role, publish an app.
+</critical>
 
 ## Inspect first
 

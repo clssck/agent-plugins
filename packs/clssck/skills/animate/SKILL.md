@@ -15,7 +15,16 @@ Do not provide any other information until the user asks a question.
 
 A construction skill. It does ONE thing: turn a request for motion into an implementation that would survive a strict review. It does not audit a codebase (that's `improve-animations`), critique a diff (that's `review-animations`), hunt for places that could animate (that's `find-animation-opportunities`), or build for React Native (that's `animate-expo`).
 
-## Operating Posture
+<critical>
+
+1. **Run the sequence in order.** Steps 1 and 2 gate everything. Don't reach for a curve before you know whether it animates at all.
+2. **No approximated values.** Every curve, duration, and spring config comes from the tables below. Never invent `cubic-bezier(0.4, 0, 0.2, 1)` because it looks familiar.
+3. **Extend the codebase's tokens, don't fork them.** If `--ease-out` or a duration scale already exists, use it. Adding a parallel system is a defect.
+4. **Reduced motion and hover gating ship with the animation**, not as a follow-up.
+5. **Cheapest tool that works.** Don't install a motion library for a fade.
+</critical>
+
+<instruction>
 
 You are a senior design engineer building the animation yourself. The bar is Emil Kowalski's animation philosophy — the same bar `review-animations` enforces. Write it so it passes that review the first time.
 
@@ -25,16 +34,9 @@ Two failure modes, and the first is worse:
 2. **Animating the right thing with the wrong ingredients** — `ease-in` on an entrance, `scale(0)`, keyframes on a toast, a duration that makes a dropdown feel sluggish.
 
 Never present motion options as a menu. Make the call, state the reasoning in one line, write the code.
+</instruction>
 
-## Hard Rules
-
-1. **Run the sequence in order.** Steps 1 and 2 gate everything. Don't reach for a curve before you know whether it animates at all.
-2. **No approximated values.** Every curve, duration, and spring config comes from the tables below. Never invent `cubic-bezier(0.4, 0, 0.2, 1)` because it looks familiar.
-3. **Extend the codebase's tokens, don't fork them.** If `--ease-out` or a duration scale already exists, use it. Adding a parallel system is a defect.
-4. **Reduced motion and hover gating ship with the animation**, not as a follow-up.
-5. **Cheapest tool that works.** Don't install a motion library for a fade.
-
-## The Build Sequence
+<procedure>
 
 ### 1. Should this animate at all?
 
@@ -173,12 +175,9 @@ const closedX = reduce ? 0 : '-100%';
 ```
 
 Reduced motion means **fewer and gentler** animations, not zero — keep transitions that aid comprehension, remove movement and position changes.
+</procedure>
 
-## Recipes
-
-For ready-to-build implementations of the common cases — button press, dropdown, tooltip, modal, drawer, toast, accordion, stagger, hold-to-confirm, tab indicator, scroll reveal, drag-to-dismiss — see [RECIPES.md](RECIPES.md). Load it whenever the request matches one of those components; start from the recipe rather than from a blank file.
-
-## Never Ship
+<critical>
 
 Self-check before you finish. Each of these is an automatic block in `review-animations`:
 
@@ -199,6 +198,11 @@ Self-check before you finish. Each of these is an automatic block in `review-ani
 | Everything entering at once | 30–80ms stagger |
 
 When the page runs locally, check what code cannot prove in an OMP `browser` tab. Open Chromium (`app: { tern: false }`), start `tab.recordStart(path, { contactSheet: true })`, trigger the motion, then call `tab.recordStop()`. Treat the returned contact sheet as a coarse overview: if a small motion, origin, or stagger is absent, inspect the recording at intermediate timestamps instead of assuming it did not happen. Re-run after `tab.emulate({ reducedMotion: true })` to inspect the reduced-motion variant. Without a browser tool or running app, leave these to the feel-check.
+</critical>
+
+## Recipes
+
+For ready-to-build implementations of the common cases — button press, dropdown, tooltip, modal, drawer, toast, accordion, stagger, hold-to-confirm, tab indicator, scroll reveal, drag-to-dismiss — see [RECIPES.md](RECIPES.md). Load it whenever the request matches one of those components; start from the recipe rather than from a blank file.
 
 ## Output
 

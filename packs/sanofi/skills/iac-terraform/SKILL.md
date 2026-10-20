@@ -17,7 +17,7 @@ Complements built-in `/review`: that finds generic defects; this skill checks mo
 | [tagging-guide.md](skill://iac-terraform/references/tagging-guide.md) | mandatory tag values, `local.tags` pattern, `default_tags` limits, effective-tag check, sources |
 | [scripts/check_tags.py](skill://iac-terraform/scripts/check_tags.py) | validates tags on every resource in a plan JSON; tests in [scripts/test_check_tags.py](skill://iac-terraform/scripts/test_check_tags.py); invocation → [tagging-guide.md](skill://iac-terraform/references/tagging-guide.md#effective-tag-check) |
 
-## Rules
+<critical>
 
 - **Modules**: approved library module exists → use it. NEVER write a raw `aws_*` resource for it.
 - **Read first**: module README + `variables.tf` before writing a call.
@@ -31,8 +31,9 @@ Complements built-in `/review`: that finds generic defects; this skill checks mo
 - **Versions**: `required_version` + provider floors = what the code needs, compatible with every module → [module-guide.md](skill://iac-terraform/references/module-guide.md#versions-and-providers).
 - **Tests**: NEVER run `terraform test` unmocked; default `command = apply` creates real resources → [module-guide.md](skill://iac-terraform/references/module-guide.md#testing).
 - **Plan files**: `tfplan` + `plan.json` hold secrets in cleartext; NEVER commit or paste them.
+</critical>
 
-## Workflow
+<procedure>
 
 1. **Scope**: service, environment, modules needed, missing inputs. Existing code → `glob` `**/*.tf` (excluding `.terraform/`), then `read`.
 2. **Discover** modules + RFC guidance → [module-guide.md](skill://iac-terraform/references/module-guide.md#discovery). Confluence CODE-space docs → `search-company-knowledge` skill.
@@ -47,8 +48,9 @@ Complements built-in `/review`: that finds generic defects; this skill checks mo
 
 5. **Check effective tags** from a plan the user ran: `terraform show -json tfplan` → `check_tags.py`.
 6. **Report**: manual prerequisites, unknown tag values, provider assumptions, open questions.
+</procedure>
 
-## Failure Modes
+<caution>
 
 | Bad | Good |
 | --- | --- |
@@ -62,8 +64,9 @@ Complements built-in `/review`: that finds generic defects; this skill checks mo
 | `data "aws_secretsmanager_secret_version"` feeding a resource | `ephemeral` block feeding a write-only argument |
 | `data.aws_region.current.name` on provider 6 | `.region` |
 | Tags on `aws_autoscaling_group` via `default_tags` only | `tag` blocks from `local.tags` |
+</caution>
 
-## Verification
+<critical>
 
 Done when each holds, or its blocker is reported:
 
@@ -74,10 +77,9 @@ Done when each holds, or its blocker is reported:
 - Plan JSON passes `check_tags.py`, or user has not yet produced a plan.
 - Security review handed to `iac-security-review`.
 
-## Siblings
-
 | Need | Skill |
 | --- | --- |
 | Security audit of Terraform, CDK, CloudFormation. NEVER duplicate its findings or severity model here. | `iac-security-review` |
 | GitHub Actions Terraform plan/apply workflows; JFrog credentials in CI | `cicd-engineering` |
 | Confluence + company knowledge lookups | `search-company-knowledge` |
+</critical>

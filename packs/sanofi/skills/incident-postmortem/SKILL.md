@@ -9,7 +9,15 @@ Blameless, evidence-backed record of a production incident that already happened
 
 Scope split: `/security` finds vulnerabilities; this skill records an incident that occurred. Live response, paging, bug triage, sprint retrospectives → out of scope.
 
-## Writing a post-mortem
+<critical>
+
+- **MUST be blameless**; read [blameless-language.md](skill://incident-postmortem/references/blameless-language.md) before final drafting. NEVER name a person as a cause.
+- **NEVER invent timeline entries, owners, or numbers.** Estimates labelled `est.` with method; no basis → `unknown`.
+- **NEVER animated or judgemental wording** ("ridiculous", "careless", "!!!"); state verifiable data.
+- **NEVER turn the post-mortem into a runbook.**
+</critical>
+
+<procedure>
 
 1. **Gather facts** — dates, impact, affected users/systems, detection path, mitigation, recovery, evidence links. `read`/`grep`/`glob` over chat exports, alert history, deploy logs; `ask` for anything not in evidence.
 2. **Confirm severity** against [severity-levels.md](skill://incident-postmortem/references/severity-levels.md); record live and final severity.
@@ -18,13 +26,31 @@ Scope split: `/security` finds vulnerabilities; this skill records an incident t
 5. **Went well / went wrong / got lucky.**
 6. **Action items** with required fields.
 7. **`write`** the document from [post-mortem-template.md](skill://incident-postmortem/references/post-mortem-template.md).
-8. **Review gate.** Run Verification below and the blameless self-check. SEV1/SEV2 → also spawn a `task` agent (children start blank) with the file path, `blameless-language.md`, and the Verification list; it returns gaps by section. Fix them before circulating. Spawning unavailable → say the check was not independent.
+8. **Review gate.** Run Verification above and the blameless self-check. SEV1/SEV2 → also spawn a `task` agent (children start blank) with the file path, `blameless-language.md`, and the Verification list; it returns gaps by section. Fix them before circulating. Spawning unavailable → say the check was not independent.
 
 Process detail, interview prompts, anti-patterns, sources: [full-guide.md](skill://incident-postmortem/references/full-guide.md).
+</procedure>
+
+<critical>
+
+Document is complete only when every line holds:
+
+- Live and final severity recorded; Incident ID and IC present.
+- Timeline UTC with detection, acknowledgement, mitigation, resolution; each entry sourced.
+- Impact quantified (users, requests, duration, revenue/data/compliance) or marked `unknown`.
+- Every duration states its endpoints; metrics consistent across header, summary, impact, timeline.
+- Root cause: 5 Whys, contributing factors, category; not "human error" or bare vendor fault.
+- Went well / went wrong / got lucky filled.
+- Action items actionable, specific, bounded; ≥1 `detect` and ≥1 `prevent`/`mitigate`; blameless wording.
+- No item `UNASSIGNED`; each has owner, deadline, tracking link — else status stays Draft.
+- SEV1/SEV2 inside the 5-day window, or the slip recorded as a `process` action item.
+
+**Circulation is a proposed handoff**: name the intended audience (responders and the IC's manager; SEV1 also the engineering leadership channel) and ask the user to send. Send or publish only when the user explicitly authorized it and supplied the actual destination (channel, list, or recipients) — never infer one. Draft-only and review-only requests end at the document and the proposal.
+</critical>
 
 ## Reviewing an existing post-mortem
 
-Run Verification below plus the blameless self-check in [blameless-language.md](skill://incident-postmortem/references/blameless-language.md#self-check); report each gap with its section.
+Run Verification above plus the blameless self-check in [blameless-language.md](skill://incident-postmortem/references/blameless-language.md#self-check); report each gap with its section.
 
 ## Timestamps
 
@@ -86,26 +112,3 @@ Every item MUST have:
 - **REJECT actions relying on people "being careful" or training alone**; change the system.
 - **Record actions considered but not pursued**, with reason.
 - Optional tracker skeleton: [action-items-header.md](skill://incident-postmortem/assets/action-items-header.md).
-
-## Language
-
-- **MUST be blameless**; read [blameless-language.md](skill://incident-postmortem/references/blameless-language.md) before final drafting. NEVER name a person as a cause.
-- **NEVER invent timeline entries, owners, or numbers.** Estimates labelled `est.` with method; no basis → `unknown`.
-- **NEVER animated or judgemental wording** ("ridiculous", "careless", "!!!"); state verifiable data.
-- **NEVER turn the post-mortem into a runbook.**
-
-## Verification
-
-Document is complete only when every line holds:
-
-- Live and final severity recorded; Incident ID and IC present.
-- Timeline UTC with detection, acknowledgement, mitigation, resolution; each entry sourced.
-- Impact quantified (users, requests, duration, revenue/data/compliance) or marked `unknown`.
-- Every duration states its endpoints; metrics consistent across header, summary, impact, timeline.
-- Root cause: 5 Whys, contributing factors, category; not "human error" or bare vendor fault.
-- Went well / went wrong / got lucky filled.
-- Action items actionable, specific, bounded; ≥1 `detect` and ≥1 `prevent`/`mitigate`; blameless wording.
-- No item `UNASSIGNED`; each has owner, deadline, tracking link — else status stays Draft.
-- SEV1/SEV2 inside the 5-day window, or the slip recorded as a `process` action item.
-
-**Circulation is a proposed handoff**: name the intended audience (responders and the IC's manager; SEV1 also the engineering leadership channel) and ask the user to send. Send or publish only when the user explicitly authorized it and supplied the actual destination (channel, list, or recipients) — never infer one. Draft-only and review-only requests end at the document and the proposal.

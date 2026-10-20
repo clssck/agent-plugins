@@ -44,7 +44,7 @@ Atlassian Rovo MCP required. Missing → report the missing access; NEVER fall b
 | Version history, rollback | `listConfluenceContentVersions`, `diffConfluenceContentVersions`, `restoreConfluenceContentVersion` | n/a |
 | Move page, labels | `moveConfluenceContent`, `addLabelsToConfluenceContent` | n/a |
 
-## Rules
+<critical>
 
 - **Authorization.** Update, fix, polish, redesign, publish → approved; NEVER ask twice.
 - **Preview.** Draft, preview, propose, review → NEVER publish; return structure or patch plan.
@@ -60,8 +60,9 @@ Atlassian Rovo MCP required. Missing → report the missing access; NEVER fall b
 - **Body hygiene.** NEVER local paths, base64 images, CSS, or scripts in the body.
 - **Ask only** when target is ambiguous, new-page destination is missing, access is missing, or the edit deletes large sections unprompted.
 - **Files.** Scratch bodies via `write`; `bash` only to run the scripts and delete the attachment command file.
+</critical>
 
-## Workflow
+<procedure>
 
 1. **Resolve target.** Page ID from `/pages/{id}` URLs, else search; exact title+space match or ask. New page needs space and parent.
 2. **Fetch** HTML with `detail="full"` (default summary has no body); capture id, title, spaceId, parentId, version, `snapshotToken`, URL. Load `getContentFormatGuide` and the space's `spaceInstructions` (skip only if the fetch reported `hasSpaceInstructions=false`); space instructions override this skill's design defaults. Save to `local://fetched.html` for large or risky edits.
@@ -116,6 +117,7 @@ rm -- "$(realpath local://attachment-command.txt)"
 ```
 
 The helper never prints header values, text form-field values, or query values; NEVER echo, log, or ask for them.
+</procedure>
 
 ## References
 

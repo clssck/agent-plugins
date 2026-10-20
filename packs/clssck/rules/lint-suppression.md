@@ -10,6 +10,7 @@ condition:
 scope: "tool:edit(**/*.{py,pyi,rs,ts,tsx,mts,cts,js,jsx,mjs,cjs}), tool:write(**/*.{py,pyi,rs,ts,tsx,mts,cts,js,jsx,mjs,cjs})"
 interruptMode: never
 ---
+<critical>
 
 A suppression hides a diagnostic; it does not fix the code. Lint and type errors usually point at a real defect, an unsafe call, or a wrong type.
 
@@ -62,3 +63,4 @@ NEVER suppress to make a check pass when the project's lint or type check is par
 ## What this reminder matches
 
 This reminder matches only the blanket forms in the Bad column. It cannot tell new text from re-pasted text, so a blanket suppression you merely moved still matches. Named single-line suppressions never match; apply the checks above to them anyway: a verified false positive and a stated reason.
+</critical>
