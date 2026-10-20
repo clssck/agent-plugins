@@ -131,29 +131,27 @@ These OMP-plugin fields are not portable to every strict `plugin.json` Agent Plu
 
 ### Body pattern
 
+Minimum structure. Rename every `##` heading to the task it governs; the slots below are the decisions that must exist somewhere in the body, not fixed titles.
+
 ```markdown
 # Skill Title
 
 One dense governing paragraph: result, operating principle, and boundary.
 
-## Decisions
+## <Mode or strategy choice>
+State the choice and the evidence that selects it.
 
-State mode/strategy choices and their evidence.
-
-## Workflow
-
+## <Ordered procedure>
 1. Entry condition and action.
 2. Verification and exit condition.
 3. Next phase only after the prior gate passes.
 
-## Failure handling
+## <Blocked, unavailable, unsafe, and partial-result behavior>
 
-Name blocked, unavailable, unsafe, and partial-result behavior.
-
-## Verification
-
-Name the runtime surface and evidence required before claiming completion.
+## <Runtime surface and evidence required before claiming completion>
 ```
+
+`skill-authoring` owns the detail of section naming, rule leads, tables, and reference layout.
 
 Rules:
 
