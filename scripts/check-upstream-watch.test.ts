@@ -294,7 +294,14 @@ describe("notify", () => {
 	test("refuses to run outside the configured repository before any request", async () => {
 		const { calls, request } = fakeGitHub([]);
 		await expect(notify(config, [drift], request, "someone/else")).rejects.toThrow("Refusing to notify");
-		await expect(notify(config, [drift], request, undefined)).rejects.toThrow("<unset>");
+		const originalRepository = process.env.GITHUB_REPOSITORY;
+		try {
+			delete process.env.GITHUB_REPOSITORY;
+			await expect(notify(config, [drift], request)).rejects.toThrow("<unset>");
+		} finally {
+			if (originalRepository === undefined) delete process.env.GITHUB_REPOSITORY;
+			else process.env.GITHUB_REPOSITORY = originalRepository;
+		}
 		expect(calls).toEqual([]);
 	});
 
