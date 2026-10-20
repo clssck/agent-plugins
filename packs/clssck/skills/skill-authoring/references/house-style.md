@@ -37,7 +37,9 @@ Normative content lives in tagged blocks, in a fixed order. Markdown headings st
 - State the completion condition in `<critical>` as a checkable fact ("workflow runs for the latest HEAD succeed"), not an encouragement.
 - Name the source of truth in `<instruction>` when two observations can disagree, and the fallback chain when a capability can be unavailable: "SHOULD use `xd://github` `op: run_watch` if available; else `gh`".
 - Put refusal, degradation, and insufficient-output behavior in `<caution>`, not mid-procedure.
-- A reference section MAY carry no tags when it expresses no decision.
+- A reference section MAY carry no tags when it expresses no decision. Reference sections follow the tagged payload, keep noun headings, and MAY sit after the final tag.
+
+The grammar covers every capability body, not only skills. Agents and commands MUST include `<critical>`; a rule or skill MUST include it once any tag is used. A rule body is injected inside the host's own interrupt or reminder wrapper, so never emulate that wrapper in the body. A rule is not finished at prose: give its trigger positive and negative cases before shipping.
 
 Tags are semantics, not decoration. A `<critical>` holding advice, or an `<instruction>` holding a forbidden action, teaches the reader to discount both. NEVER wrap a whole document in one tag, and NEVER introduce a tag name outside this set.
 
