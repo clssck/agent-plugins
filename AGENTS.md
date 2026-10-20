@@ -131,25 +131,20 @@ These OMP-plugin fields are not portable to every strict `plugin.json` Agent Plu
 
 ### Body pattern
 
-Minimum structure. Rename every `##` heading to the task it governs; the slots below are the decisions that must exist somewhere in the body, not fixed titles.
+Both shapes open with `# Skill Title` and one dense governing paragraph: result, operating principle, boundary.
+
+**Procedure skill** — ordered sections, named for the task (`## Map auth doors`) or the standard slot (`## Workflow`):
 
 ```markdown
-# Skill Title
-
-One dense governing paragraph: result, operating principle, and boundary.
-
-## <Mode or strategy choice>
-State the choice and the evidence that selects it.
-
-## <Ordered procedure>
+## Workflow
 1. Entry condition and action.
 2. Verification and exit condition.
 3. Next phase only after the prior gate passes.
-
-## <Blocked, unavailable, unsafe, and partial-result behavior>
-
-## <Runtime surface and evidence required before claiming completion>
 ```
+
+Add `## Verification` when completion evidence is not obvious from the procedure, and a failure section when blocked, unavailable, unsafe, or partial results are plausible.
+
+**Reference skill** — noun headings (`## Operators`, `## Frames`); omit procedure, failure, and verification sections that carry no decision.
 
 `skill-authoring` owns the detail of section naming, rule leads, tables, and reference layout.
 
