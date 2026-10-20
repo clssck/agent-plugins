@@ -21,6 +21,26 @@ Portable authoring rules for a skill consumed through OMP. OMP owns discovery, f
 
 Use tables for real enumerations. Use runnable examples for syntax or shapes. Put reference detail in `references/` and executable helpers in `scripts/`; link every runtime entry point directly from `SKILL.md`.
 
+## Payload grammar
+
+Normative content lives in tagged blocks, in a fixed order. Markdown headings stay for navigation and noun-named reference sections.
+
+| Tag | Carries | Required when |
+|---|---|---|
+| `<critical>` | `MUST`/`NEVER` constraints, trust and authorization boundaries, the completion condition | Always |
+| `<instruction>` | `SHOULD`/`MAY` choices: capability choice, fallback chain, source of truth | A choice or fallback exists |
+| `<procedure>` | Numbered actions with entry and exit gates; loop-until condition for iterative work | The body performs ordered work |
+| `<caution>` | Failure modes, misreads, and what looks like success but is not | The run can corrupt or silently under-deliver |
+| `<example>` | Runnable snippet | Exact syntax is not obvious |
+
+- Emit tags in that order. One concept per block; repeat a tag only for a genuinely separate block, such as a closing `<critical>` restating the completion condition of a long body.
+- State the completion condition in `<critical>` as a checkable fact ("workflow runs for the latest HEAD succeed"), not an encouragement.
+- Name the source of truth in `<instruction>` when two observations can disagree, and the fallback chain when a capability can be unavailable: "SHOULD use `xd://github` `op: run_watch` if available; else `gh`".
+- Put refusal, degradation, and insufficient-output behavior in `<caution>`, not mid-procedure.
+- A reference section MAY carry no tags when it expresses no decision.
+
+Tags are semantics, not decoration. A `<critical>` holding advice, or an `<instruction>` holding a forbidden action, teaches the reader to discount both. NEVER wrap a whole document in one tag, and NEVER introduce a tag name outside this set.
+
 ## Compression
 
 Compression is re-encoding, not word deletion.

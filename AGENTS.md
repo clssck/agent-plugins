@@ -12,29 +12,13 @@ This repository publishes first-party OMP extension packs. Write every capabilit
 
 ## Payload grammar
 
-Every capability body is a small set of tagged blocks in a fixed order, followed by reference material under Markdown headings. Tags carry the normative payload; headings carry navigation and reference detail.
-
-| Tag | Carries | Required when |
-|---|---|---|
-| `<critical>` | `MUST`/`NEVER` constraints, trust and authorization boundaries, the completion condition | Always |
-| `<instruction>` | `SHOULD`/`MAY` choices: capability choice, fallback chain, source of truth | A choice or fallback exists |
-| `<procedure>` | Numbered actions with entry and exit gates; loop-until condition for iterative work | The body performs ordered work |
-| `<caution>` | Failure modes, misreads, and what looks like success but is not | The run can corrupt or silently under-deliver |
-| `<example>` | Runnable snippet | Exact syntax is not obvious |
+Canonical tag set, order, and semantics: `packs/clssck/skills/skill-authoring/references/house-style.md` §Payload grammar. That file is the single source; do not restate the table here.
 
 <instruction>
-- Emit tags in that order. One concept per block; repeat a tag only for a genuinely separate block, such as a closing `<critical>` restating the completion condition of a long body.
-- State the completion condition in `<critical>` as a checkable fact ("workflow runs for the latest HEAD succeed"), not an encouragement.
-- Name the source of truth in `<instruction>` when two observations can disagree, and the fallback chain when a capability can be unavailable: "SHOULD use `xd://github` `op: run_watch` if available; else `gh`".
-- Put refusal, degradation, and watcher-insufficiency behavior in `<caution>`, not mid-procedure.
-- Keep Markdown headings for navigation and for noun-named reference sections. A reference section MAY carry no tags when it expresses no decision.
+- New capabilities and substantive rewrites MUST use the grammar. Reference-only sections keep noun headings and MAY carry no tags.
+- Completion conditions belong in `<critical>` as checkable facts; capability choice, fallback chains, and the source of truth belong in `<instruction>`.
+- Migration: an existing body MAY keep its current shape until its next substantive edit; do not mass-rewrite a pack just to convert headings.
 </instruction>
-
-<caution>
-Tags are semantics, not decoration. A `<critical>` holding advice, or an `<instruction>` holding a forbidden action, teaches the reader to discount both. NEVER wrap a whole document in one tag, and NEVER introduce a tag name outside this set.
-</caution>
-
-Migration: a new capability or a substantive rewrite MUST follow this grammar. Existing bodies MAY keep their current shape until their next substantive edit; do not mass-rewrite a pack just to convert headings.
 
 ## Authority and source protocol
 
