@@ -921,7 +921,7 @@ export async function renderReadme(sources: Sources, packs: Pack[], commits?: Re
 		"omp plugin install github:clssck/agent-plugins   # omp keeps its own copy of this repo",
 		"AP=~/.omp/plugins/node_modules/agent-plugins",
 		"omp plugin link $AP/packs/clssck                  # link each pack you want",
-		"omp plugin link $AP/upstream/gsap-skills",
+		"omp plugin link $AP/upstream/improve",
 		"```",
 		"",
 		"`omp plugin upgrade agent-plugins` pulls the latest commit; linked packs follow automatically because they point into omp's copy. The package name is required: bare `omp plugin upgrade` only upgrades marketplace packages. Run `omp plugin doctor` afterward to catch removed or renamed pack targets. Re-link only when adding, renaming, or removing a pack; routine re-links reset its enabled state and feature selection. `omp plugin disable <name>` / `enable <name>` toggles a pack, `omp plugin uninstall <name>` removes it, and `/extensions` toggles individual skills, rules, and agents.",

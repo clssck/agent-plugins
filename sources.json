@@ -11,17 +11,6 @@
       "include": {
         "skills": "skills"
       }
-    },
-    {
-      "name": "gsap-skills",
-      "repo": "greensock/gsap-skills",
-      "ref": "main",
-      "sha": "aed9cfd3277740755f6bfc1155c7aa645403b760",
-      "description": "Official GSAP skills covering tweens, timelines, ScrollTrigger, plugins, utilities, React hooks, and performance.",
-      "include": {
-        "skills": "skills",
-        "examples": "examples"
-      }
     }
   ]
 }
