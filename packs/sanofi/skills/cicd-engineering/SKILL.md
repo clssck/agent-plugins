@@ -25,7 +25,7 @@ Load only what the task needs.
 | **Permissions** | Declare a read-only `permissions:` at workflow level; expand per job only where needed; NEVER `write-all`/`read-all` |
 | **Pinning** | GitHub-published and verified-creator actions → full commit SHA + version comment |
 | **Allowlist** | Other third-party actions → the exact tag the allowlist registers; NEVER invent SHA pins |
-| **Org workflows** | Sanofi org-managed reusable workflows (CodeGuard) MAY use `@main`; comment the exception |
+| **Org workflows** | Sanofi org-managed reusable workflows (CodeGuard) are the only `@main` exception; comment it |
 | **Secrets** | Scope per Environment; NEVER in files or logs; prefer OIDC over long-lived cloud keys |
 | **Reusable workflows** | Callee declares `on.workflow_call.secrets`; caller passes named secrets; `secrets: inherit` only to org-managed workflows |
 | **Injection** | Untrusted PR/issue text via `env:`; NEVER interpolate attacker-controlled `${{ }}` expressions inside `run:` |
@@ -34,7 +34,7 @@ Load only what the task needs.
 | **Installs** | Commit lockfiles; deterministic installs (`npm ci`, `uv sync --locked`). Python CI: `astral-sh/setup-uv` + `uv run`, not `setup-python` + `pip install`; keep a repo's existing tooling (poetry, pip-tools) and say how to adopt uv |
 | **SCA/SAST** | Every repo runs both in CI, blocking. CodeGuard preferred; SonarCloud adds quality gating; CodeQL fallback |
 | **Coverage** | Sonar imports reports via `sonar-project.properties`; scan waits for the gate (`sonar.qualitygate.wait=true`); the aggregate required check MUST depend on the Sonar job |
-| **Artifacts** | Build once; promote the same image digest dev → test → prod; NEVER rebuild per environment. Production images SHOULD carry a build-provenance attestation ([security-hardening.md §11](skill://cicd-engineering/references/security-hardening.md#11-artifact-attestations-and-provenance)) |
+| **Artifacts** | Build once; promote the same image digest dev → test → prod; NEVER rebuild per environment. Production images carry a build-provenance attestation ([security-hardening.md §11](skill://cicd-engineering/references/security-hardening.md#11-artifact-attestations-and-provenance)) |
 | **Deploy** | Render a new ECS task-definition revision with the digest, deploy it, wait for stability |
 | **Retention** | Set `retention-days`; key caches on lockfile hashes |
 | **Action updates** | Enable Dependabot `github-actions` so SHA pins move through reviewed PRs ([security-hardening.md §1](skill://cicd-engineering/references/security-hardening.md#1-supply-chain-attacks-via-compromised-actions)) |

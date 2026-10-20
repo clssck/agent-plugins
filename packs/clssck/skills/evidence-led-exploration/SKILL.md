@@ -22,10 +22,10 @@ Use `eval` for the working ledgers: keep subject claims, branches, and probes in
 
 - Several explanations plausible; next action not obvious.
 - Work will branch, span sessions, or involve multiple agents.
-- Earlier attempts, contradictions, or provenance MUST survive context loss.
+- Earlier attempts, contradictions, or provenance would be lost with the context.
 - Deferred leads need to wake when later evidence changes their value.
 
-**NEVER for** a single lookup, a known linear procedure, or an established next step. Domain skill defines the execution method → it wins; this skill owns ledger structure, branch management, contradictions, handoff only. NEVER run a second competing loop.
+**Not for** a single lookup, a known linear procedure, or an established next step. Domain skill defines the execution method → it wins; this skill owns ledger structure, branch management, contradictions, handoff only.
 
 For an authorized penetration test, `pentest-tradecraft` owns scope, the check/finding records, cleanup, and handoff. Use this ledger only for an unresolved investigation branch, never as a replacement for the assessment records.
 
@@ -41,6 +41,7 @@ For an authorized penetration test, `pentest-tradecraft` owns scope, the check/f
 - **One active branch per worker;** other leads stay `open` or `deferred`.
 - **Branches record parent + origin;** derived work traces to the evidence or branch that created it.
 - **Investigation NEVER widens authorization.** Task scope, safety constraints, mutation approvals persist.
+- **One loop:** NEVER run a second competing exploration loop alongside the owning domain skill.
 
 </critical>
 

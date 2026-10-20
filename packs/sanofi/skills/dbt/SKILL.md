@@ -18,6 +18,7 @@ Every command that writes to Snowflake rebuilds whatever it selects, so scope pr
 - **Incremental change signals.** Every joined parent MUST have one: lookback, affected-key re-derivation, hash/CDC, or periodic refresh; `on_schema_change` is set explicitly but never substitutes for one. Design it before writing the filter → [snowflake-materializations.md](skill://dbt/references/snowflake-materializations.md#late-arriving-and-multi-parent-changes). Strategy MUST be valid on Snowflake; `full_refresh` behavior understood.
 - **Grain key.** Documented, tested (`unique` + `not_null`), matching the model SQL.
 - **Native execution.** Native-project steps need authorization; NEVER force deploy, drop, or change a schedule without approval.
+- **Adapter ≠ native.** NEVER route ordinary dbt Core work to the native reference just because the adapter is Snowflake.
 
 </critical>
 
@@ -38,7 +39,6 @@ Every command that writes to Snowflake rebuilds whatever it selects, so scope pr
 | Model/column descriptions, source metadata, tags, `meta` | [writing-documentation.md](skill://dbt/references/writing-documentation.md) |
 | Adding or auditing data tests, coverage vs cost, DQ report triage | [writing-data-tests.md](skill://dbt/references/writing-data-tests.md) |
 
-- **Adapter ≠ native.** NEVER route ordinary dbt Core work to the native reference just because the adapter is Snowflake.
 - **Docs/tests plus placement, Elementary, orchestration, or package change** → add `general-dbt-guide.md` (and `project-setup.md` or `operations.md` as routed).
 - **Scope splits:** ODCS data contracts → datacontract-writing. DAG authoring → sanofi-airflow. Generic dbt-on-Snowflake mechanics are out of scope.
 - **Multi-area order:** placement and naming → SQL and materialization → docs and properties → tests → selectors, CI, run commands.

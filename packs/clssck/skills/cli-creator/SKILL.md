@@ -20,13 +20,12 @@ Name three things before scaffolding:
 |Install name|Short binary: `ci-logs`, `slack-cli`, `buildkite-logs`|
 
 - **Location:** `~/code/clis/<tool-name>` (PowerShell: `$env:USERPROFILE\code\clis\<tool-name>`) unless the user names a repository. New directory = local write; state the location first.
-- **MUST check the name is free:** `command -v <tool-name> || true` (PowerShell: `Get-Command <tool-name> -ErrorAction SilentlyContinue`). Taken → clearer install name, or ask.
 
 </instruction>
 
 <instruction>
 
-Detect OS, active shell, toolchains, repository convention, and a user-writable PATH directory before generating install commands. **NEVER emit PowerShell syntax for a POSIX shell or the reverse.**
+Detect OS, active shell, toolchains, repository convention, and a user-writable PATH directory before generating install commands.
 
 ```bash
 command -v cargo rustc bun node pnpm npm python3 uv go
@@ -41,7 +40,7 @@ $env:TEMP
 
 - Repo has a package manager and install convention → use it (existing convention wins over any default here).
 - New TypeScript/JavaScript CLI, no existing convention or Node-only constraint → **prefer Bun** (`bun install`, `bun run`, `bun test`, `bun build --compile`). Fall back to npm/pnpm when the repo already uses them, the target requires Node/npm, or a dependency fails under Bun; Bun is not compatible with every Node SDK.
-- Search source material with `grep`, `glob`, `read`; NEVER shell `rg`/`find`/`Select-String`.
+- Search source material with `grep`, `glob`, `read`.
 
 </instruction>
 
@@ -54,14 +53,18 @@ $env:TEMP
 |Python|Data work, local file transforms, SQLite/CSV/JSON analysis, Python-heavy admin tooling|uv project from `uv init --package` with `[project.scripts]` and committed `uv.lock`; `argparse` (or `typer` for deep subcommands); `httpx`/`requests`/`urllib` matching nearby code; PEP 723 single file for one-module tools|
 |Go|Repo or team already uses Go; one static binary, easy cross-compile|Standard `flag` for flat commands; a subcommand library only for nested trees|
 
-- **MUST state the choice in one sentence before scaffolding:** reason + toolchain found.
-- NEVER pick a language that adds setup friction without material benefit. Best language missing → install the toolchain with user approval, or take the next-best installed option.
+- Best language missing → install the toolchain with user approval, or take the next-best installed option.
 - Install target matching repo and platform (`make install-local`, or a PowerShell script on Windows); document what it depends on (toolchain, `uv`, runtime version).
-- **Install into a user-approved, user-writable PATH directory;** NEVER assume `~/.local/bin`. NEVER `pip install` into system Python (PEP 668).
 
 </instruction>
 
 <critical>
+
+- **Install name:** MUST be free before scaffolding (`command -v <tool-name> || true`; PowerShell `Get-Command <tool-name> -ErrorAction SilentlyContinue`). Taken → clearer install name, or ask.
+- **Shell syntax:** NEVER emit PowerShell syntax for a POSIX shell or the reverse.
+- **Source search:** use `grep`, `glob`, `read`; NEVER shell `rg`/`find`/`Select-String`.
+- **Runtime choice:** MUST be stated in one sentence before scaffolding (reason + toolchain found). NEVER pick a language that adds setup friction without material benefit.
+- **Install target:** MUST be user-approved and user-writable; NEVER assume `~/.local/bin`. NEVER `pip install` into system Python (PEP 668).
 
 Precedence: env var with the service's standard name (`GITHUB_TOKEN`) > user config in a documented OS-appropriate directory (`~/.config/<tool-name>`; Windows `$env:APPDATA\<tool-name>`) > `--token-file <path>` or token on stdin (`--with-token`, as `gh auth login` does) for headless setup.
 

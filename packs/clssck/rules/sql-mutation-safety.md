@@ -38,7 +38,7 @@ Before DROP, TRUNCATE, or destructive ALTER, establish an appropriate recovery p
 
 ## Narrowest operation
 
-SHOULD use the narrowest operation that fulfills the request. NEVER replace a targeted repair with a table-wide reset.
+NEVER replace a targeted repair with a table-wide reset.
 
 ```sql
 -- Bad: table-wide reset to fix one row
@@ -68,3 +68,7 @@ Verify the resulting row changes or schema state; report what was actually check
 - Disposable databases created solely for this task need no additional confirmation when their ownership and isolation are clear.
 - A read-only query or inert example does not become a mutation merely because this reminder matched.
 </critical>
+
+<instruction>
+Use the narrowest operation that fulfills the request.
+</instruction>

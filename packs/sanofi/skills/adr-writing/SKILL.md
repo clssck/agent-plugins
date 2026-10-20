@@ -31,6 +31,7 @@ Governing principle: an ADR records a decision and its evidence, never a fabrica
 - **Cost data:** cites source URL or API query plus retrieval date.
 - **Manifesto Alignment REQUIRED:** only principles directly impacted (typically 2-5 of 10).
 - **Optional sections** (Drivers, Technical Story, Links, Consequences, Options Ruled Out, Cost Annex): omit when empty; NEVER leave placeholders.
+- **NEVER self-review** an ADR written in the same conversation; shared context removes independence. Review requested on such an ADR → spawn a `task` agent (children start blank) with the file path and [review-workflow.md](skill://adr-writing/references/review-workflow.md), and relay its findings. Spawning unavailable → say the review was not independent.
 - **Links:** context from Jira/Confluence → original URL in Links.
 - **Tables:** pad cells so pipes align.
 </critical>
@@ -41,8 +42,6 @@ Governing principle: an ADR records a decision and its evidence, never a fabrica
 |---|---|---|
 | Write | Record a decision | [write-workflow.md](skill://adr-writing/references/write-workflow.md) |
 | Review | Evaluate or fact-check an existing ADR | [review-workflow.md](skill://adr-writing/references/review-workflow.md), [review-checklist.md](skill://adr-writing/references/review-checklist.md) |
-
-- **NEVER self-review** an ADR written in the same conversation; shared context removes independence. Review requested on such an ADR → spawn a `task` agent (children start blank) with the file path and [review-workflow.md](skill://adr-writing/references/review-workflow.md), and relay its findings. Spawning unavailable → say the review was not independent.
 
 | Need | Reference |
 |---|---|

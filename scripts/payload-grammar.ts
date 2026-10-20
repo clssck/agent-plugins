@@ -80,7 +80,8 @@ export function maskFences(text: string): string {
 
 /** Mask frontmatter, fences, and inline code so a mention of a tag is not read as a use. */
 export function maskNonPayload(text: string): string {
-	return maskFences(text).replace(/`[^`\n]*`/g, code => " ".repeat(code.length));
+	// Double-backtick spans may contain single backticks, so match them first.
+	return maskFences(text).replace(/(``[\s\S]*?``|`[^`\n]*`)/g, span => " ".repeat(span.length));
 }
 
 /**
@@ -153,6 +154,28 @@ export function payloadProblems(kind: PayloadKind, text: string): PayloadProblem
 	for (const unclosed of open) {
 		problems.push({ line: unclosed.line, message: `<${unclosed.name}> is never closed` });
 	}
+
+	// Tier check: a prohibition inside <instruction>, or advice inside <critical>, is the defect that survives
+	// structural validation because the tag is closed correctly but carries the wrong kind of decision.
+	const lines = masked.split("\n");
+	let current: string | null = null;
+	lines.forEach((line, index) => {
+		const opening = line.match(/^<([a-z][a-z0-9-]*)>[ \t]*$/);
+		if (opening) {
+			current = opening[1] ?? null;
+			return;
+		}
+		if (/^<\/[a-z][a-z0-9-]*>[ \t]*$/.test(line)) {
+			current = null;
+			return;
+		}
+		if (current === "instruction" && /\b(MUST|NEVER)\b/.test(line)) {
+			problems.push({ line: index + 1, message: "prohibition inside <instruction>; move it to <critical>" });
+		}
+		if (current === "critical" && /\b(SHOULD|MAY)\b/.test(line)) {
+			problems.push({ line: index + 1, message: "advisory word inside <critical>; move it to <instruction>" });
+		}
+	});
 
 	const hasCritical = (seen.get("critical") ?? 0) > 0;
 	const anyTag = seen.size > 0;

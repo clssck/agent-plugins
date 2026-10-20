@@ -84,6 +84,21 @@ describe("payloadProblems", () => {
 		);
 	});
 
+	test("reports a prohibition inside instruction", () => {
+		const problems = payloadProblems("skill", "<critical>\n- NEVER.\n</critical>\n<instruction>\n- MUST check the name.\n</instruction>\n");
+		expect(problems.map(problem => problem.message)).toContain("prohibition inside <instruction>; move it to <critical>");
+	});
+
+	test("reports advice inside critical", () => {
+		const problems = payloadProblems("skill", "<critical>\n- SHOULD prefer drafts.\n</critical>\n");
+		expect(problems.map(problem => problem.message)).toContain("advisory word inside <critical>; move it to <instruction>");
+	});
+
+	test("allows prohibitions in caution and procedure", () => {
+		const body = "<critical>\n- NEVER.\n</critical>\n<procedure>\n1. MUST verify.\n</procedure>\n<caution>\n- NEVER treat empty output as clean.\n</caution>\n";
+		expect(payloadProblems("skill", body)).toEqual([]);
+	});
+
 	test("reports an unknown tag with the allowed set", () => {
 		const problems = payloadProblems("skill", "<critical>\n- NEVER.\n</critical>\n<workflow>\n1. Step.\n</workflow>\n");
 		expect(problems.map(problem => problem.message)).toContain("<workflow> is retired; use <procedure>");

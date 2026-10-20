@@ -26,8 +26,6 @@ lsof +D "$dir"
 
 ## Use instead
 
-SHOULD use the tool's narrow, documented prune operation when it preserves reusable artifacts.
-
 ```bash
 # Bad — discards the whole store
 rm -rf ~/.pnpm-store
@@ -52,3 +50,7 @@ npm cache clean --force
 
 Command-owned temporary directories may be removed after their owner exits.
 </critical>
+
+<instruction>
+Prefer the tool's narrow, documented prune operation when it preserves reusable artifacts.
+</instruction>

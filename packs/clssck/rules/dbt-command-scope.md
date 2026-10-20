@@ -14,8 +14,6 @@ A dbt command's blast radius is its selection. An unselected build can touch eve
 
 MUST pass `--select`, `-s`, or `--selector` to `build`, `run`, `test`, `seed`, `snapshot`, and `clone`. Run the whole project only when the user asked for it. Preview a selection with `dbt ls --select <x>`.
 
-SHOULD use `dbt build` over `dbt run`: `run` skips tests. Keep `run` only for the project's documented per-layer pattern.
-
 ```bash
 # Bad
 dbt build
@@ -66,3 +64,7 @@ dbt build --select fct_orders --target prod --full-refresh
 dbt test --select fct_orders --target prod
 ```
 </critical>
+
+<instruction>
+Prefer `dbt build` over `dbt run`: `run` skips tests. Keep `run` only for the project's documented per-layer pattern.
+</instruction>

@@ -53,8 +53,6 @@ gh api graphql -f query='mutation { addStar(input: {starrableId: "R_kgDOExample"
 
 ## Prefer reversible forms
 
-SHOULD use a reversible form: draft PRs/releases, `--dry-run` where `gh` supports it.
-
 ```bash
 gh pr create --draft --repo acme/widgets --title "Retry login once" --body "Retries after token refresh."
 gh release create v1.4.0 --draft --repo acme/widgets --notes "Login retry fix."
@@ -64,3 +62,7 @@ gh release create v1.4.0 --draft --repo acme/widgets --notes "Login retry fix."
 
 Report the URL or ID it created or changed.
 </critical>
+
+<instruction>
+Prefer a reversible form: draft PRs/releases, `--dry-run` where `gh` supports it.
+</instruction>
