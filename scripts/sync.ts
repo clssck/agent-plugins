@@ -12,6 +12,7 @@ import { YAML } from "bun";
 import { cp, mkdir, mkdtemp, open, readdir, rename, rm, stat } from "node:fs/promises";
 import * as path from "node:path";
 import { githubGraphql as graphql, githubRepositoryField as repositoryField } from "./github";
+import { headingSlug, maskFences, payloadProblems, type PayloadKind } from "./payload-grammar";
 
 interface OmpSkillReferences {
 	requires?: Record<string, string[]>;
@@ -540,6 +541,27 @@ function normalizedSkillReferences(pack: Pack, errors: string[]): OmpSkillRefere
 	return references;
 }
 
+/** Check the tagged-payload grammar on every authored capability body. */
+async function validatePayloadGrammar(packs: Pack[], errors: string[]): Promise<void> {
+	for (const pack of packs) {
+		// Generated upstream trees are reproduced as published; their prompts are not ours to restructure.
+		if (pack.upstream) continue;
+		const packDir = path.join(ROOT, pack.dir);
+		const files: Array<{ file: string; kind: PayloadKind }> = [
+			...pack.skills.map(skill => ({ file: skill.file, kind: "skill" as const })),
+			...pack.rules.map(rule => ({ file: rule.file, kind: "rule" as const })),
+			...pack.agents.map(agent => ({ file: agent.file, kind: "agent" as const })),
+			...pack.commands.map(command => ({ file: command.file, kind: "command" as const })),
+		];
+		for (const { file, kind } of files) {
+			const contents = await Bun.file(path.join(packDir, file)).text();
+			for (const problem of payloadProblems(kind, contents)) {
+				errors.push(`${pack.name}: ${file}:${problem.line}: ${problem.message}`);
+			}
+		}
+	}
+}
+
 /** Validate skill:// links within a pack or through that pack's explicit dependency metadata. */
 async function validateSkillReferences(packs: Pack[], errors: string[]): Promise<void> {
 	const packByName = new Map(packs.map(pack => [pack.name, pack]));
@@ -600,8 +622,11 @@ async function validateSkillReferences(packs: Pack[], errors: string[]): Promise
 				}
 				if (!rawPath || rawPath === "/") continue;
 				let relativePath: string;
+				let fragment = "";
 				try {
-					relativePath = decodeURIComponent(rawPath.slice(1).split(/[?#]/, 1)[0]!);
+					const [beforeHash = "", hashPart = ""] = rawPath.slice(1).split("#", 2);
+					relativePath = decodeURIComponent(beforeHash.split("?", 1)[0]!);
+					fragment = hashPart ? decodeURIComponent(hashPart) : "";
 				} catch {
 					errors.push(`${pack.name}: ${source}:${line}: invalid skill URI encoding in skill://${root}${rawPath}`);
 					continue;
@@ -613,6 +638,15 @@ async function validateSkillReferences(packs: Pack[], errors: string[]): Promise
 				}
 				if (!(await stat(target).catch(() => undefined))) {
 					errors.push(`${pack.name}: ${source}:${line}: skill://${root}${rawPath} does not exist in ${owner.pack}`);
+				} else if (fragment && /\.md$/i.test(target)) {
+					// A stale anchor silently lands at the top of the file, so resolve it like the host's Markdown viewer.
+					const headings = maskFences(await Bun.file(target).text()).matchAll(/^#{1,6}[ \t]+(.+?)[ \t]*$/gm);
+					const slugs = Array.from(headings, match => headingSlug(match[1]!));
+					if (!slugs.includes(fragment.toLowerCase())) {
+						errors.push(
+							`${pack.name}: ${source}:${line}: skill://${root}${rawPath} has no heading "#${fragment}"`,
+						);
+					}
 				}
 			}
 		}
@@ -766,6 +800,7 @@ export async function check(sources: Sources, errors: string[]): Promise<Pack[]>
 	}
 
 	await validateSkillReferences(packs, errors);
+	await validatePayloadGrammar(packs, errors);
 
 	failOn(errors);
 	return packs.sort((a, b) => a.name.localeCompare(b.name));

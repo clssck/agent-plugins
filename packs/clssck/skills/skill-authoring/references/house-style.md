@@ -41,6 +41,8 @@ Normative content lives in tagged blocks, in a fixed order. Markdown headings st
 
 Tags are semantics, not decoration. A `<critical>` holding advice, or an `<instruction>` holding a forbidden action, teaches the reader to discount both. NEVER wrap a whole document in one tag, and NEVER introduce a tag name outside this set.
 
+Where a repository checks structure statically, this grammar is that check's contract: an unknown, retired, host-owned, nested, unclosed, or out-of-order tag is a defect, not a style choice.
+
 ## Compression
 
 Compression is re-encoding, not word deletion.
