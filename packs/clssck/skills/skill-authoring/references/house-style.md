@@ -12,7 +12,7 @@ Portable authoring rules for a skill consumed through OMP. OMP owns discovery, f
 
 ## Structure
 
-1. Trigger-rich frontmatter description: task, user phrasing, contexts, local exclusions. Put the trigger inside the first ~100 characters — OMP renders that preview, then a ≤12-word compression, so text past it may never route.
+1. Trigger-rich frontmatter description: task, user phrasing, contexts, local exclusions. Put the trigger in the first sentence: OMP lists only that sentence (or about 99 characters), then a ≤12-word compression, so later wording may never route. Manual-only skills are not listed at all.
 2. `# Title` and a short governing principle.
 3. `##` sections: task names for procedures, noun names for reference material.
 4. Entry/exit gates where shortcuts are likely.
@@ -33,7 +33,7 @@ Distilled from every bundled primitive at the pinned OMP commit. Match this shap
 | `<caution>`, `<example>` | failure modes; runnable sample | as needed |
 | `<critical>` | 1-6 lines restating the load-bearing `MUST`/`NEVER` | **closing**, last block |
 
-- `<critical>` is a recap, not the constraint block: it is the last block in 17 of 21 tagged host files, 1-6 lines, `MUST`/`NEVER` only. Open with it only when the constraint must gate the first action (`ci-green-request.md` is the host example).
+- `<critical>` is a recap, not the constraint block: it is the last block in 21 of the 22 host files that use it, usually 1-6 lines of `MUST`/`NEVER`. Open with it only when the constraint must gate the first action (`ci-green-request.md` is the host example).
 - Constraints that gate behaviour go in `<directives>`, as `scout.md` and `task.md` do; the closing `<critical>` repeats only what a rushed reader must not miss.
 - Rules are plain Markdown with no tags: the harness wraps the body in its own `<system-interrupt>` or `<system-reminder>`. Lead with one enforceable claim, then `## Why`, `## Avoid` / `## Use`, `## Exceptions`.
 - Skills are heading-first. Tags are optional and used only when a block carries a decision; reference sections keep noun headings and no tags.

@@ -26,13 +26,13 @@ Canonical tag set, order, and semantics: `packs/clssck/skills/skill-authoring/re
 
 Distilled from every bundled primitive at the pinned commit. Match this unless a section below says otherwise.
 
-| Primitive | Files | Frontmatter | Body | Tags |
+| Primitive | Files | Frontmatter | Body (non-blank lines) | Tags |
 |---|---:|---|---|---|
 | Rules | 27 | always `description`, `scope`, `interruptMode`, plus `condition` or `astCondition` | prose, median 26 lines, `## Avoid` / `## Use` / `## Why` / `## Exceptions` | **none** |
-| Agents | 7 | `name`, `description`, `tools`, `output`, `model`, `thinking-level`, `spawns` | median 13 lines | role tags; `<critical>` last |
-| Tools | 75 | none | median 6 lines (range 7-81) | three dialects: tagged (`<instruction>` → `<examples>` → `<critical>`), `#`-headed, or plain bullets; examples optional |
-| Commands | 5 | none | 40-133 lines | `$ARGUMENTS` only; `## Arguments`, numbered phases, closing `## Rules` |
-| System prompt template | 1 | none | 264 lines | `§ Role/Runtime/Workflow/Delivery/Critical`; named blocks (`<contract>`, `<completeness>`); `<critical>` recap |
+| Agents | 7 | `name`, `description`, `tools`, `output`, `model`, `thinking-level`, `spawns` | median 13 lines | 4 tagged with role tags; `<critical>` last in 2 (`reviewer`, `scout`) |
+| Tools | 75 | none | median 6 lines (range 1-80) | three dialects: tagged (`<instruction>` → `<examples>` → `<critical>`), `#`-headed, or plain bullets; examples optional |
+| Commands | 5 | none | 29-89 lines | `$ARGUMENTS` only; `## Arguments`, numbered phases, closing `## Rules` |
+| System prompt template | 1 | none | 236 lines | `§ Role/Runtime/Workflow/Delivery/Critical`; named blocks (`<contract>`, `<completeness>`); `<critical>` recap |
 | System and notice templates | 94 | none | median 6 lines | `system-*` tags (`system-reminder`, `system-notice`), Handlebars-gated |
 | Skills | 3 | `name`, `description` | 75-127 lines | heading-first: 2 of 3 untagged; 1 tagged with a closing `<critical>` |
 
@@ -40,12 +40,12 @@ Distilled from every bundled primitive at the pinned commit. Match this unless a
 - `system-prompt.md` is one Handlebars template with `§ Role`, `§ Runtime`, `§ Workflow`, `§ Delivery`, `§ Critical` markers; capability sections are gated by `{{#if …}}`, so never assume a section is present.
 - This repository's `AGENTS.md` is not a system prompt: OMP injects it inside `<project-context><repo-rules><file path="AGENTS.md">`, then appends its own `<critical>` with task-advance and verification rules. Do not restate those two host lines here.
 - Skills reach the model as a `<skills>` list of name plus description, with `MUST read skill://<name> first`; that is why the description carries the routing decision.
-- The list never shows the full description: `skill-descriptions.ts` renders the first 100 characters (`MAX_PREVIEW_CHARS`), then replaces it with a model compression of at most 12 words (`MAX_COMPRESSED_WORDS`), cached by content hash. Put the trigger inside the first ~100 characters, and write the description so a 12-word reduction still routes.
+- The list never shows the full description. `previewSkillDescription` renders the first sentence when it is at least 40 characters and ends before character 99, otherwise about 99 characters cut at a word; a model compression of at most 12 words (`MAX_COMPRESSED_WORDS`, `smol` role, then `tiny`) later replaces it, cached by content hash. Put the trigger in the first sentence and keep that sentence self-sufficient. Skills with `hide: true` or `disable-model-invocation: true` are never listed, so their description does not route.
 - `<critical>` recurs in the host system prompt as a hard-rule recap (tool policy, QA reporting, final delivery), not as the payload's opening.
 </instruction>
 
 <instruction>
-- `<critical>` is a **closing recap**, not the main constraint block: last in 17 of 21 tagged host files, 1-6 lines, `MUST`/`NEVER` only. Open with it only when the constraint must gate the first action.
+- `<critical>` is a **closing recap**, not the main constraint block: it is the last block in 21 of the 22 host files that use it, and 28 of 29 blocks run 1-6 lines of `MUST`/`NEVER`. Open with it only when the constraint must gate the first action.
 - Constraints that gate behaviour belong in a `<directives>` section tag, as `scout.md` and `task.md` do; the closing `<critical>` restates the one or two that a rushed reader must not miss.
 - Rules are injected inside the host's own `<system-interrupt>`/`<system-reminder>` wrapper, so a rule body is prose with `## Avoid` / `## Use` / `## Why`. Do not wrap a rule in tags.
 - Agents carry their contract in frontmatter (`tools`, `spawns`, `model`, `output`); the body stays short and says what the specialty does that the schema cannot.
