@@ -32,7 +32,15 @@ Distilled from every bundled primitive at the pinned commit. Match this unless a
 | Agents | 7 | `name`, `description`, `tools`, `output`, `model`, `thinking-level`, `spawns` | median 13 lines | role tags; `<critical>` last |
 | Tools | 75 | none | median 6 lines (range 7-81) | three dialects: tagged (`<instruction>` → `<examples>` → `<critical>`), `#`-headed, or plain bullets; examples optional |
 | Commands | 5 | none | 40-133 lines | `$ARGUMENTS` only; `## Arguments`, numbered phases, closing `## Rules` |
+| System prompts | 95 | none | median 6 lines | `§`-marked top-level sections; named blocks (`<contract>`, `<completeness>`); `<critical>` recap |
 | Skills | 3 | `name`, `description` | 75-127 lines | heading-first: 2 of 3 untagged; 1 tagged with a closing `<critical>` |
+
+<instruction>
+- `system-prompt.md` is one Handlebars template with `§ Role`, `§ Runtime`, `§ Workflow`, `§ Delivery`, `§ Critical` markers; capability sections are gated by `{{#if …}}`, so never assume a section is present.
+- This repository's `AGENTS.md` is not a system prompt: OMP injects it inside `<project-context><repo-rules><file path="AGENTS.md">`, then appends its own `<critical>` with task-advance and verification rules. Do not restate those two host lines here.
+- Skills reach the model as a `<skills>` list of name plus description, with `MUST read skill://<name> first`; that is why the description carries the whole routing decision.
+- `<critical>` recurs in the host system prompt as a hard-rule recap (tool policy, QA reporting, final delivery), not as the payload's opening.
+</instruction>
 
 <instruction>
 - `<critical>` is a **closing recap**, not the main constraint block: last in 17 of 21 tagged host files, 1-6 lines, `MUST`/`NEVER` only. Open with it only when the constraint must gate the first action.
