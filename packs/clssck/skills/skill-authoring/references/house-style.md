@@ -12,7 +12,7 @@ Portable authoring rules for a skill consumed through OMP. OMP owns discovery, f
 
 ## Structure
 
-1. Trigger-rich frontmatter description: task, user phrasing, contexts, local exclusions.
+1. Trigger-rich frontmatter description: task, user phrasing, contexts, local exclusions. Put the trigger inside the first ~100 characters — OMP renders that preview, then a ≤12-word compression, so text past it may never route.
 2. `# Title` and a short governing principle.
 3. `##` sections: task names for procedures, noun names for reference material.
 4. Entry/exit gates where shortcuts are likely.

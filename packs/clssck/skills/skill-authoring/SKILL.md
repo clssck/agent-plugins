@@ -13,7 +13,7 @@ House style → [references/house-style.md](skill://skill-authoring/references/h
 
 The description is **retrieval surface**: the model sees only it before choosing, and matches it against the user's own phrasing.
 
-- **Trigger coverage, no fixed word count:** state what the skill does, then tasks, phrasings, and contexts that trigger it. Use "Use when …" where it reads naturally. Keep keyword-redundant alternatives ("audit", "review", "trim"); compress the body, not the trigger.
+- **Trigger coverage, no fixed word count:** state what the skill does, then tasks, phrasings, and contexts that trigger it. Put the trigger inside the first ~100 characters: OMP renders that preview and later a ≤12-word compression, so late wording may never route. Use "Use when …" where it reads naturally. Keep keyword-redundant alternatives ("audit", "review", "trim"); compress the body, not the trigger.
 - **Layout:** a standalone skill is `<skills-root>/<name>/SKILL.md`; the directory name is the skill `name`.
 - **Boundaries inline:** state `not for X`, the safe alternative, and the stop condition locally. A sibling name MAY route the reader but does not carry required behavior.
 - Quote the value when it contains a colon-space.
