@@ -8,7 +8,6 @@ condition:
 scope: "tool:bash"
 interruptMode: always
 ---
-<critical>
 
 `gh` mutations publish to shared, external state: PRs, issues, repos, releases, workflows, secrets, gists, projects. Run them only when the user requested that action on that target, or a repository instruction delegates it.
 
@@ -61,8 +60,7 @@ gh release create v1.4.0 --draft --repo acme/widgets --notes "Login retry fix."
 ## After the call
 
 Report the URL or ID it created or changed.
-</critical>
 
-<instruction>
+## Prefer
+
 Prefer a reversible form: draft PRs/releases, `--dry-run` where `gh` supports it.
-</instruction>

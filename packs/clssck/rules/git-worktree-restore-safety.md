@@ -4,7 +4,6 @@ condition: '\bgit(?:\s+-[Cc]\s+\S+)*\s+(?:restore\b|reset\s+--hard\b|clean\s+(?:
 scope: "tool:bash"
 interruptMode: always
 ---
-<critical>
 
 Before restoring, resetting, force-switching, force-cleaning, dropping stashes, or force-removing worktrees, prove which worktree and index you are changing. NEVER blanket-checkout, restore, reset, or force-clean a shared or dirty worktree.
 
@@ -62,4 +61,3 @@ git stash drop stash@{2}
 git -C ../feature-wt status --short
 git worktree remove --force ../feature-wt
 ```
-</critical>

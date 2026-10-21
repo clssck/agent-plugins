@@ -113,17 +113,28 @@ describe("payloadProblems", () => {
 		expect(payloadProblems("skill", "<critical>\n- NEVER. Tags live in `<instruction>` blocks.\n</critical>\n")).toEqual([]);
 	});
 
-	test("requires critical in agents and commands", () => {
-		expect(payloadProblems("agent", "You are a reviewer.\n").map(problem => problem.message)).toContain(
-			"agent payloads MUST open with <critical>",
+	test("requires critical once an agent or command uses a semantic tag", () => {
+		expect(payloadProblems("agent", "You are a reviewer.\n")).toEqual([]);
+		expect(payloadProblems("agent", "<directives>\n- MUST finish.\n</directives>\n")).toEqual([]);
+		expect(payloadProblems("agent", "<procedure>\n1. Step.\n</procedure>\n").map(problem => problem.message)).toContain(
+			"a tagged agent payload MUST include <critical>",
 		);
 		expect(payloadProblems("command", "<procedure>\n1. Step.\n</procedure>\n").map(problem => problem.message)).toContain(
-			"command payloads MUST open with <critical>",
+			"a tagged command payload MUST include <critical>",
 		);
 	});
 
-	test("requires critical once a skill or rule uses any tag", () => {
-		const problems = payloadProblems("rule", "<procedure>\n1. Step.\n</procedure>\n");
-		expect(problems.map(problem => problem.message)).toContain("a tagged rule payload MUST include <critical>");
+	test("rejects near-miss semantic tags", () => {
+		for (const name of ["critcal", "instructions", "procedures", "cautionn"]) {
+			const problems = payloadProblems("skill", `<critical>\n- NEVER.\n</critical>\n<${name}>\nx\n</${name}>\n`);
+			expect(problems.some(problem => problem.message.includes("looks like a mis-typed"))).toBe(true);
+		}
+	});
+
+	test("keeps checking after an attributed nested block", () => {
+		const body = "<instruction>\n- Choose X.\n<example name=\"x\">\n- Sample.\n</example>\n- MUST never skip.\n</instruction>\n<critical>\n- NEVER.\n</critical>\n";
+		expect(payloadProblems("skill", body).map(problem => problem.message)).toContain(
+			"prohibition inside <instruction>; move it to <critical>",
+		);
 	});
 });

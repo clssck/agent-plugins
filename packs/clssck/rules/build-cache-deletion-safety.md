@@ -8,7 +8,6 @@ condition:
 scope: "tool:bash"
 interruptMode: always
 ---
-<critical>
 
 Build outputs and dependency caches are reusable user data; broad deletion is destructive. Delete or clean only when the user explicitly requested this exact target; otherwise ask first.
 
@@ -49,8 +48,7 @@ npm cache clean --force
 ## Exceptions
 
 Command-owned temporary directories may be removed after their owner exits.
-</critical>
 
-<instruction>
+## Prefer
+
 Prefer the tool's narrow, documented prune operation when it preserves reusable artifacts.
-</instruction>

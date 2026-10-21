@@ -7,7 +7,6 @@ condition:
 scope: "tool:bash"
 interruptMode: always
 ---
-<critical>
 
 Volumes hold databases and other persistent state; prune and `down -v` delete them irreversibly. Images and build cache are reusable and slow to rebuild. Remove a volume, or run `compose down -v`/`--rmi`, only when the user explicitly requested that exact target; otherwise ask first.
 
@@ -43,4 +42,3 @@ docker image rm my-test-image:dev
 ## Exceptions
 
 Containers and volumes this session created for a throwaway test may be removed once their owner process exits.
-</critical>

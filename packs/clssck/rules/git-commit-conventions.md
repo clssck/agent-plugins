@@ -6,7 +6,6 @@ condition:
 scope: "tool:bash"
 interruptMode: always
 ---
-<critical>
 
 `git add -A`/`-u`/`.` with no path list, and `git commit -a`, sweep in every unrelated change, including the user's uncommitted work. Stage and commit only when the user requested it or a repository instruction delegates it.
 
@@ -48,4 +47,3 @@ git commit -m "fix(auth): retry login once after token refresh"
 ## Body
 
 Add a body only when it explains rationale, risk, or follow-up.
-</critical>

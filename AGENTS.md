@@ -22,6 +22,30 @@ Canonical tag set, order, and semantics: `packs/clssck/skills/skill-authoring/re
 - Migration: an existing body MAY keep its current shape until its next substantive edit; do not mass-rewrite a pack just to convert headings.
 </instruction>
 
+## Host technique
+
+Distilled from every bundled primitive at the pinned commit. Match this unless a section below says otherwise.
+
+| Primitive | Files | Frontmatter | Body | Tags |
+|---|---:|---|---|---|
+| Rules | 27 | always `description`, `scope`, `interruptMode`, plus `condition` or `astCondition` | prose, median 26 lines, `## Avoid` / `## Use` / `## Why` / `## Exceptions` | **none** |
+| Agents | 7 | `name`, `description`, `tools`, `output`, `model`, `thinking-level`, `spawns` | median 13 lines | role tags; `<critical>` last |
+| Tools | 75 | none | median 6 lines | `<instruction>`, `<critical>` last, nested `<example>` |
+| Commands | 5 | none | median 83 lines | Markdown headings, Handlebars |
+| Skills | — | `name`, `description` | long-form, reference-heavy | rarely tagged |
+
+<instruction>
+- `<critical>` is a **closing recap**, not the main constraint block: last in 17 of 21 tagged host files, 1-6 lines, `MUST`/`NEVER` only. Open with it only when the constraint must gate the first action.
+- Constraints that gate behaviour belong in a `<directives>` section tag, as `scout.md` and `task.md` do; the closing `<critical>` restates the one or two that a rushed reader must not miss.
+- Rules are injected inside the host's own `<system-interrupt>`/`<system-reminder>` wrapper, so a rule body is prose with `## Avoid` / `## Use` / `## Why`. Do not wrap a rule in tags.
+- Agents carry their contract in frontmatter (`tools`, `spawns`, `model`, `output`); the body stays short and says what the specialty does that the schema cannot.
+- Tools describe a decision surface in about six lines; examples are nested, not appended.
+</instruction>
+
+<caution>
+Our packs diverged from this in two ways before this section existed: rules were wrapped in `<critical>`, and agent constraints sat in an opening `<critical>` instead of `<directives>` plus a closing recap. Both are corrected below only where the file is substantive; do not mass-rewrite for style alone.
+</caution>
+
 ## Authority and source protocol
 
 <instruction>
@@ -280,8 +304,8 @@ State the violated invariant and the exact corrective action.
 Keep the body short enough to inject at the point of violation.
 
 <instruction>
-- Use `<critical>` for the violated invariant and the exact corrective action; add the authorization or recovery step when the action can destroy or mutate state.
-- Use `<procedure>` only when recovery is genuinely multi-step.
+- A rule body is prose, matching the 27 bundled rules: `## Avoid`, `## Use`, `## Why`, and `## Exceptions` when it applies. Do not wrap a rule in tags; the host wraps it.
+- Lead with the violated invariant and the exact corrective action; add the authorization or recovery step when the action can destroy or mutate state.
 - Omit background teaching; put long workflows in a skill.
 - The host wraps the body in its own `<system-interrupt>` or `<system-reminder>`; do not emulate that wrapper, and do not repeat the rule name or path.
 </instruction>
@@ -370,8 +394,9 @@ You are a focused reviewer. Inspect only the assigned scope.
 
 <instruction>
 - Identity: one sentence defining the specialist judgment.
-- Put mutation, authorization, scope, evidence, and output limits in `<critical>`.
+- Put mutation, authorization, scope, evidence, and output limits in a `<directives>` block, as `scout.md` and `task.md` do.
 - Ordered work the specialist uniquely needs goes in `<procedure>`; the domain quality bar and the exact evidence/report shape close the body.
+- Close with a `<critical>` recap of 1-6 `MUST`/`NEVER` lines; that is the host shape, not an opening block.
 - Derive review/implement modes from assignment verbs only when the agent supports both.
 </instruction>
 

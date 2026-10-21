@@ -28,6 +28,27 @@ const RANK: Record<Tag, number> = {
 	example: 4,
 };
 
+/** Levenshtein distance, capped by the caller's threshold. */
+function editDistance(a: string, b: string): number {
+	const rows = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array<number>(b.length).fill(0)]);
+	for (let j = 1; j <= b.length; j++) rows[0]![j] = j;
+	for (let i = 1; i <= a.length; i++) {
+		for (let j = 1; j <= b.length; j++) {
+			rows[i]![j] = Math.min(
+				rows[i - 1]![j]! + 1,
+				rows[i]![j - 1]! + 1,
+				rows[i - 1]![j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1),
+			);
+		}
+	}
+	return rows[a.length]![b.length]!;
+}
+
+/** A section name that looks like a mis-typed semantic tag would silently lose order and tier checks. */
+function nearSemanticTag(name: string): Tag | undefined {
+	return TAGS.find(tag => name === `${tag}s` || editDistance(name, tag) <= 2);
+}
+
 export type PayloadKind = "skill" | "rule" | "agent" | "command";
 
 export interface PayloadProblem {
@@ -110,6 +131,13 @@ export function payloadProblems(kind: PayloadKind, text: string): PayloadProblem
 		// `<findings>`). They carry structure only: no order constraint, no tier, and nesting is allowed.
 		const rank = name in RANK ? RANK[name as Tag] : undefined;
 		const section = rank === undefined;
+		if (section) {
+			const mistyped = nearSemanticTag(name);
+			if (mistyped) {
+				problems.push({ line, message: `${mention} looks like a mis-typed <${mistyped}>` });
+				continue;
+			}
+		}
 		if (!closing && section) {
 			open.push({ name, line });
 			continue;
@@ -160,7 +188,7 @@ export function payloadProblems(kind: PayloadKind, text: string): PayloadProblem
 	const lines = masked.split("\n");
 	const stack: string[] = [];
 	lines.forEach((line, index) => {
-		const opening = line.match(/^<([a-z][a-z0-9-]*)>[ \t]*$/);
+		const opening = line.match(/^<([a-z][a-z0-9-]*)(?:\s[^>]*)?>[ \t]*$/);
 		if (opening) {
 			stack.push(opening[1] ?? "");
 			return;
@@ -181,10 +209,7 @@ export function payloadProblems(kind: PayloadKind, text: string): PayloadProblem
 
 	const hasCritical = (seen.get("critical") ?? 0) > 0;
 	const anyTag = seen.size > 0;
-	if ((kind === "agent" || kind === "command") && !hasCritical) {
-		problems.push({ line: 1, message: `${kind} payloads MUST open with <critical>` });
-	}
-	if ((kind === "skill" || kind === "rule") && anyTag && !hasCritical) {
+	if (anyTag && !hasCritical) {
 		problems.push({ line: 1, message: `a tagged ${kind} payload MUST include <critical>` });
 	}
 
