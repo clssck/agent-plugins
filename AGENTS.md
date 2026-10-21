@@ -30,16 +30,17 @@ Distilled from every bundled primitive at the pinned commit. Match this unless a
 |---|---:|---|---|---|
 | Rules | 27 | always `description`, `scope`, `interruptMode`, plus `condition` or `astCondition` | prose, median 26 lines, `## Avoid` / `## Use` / `## Why` / `## Exceptions` | **none** |
 | Agents | 7 | `name`, `description`, `tools`, `output`, `model`, `thinking-level`, `spawns` | median 13 lines | role tags; `<critical>` last |
-| Tools | 75 | none | median 6 lines | `<instruction>`, `<critical>` last, nested `<example>` |
-| Commands | 5 | none | median 83 lines | Markdown headings, Handlebars |
-| Skills | — | `name`, `description` | long-form, reference-heavy | rarely tagged |
+| Tools | 75 | none | median 6 lines (range 7-81) | three dialects: tagged (`<instruction>` → `<examples>` → `<critical>`), `#`-headed, or plain bullets; examples optional |
+| Commands | 5 | none | 40-133 lines | `$ARGUMENTS` only; `## Arguments`, numbered phases, closing `## Rules` |
+| Skills | 3 | `name`, `description` | 75-127 lines | heading-first: 2 of 3 untagged; 1 tagged with a closing `<critical>` |
 
 <instruction>
 - `<critical>` is a **closing recap**, not the main constraint block: last in 17 of 21 tagged host files, 1-6 lines, `MUST`/`NEVER` only. Open with it only when the constraint must gate the first action.
 - Constraints that gate behaviour belong in a `<directives>` section tag, as `scout.md` and `task.md` do; the closing `<critical>` restates the one or two that a rushed reader must not miss.
 - Rules are injected inside the host's own `<system-interrupt>`/`<system-reminder>` wrapper, so a rule body is prose with `## Avoid` / `## Use` / `## Why`. Do not wrap a rule in tags.
 - Agents carry their contract in frontmatter (`tools`, `spawns`, `model`, `output`); the body stays short and says what the specialty does that the schema cannot.
-- Tools describe a decision surface in about six lines; examples are nested, not appended.
+- Tools describe a decision surface in about six lines; examples are nested, not appended. Only 19 of 75 use tags — the dialect follows the tool's complexity, not a house template.
+- Host command templates carry no frontmatter and use `$ARGUMENTS` alone, with `## Arguments`, numbered phases, and a closing `## Rules`. Our commands keep `{{ARGUMENTS}}` context insertion for injection safety: a deliberate divergence, recorded here so it is not mistaken for drift.
 </instruction>
 
 <caution>

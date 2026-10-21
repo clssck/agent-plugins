@@ -24,7 +24,7 @@ The description is **retrieval surface**: the model sees only it before choosing
 <instruction>
 
 - **Layout:** `# Title`, 1-2 dense intro paragraphs (what, governing principle, why — evidence only where it changes a decision), then `##` sections: task names for procedures ("Run probe", "Before every deletion"), noun names for reference material ("Frames", "Operators"); `###` where needed.
-- **Payload tags:** normative content lives in `<critical>`, `<instruction>`, `<procedure>`, and `<caution>`, in that order — tag set, semantics, and ordering rules in [house-style.md §Payload grammar](skill://skill-authoring/references/house-style.md#payload-grammar); headings stay for navigation and reference material. Convert an existing body on its next substantive edit, not as a formatting pass.
+- **Payload tags:** heading-first, matching the bundled skills. Constraints that gate behaviour go in `<directives>`, ordered work in `<procedure>`, and `<critical>` closes with a 1-6 line `MUST`/`NEVER` recap — tag set and placement in [house-style.md §Payload grammar](skill://skill-authoring/references/house-style.md#payload-grammar). Convert a body on its next substantive edit, not as a formatting pass.
 - **Rules use descriptive bold leads:** ``**Git history:** MUST `git blame` each cut line.`` Keep RFC 2119 markers in full caps but outside bold; body never restates the lead.
 - **Enumerations → tables.** Telegraphic where enumerating (`→`, `⇒`, `·`); normal dense prose in paragraphs. No hedging, ceremony, closing summaries.
 - **Examples are concrete and runnable** — bash/json fences, real commands — not abstract description. Adjacent Bad/Good pair removes a retry class.

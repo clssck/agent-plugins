@@ -23,25 +23,24 @@ Use tables for real enumerations. Use runnable examples for syntax or shapes. Pu
 
 ## Payload grammar
 
-Normative content lives in tagged blocks, in a fixed order. Markdown headings stay for navigation and noun-named reference sections.
+Distilled from every bundled primitive at the pinned OMP commit. Match this shape unless the capability's own file says otherwise.
 
-| Tag | Carries | Required when |
+| Tag | Carries | Placement |
 |---|---|---|
-| `<critical>` | `MUST`/`NEVER` constraints, trust and authorization boundaries, the completion condition | Always |
-| `<instruction>` | `SHOULD`/`MAY` choices: capability choice, fallback chain, source of truth | A choice or fallback exists |
-| `<procedure>` | Numbered actions with entry and exit gates; loop-until condition for iterative work | The body performs ordered work |
-| `<caution>` | Failure modes, misreads, and what looks like success but is not | The run can corrupt or silently under-deliver |
-| `<example>` | Runnable snippet | Exact syntax is not obvious |
+| `<directives>` | `MUST`/`NEVER`/`SHOULD` rules that gate behaviour | before the work |
+| `<procedure>` | numbered actions with entry and exit gates | middle |
+| `<instruction>` | choices, fallback chains, source of truth | middle |
+| `<caution>`, `<example>` | failure modes; runnable sample | as needed |
+| `<critical>` | 1-6 lines restating the load-bearing `MUST`/`NEVER` | **closing**, last block |
 
-- Emit tags in that order. One concept per block; repeat a tag only for a genuinely separate block, such as a closing `<critical>` restating the completion condition of a long body.
-- State the completion condition in `<critical>` as a checkable fact ("workflow runs for the latest HEAD succeed"), not an encouragement.
-- Name the source of truth in `<instruction>` when two observations can disagree, and the fallback chain when a capability can be unavailable: "SHOULD use `xd://github` `op: run_watch` if available; else `gh`".
-- Put refusal, degradation, and insufficient-output behavior in `<caution>`, not mid-procedure.
-- A reference section MAY carry no tags when it expresses no decision. Reference sections follow the tagged payload, keep noun headings, and MAY sit after the final tag.
+- `<critical>` is a recap, not the constraint block: it is the last block in 17 of 21 tagged host files, 1-6 lines, `MUST`/`NEVER` only. Open with it only when the constraint must gate the first action (`ci-green-request.md` is the host example).
+- Constraints that gate behaviour go in `<directives>`, as `scout.md` and `task.md` do; the closing `<critical>` repeats only what a rushed reader must not miss.
+- Rules are plain Markdown with no tags: the harness wraps the body in its own `<system-interrupt>` or `<system-reminder>`. Lead with one enforceable claim, then `## Why`, `## Avoid` / `## Use`, `## Exceptions`.
+- Skills are heading-first. Tags are optional and used only when a block carries a decision; reference sections keep noun headings and no tags.
+- State the completion condition as a checkable fact, not an encouragement. Name the source of truth when two observations can disagree.
+- Tier: a prohibition inside `<instruction>`, or advice inside `<critical>`, is a defect. `<procedure>` and `<caution>` may carry `MUST`/`NEVER`.
 
-The grammar covers every capability body, not only skills. Agents and commands MUST include `<critical>`; a rule or skill MUST include it once any tag is used. A rule body is injected inside the host's own interrupt or reminder wrapper, so never emulate that wrapper in the body. A rule is not finished at prose: give its trigger positive and negative cases before shipping.
-
-The five names above are semantic: they carry a fixed decision type, order, and tier. Any other lowercase kebab-case name (`<directives>`, `<criteria>`, `<findings>`, `<output>`) is a **section tag** — a container that mirrors OMP's own agent prompts. Section tags take optional `name="..."` attributes, may nest, and carry no order or tier rule.
+The five names above are semantic: they carry a fixed decision type, order, and tier. Any other lowercase kebab-case name (`<directives>`, `<criteria>`, `<findings>`, `<output>`) is a **section tag**, the host's own idiom. Section tags take optional `name="..."` attributes, may nest, and carry no order or tier rule.
 
 Tags are semantics, not decoration. A `<critical>` holding advice, or an `<instruction>` holding a forbidden action, teaches the reader to discount both. NEVER wrap a whole document in one tag, and NEVER author a harness-owned name (`system-*`, `<objective>`); that impersonates host content.
 
