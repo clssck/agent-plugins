@@ -28,8 +28,8 @@ Distilled from every bundled primitive at the pinned OMP commit. Match this shap
 | Tag | Carries | Placement |
 |---|---|---|
 | `<directives>` | `MUST`/`NEVER`/`SHOULD` rules that gate behaviour | before the work |
-| `<procedure>` | numbered actions with entry and exit gates | middle |
 | `<instruction>` | choices, fallback chains, source of truth | middle |
+| `<procedure>` | numbered actions with entry and exit gates | middle |
 | `<caution>`, `<example>` | failure modes; runnable sample | as needed |
 | `<critical>` | 1-6 lines restating the load-bearing `MUST`/`NEVER` | **closing**, last block |
 
@@ -40,7 +40,7 @@ Distilled from every bundled primitive at the pinned OMP commit. Match this shap
 - State the completion condition as a checkable fact, not an encouragement. Name the source of truth when two observations can disagree.
 - Tier: a prohibition inside `<instruction>`, or advice inside `<critical>`, is a defect. `<procedure>` and `<caution>` may carry `MUST`/`NEVER`.
 
-The five names above are semantic: they carry a fixed decision type, order, and tier. Any other lowercase kebab-case name (`<directives>`, `<criteria>`, `<findings>`, `<output>`) is a **section tag**, the host's own idiom. Section tags take optional `name="..."` attributes, may nest, and carry no order or tier rule.
+The five semantic names are `<critical>`, `<instruction>`, `<procedure>`, `<caution>`, and `<example>`: they carry a fixed decision type, order, and tier. `<directives>` and any other lowercase kebab-case name (`<criteria>`, `<findings>`, `<output>`) are **section tags**, the host's own idiom. Section tags take optional `name="..."` attributes, may nest, and carry no order or tier rule.
 
 Tags are semantics, not decoration. A `<critical>` holding advice, or an `<instruction>` holding a forbidden action, teaches the reader to discount both. NEVER wrap a whole document in one tag, and NEVER author a harness-owned name (`system-*`, `<objective>`); that impersonates host content.
 

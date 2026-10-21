@@ -33,7 +33,7 @@ The description is **retrieval surface**: the model sees only it before choosing
 
 </instruction>
 
-<critical>
+<directives>
 
 - **Open with scope:** allowed vs forbidden, concrete. Enumerate realistic bypasses, not abstractions. State the trust frame (authorization, environment) and what stays out of scope anyway.
 - **Fence irreversible actions** (delete, publish, overwrite, send); name the reversible alternative.
@@ -42,17 +42,13 @@ The description is **retrieval surface**: the model sees only it before choosing
 - **Harness-native forms:** the `grep` tool; NEVER shell `grep`/`rg`/`find`.
 - **Two-strike rule:** NEVER retry the same command or technique after two failures; switch strategy.
 
-</critical>
-
-<critical>
-
 A closing `## Checklist` summarizes the skill's verifiable rules; every item is checkable. Artifact-producing skills also state their done criteria:
 
 - Done criteria MUST be countable where possible (file exists, line count, exit code), not only qualitative.
 - Artifact-producing skills carry a deliverables table: exact file, stage, contents.
 - **Completeness:** every result already produced reaches the final output; breadth claims backed by coverage checks. NEVER silently drop work.
 
-</critical>
+</directives>
 
 <instruction>
 
@@ -102,3 +98,8 @@ OMP_ROOT=/path/to/oh-my-pi bun scripts/check-omp-loader.ts   # OMP's own loaders
 |Inferred results presented as confirmed|Label tiers; verify or mark unverified|
 
 </caution>
+
+<critical>
+- Never ship a skill whose gates were not run; report the unrun check as unverified.
+- NEVER present inferred or copied material as verified behaviour.
+</critical>
