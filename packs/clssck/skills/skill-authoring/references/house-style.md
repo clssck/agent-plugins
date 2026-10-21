@@ -41,9 +41,11 @@ Normative content lives in tagged blocks, in a fixed order. Markdown headings st
 
 The grammar covers every capability body, not only skills. Agents and commands MUST include `<critical>`; a rule or skill MUST include it once any tag is used. A rule body is injected inside the host's own interrupt or reminder wrapper, so never emulate that wrapper in the body. A rule is not finished at prose: give its trigger positive and negative cases before shipping.
 
-Tags are semantics, not decoration. A `<critical>` holding advice, or an `<instruction>` holding a forbidden action, teaches the reader to discount both. NEVER wrap a whole document in one tag, and NEVER introduce a tag name outside this set.
+The five names above are semantic: they carry a fixed decision type, order, and tier. Any other lowercase kebab-case name (`<directives>`, `<criteria>`, `<findings>`, `<output>`) is a **section tag** — a container that mirrors OMP's own agent prompts. Section tags take optional `name="..."` attributes, may nest, and carry no order or tier rule.
 
-Where a repository checks structure statically, this grammar is that check's contract: an unknown, retired, host-owned, nested, unclosed, or out-of-order tag is a defect, not a style choice.
+Tags are semantics, not decoration. A `<critical>` holding advice, or an `<instruction>` holding a forbidden action, teaches the reader to discount both. NEVER wrap a whole document in one tag, and NEVER author a harness-owned name (`system-*`, `<objective>`); that impersonates host content.
+
+Where a repository checks structure statically, this grammar is that check's contract: a retired or harness-owned name, an unclosed tag, a misordered semantic tag, or a tier inversion is a defect, not a style choice.
 
 ## Compression
 

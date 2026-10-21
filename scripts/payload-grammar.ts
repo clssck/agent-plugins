@@ -11,16 +11,7 @@ export const TAGS = ["critical", "instruction", "procedure", "caution", "example
 export type Tag = (typeof TAGS)[number];
 
 /** Harness-owned names. Authoring one inside a payload impersonates host content. */
-const RESERVED = [
-	"system-reminder",
-	"system-interrupt",
-	"system-notice",
-	"system-notification",
-	"system-injection",
-	"role",
-	"objective",
-	"directives",
-] as const;
+const RESERVED = ["system-reminder", "system-interrupt", "system-notice", "system-notification", "system-injection", "objective"] as const;
 
 /** Retired names and their replacement, so a rename cannot silently reintroduce a second vocabulary. */
 const RENAMED: Record<string, Tag> = {
@@ -101,8 +92,8 @@ export function payloadProblems(kind: PayloadKind, text: string): PayloadProblem
 		if (!name) continue;
 		const mention = `<${closing}${name}>`;
 
-		if (rest && rest.trim() !== "/" && rest.trim() !== "") {
-			problems.push({ line, message: `${mention} takes no attributes` });
+		if (rest && rest.trim() !== "/" && rest.trim() !== "" && !/^\s+[a-z-]+="[^"]*"\s*$/.test(rest)) {
+			problems.push({ line, message: `${mention} has malformed attributes; use name="value"` });
 			continue;
 		}
 		const reserved = (RESERVED as readonly string[]).includes(name);
@@ -115,26 +106,34 @@ export function payloadProblems(kind: PayloadKind, text: string): PayloadProblem
 			problems.push({ line, message: `${mention} is retired; use <${renamed}>` });
 			continue;
 		}
+		// Unknown lowercase-kebab names are section tags, the host's own idiom (`<directives>`, `<criteria>`,
+		// `<findings>`). They carry structure only: no order constraint, no tier, and nesting is allowed.
 		const rank = name in RANK ? RANK[name as Tag] : undefined;
-		if (rank === undefined) {
-			problems.push({ line, message: `${mention} is not in the grammar; allowed: ${TAGS.join(", ")}` });
+		const section = rank === undefined;
+		if (!closing && section) {
+			open.push({ name, line });
 			continue;
 		}
+		if (closing && section) {
+			const top = open.pop();
+			if (!top) problems.push({ line, message: `${mention} closes a tag that is not open` });
+			else if (top.name !== name) {
+				problems.push({ line, message: `${mention} closes <${top.name}> opened on line ${top.line}` });
+			}
+			continue;
+		}
+		if (rank === undefined) continue;
 
 		if (!closing) {
-			if (open.length > 0) {
-				problems.push({ line, message: `${mention} nests inside <${open[open.length - 1]!.name}>; tags never nest` });
-				continue;
-			}
 			if (name === "critical" && (seen.get("critical") ?? 0) >= 2) {
 				problems.push({ line, message: `${mention} appears more than twice; keep one opening and one closing block` });
 				continue;
 			}
-			if (name !== "critical" && rank < lastRank) {
+			if (name !== "critical" && rank < lastRank && open.length === 0) {
 				problems.push({ line, message: `${mention} is out of order; emit critical, instruction, procedure, caution, example` });
 			}
 			// <critical> may open once at the start and once at the end, so it never constrains the others' order.
-			if (name !== "critical") lastRank = rank;
+			if (name !== "critical" && open.length === 0) lastRank = rank;
 			open.push({ name, line });
 			seen.set(name, (seen.get(name) ?? 0) + 1);
 			continue;
@@ -156,19 +155,22 @@ export function payloadProblems(kind: PayloadKind, text: string): PayloadProblem
 	}
 
 	// Tier check: a prohibition inside <instruction>, or advice inside <critical>, is the defect that survives
-	// structural validation because the tag is closed correctly but carries the wrong kind of decision.
+	// structural validation because the tag is closed correctly but carries the wrong kind of decision. It applies
+	// only to the semantic tags at top level; section tags and nested blocks may mix modals, as the host's own do.
 	const lines = masked.split("\n");
-	let current: string | null = null;
+	const stack: string[] = [];
 	lines.forEach((line, index) => {
 		const opening = line.match(/^<([a-z][a-z0-9-]*)>[ \t]*$/);
 		if (opening) {
-			current = opening[1] ?? null;
+			stack.push(opening[1] ?? "");
 			return;
 		}
 		if (/^<\/[a-z][a-z0-9-]*>[ \t]*$/.test(line)) {
-			current = null;
+			stack.pop();
 			return;
 		}
+		if (stack.length !== 1) return;
+		const current = stack[0];
 		if (current === "instruction" && /\b(MUST|NEVER)\b/.test(line)) {
 			problems.push({ line: index + 1, message: "prohibition inside <instruction>; move it to <critical>" });
 		}

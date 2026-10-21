@@ -14,7 +14,7 @@ This repository publishes first-party OMP extension packs. Write every capabilit
 
 Canonical tag set, order, and semantics: `packs/clssck/skills/skill-authoring/references/house-style.md` §Payload grammar. That file is the single source; do not restate the table here.
 
-`bun scripts/sync.ts --check` enforces it: an unknown, retired, host-owned, nested, unclosed, or out-of-order tag fails the check, and every `skill://…` link with an `#anchor` must match a real heading.
+`bun scripts/sync.ts --check` enforces it: a retired or harness-owned name fails, an unclosed tag fails, the semantic tags must keep their order and tier, and every `skill://…` link with an `#anchor` must match a real heading. Section tags are free-form.
 
 <instruction>
 - New capabilities and substantive rewrites MUST use the grammar. Reference-only sections keep noun headings and MAY carry no tags.

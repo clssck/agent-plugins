@@ -65,9 +65,9 @@ describe("payloadProblems", () => {
 		expect(problems.map(problem => problem.message)).toContain("<critical> is never closed");
 	});
 
-	test("reports nesting", () => {
-		const problems = payloadProblems("skill", "<critical>\n<procedure>\n1. Step.\n</procedure>\n</critical>\n");
-		expect(problems.some(problem => problem.message.includes("never nest"))).toBe(true);
+	test("allows host-style section tags, attributes, and nesting", () => {
+		const body = "<directives>\n- MUST do it.\n- SHOULD prefer it.\n</directives>\n\n<example name=\"finding\">\n<title>Short title</title>\n<body>Bug, trigger, impact.</body>\n</example>\n";
+		expect(payloadProblems("agent", `${body}<critical>\n- NEVER.\n</critical>\n`)).toEqual([]);
 	});
 
 	test("reports out-of-order tags", () => {
