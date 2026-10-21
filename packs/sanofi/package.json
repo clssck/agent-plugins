@@ -1,6 +1,6 @@
 {
   "name": "sanofi",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "private": true,
   "description": "Sanofi engineering skills: ADRs, architecture docs, CI/CD, IaC, data platform (Airflow/MWAA, dbt, Snowflake, data contracts), Confluence and company-knowledge search.",
   "license": "MIT AND Apache-2.0",
