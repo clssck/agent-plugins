@@ -43,7 +43,7 @@ Run the smallest step that proves the change. Steps 1-3 are static or import-onl
 1. **Import and parse time** (always first): `uv run --no-project python -c "import <dag_module>"`.
    - Parse budget under ~30s. Hard `dagbag_import_timeout`: 180s on the shared platform (Airflow default 30s).
    - Timing: POSIX → prefix `time`; PowerShell → `Measure-Command { uv run --no-project python -c "import <dag_module>" }`.
-2. **Project-wide import errors:** `airflow dags list-import-errors` and `airflow dags list` on local or containerized Airflow.
+2. **Project-wide import errors:** `airflow dags list-import-errors --local` and `airflow dags list --local` on local or containerized Airflow 3.x (flags present in 3.0.6, 3.1.x, 3.2.x). Without `--local` they read stored metadata, so an unparsed project can look clean. Where the flags are unavailable (3.0.0, 2.x), use an explicit `DagBag` import gate and fail on `import_errors`.
    - MWAA parity: `aws/amazon-mwaa-docker-images` at the target version (`./run.sh`; PowerShell `.\run.ps1`).
    - CI: load every DAG through `DagBag` (or the Sanofi `airflow-validate` action), with dummy Variables as `AIRFLOW_VAR_<KEY>` env vars.
 3. **Structure, dependencies, cycles:** `airflow tasks list <dag_id>`, `airflow dags show <dag_id>`.
@@ -93,7 +93,7 @@ MWAA installs `requirements.txt` with `pip3` plus an Airflow constraints file. M
 uv venv --python 3.12   # MWAA 2.11 and 3.x run Python 3.12
 uv pip install "apache-airflow==<version>" -r requirements.txt \
   -c "https://raw.githubusercontent.com/apache/airflow/constraints-<version>/constraints-3.12.txt"
-uv run --no-project airflow dags list-import-errors
+uv run --no-project airflow dags list-import-errors --local   # Airflow 3.x; parses local files, not stored metadata
 ```
 
 - **Existing tooling wins.** If the repo already uses poetry, pip-tools, or `uv.lock`, keep it (`uv run` for uv projects). Recommend uv only for new work.

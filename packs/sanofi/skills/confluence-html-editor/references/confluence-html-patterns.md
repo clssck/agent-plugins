@@ -97,7 +97,7 @@ Mermaid source can be preserved as a code block:
   A --&gt; B</code></pre>
 ```
 
-Do not rely on one representation for Mermaid. In draft-page testing, the HTML fetch exposed Mermaid as `<pre><code class="language-mermaid">...`, while the ADF fetch showed Confluence had promoted the same source into a Mermaid extension node plus an expand block containing the source. Existing Mermaid extension blocks use an app-specific key ending in `/static/mermaid-diagram` (`<app-id>/<module-id>/static/mermaid-diagram`); copy the key from the fetched page, never from memory. `verify_confluence_adf.py --expect mermaid` counts only extension nodes; the plain code block is counted separately (`mermaid_source`).
+Do not rely on one representation for Mermaid. In draft-page testing, the HTML fetch exposed Mermaid as `<pre><code class="language-mermaid">...`, while the ADF fetch showed Confluence had promoted the same source into a Mermaid extension node plus an expand block containing the source. Existing Mermaid extension blocks use an app-specific key ending in `/static/mermaid-diagram` (`<app-id>/<module-id>/static/mermaid-diagram`); copy the key from the fetched page, never from memory. `verify_confluence_adf.py --expect mermaid` counts only extension nodes whose `extensionKey` ends in `/static/mermaid-diagram`, never other attribute text; the plain code block is counted separately (`mermaid_source`).
 
 For Mermaid:
 

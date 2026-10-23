@@ -9,9 +9,14 @@ Detect with `glob`/`grep` BEFORE drafting anything new. Edit the format the repo
 | Format | Detect | Notes |
 |---|---|---|
 | Structurizr DSL | `glob` `**/workspace.dsl`, `**/*.dsl`; sibling `workspace.json` | One model, many views |
-| C4-PlantUML | `glob` `**/*.{puml,plantuml,iuml}`; `grep` `C4_(Context\|Container\|Component\|Dynamic\|Deployment\|Sequence)` | Legend and tags supported |
-| Mermaid C4 | `grep` `C4(Context\|Container\|Component\|Dynamic\|Deployment)` in `**/*.{md,mmd,mermaid}` | Experimental, limited |
+| C4-PlantUML | `glob` `**/*.{puml,plantuml,iuml}`; `grep` the C4-PlantUML pattern below | Legend and tags supported |
+| Mermaid C4 | `grep` the Mermaid C4 pattern below in `**/*.{md,mmd,mermaid}` | Experimental, limited |
 | Draw.io | `glob` `**/*.drawio` | [drawio-c4-templates.md](skill://architecture-documentation/references/drawio-c4-templates.md) |
+
+Runnable `grep` patterns (regex alternation is a bare `|`; a `\|` would match a literal pipe):
+
+- C4-PlantUML: `C4_(Context|Container|Component|Dynamic|Deployment|Sequence)`
+- Mermaid C4: `C4(Context|Container|Component|Dynamic|Deployment)`
 
 ## Choosing a Format (only when asked to create one)
 

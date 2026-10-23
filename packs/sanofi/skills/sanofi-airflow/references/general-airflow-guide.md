@@ -270,6 +270,11 @@ Dominant Sanofi orchestration use case; own reference: [`orchestrating-dbt.md`](
 Every production DAG MUST alert on failure with actionable context (which task, why, log link) via a shared `on_failure_callback`, not per-task `email_on_failure=True`. Common Sanofi pattern: callback sends a custom failure email and, for production failures needing human action, auto-creates a ServiceNow incident through the TACO architecture.
 
 ```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 def task_error_alert(context):
     info = {
         "dag_id": context["dag"].dag_id,
@@ -278,7 +283,10 @@ def task_error_alert(context):
         "exception": str(context.get("exception", "")),
         "log_url": context["task_instance"].log_url,
     }
-    send_alert(info)  # email helper in sanofi-airflow-utils; add incident on PROD
+    try:
+        send_alert(info)  # email helper in sanofi-airflow-utils; add incident on PROD
+    except Exception:
+        logger.exception("failure alert delivery failed for %s.%s", info["dag_id"], info["task_id"])  # log, never re-raise
 ```
 
 - **A failure callback MUST NEVER raise.** Catch and log internally so the original task error and other callbacks still propagate.

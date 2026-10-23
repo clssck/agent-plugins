@@ -41,9 +41,9 @@ Load only what the task needs.
 | **GxP** | Production promotion needs environment approval and a retained audit record |
 </critical>
 
-<instruction>
-Production images SHOULD carry a build-provenance attestation ([security-hardening.md §11](skill://cicd-engineering/references/security-hardening.md#11-artifact-attestations-and-provenance)).
-</instruction>
+<directives>
+Production images SHOULD carry a build-provenance attestation ([security-hardening.md §11](skill://cicd-engineering/references/security-hardening.md#11-artifact-attestations-and-provenance)). NEVER delete a published attestation without explicit user authorization naming the repository and the attestations; identify obsolete ones and report their IDs instead.
+</directives>
 
 <procedure>
 
@@ -69,7 +69,7 @@ Production images SHOULD carry a build-provenance attestation ([security-hardeni
 | `update-service --force-new-deployment` to ship a new image | Render task definition with digest, then deploy it |
 | `workflow_run` job checks out `github.sha` | Use `workflow_run.id`/`head_sha`; deploy CI's recorded digest |
 | Callee requests `pull-requests: read` the caller never granted | Grant at the calling job; callee cannot elevate |
-| Job receiving `JFROG_TOKEN`/AWS credentials, or running credentialed `terraform init`/plan/apply, without `environment:` | Bind the protected environment and approval gate on every credentialed job; secretless PR `init -backend=false`/`validate` needs none |
+| Job receiving `JFROG_TOKEN`/`SONAR_TOKEN`/AWS credentials, or running credentialed `terraform init`/plan/apply, without `environment:` | Bind the protected environment and approval gate on every credentialed job; secretless PR `init -backend=false`/`validate` needs none |
 | Sonar scan without gate wait, excluded from `Build Complete` | `sonar.qualitygate.wait=true`, job in `needs` |
 | OIDC trust copied as `repo:ORG/REPO:...` | Confirm the repo's `sub` format (name or owner/repo IDs) first |
 | Tag pin of an action still on `node20` | Upgrade to a release declaring `node24`; Node 20 is gone from runners. Check with `xd://github` `op: file_read`, `path: action.yml` (or `action.yaml`), `branch: <tag>` → `runs.using` |
@@ -88,6 +88,7 @@ Production images SHOULD carry a build-provenance attestation ([security-hardeni
 - Required secrets, environments, branch rules, allowlist changes listed in the report.
 - No `pull_request_target`/`workflow_run` job checks out or runs PR code; cache access on those triggers read-only.
 - Production images have a provenance attestation, or the report says why not.
+- No published attestation deleted without explicit authorization naming repository and attestations.
 </critical>
 
 ## Sibling Skills

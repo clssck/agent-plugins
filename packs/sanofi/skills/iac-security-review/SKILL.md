@@ -61,7 +61,7 @@ Apply [security-controls.md](skill://iac-security-review/references/security-con
 
 - **Suppressions:** `grep` `checkov:skip`, `trivy:ignore`, `kics-scan`; judge each suppressed control yourself.
 - **Scanner cross-check:** MAY run; rules in [scanners.md](skill://iac-security-review/references/scanners.md). Hits are re-graded, never copied; scanner already installed or install approved by the user.
-- **Large repos:** use one batched OMP `task` call with a `security-reviewer` per independent directory. Give every child the recorded scope, its directory, the applicable control/reference paths, the evidence-and-redaction rules above, and an instruction to return `findings`, `reviewed_paths`, and `deferred` only. The agent is read-only and has no `bash`; keep scanner runs, cross-directory paths, final control grading, and report integration with the parent.
+- **Large repos:** use one batched OMP `task` call with a `security-reviewer` per independent directory. Give every child the recorded scope, its directory, the applicable control/reference paths, the evidence-and-redaction rules above, and an instruction to return `findings`, `reviewed_paths`, `deferred`, and `coverage_summary` only. The agent is read-only and has no `bash`; keep scanner runs, cross-directory paths, final control grading, and report integration with the parent.
 
 ### 4. Cross-Resource
 
@@ -72,13 +72,13 @@ Apply [security-controls.md](skill://iac-security-review/references/security-con
 
 ### 5. Report
 
-Fill [report.template.md](skill://iac-security-review/assets/report.template.md); `write` `audits/iac-security-review-YYYY-MM-DD.md`. Show the user:
+Fill [report.template.md](skill://iac-security-review/assets/report.template.md). Target path: `audits/iac-security-review-YYYY-MM-DD.md`. `write` replaces an existing file, so check that path first (`glob`). If it exists, NEVER overwrite it: pick a unique name (`iac-security-review-YYYY-MM-DD-2.md`, then `-3`, …) unless the user explicitly authorizes replacing the prior audit. Show the user:
 
 ```markdown
 Overall risk: {level}
 Findings: X Critical, Y High, Z Medium, W Low (N need confirmation)
 Files scanned: N ({frameworks})
-Report: audits/iac-security-review-YYYY-MM-DD.md
+Report: audits/iac-security-review-YYYY-MM-DD[-N].md
 ```
 </procedure>
 

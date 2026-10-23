@@ -244,6 +244,38 @@ class CheckConfluenceHtmlTests(unittest.TestCase):
         messages = severities('<p><img src="chart.png"></p>')
         self.assertTrue(any(s == "warning" and "Relative src" in m for s, m in messages))
 
+    def test_surrounding_whitespace_does_not_hide_local_urls(self) -> None:
+        for src in (
+            " file:///Users/example/chart.png",
+            "\tfile:///C:/tmp/chart.png ",
+            "  /Users/example/Desktop/chart.png  ",
+            "\n~/Pictures/chart.png\n",
+            " C:\\tmp\\chart.png ",
+            " \\\\server\\share\\chart.png",
+            " data:image/png;base64,AAAA ",
+        ):
+            for markup in (f'<p><img src="{src}"></p>', f'<p><a href="{src}">x</a></p>'):
+                with self.subTest(markup=markup):
+                    errors = [m for s, m in severities(markup) if s == "error"]
+                    self.assertTrue(errors, f"no error for {markup!r}")
+
+    def test_surrounding_whitespace_does_not_hide_relative_urls(self) -> None:
+        for markup in ('<p><img src=" ./chart.png "></p>', '<p><img src="\tchart.png\n"></p>'):
+            with self.subTest(markup=markup):
+                messages = severities(markup)
+                self.assertTrue(any(s == "warning" and "Relative src" in m for s, m in messages))
+                self.assertFalse(any(s == "error" for s, _ in messages))
+
+    def test_whitespace_padded_remote_urls_stay_clean_and_blank_is_missing(self) -> None:
+        self.assertEqual([], severities('<p><img src="  https://example.com/chart.png\n"></p>'))
+        self.assertEqual([], severities('<p><a href=" /wiki/spaces/X/pages/1 ">x</a></p>'))
+        messages = severities('<p><img src="   "></p>')
+        self.assertTrue(any(s == "warning" and "missing src" in m for s, m in messages))
+
+    def test_local_url_diagnostic_names_the_trimmed_value(self) -> None:
+        messages = [m for s, m in severities('<p><img src=" file:///C:/tmp/chart.png "></p>') if s == "error"]
+        self.assertEqual(["Local file URL is not publishable: file:///C:/tmp/chart.png"], messages)
+
     def test_unclosed_inner_tag_is_reported(self) -> None:
         messages = severities("<p><strong>Missing close</p>")
         self.assertTrue(

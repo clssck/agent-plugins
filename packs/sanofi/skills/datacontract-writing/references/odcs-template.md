@@ -13,7 +13,7 @@ Keep the two separate in reviews. NEVER reject a contract that is valid ODCS bec
 | ODCS-required (root) | `version`, `apiVersion`, `kind`, `id`, `status` |
 | ODCS-required (nested) | `schema[].name`; `servers[].server` + `type`; Snowflake server `account`, `database`, `schema`; `slaProperties[].property` + `value`; library quality `metric` |
 | Sanofi policy (authoring default) | `name`, `tenant: sanofi`, `domain`, `dataProduct`, `description.purpose`, object + property `description` |
-| Sanofi policy (default values) | `status: draft`, `version: 1.0.0`, classification `restricted` when source gives none |
+| Sanofi policy (default values) | `status: draft`, `version: 1.0.0`; classification `restricted` only when the user confirms it, else omit `classification` and flag `# REVIEW:` |
 
 ## Minimal Contract
 

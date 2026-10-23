@@ -1,6 +1,6 @@
 # IaC Security Review Report Template
 
-Save to `audits/iac-security-review-YYYY-MM-DD.md`. Copy the structure below. Omit empty subsections; keep the executive summary even when clean.
+Save to `audits/iac-security-review-YYYY-MM-DD.md`, or the next free `-N` suffix when that file exists (SKILL.md, step 5). Copy the structure below. Omit empty subsections; keep the executive summary even when clean.
 
 ````markdown
 # Infrastructure Security Review

@@ -15,12 +15,15 @@ Decoding reverses this. The result is a candidate: verify by fetching the page.
 
 import base64
 import sys
+from urllib.parse import unquote, urlsplit
 
 
 def decode(token: str) -> int:
-    token = token.strip().split("/")[-1]
-    if not token:
+    # Query and fragment are never part of the token ('?' and '#' are outside the base64 alphabet).
+    segments = [s for s in urlsplit(token.strip()).path.split("/") if s]
+    if not segments:
         raise ValueError("empty token")
+    token = unquote(segments[-1])
     b64 = token.replace("-", "/").replace("_", "+")
     # Encoding drops trailing "A" (zero) characters; restore them as zero high-order bytes.
     b64 += "A" * (-len(b64) % 4)

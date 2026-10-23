@@ -238,6 +238,25 @@ class CliTests(unittest.TestCase):
         self.assertEqual(run(None, raw=b"not json").returncode, 2)
         self.assertEqual(run({"format_version": "1.2"}).returncode, 2)
 
+    def test_wrong_shape_plan_exits_two_without_traceback(self):
+        for plan in (
+            None,
+            [],
+            "plan",
+            {"resource_changes": None},
+            {"resource_changes": "aws_s3_bucket.x"},
+            {"resource_changes": {"address": "aws_s3_bucket.x"}},
+            {"resource_changes": [None]},
+            {"resource_changes": [resource("aws_s3_bucket.ok", {"tags_all": GOOD}), "junk"]},
+        ):
+            with self.subTest(plan=plan):
+                result = run(plan)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertNotIn("Traceback", result.stderr)
+
+    def test_empty_resource_changes_exits_zero(self):
+        self.assertEqual(run({"resource_changes": []}).returncode, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

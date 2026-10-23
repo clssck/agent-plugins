@@ -24,6 +24,24 @@ class DecodeTinyLink(unittest.TestCase):
     def test_accepts_full_tiny_url(self):
         self.assertEqual(decode("https://example.atlassian.net/wiki/x/AQID"), 197121)
 
+    def test_url_ignores_query_fragment_and_trailing_slash(self):
+        for url in (
+            "https://example.atlassian.net/wiki/x/AQID?foo=bar/baz",
+            "https://example.atlassian.net/wiki/x/AQID#frag/ment",
+            "https://example.atlassian.net/wiki/x/AQID/",
+            "https://example.atlassian.net/wiki/x/AQID/?a=b#c",
+        ):
+            with self.subTest(url=url):
+                self.assertEqual(decode(url), 197121)
+
+    def test_url_with_dash_token(self):
+        token = encode(0xFC)
+        self.assertEqual(decode(f"https://example.atlassian.net/wiki/x/{token}?a=b"), 0xFC)
+
+    def test_url_without_token_is_rejected(self):
+        with self.assertRaises(ValueError):
+            decode("https://example.atlassian.net/?x=AQID")
+
     def test_rejects_invalid_token(self):
         with self.assertRaises(ValueError):
             decode("!!!")

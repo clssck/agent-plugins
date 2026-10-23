@@ -26,10 +26,12 @@ Scope split: `/security` finds vulnerabilities; this skill records an incident t
 5. **Went well / went wrong / got lucky.**
 6. **Action items** with required fields.
 7. **`write`** the document from [post-mortem-template.md](skill://incident-postmortem/references/post-mortem-template.md).
-8. **Review gate.** Run Verification above and the blameless self-check. SEV1/SEV2 → also spawn a `task` agent (children start blank) with the file path, `blameless-language.md`, and the Verification list; it returns gaps by section. Fix them before circulating. Spawning unavailable → say the check was not independent.
+8. **Review gate.** Run [Verification](#verification) below and the blameless self-check. SEV1/SEV2 → also spawn a `task` agent (children start blank) with the file path, `blameless-language.md`, and the [Verification](#verification) list; it returns gaps by section. Fix them before circulating. Spawning unavailable → say the check was not independent.
 
 Process detail, interview prompts, anti-patterns, sources: [full-guide.md](skill://incident-postmortem/references/full-guide.md).
 </procedure>
+
+## Verification
 
 <critical>
 
@@ -50,7 +52,7 @@ Document is complete only when every line holds:
 
 ## Reviewing an existing post-mortem
 
-Run Verification above plus the blameless self-check in [blameless-language.md](skill://incident-postmortem/references/blameless-language.md#self-check); report each gap with its section.
+Run [Verification](#verification) above plus the blameless self-check in [blameless-language.md](skill://incident-postmortem/references/blameless-language.md#self-check); report each gap with its section.
 
 ## Timestamps
 

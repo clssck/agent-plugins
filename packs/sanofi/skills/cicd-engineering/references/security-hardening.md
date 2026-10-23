@@ -496,7 +496,7 @@ gh attestation verify ARTIFACT -R OWNER/REPO --predicate-type https://spdx.dev/D
 - `subject-name` MUST be the fully qualified image name WITHOUT a tag; `subject-digest` MUST be `sha256:HEX`.
 - Verification trusts the signer workflow identity. Pass `--signer-workflow` or `--cert-identity` for stricter checks when the build runs in a reusable workflow.
 - Whether the Sanofi registries (ECR, JFrog) accept pushed attestation referrers is NOT verified here; confirm with the platform team, else keep attestations in GitHub's store and verify by digest.
-- Delete obsolete attestations ([lifecycle](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/manage-attestations)).
+- Obsolete attestations: identify them and report their IDs. NEVER delete one without explicit user authorization naming the repository and the attestations; deletion removes published provenance and cannot be undone ([lifecycle](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/manage-attestations)).
 
 ---
 

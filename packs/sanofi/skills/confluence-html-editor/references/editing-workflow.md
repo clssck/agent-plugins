@@ -82,7 +82,7 @@ uv run "$(realpath skill://confluence-html-editor/scripts/extract_confluence_fet
 uv run "$(realpath skill://confluence-html-editor/scripts/audit_confluence_page.py)" --html "$(realpath local://html/fetched.html)" --adf "$(realpath local://adf/fetched-adf.json)" --title "Page title"
 ```
 
-Save both raw responses to `local://` first. `realpath` rejects a `local://` path whose parent directory is missing, so `--out-dir` uses the resolved `local://` root and the extractor creates the subdirectory. Outputs: `local://html/fetched.html` / `local://adf/fetched-adf.json`, each with a `fetched-metadata.json` beside it. Use `--force` only to replace an extraction deliberately. The extractor and the ADF verifier both unwrap MCP text results.
+Save both raw responses to `local://` first. `realpath` rejects a `local://` path whose parent directory is missing, so `--out-dir` uses the resolved `local://` root and the extractor creates the subdirectory. Outputs: `local://html/fetched.html` / `local://adf/fetched-adf.json`, each with a `fetched-metadata.json` beside it. Use `--force` only to replace an extraction deliberately. The extractor and the ADF verifier both unwrap MCP text results. The extractor inspects every text block and exits 2 without writing files unless exactly one page object with an `id` and an HTML or ADF body is found (summary-only objects, null bodies, and multiple different pages are rejected). `audit_confluence_page.py` exits 2 for JSON `null` ADF input or `--expect-adf` without `--adf`.
 
 ## MCP v2 call contract
 

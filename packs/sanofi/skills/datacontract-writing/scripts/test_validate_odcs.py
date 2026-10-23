@@ -73,6 +73,15 @@ class Cli(unittest.TestCase):
         self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
         self.assertIn("VALIDATION UNAVAILABLE", result.stdout)
 
+    def test_null_or_malformed_schema_exits_two_without_traceback(self):
+        for text in ("null", "[]", '"str"', '{"type": 5}', '{"required": "id"}', "{not json"):
+            with self.subTest(schema=text):
+                self.schema.write_text(text, encoding="utf-8")
+                result = self.run_script(self.contract(VALID), "--schema", str(self.schema))
+                self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+                self.assertIn("VALIDATION UNAVAILABLE", result.stdout)
+                self.assertNotIn("Traceback", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

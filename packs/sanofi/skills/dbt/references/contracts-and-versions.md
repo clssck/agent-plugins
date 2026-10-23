@@ -78,11 +78,18 @@ Consumers outside dbt read a fixed relation name. Pick one mechanism, NEVER two:
 | project `post-hook` creating the view | <= 1.11 | Pattern from dbt's versions docs; macro below |
 | `alias` on one version | any | Pins that single version to the name; manual rewiring at promotion |
 
-`latest_version_pointer` is opt-in on dbt 1.12:
+`latest_version_pointer` is opt-in on dbt 1.12. Enable it for the whole project in `dbt_project.yml`:
 
 ```yaml
+# dbt_project.yml
 flags:
-  latest_version_pointer_enabled_by_default: true        # whole project, or per model:
+  latest_version_pointer_enabled_by_default: true
+```
+
+Or enable it per model in a properties file:
+
+```yaml
+# models/schema.yml
 models:
   - name: fct_orders
     config:

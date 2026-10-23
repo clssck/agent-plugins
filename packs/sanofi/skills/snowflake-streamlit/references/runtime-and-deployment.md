@@ -159,7 +159,7 @@ snow streamlit deploy app_name --replace --connection <name>
 | `--replace` uploads and overwrites, never deletes staged files | Add `--prune` when files were removed or renamed |
 | `--legacy` deploys with `ROOT_LOCATION`, cannot carry `runtime_name` | Only for apps already on the legacy contract |
 | Omitting `tags:` leaves existing tags alone; `tags: []` clears them (3.22.1+) | Do not add `tags: []` by accident |
-| `grants:` entries take exactly one of `role:` or `user:` (`user:` 3.28.0+); `sharing:` (3.28.0+) = older alias for `USAGE` grants | One spelling per repo |
+| `grants:` entries take exactly one of `role:` or `user:` (`user:` 3.28.0+); the model forbids extra fields, so `sharing:` is not valid | Write every `USAGE` grant as `grants: [{privilege: USAGE, role: ...}]`, or `user:` in place of `role:` on 3.28.0+ |
 
 - **Validate in CI (3.20.0+):** `snow helpers generate-project-schema -o snowflake-schema.json`, then `uvx check-jsonschema --schemafile snowflake-schema.json snowflake.yml`. Schema checks structure only; cross-field rules still fail at deploy time.
 - **Logs:** `snow streamlit logs` streams container-runtime logs (3.18.0+).

@@ -68,7 +68,7 @@ $env:TF_TOKEN_sanofi_jfrog_io = "<token from the user's secret store>"
 - `init -backend=false`: validates syntax + module wiring; no state access.
 - `terraform plan` (real backend + AWS credentials): only on user authorization. NEVER run `apply`.
 - Review plan output for the user; tag verification → [tagging-guide.md](skill://iac-terraform/references/tagging-guide.md#effective-tag-check).
-- Optional `uvx checkov -d .`: static scan; triage findings through `iac-security-review` skill.
+- Optional Checkov scan (`checkov -d .`): run only if `checkov` is already installed (`command -v checkov`) or the user approves fetching it (`uvx checkov`, `uv tool install checkov`); NEVER fetch or execute third-party packages unprompted. Otherwise skip the scan and report it as not run. Triage findings through `iac-security-review` skill, which owns the scanner install gate.
 
 CI plan/apply workflows + runner-side JFrog credentials → `cicd-engineering` skill.
 

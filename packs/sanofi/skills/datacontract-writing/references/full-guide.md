@@ -125,7 +125,7 @@ arguments: {validValues: [placed, shipped]}
 
 - MUST generate `id` as UUID v4; field is `id`, not `uuid`.
 - MUST default `status: draft`, `version: 1.0.0`, `tenant: sanofi`.
-- MUST preserve source `classification`; else default `restricted` on properties only when the user confirms.
+- MUST preserve source `classification`; else default `restricted` on properties only when the user confirms. No source value and no confirmation → omit `classification` and flag `# REVIEW:`.
 - NEVER fabricate owners, SLAs, quality thresholds, or business meaning.
 - NEVER emit placeholder text; omit empty sections.
 - MUST keep `physicalType` exactly as in source. Unknown type? Omit `logicalType` and `physicalType`, flag for review.

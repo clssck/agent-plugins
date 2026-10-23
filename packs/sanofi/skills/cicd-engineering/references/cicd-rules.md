@@ -83,7 +83,9 @@ jobs:
   deploy:
     environment: production
     steps:
-      - run: deploy --api-key "${{ secrets.API_KEY }}"
+      - run: deploy
+        env:
+          API_KEY: ${{ secrets.API_KEY }} # the CLI reads API_KEY from the environment (or stdin); NEVER pass it in argv or interpolate it into `run:`
 
 # BAD — never hardcode secrets
 env:
@@ -93,7 +95,7 @@ env:
 - **Storage**: **GitHub Environments** or **AWS Secrets Manager** (the approved Sanofi vault).
 - **Prod approval**: production environments SHOULD require manual approval via environment protection rules; MUST for GxP — regulatory change control requires a recorded approval step.
 - **Scanning**: secret scanning MUST be enabled org-wide (GitHub secret scanning; GitGuardian for Sanofi). Exposed credentials MUST be revoked and rotated immediately.
-- **Avoid `secrets: inherit`** to reusable workflows unless the callee is org-managed. Declare `on.workflow_call.secrets` in every local callee; pass only the named secrets it needs. A callee job setting `environment` receives the environment secret when the caller passes it by name. See [security-hardening.md](skill://cicd-engineering/references/security-hardening.md#8-environment-scoped-secrets-vs-secrets-inherit).
+- **Avoid `secrets: inherit`** to reusable workflows unless the callee is org-managed. Declare `on.workflow_call.secrets` for every secret the caller passes; pass only the named secrets it needs. A callee job setting `environment` receives that environment's secrets without the caller passing them (the `SONAR_TOKEN` pattern in §2.2). See [security-hardening.md](skill://cicd-engineering/references/security-hardening.md#8-environment-scoped-secrets-vs-secrets-inherit).
 
 ### 1.4 Prefer OIDC over long-lived cloud credentials
 
@@ -200,6 +202,8 @@ Three pieces make the gate real; full workflow in [pipeline-templates.md](skill:
       -Dsonar.qualitygate.wait=true
       -Dsonar.qualitygate.timeout=300
 ```
+
+`SONAR_TOKEN` is an Environment secret on a `sonarcloud` environment with required reviewers; the reusable workflow's job sets `environment: sonarcloud` and callers pass no secret. Unapproved PR validation stays secretless.
 
 ---
 

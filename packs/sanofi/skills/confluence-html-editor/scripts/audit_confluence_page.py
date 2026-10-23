@@ -22,6 +22,9 @@ from check_confluence_html import check as check_html
 from verify_confluence_adf import analyze_adf, as_dict as adf_as_dict, parse_expect, read_json
 
 
+OMITTED: Any = object()
+
+
 @dataclass
 class AuditResult:
     html: dict[str, Any] | None
@@ -51,7 +54,7 @@ def prefixed_findings(prefix: str, findings: list[Any]) -> list[dict[str, str | 
 def audit_sources(
     *,
     html: str | None = None,
-    adf_payload: Any | None = None,
+    adf_payload: Any = OMITTED,
     title: str | None = None,
     expected_adf: set[str] | None = None,
 ) -> AuditResult:
@@ -64,7 +67,7 @@ def audit_sources(
         html_result = html_as_dict(html_stats, html_findings)
         findings.extend(prefixed_findings("HTML", html_findings))
 
-    if adf_payload is not None:
+    if adf_payload is not OMITTED:
         adf_stats, adf_findings = analyze_adf(adf_payload, expected_adf or set())
         adf_result = adf_as_dict(adf_stats, adf_findings)
         findings.extend(prefixed_findings("ADF", adf_findings))
@@ -118,9 +121,15 @@ def main() -> int:
     args = parser.parse_args()
     if not args.html and not args.adf:
         parser.error("provide --html, --adf, or both")
+    if args.expect_adf is not None and not args.adf:
+        parser.error("--expect-adf requires --adf")
 
     try:
-        adf_payload = read_json(args.adf) if args.adf else None
+        adf_payload: Any = OMITTED
+        if args.adf:
+            adf_payload = read_json(args.adf)
+            if adf_payload is None:
+                raise ValueError("ADF input is JSON null, not an ADF document")
         html = read_text(args.html)
     except (OSError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

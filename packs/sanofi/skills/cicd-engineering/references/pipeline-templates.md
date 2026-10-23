@@ -53,7 +53,8 @@ NEVER use `gh api repos/OWNER/REPO/git/ref/tags/TAG --jq .object.sha` alone: for
 - **ARC runner image**: runner release `2.329.0` or later (the registration minimum), and each new release within 30 days. Container jobs need Docker/BuildKit. Sonar scan action v8 verifies its scanner signature by default, so `gpg` and `dirmngr` MUST be on `PATH`. Confirm with the platform team; NEVER assume fleet versions. Runner enforcement: [security-hardening.md §5](skill://cicd-engineering/references/security-hardening.md#5-self-hosted-runner-risks).
 - **Python jobs**: `setup-uv` downloads uv, and `uv sync` downloads the `.python-version` interpreter when the image lacks it; confirm runner egress. Private package index: `[[tool.uv.index]]` in `pyproject.toml` or `UV_DEFAULT_INDEX`.
 - **Environments** `dev`, `test`, `prod`: each holds `AWS_ACCOUNT_ID` and `JFROG_TOKEN` (Terraform repos). Every environment holding `JFROG_TOKEN` or trusted by an AWS role MUST have required reviewers or a `main`-only deployment branch rule: same-repository `pull_request` runs and feature-branch dispatches otherwise reach its secrets unreviewed. `prod` has both.
-- **Repository/org secrets**: `SONAR_TOKEN`; CodeGuard `CHECKMARX_*` secrets.
+- **Environment** `sonarcloud`: holds `SONAR_TOKEN` as an Environment secret and MUST have required reviewers. A `main`-only deployment branch rule does not work here: PR analysis runs on `refs/pull/N/merge`, which such a rule blocks. A repository or org `SONAR_TOKEN` reaches same-repository `pull_request` runs unreviewed; NEVER store it there. Each Sonar run waits for approval, and `Build Complete` waits with it.
+- **Repository/org secrets**: CodeGuard `CHECKMARX_*` secrets.
 - **Branch protection**: require the `Build Complete` check. It fails unless every quality, audit, and Sonar job succeeded.
 
 ---
@@ -159,8 +160,6 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/sonarcloud.yaml
-    secrets:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   build:
     name: Build Complete
@@ -304,8 +303,6 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/sonarcloud.yaml
-    secrets:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   build:
     name: Build Complete
@@ -345,14 +342,13 @@ jobs:
 
 `.github/workflows/sonarcloud.yaml`, called by both CI templates on pull requests and pushes. The scanner auto-detects PR vs branch context in GitHub Actions, so one workflow serves PR analysis and the main-branch baseline. `sonar.qualitygate.wait=true` makes the step fail on a failed quality gate, which fails `Build Complete`.
 
+The called job binds the `sonarcloud` environment (required reviewers), so credentials are released only after approval. Callers pass no secret, and PR jobs that run without approval (format, lint, test, audit) stay secretless. The caller job cannot set `environment:` ([security-hardening.md §8](skill://cicd-engineering/references/security-hardening.md#8-environment-scoped-secrets-vs-secrets-inherit)).
+
 ```yaml
 name: "SonarCloud"
 
 on:
   workflow_call:
-    secrets:
-      SONAR_TOKEN:
-        required: true
 
 permissions:
   contents: read
@@ -361,6 +357,7 @@ jobs:
   analysis:
     name: SonarCloud Analysis
     runs-on: atmos-aws-arc-runner-set
+    environment: sonarcloud
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

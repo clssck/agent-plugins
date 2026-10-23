@@ -9,8 +9,10 @@ This accepts raw JSON from the Atlassian MCP Confluence content/page read tool
 (getConfluenceContent, or getConfluencePage on older servers), including common
 tool-output wrappers such as [{"type":"text","text":"{...}"}]. It writes
 the fetched body to <prefix>.html or <prefix>-adf.json and stores page metadata
-in <prefix>-metadata.json. Use a separate --out-dir per extraction when pulling
-both the HTML and ADF of one page; the metadata file name is fixed per prefix.
+in <prefix>-metadata.json. Every MCP text block is inspected; exactly one page
+object with an id and an HTML or ADF body must be present, otherwise the script
+exits 2 without writing files. Use a separate --out-dir per extraction when
+pulling both the HTML and ADF of one page; the metadata file name is fixed per prefix.
 
 Usage: uv run "$(realpath skill://confluence-html-editor/scripts/extract_confluence_fetch.py)" "$(realpath local://html-response.json)" --out-dir "$(realpath local://)/html" --prefix fetched
 """
@@ -58,12 +60,67 @@ def unwrap_tool_output(payload: Any) -> Any:
     return payload
 
 
-def body_kind(body: Any) -> str:
+def page_body(page: dict[str, Any]) -> tuple[str, Any] | None:
+    """Return (kind, body) for a supported HTML or ADF page body, else None."""
+    body = page.get("body")
+    if isinstance(body, dict) and "atlas_doc_format" in body:
+        wrapper = body["atlas_doc_format"]
+        body = wrapper.get("value") if isinstance(wrapper, dict) else None
     if isinstance(body, str):
-        return "html"
+        decoded = maybe_json(body)
+        if isinstance(decoded, dict) and decoded.get("type") == "doc":
+            return "adf", decoded
+        return "html", body
     if isinstance(body, dict) and body.get("type") == "doc":
-        return "adf"
-    return "json"
+        return "adf", body
+    return None
+
+
+def has_page_id(value: dict[str, Any]) -> bool:
+    page_id = value.get("id")
+    if isinstance(page_id, bool):
+        return False
+    if isinstance(page_id, int):
+        return True
+    return isinstance(page_id, str) and bool(page_id.strip())
+
+
+def collect_pages(value: Any, pages: list[dict[str, Any]], bodiless: list[str]) -> None:
+    """Walk every nested value and MCP text block, collecting page objects."""
+    value = maybe_json(value)
+    if isinstance(value, list):
+        for item in value:
+            collect_pages(item, pages, bodiless)
+        return
+    if not isinstance(value, dict):
+        return
+    if has_page_id(value):
+        if page_body(value) is not None:
+            pages.append(value)
+            return
+        bodiless.append(str(value["id"]))
+    for item in value.values():
+        collect_pages(item, pages, bodiless)
+
+
+def select_page(payload: Any) -> dict[str, Any]:
+    """Return the single page object with an id and an HTML or ADF body."""
+    pages: list[dict[str, Any]] = []
+    bodiless: list[str] = []
+    collect_pages(payload, pages, bodiless)
+    unique: list[dict[str, Any]] = []
+    for page in pages:
+        if page not in unique:
+            unique.append(page)
+    if len(unique) == 1:
+        return unique[0]
+    if unique:
+        ids = ", ".join(str(page["id"]) for page in unique)
+        raise ValueError(f"Input contains {len(unique)} different page objects (ids: {ids}); save one page fetch per file")
+    detail = ""
+    if bodiless:
+        detail = f"; objects with id {', '.join(bodiless)} have no HTML or ADF body (null, missing, or summary-only)"
+    raise ValueError(f"Input does not contain a Confluence page object with an id and an HTML or ADF body{detail}")
 
 
 def page_metadata(page: dict[str, Any], body_type: str) -> dict[str, Any]:
@@ -87,18 +144,16 @@ def page_metadata(page: dict[str, Any], body_type: str) -> dict[str, Any]:
 
 
 def write_outputs(page: dict[str, Any], out_dir: Path, prefix: str, force: bool = False) -> dict[str, str]:
-    body = page.get("body")
-    kind = body_kind(body)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    resolved = page_body(page)
+    if resolved is None:
+        raise ValueError("Page object has no HTML or ADF body")
+    kind, body = resolved
 
     if kind == "html":
         body_path = out_dir / f"{prefix}.html"
         body_text = body
-    elif kind == "adf":
-        body_path = out_dir / f"{prefix}-adf.json"
-        body_text = json.dumps(body, indent=2)
     else:
-        body_path = out_dir / f"{prefix}-body.json"
+        body_path = out_dir / f"{prefix}-adf.json"
         body_text = json.dumps(body, indent=2)
 
     metadata_path = out_dir / f"{prefix}-metadata.json"
@@ -107,6 +162,7 @@ def write_outputs(page: dict[str, Any], out_dir: Path, prefix: str, force: bool 
         if path.exists() and not force:
             raise FileExistsError(f"Refusing to overwrite existing file: {path}")
 
+    out_dir.mkdir(parents=True, exist_ok=True)
     body_path.write_text(body_text, encoding="utf-8")
     metadata_path.write_text(
         json.dumps(page_metadata(page, kind), indent=2),
@@ -125,10 +181,8 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        payload = unwrap_tool_output(read_json(args.input))
-        if not isinstance(payload, dict):
-            raise ValueError("Input does not contain a Confluence page object")
-        result = write_outputs(payload, Path(args.out_dir), args.prefix, args.force)
+        page = select_page(read_json(args.input))
+        result = write_outputs(page, Path(args.out_dir), args.prefix, args.force)
     except (OSError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2

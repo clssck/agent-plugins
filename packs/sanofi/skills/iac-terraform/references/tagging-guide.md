@@ -216,15 +216,30 @@ Pass `local.all_tags` where this guide says `local.tags`. ONE set per project.
 
 ## Effective-tag check
 
-Source-text greps miss unquoted HCL keys, match variable declarations, skip nested files. Check the evaluated plan: covers module + provider tag propagation. User produces the plan; check is read-only. `tfplan` and `plan.json` contain sensitive values in cleartext: keep out of Git and chat; delete after the check.
+Source-text greps miss unquoted HCL keys, match variable declarations, skip nested files. Check the evaluated plan: covers module + provider tag propagation. User produces the plan; the assistant's check is read-only. `tfplan` and `plan.json` contain sensitive values in cleartext: keep out of Git and chat. NEVER delete or move the user-supplied `tfplan`; delete only derived files the assistant created.
+
+User-only command (the user runs it; NEVER run it without explicit user authorization to generate a plan):
 
 ```bash
 terraform plan -out=tfplan
-terraform show -json tfplan > plan.json
-uv run "$(realpath skill://iac-terraform/scripts/check_tags.py)" plan.json
 ```
 
-Run in the omp `bash` tool; `realpath` resolves `skill://` there; script needs no installed dependencies. Script walks `resource_changes`, reads `tags_all` (fallback `tags`), fails on missing/empty tags, wrong case, bad prefixes, mismatched `CE_Environment`. `aws_autoscaling_group` checked via `tag` blocks (key, value, `propagate_at_launch = true`). Tags or tag values unknown until apply → warnings (`--strict` fails them); invalid known values still fail. Exit codes: 0 compliant, 1 violations, 2 unreadable input.
+Read-only conversion and check, from a user-supplied `tfplan`. Write the derived JSON to an assistant-owned private temp directory and delete only that directory:
+
+```bash
+tmp="$(mktemp -d)" && chmod 700 "$tmp"
+status=0
+terraform show -json tfplan > "$tmp/plan.json" || status=$?
+if [ "$status" -eq 0 ]; then
+  uv run "$(realpath skill://iac-terraform/scripts/check_tags.py)" "$tmp/plan.json" || status=$?
+fi
+rm -rf "$tmp"
+exit "$status"
+```
+
+The block preserves the checker's exit status (0 compliant, 1 violations, 2 unreadable input) while still deleting its own temp directory; a failed conversion never becomes a successful block.
+
+Run only the conversion/check block in the omp `bash` tool; `realpath` resolves `skill://` there; script needs no installed dependencies. Script walks `resource_changes`, reads `tags_all` (fallback `tags`), fails on missing/empty tags, wrong case, bad prefixes, mismatched `CE_Environment`. `aws_autoscaling_group` checked via `tag` blocks (key, value, `propagate_at_launch = true`). Tags or tag values unknown until apply → warnings (`--strict` fails them); invalid known values still fail. Exit codes: 0 compliant, 1 violations, 2 unreadable input.
 
 In CI: copy the script to a named repository path such as `scripts/check_tags.py`; run `uv run ./scripts/check_tags.py plan.json` after the plan step. Workflow template → `cicd-engineering`.
 

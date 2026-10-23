@@ -65,33 +65,40 @@ Atlassian Rovo MCP required. Missing → report the missing access; NEVER fall b
 <procedure>
 
 1. **Resolve target.** Page ID from `/pages/{id}` URLs, else search; exact title+space match or ask. New page needs space and parent.
-2. **Fetch** HTML with `detail="full"` (default summary has no body); capture id, title, spaceId, parentId, version, `snapshotToken`, URL. Load `getContentFormatGuide` and the space's `spaceInstructions` (skip only if the fetch reported `hasSpaceInstructions=false`); space instructions override this skill's design defaults. Save to `local://fetched.html` for large or risky edits.
+2. **Fetch** (update only; a new page has no live body, so skip the fetch, `local://fetched.html`, and `snapshotToken`). Fetch HTML with `detail="full"` (default summary has no body); capture id, title, spaceId, parentId, version, `snapshotToken`, URL. Load `getContentFormatGuide` and the space's `spaceInstructions` (for a new page read them with `getConfluenceSpace`; for an update skip only if the fetch reported `hasSpaceInstructions=false`); space instructions override this skill's design defaults. Save to `local://fetched.html` for large or risky edits.
 3. **Build** node `edits` or the full replacement body; load references as needed (below).
-4. **Validate locally** before writing:
+4. **Validate locally** before writing. Update, against the fetched body:
 
 ```bash
 uv run "$(realpath skill://confluence-html-editor/scripts/check_confluence_html.py)" "$(realpath local://proposed.html)" --original "$(realpath local://fetched.html)" --title "Page title"
 uv run "$(realpath skill://confluence-html-editor/scripts/review_confluence_publish.py)" --original "$(realpath local://fetched.html)" --proposed "$(realpath local://proposed.html)" --title "Page title" --page-id 123 --version-message "Polish page"
 ```
 
-   Errors block publish; review every warning. `review_confluence_publish.py` is for large or attachment-heavy updates. Node `edits` → run the edit set with `dryRun: true`, save the returned HTML to `local://proposed.html` and check it.
-5. **Write** with HTML content format, `snapshotToken`, concise version message.
-6. **Refetch.** Compare by intent; Confluence normalizes HTML. Rich pages → also fetch ADF and verify:
+   New page: no `--original`, no `--page-id`, reviewer `--operation create`:
 
 ```bash
-uv run "$(realpath skill://confluence-html-editor/scripts/verify_confluence_adf.py)" "$(realpath local://fetched-adf.json)" --expect panels,statuses,layouts,tasks,decisions,inline_cards,dates
+uv run "$(realpath skill://confluence-html-editor/scripts/check_confluence_html.py)" "$(realpath local://proposed.html)" --title "Page title"
+uv run "$(realpath skill://confluence-html-editor/scripts/review_confluence_publish.py)" --operation create --proposed "$(realpath local://proposed.html)" --title "Page title"
+```
+
+   Errors block publish; review every warning. `review_confluence_publish.py` is for large or attachment-heavy updates and new pages. Node `edits` → run the edit set with `dryRun: true`, save the returned HTML to `local://proposed.html` and check it.
+5. **Write** with HTML content format and a concise version message. Update: the latest `snapshotToken`. New page: `createConfluenceContent` with `parent: { spaceId, parentContentId }`, `contentType`, `title`, and `body`; no `snapshotToken`. Unrecognized parameters are silently ignored, so confirm the shape against the live schema before creating.
+6. **Refetch** (a new page: by the id the create call returned). Compare by intent; Confluence normalizes HTML. Rich pages → also fetch ADF and verify, passing `--expect` only the component types this page was built to contain (e.g. a page with panels and status lozenges: `panels,statuses`):
+
+```bash
+uv run "$(realpath skill://confluence-html-editor/scripts/verify_confluence_adf.py)" "$(realpath local://fetched-adf.json)" --expect panels,statuses
 ```
 
    Mermaid, draw.io, images, or embed cards added or touched → also check the rendered page; ADF can hold a valid-looking extension that renders as "Error while loading diagram". In `eval`, `browser.open({ name: "confluence", url: pageUrl, app: { relay: true } })` opens the page in the user's signed-in Chrome; once macros load, `tab.screenshot({ fullPage: true })`, inspect each diagram and image, then `browser.close({ name: "confluence" })`. View only: NEVER click, edit, or comment through the tab, because actions are attributed to the user. Relay unavailable or a sign-in page → report the rendered check as not run; NEVER claim the render verified.
 
-   One clear correction, then verify again. Write damaged the page → `restoreConfluenceContentVersion` to the prior version, then report. NEVER loop speculative writes.
+   One clear correction, then verify again. Update damaged the page → before restoring, check with `listConfluenceContentVersions` that the current version is still the one this operation wrote; if so, `restoreConfluenceContentVersion` to the prior version, then report. Another version has landed since → NEVER restore (it would discard someone else's edit); report the conflict and the versions involved. A damaged new page has no prior version to restore; report it. NEVER loop speculative writes.
 7. **Report** link, version, changes, unresolved issues.
 
 MCP text results (`{"content":[{"type":"text","text":"..."}]}`) are accepted directly by `verify_confluence_adf.py`. Splitting a saved fetch into body and metadata: [editing-workflow.md](skill://confluence-html-editor/references/editing-workflow.md#page-audit-before-a-risky-edit).
 
 ### Before publishing
 
-Atlassian tools discovered, live schema read, exact parameter names used · fetched with `detail="full"` · `snapshotToken` from the latest read on the write · space instructions and format guide loaded · node edits used where offered, else full body, with title/space/parent preserved · checker clean of errors, warnings reviewed · version message set.
+Atlassian tools discovered, live schema read, exact parameter names used · updates: fetched with `detail="full"` and `snapshotToken` from the latest read on the write · space instructions and format guide loaded · node edits used where offered, else full body, with title/space/parent preserved · checker clean of errors, warnings reviewed · version message set.
 
 ### After publishing
 

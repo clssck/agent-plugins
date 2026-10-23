@@ -41,9 +41,9 @@ Per Confluence page: resolve tiny URLs per [atlassian-integration.md](skill://ad
 | Atlassian access | User gave refs | Behavior |
 |:-:|:-:|:--|
 | Yes | Yes | Fetch all, summarize, confirm |
-| Yes | No | Skip step |
+| Yes | No | Skip user-reference fetching only; still search standards and fetch the Manifesto, summarize, confirm |
 | No | Yes | Inform user, record as Links, ask for manual summary |
-| No | No | Skip step |
+| No | No | Skip user-reference fetching; use the template principle list and say the live Manifesto was unavailable |
 
 ## 3. Gather Remaining Context
 

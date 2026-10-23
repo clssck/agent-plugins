@@ -73,10 +73,12 @@ def main() -> int:
         if source not in validators:
             try:
                 schema = load_schema(source)
-            except Exception as exc:  # network or file errors
+                validator_class = jsonschema.validators.validator_for(schema)
+                validator_class.check_schema(schema)
+                validators[source] = validator_class(schema)
+            except Exception as exc:  # network/file errors, malformed or null schema
                 print(f"VALIDATION UNAVAILABLE: cannot load schema {source}: {exc}")
                 return 2
-            validators[source] = jsonschema.validators.validator_for(schema)(schema)
         validator = validators[source]
         errors = sorted(validator.iter_errors(doc), key=lambda e: list(e.absolute_path))
         if not errors:

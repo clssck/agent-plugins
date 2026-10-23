@@ -183,7 +183,7 @@ Use [post-mortem-template.md](skill://incident-postmortem/references/post-mortem
 
 ### 9. Review and publish
 
-Reread against [blameless-language.md](skill://incident-postmortem/references/blameless-language.md); run Verification in SKILL.md before circulating.
+Reread against [blameless-language.md](skill://incident-postmortem/references/blameless-language.md); run [Verification](skill://incident-postmortem/SKILL.md#verification) in SKILL.md before circulating.
 
 ## Anti-patterns
 

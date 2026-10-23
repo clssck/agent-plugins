@@ -115,9 +115,14 @@ Any SEV1 criterion met? (check all independently)
   - core product surface fully or near-fully down
   - revenue-critical path broken > 5 min with no workaround
 ├── Yes → SEV1
-└── No → Is a user-facing feature materially degraded for > 5 min?
-         ├── Yes, meaningful user segment → SEV2
-         └── No, narrow impact with workaround → SEV3
+└── No → Any SEV2 criterion met? (check all independently; no minimum duration)
+         - error rate well above baseline (typically > 1% sustained) on a user-facing surface
+         - latency unusable (p95 > 10× baseline) on a core flow
+         - major feature broken for a subset of users
+         - partial data-processing failure delaying a business process
+         - recurring SEV3 incidents over short windows
+         ├── Yes → SEV2
+         └── No → SEV3 (narrow impact with workaround)
 ```
 
 Ambiguous flow result ⇒ pick the higher severity; incident review reclassifies later.

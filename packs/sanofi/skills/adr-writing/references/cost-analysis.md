@@ -12,16 +12,9 @@ Applies when an ADR involves infrastructure, cloud services, or tooling with var
 
 4. **Model multi-scenario projections** (e.g., 5, 10, 15 teams) to show how costs scale. Choose scenarios matching the ADR's decision drivers.
 
-5. **Provide wide-format and long-format tables:** wide for readability, long for Confluence Chart macro compatibility.
+5. **Provide wide-format and long-format tables:** wide for readability, long (one row per option and scenario) as chart-ready data.
 
-6. **Include a Confluence Chart macro snippet** if the user intends to publish to Confluence:
-
-   ```text
-   {chart:type=bar|title=Cost Comparison|yLabel=Monthly Cost (USD)}
-   || || Option A || Option B ||
-   | Scenario 1 | 1000 | 2000 |
-   {chart}
-   ```
+6. **Supply chart data and intent** if the user intends to publish to Confluence: keep the long-format table in the ADR, and state the intended visualization (e.g., grouped bar chart, x = scenario, y = monthly cost in USD, one series per option). NEVER write Confluence wiki markup or macro syntax here; `confluence-html-editor` owns the chart representation and publishing.
 
 ## Source Requirements
 

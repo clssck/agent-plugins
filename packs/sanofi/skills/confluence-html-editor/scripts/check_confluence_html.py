@@ -68,6 +68,8 @@ KNOWN_DATA_ATTRS = {
 LOCAL_POSIX_PATH = re.compile(
     r"^/(?:Users|home|private|var/folders|tmp|Volumes|mnt|root|opt|etc)(?:/|$)"
 )
+# Browsers drop leading/trailing C0 controls and spaces before parsing a URL.
+URL_EDGE_JUNK = re.compile(r"^[\s\x00-\x20]+|[\s\x00-\x20]+$")
 # HTML elements whose end tag may be omitted; implicit closure is legal.
 OPTIONAL_END_TAGS = {
     "p", "li", "dt", "dd", "tr", "td", "th", "thead", "tbody", "tfoot",
@@ -266,6 +268,7 @@ class BodyChecker(HTMLParser):
         return "td" in self.stack or "th" in self.stack
 
     def _check_urlish(self, value: str | None, attr: str, tag: str) -> None:
+        value = URL_EDGE_JUNK.sub("", value) if value else value
         if not value:
             self._warn(f"<{tag}> is missing {attr}")
             return

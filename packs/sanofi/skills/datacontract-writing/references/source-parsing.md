@@ -151,6 +151,8 @@ Constraints:
 
 Foreign keys: one column → property `relationships` (`to: pk_table_name.pk_column_name`). Several columns sharing a `fk_name` → schema-level `relationships` with `from: [source_table.a, source_table.b]` and `to: [t.x, t.y]`. NEVER emit independent per-column checks for a composite key.
 
+Every `relationships` reference (`to`, `from`) must match the ODCS pattern. Shorthand `table.column` only fits unquoted names matching `[A-Za-z_][A-Za-z0-9_]*`, so `"Customer Orders"."Customer ID"` is rejected. When a table or column name does not fit, keep the source name in `name`/`physicalName`, give the schema object and each referenced property an `id` of `[A-Za-z0-9_-]` characters (for example `customer_orders`, `customer_id`), and write the reference as `schema/<object_id>/properties/<property_id>` (for example `to: schema/customer_orders/properties/customer_id`). NEVER put quotes, spaces, or extra dots in a shorthand reference.
+
 Snowflake does not enforce PK/UNIQUE/FK on standard tables; treat them as declared metadata and say so in the contract description when relevant.
 
 Tags and classification (optional; needs a role with access to the objects, and `IMPORTED PRIVILEGES` on `SNOWFLAKE` for system classification tags):

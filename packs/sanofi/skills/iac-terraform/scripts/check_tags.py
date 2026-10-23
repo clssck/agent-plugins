@@ -136,14 +136,18 @@ def main() -> int:
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as err:
         print(f"error: cannot read plan JSON: {err}", file=sys.stderr)
         return 2
-    if "resource_changes" not in plan:
+    if not isinstance(plan, dict) or "resource_changes" not in plan:
         print("error: input has no resource_changes; use `terraform show -json <planfile>`", file=sys.stderr)
+        return 2
+    changes = plan["resource_changes"]
+    if not isinstance(changes, list) or not all(isinstance(rc, dict) for rc in changes):
+        print("error: resource_changes must be a list of objects; use `terraform show -json <planfile>`", file=sys.stderr)
         return 2
 
     checked = 0
     violations: list[tuple[str, list[str]]] = []
     unknown: list[tuple[str, str]] = []
-    for rc in plan["resource_changes"]:
+    for rc in changes:
         change = rc.get("change", {})
         if rc.get("mode") != "managed" or change.get("actions") == ["delete"]:
             continue

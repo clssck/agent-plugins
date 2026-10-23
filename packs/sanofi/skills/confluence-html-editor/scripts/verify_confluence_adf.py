@@ -135,11 +135,7 @@ def extract_adf(payload: Any) -> Any:
     return payload
 
 
-def text_contains_mermaid(value: Any) -> bool:
-    try:
-        return "mermaid" in json.dumps(value, sort_keys=True).lower()
-    except TypeError:
-        return "mermaid" in str(value).lower()
+MERMAID_EXTENSION_KEY_SUFFIX = "/static/mermaid-diagram"
 
 
 def node_url(attrs: dict[str, Any]) -> str | None:
@@ -209,19 +205,19 @@ def analyze_node(node: Any, stats: AdfStats, findings: list[Finding]) -> None:
             extension_key = attrs.get("extensionKey")
             if isinstance(extension_key, str) and extension_key:
                 stats.extension_keys[extension_key] += 1
+                if extension_key.endswith(MERMAID_EXTENSION_KEY_SUFFIX):
+                    stats.mermaid += 1
             else:
                 findings.append(Finding("warning", "Extension node is missing extensionKey"))
-            if text_contains_mermaid(attrs):
-                stats.mermaid += 1
         elif node_type in {"unsupportedBlock", "unsupportedInline"}:
             stats.unsupported += 1
             findings.append(Finding("error", f"ADF contains {node_type}"))
         elif node_type in {"media", "mediaSingle", "mediaGroup"}:
             stats.media += 1
 
-    for value in node.values():
-        if isinstance(value, (dict, list)):
-            analyze_node(value, stats, findings)
+    content = node.get("content")
+    if isinstance(content, list):
+        analyze_node(content, stats, findings)
 
 
 def parse_expect(values: Iterable[str] | None) -> set[str]:
