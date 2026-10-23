@@ -38,6 +38,29 @@ describe("maskFences", () => {
 	test("keeps inline code so heading slugs stay exact", () => {
 		expect(maskFences("## 12. Cache Poisoning and `cache-mode`")).toBe("## 12. Cache Poisoning and `cache-mode`");
 	});
+
+	test("an inner shorter or different fence cannot close the outer fence", () => {
+		const text = ["````md", "```", "<procedure>", "```", "~~~~", "<caution>", "````", "<critical>"].join("\n");
+		const masked = maskFences(text).split("\n");
+		expect(masked).toHaveLength(8);
+		expect(masked.slice(0, 7).every(line => line === "")).toBe(true);
+		expect(masked[7]).toBe("<critical>");
+	});
+
+	test("a tilde fence is closed only by a tilde run at least as long", () => {
+		const text = ["~~~~", "```", "~~~", "<procedure>", "~~~~~", "<critical>"].join("\n");
+		expect(maskFences(text).split("\n")).toEqual(["", "", "", "", "", "<critical>"]);
+	});
+
+	test("a closing fence cannot carry an info string, and a line with inline backticks opens nothing", () => {
+		expect(maskFences(["```", "```md", "<procedure>", "```", "<critical>"].join("\n")).split("\n")).toEqual(["", "", "", "", "<critical>"]);
+		expect(maskFences("```code``` <critical>")).toBe("```code``` <critical>");
+	});
+
+	test("payload tags inside a four-backtick block with an inner triple fence are not read as payload", () => {
+		const text = ["````md", "```", "<procedure>", "```", "<procedure>", "````"].join("\n");
+		expect(maskNonPayload(text)).not.toContain("<procedure>");
+	});
 });
 
 describe("maskNonPayload", () => {

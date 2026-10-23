@@ -10,6 +10,7 @@
 
  */
 
+import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { check } from "./sync";
 
@@ -22,6 +23,30 @@ if (!ompRootInput) {
 const OMP_ROOT = path.resolve(ompRootInput);
 const AGENT_SRC = path.join(OMP_ROOT, "packages/coding-agent/src");
 
+// Refuse any checkout that is not the reviewed commit before a single host module is loaded.
+const lock: unknown = await Bun.file(path.join(ROOT, "omp-source-lock.json")).json();
+const expectedCommit = lock && typeof lock === "object" && "reviewedCommit" in lock ? lock.reviewedCommit : undefined;
+if (typeof expectedCommit !== "string" || !/^[0-9a-f]{40}$/.test(expectedCommit)) {
+	console.error("omp-source-lock.json reviewedCommit must be a full 40-character SHA");
+	process.exit(2);
+}
+function git(...args: string[]): string | undefined {
+	const result = Bun.spawnSync(["git", "-C", OMP_ROOT, ...args], { stdout: "pipe", stderr: "pipe" });
+	return result.exitCode === 0 ? result.stdout.toString().trim() : undefined;
+}
+const toplevel = git("rev-parse", "--show-toplevel");
+if (!toplevel || (await fs.realpath(toplevel)) !== (await fs.realpath(OMP_ROOT).catch(() => OMP_ROOT))) {
+	console.error("OMP_ROOT is not the root of a Git checkout: " + OMP_ROOT);
+	process.exit(2);
+}
+const actualCommit = git("rev-parse", "HEAD");
+if (actualCommit !== expectedCommit) {
+	console.error("OMP_ROOT is not at the reviewed commit; refusing to load host modules from " + OMP_ROOT);
+	console.error("  expected: " + expectedCommit);
+	console.error("  actual:   " + (actualCommit ?? "unreadable"));
+	process.exit(1);
+}
+
 interface LoadedItem {
 	name: string;
 	path: string;
@@ -32,6 +57,12 @@ interface LoadedItem {
 interface CapabilityLoadResult<T> {
 	items: T[];
 	warnings: string[];
+}
+interface SlashCommandTemplate {
+	name: string;
+	description: string;
+	content: string;
+	source: string;
 }
 
 interface ExtensionRoots {
@@ -60,8 +91,14 @@ const extensionLoader = (await import(path.join(AGENT_SRC, "extensibility/extens
 };
 const customToolLoader = await import(path.join(AGENT_SRC, "extensibility/custom-tools/loader.ts"));
 const ruleRuntime = await import(path.join(AGENT_SRC, "export/ttsr.ts"));
+const slashCommands = (await import(path.join(AGENT_SRC, "extensibility/slash-commands.ts"))) as {
+	expandSlashCommand(text: string, fileCommands: SlashCommandTemplate[]): string;
+};
 const utils = (await import(path.join(OMP_ROOT, "packages/utils/src/frontmatter.ts"))) as {
-	parseFrontmatter(content: string, options?: { source?: unknown; level?: "off" | "warn" | "fatal" }): unknown;
+	parseFrontmatter(
+		content: string,
+		options?: { source?: unknown; level?: "off" | "warn" | "fatal" },
+	): { frontmatter: Record<string, unknown>; body: string };
 };
 const ruleCapability = (await import(path.join(AGENT_SRC, "capability/rule.ts"))) as {
 	compileRuleCondition(pattern: string): RegExp;
@@ -245,6 +282,36 @@ for (const [toolName, args, expected] of [
 		problems.push("SQL safety rule mismatch for " + toolName + ": " + JSON.stringify(args));
 	}
 }
+
+// Expand every shipped command through OMP's own slash-command path: user arguments must arrive as inert data,
+// so template-looking text (`{{missing}}`, block helpers, `$1`, HTML) is never evaluated, escaped, or dropped.
+const loadedCommands = await capability.loadCapability<LoadedItem & { content: string }>("slash-commands", {
+	cwd: ROOT,
+	providers: ["omp-plugins"],
+	extensionRoots,
+});
+const inertArguments = "{{missing}} {{#if x}}y{{/if}} {{> p}} <b>&</b> $1";
+let expandedCommands = 0;
+for (const command of loadedCommands.items) {
+	const template: SlashCommandTemplate = {
+		name: command.name,
+		description: "",
+		content: utils.parseFrontmatter(command.content, { source: command.path, level: "warn" }).body,
+		source: command.path,
+	};
+	let expanded: string;
+	try {
+		expanded = slashCommands.expandSlashCommand("/" + command.name + " " + inertArguments, [template]);
+	} catch (error) {
+		problems.push("OMP could not expand command /" + command.name + " with template-like arguments: " + String(error));
+		continue;
+	}
+	expandedCommands++;
+	if (!expanded.includes(inertArguments)) {
+		problems.push("Command /" + command.name + " did not preserve literal arguments: " + JSON.stringify(inertArguments));
+	}
+}
+totals.push(expandedCommands + " command expansions");
 
 const customPaths = packs.flatMap((pack) =>
 	pack.tools.map((item) => ({ path: path.resolve(ROOT, pack.dir, item.file) })),

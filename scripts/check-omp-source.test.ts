@@ -1,5 +1,15 @@
 import { describe, expect, test } from "bun:test";
-import { driftMarker, findNotificationIssue, type Issue, notify, notifyAction, resolvedBody, type SourceLock } from "./check-omp-source";
+import {
+	driftMarker,
+	findNotificationIssue,
+	type Issue,
+	NOTIFICATION_AUTHOR,
+	notify,
+	notifyAction,
+	OWNERSHIP_MARKER,
+	resolvedBody,
+	type SourceLock,
+} from "./check-omp-source";
 
 const REPOSITORY = "clssck/agent-plugins";
 const TITLE = "OMP source baseline changed";
@@ -13,9 +23,19 @@ const lock: SourceLock = {
 const drift = { ".omp/skills": "2".repeat(40) };
 const marker = driftMarker(drift);
 
+/** An issue this automation owns: authored by the workflow bot and carrying the ownership marker. */
 function issue(number: number, overrides: Partial<Issue> = {}): Issue {
-	return { number, title: TITLE, body: null, state: "open", ...overrides };
+	const body = overrides.body ? `${overrides.body}\n\n${OWNERSHIP_MARKER}` : OWNERSHIP_MARKER;
+	return { number, title: TITLE, state: "open", user: { login: NOTIFICATION_AUTHOR }, ...overrides, body };
 }
+
+/** A same-title issue the automation does not own; `body` is used verbatim. */
+function foreign(number: number, overrides: Partial<Issue> = {}): Issue {
+	return { number, title: TITLE, body: null, state: "open", user: { login: "someone-else" }, ...overrides };
+}
+
+/** A GitHub Actions run on main in the notification repository. */
+const MAIN_ENV = { GITHUB_REPOSITORY: REPOSITORY, GITHUB_ACTIONS: "true", GITHUB_REF: "refs/heads/main" };
 
 interface Call {
 	endpoint: string;
@@ -75,6 +95,18 @@ describe("findNotificationIssue", () => {
 		expect(await findNotificationIssue(REPOSITORY, TITLE, fakeGitHub([closedOld, closedNew, openIssue]).request)).toBe(openIssue);
 		expect(await findNotificationIssue(REPOSITORY, TITLE, fakeGitHub([closedOld, closedNew]).request)).toBe(closedOld);
 	});
+
+	test("skips foreign same-title issues, whatever their body or author", async () => {
+		const owned = issue(9, { state: "closed" });
+		const lookalikes = [
+			foreign(1, { body: marker }),
+			foreign(2, { body: OWNERSHIP_MARKER }),
+			foreign(3, { body: OWNERSHIP_MARKER, user: null }),
+			foreign(4, { body: marker, user: { login: NOTIFICATION_AUTHOR } }),
+		];
+		expect(await findNotificationIssue(REPOSITORY, TITLE, fakeGitHub(lookalikes).request)).toBeUndefined();
+		expect(await findNotificationIssue(REPOSITORY, TITLE, fakeGitHub([...lookalikes, owned]).request)).toBe(owned);
+	});
 });
 
 describe("notifyAction", () => {
@@ -111,14 +143,36 @@ describe("resolvedBody", () => {
 });
 
 describe("notify", () => {
-	test("refuses to run outside the notification repository", async () => {
-		await expect(notify(lock, "b".repeat(40), drift, true, fakeGitHub([]).request, "someone/else")).rejects.toThrow("Refusing to notify");
+	test("refuses to run outside the notification repository before any request", async () => {
+		const { calls, request } = fakeGitHub([]);
+		await expect(notify(lock, "b".repeat(40), drift, true, request, { ...MAIN_ENV, GITHUB_REPOSITORY: "someone/else" })).rejects.toThrow(
+			"Refusing to notify",
+		);
+		await expect(notify(lock, "b".repeat(40), drift, true, request, {})).rejects.toThrow("<unset>");
+		expect(calls).toEqual([]);
+	});
+
+	test("refuses a GitHub Actions run on any ref but main before any request", async () => {
+		const { calls, request } = fakeGitHub([issue(7, { body: marker })]);
+		for (const ref of ["refs/heads/feature", "refs/pull/12/merge", "refs/tags/v1", undefined]) {
+			await expect(notify(lock, "b".repeat(40), drift, true, request, { ...MAIN_ENV, GITHUB_REF: ref })).rejects.toThrow("Refusing to notify");
+			await expect(notify(lock, "b".repeat(40), lock.trees, false, request, { ...MAIN_ENV, GITHUB_REF: ref })).rejects.toThrow(
+				"Refusing to notify",
+			);
+		}
+		expect(calls).toEqual([]);
+	});
+
+	test("a run outside GitHub Actions may notify from any local ref", async () => {
+		const { calls, request } = fakeGitHub([]);
+		await notify(lock, "b".repeat(40), drift, true, request, { GITHUB_REPOSITORY: REPOSITORY, GITHUB_REF: "refs/heads/feature" });
+		expect(writes(calls)).toHaveLength(1);
 	});
 
 	test("reuses a closed issue on a later page instead of opening a duplicate", async () => {
 		const existing = issue(150, { state: "closed", body: resolvedBody(`old\n\n${marker}`) });
 		const { calls, request } = fakeGitHub([...filler(100, 1), ...filler(49, 101), existing]);
-		await notify(lock, "b".repeat(40), drift, true, request, REPOSITORY);
+		await notify(lock, "b".repeat(40), drift, true, request, MAIN_ENV);
 		const [patch, comment] = writes(calls);
 		expect(writes(calls).some(call => call.method === "POST" && call.endpoint.endsWith("/issues"))).toBe(false);
 		expect(patch.endpoint).toBe(`/repos/${REPOSITORY}/issues/150`);
@@ -129,7 +183,7 @@ describe("notify", () => {
 
 	test("an unchanged dismissed drift writes nothing", async () => {
 		const { calls, request } = fakeGitHub([issue(7, { state: "closed", body: marker })]);
-		await notify(lock, "b".repeat(40), drift, true, request, REPOSITORY);
+		await notify(lock, "b".repeat(40), drift, true, request, MAIN_ENV);
 		expect(writes(calls)).toEqual([]);
 	});
 
@@ -141,7 +195,7 @@ describe("notify", () => {
 		const resolved = issue(5, { state: "closed", body: resolvedBody("done") });
 
 		const match = fakeGitHub([closedOld, openNew, resolved]);
-		await notify(lock, "b".repeat(40), lock.trees, false, match.request, REPOSITORY);
+		await notify(lock, "b".repeat(40), lock.trees, false, match.request, MAIN_ENV);
 		const patches = writes(match.calls);
 		expect(patches.map(call => call.endpoint)).toEqual([`/repos/${REPOSITORY}/issues/3`, `/repos/${REPOSITORY}/issues/4`]);
 		expect(patches[0].body).not.toHaveProperty("state");
@@ -158,7 +212,7 @@ describe("notify", () => {
 			resolved,
 		];
 		const recurrence = fakeGitHub(afterMatch);
-		await notify(lock, "b".repeat(40), olderDrift, true, recurrence.request, REPOSITORY);
+		await notify(lock, "b".repeat(40), olderDrift, true, recurrence.request, MAIN_ENV);
 		const [refresh] = writes(recurrence.calls);
 		expect(refresh.endpoint).toBe(`/repos/${REPOSITORY}/issues/3`);
 		expect(refresh.body).toMatchObject({ state: "open", assignees: ["clssck"] });
@@ -167,7 +221,7 @@ describe("notify", () => {
 
 	test("resolving closes the open issue and records the resolved state in its body", async () => {
 		const { calls, request } = fakeGitHub([issue(7, { body: `report\n\n${marker}` })]);
-		await notify(lock, "b".repeat(40), lock.trees, false, request, REPOSITORY);
+		await notify(lock, "b".repeat(40), lock.trees, false, request, MAIN_ENV);
 		const [patch] = writes(calls);
 		expect(patch.body).toMatchObject({ state: "closed" });
 		expect(String(patch.body?.body)).toContain("<!-- omp-source-resolved -->");
@@ -176,10 +230,84 @@ describe("notify", () => {
 
 	test("opens an issue when none exists on any page", async () => {
 		const { calls, request } = fakeGitHub(filler(3, 1));
-		await notify(lock, "b".repeat(40), drift, true, request, REPOSITORY);
+		await notify(lock, "b".repeat(40), drift, true, request, MAIN_ENV);
 		const [created] = writes(calls);
 		expect(created.method).toBe("POST");
 		expect(created.endpoint).toBe(`/repos/${REPOSITORY}/issues`);
 		expect(String(created.body?.body)).toContain(marker);
+		expect(String(created.body?.body)).toContain(OWNERSHIP_MARKER);
+	});
+
+	test("a foreign same-title issue is never mutated and does not suppress creating an owned issue", async () => {
+		const lookalikes = [
+			foreign(1, { body: marker }),
+			foreign(2, { body: `${marker}\n\n${OWNERSHIP_MARKER}` }),
+			foreign(3, { body: OWNERSHIP_MARKER, user: { login: "github-actions" } }),
+			foreign(4, { body: OWNERSHIP_MARKER, user: null }),
+			foreign(5, { body: marker, user: { login: NOTIFICATION_AUTHOR } }),
+		];
+		const { calls, request } = fakeGitHub(lookalikes);
+		await notify(lock, "b".repeat(40), drift, true, request, MAIN_ENV);
+		const [created, ...rest] = writes(calls);
+		expect(rest).toEqual([]);
+		expect(created.method).toBe("POST");
+		expect(created.endpoint).toBe(`/repos/${REPOSITORY}/issues`);
+		expect(String(created.body?.body)).toContain(OWNERSHIP_MARKER);
+	});
+
+	test("a baseline match never closes or rewrites a foreign same-title issue", async () => {
+		const { calls, request } = fakeGitHub([
+			foreign(1, { body: `report\n\n${marker}` }),
+			foreign(2, { state: "closed", body: `report\n\n${marker}` }),
+			foreign(3, { body: `report\n\n${marker}`, user: { login: NOTIFICATION_AUTHOR } }),
+		]);
+		await notify(lock, "b".repeat(40), lock.trees, false, request, MAIN_ENV);
+		expect(writes(calls)).toEqual([]);
+	});
+
+	test("new drift refreshes the owned issue and leaves a foreign duplicate alone", async () => {
+		const oldMarker = driftMarker({ ".omp/skills": "3".repeat(40) });
+		const { calls, request } = fakeGitHub([foreign(1, { body: oldMarker }), issue(2, { state: "closed", body: oldMarker })]);
+		await notify(lock, "b".repeat(40), drift, true, request, MAIN_ENV);
+		const [patch, comment, ...rest] = writes(calls);
+		expect(rest).toEqual([]);
+		expect(patch.endpoint).toBe(`/repos/${REPOSITORY}/issues/2`);
+		expect(patch.body).toMatchObject({ state: "open", assignees: ["clssck"] });
+		expect(String(patch.body?.body)).toContain(marker);
+		expect(String(patch.body?.body)).toContain(OWNERSHIP_MARKER);
+		expect(comment.endpoint).toBe(`/repos/${REPOSITORY}/issues/2/comments`);
+	});
+
+	test("a baseline match closes only owned duplicates and keeps their ownership", async () => {
+		const { calls, request } = fakeGitHub([
+			foreign(1, { body: `report\n\n${marker}` }),
+			issue(2, { body: `report\n\n${marker}` }),
+			foreign(3, { body: `report\n\n${marker}` }),
+			issue(4, { state: "closed", body: `report\n\n${marker}` }),
+		]);
+		await notify(lock, "b".repeat(40), lock.trees, false, request, MAIN_ENV);
+		const patches = writes(calls);
+		expect(patches.map(call => call.endpoint)).toEqual([`/repos/${REPOSITORY}/issues/2`, `/repos/${REPOSITORY}/issues/4`]);
+		expect(patches[0].body).toMatchObject({ state: "closed" });
+		expect(patches[1].body).not.toHaveProperty("state");
+		for (const patch of patches) {
+			expect(String(patch.body?.body)).toContain(OWNERSHIP_MARKER);
+			expect(String(patch.body?.body)).toContain("<!-- omp-source-resolved -->");
+		}
+	});
+
+	test("an unchanged owned report beside a foreign same-title issue writes nothing", async () => {
+		const { calls, request } = fakeGitHub([foreign(1), issue(2, { body: marker })]);
+		await notify(lock, "b".repeat(40), drift, true, request, MAIN_ENV);
+		expect(writes(calls)).toEqual([]);
+	});
+
+	test("every issue body this automation writes is recognised as owned on the next run", async () => {
+		const first = fakeGitHub([]);
+		await notify(lock, "b".repeat(40), drift, true, first.request, MAIN_ENV);
+		const created = String(writes(first.calls)[0].body?.body);
+		const second = fakeGitHub([{ number: 5, title: TITLE, body: created, state: "open", user: { login: NOTIFICATION_AUTHOR } }]);
+		await notify(lock, "b".repeat(40), drift, true, second.request, MAIN_ENV);
+		expect(writes(second.calls)).toEqual([]);
 	});
 });

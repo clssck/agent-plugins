@@ -68,7 +68,8 @@ export function headingSlug(heading: string): string {
 /** Blank out frontmatter and fenced blocks; inline code stays, since headings may contain it. */
 export function maskFences(text: string): string {
 	const lines = text.split("\n");
-	let fenced = false;
+	// An open fence closes only on the same character, at least as long as its opener, with nothing after it.
+	let fence: { char: string; length: number } | undefined;
 	let frontmatter = false;
 	return lines
 		.map((line, index) => {
@@ -80,12 +81,18 @@ export function maskFences(text: string): string {
 				if (line.trim() === "---") frontmatter = false;
 				return "";
 			}
-			if (/^\s*(```|~~~)/.test(line)) {
-				// A fence toggles: the opening and closing lines are never payload either.
-				fenced = !fenced;
+			if (fence) {
+				const closing = line.match(/^\s*(`{3,}|~{3,})\s*$/)?.[1];
+				if (closing && closing[0] === fence.char && closing.length >= fence.length) fence = undefined;
 				return "";
 			}
-			return fenced ? "" : line;
+			// A backtick fence's info string cannot contain a backtick; such a line is inline code, not a fence.
+			const opening = line.match(/^\s*(`{3,}(?=[^`]*$)|~{3,})/)?.[1];
+			if (opening) {
+				fence = { char: opening[0]!, length: opening.length };
+				return "";
+			}
+			return line;
 		})
 		.join("\n");
 }

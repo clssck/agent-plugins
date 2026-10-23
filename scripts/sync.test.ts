@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { chmod, mkdir, mkdtemp, rm, symlink, truncate, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
-import { generatedTreeDigest, generatedTreeProblems, stampGeneratedTree, upstreamPath } from "./sync";
+import { generatedTreeDigest, generatedTreeProblems, inspectPack, stampGeneratedTree, upstreamPath } from "./sync";
 
 let dir: string;
 
@@ -165,4 +165,39 @@ describe("generated tree integrity", () => {
 		expect((await generatedTreeProblems(dir)).join("\n")).toContain("skills-alias (symlink)");
 	});
 
+});
+
+describe("pack inspection", () => {
+	async function pack(omp: unknown, rules: Record<string, string> = {}): Promise<string> {
+		const packDir = path.join(dir, "demo");
+		await mkdir(path.join(packDir, "rules"), { recursive: true });
+		await writeFile(path.join(packDir, "package.json"), JSON.stringify({ name: "demo", version: "1.0.0", omp }));
+		for (const [name, content] of Object.entries(rules)) await writeFile(path.join(packDir, "rules", name), content);
+		return packDir;
+	}
+
+	test("an omp manifest field must be a non-null, non-array object", async () => {
+		for (const omp of [null, [], "x", 1]) {
+			const errors: string[] = [];
+			await inspectPack(await pack(omp), undefined, errors);
+			expect(errors.join("\n")).toContain('needs an "omp" object');
+		}
+		const errors: string[] = [];
+		await inspectPack(await pack({}), undefined, errors);
+		expect(errors).toEqual([]);
+	});
+
+	test("rules whose frontmatter sets enabled: false are not discovered, like OMP", async () => {
+		const errors: string[] = [];
+		const inspected = await inspectPack(
+			await pack({}, {
+				"on.md": "---\ncondition: x\n---\nBody\n",
+				"off.md": "---\nenabled: false\ncondition: x\n---\nBody\n",
+				"plain.md": "Body\n",
+			}),
+			undefined,
+			errors,
+		);
+		expect(inspected?.rules.map(rule => rule.name).sort()).toEqual(["on", "plain"]);
+	});
 });

@@ -672,8 +672,9 @@ function githubRepository(value: unknown): string | undefined {
 	return slug.split("/").length === 2 ? slug : undefined;
 }
 
-async function inspectPack(dir: string, upstream: Upstream | undefined, errors: string[]): Promise<Pack | undefined> {
-	const packDir = path.join(ROOT, dir);
+/** Statically inspect one pack; `dir` is relative to the repository root unless absolute. */
+export async function inspectPack(dir: string, upstream: Upstream | undefined, errors: string[]): Promise<Pack | undefined> {
+	const packDir = path.resolve(ROOT, dir);
 	const manifest = await readJson<{
 		name?: string;
 		version?: string;
@@ -681,7 +682,7 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 		repository?: string;
 		sync?: Partial<SyncRecord>;
 		ompSkillReferences?: OmpSkillReferences;
-		omp?: { extensions?: string[] };
+		omp?: unknown;
 	}>(path.join(packDir, "package.json"));
 	if (!manifest) {
 		errors.push(`${dir}: missing package.json`);
@@ -690,7 +691,8 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 	const label = manifest.name ?? dir;
 	if (manifest.name !== path.basename(dir)) errors.push(`${dir}: package.json name must be "${path.basename(dir)}"`);
 	if (!manifest.version) errors.push(`${label}: package.json has no version`);
-	if (typeof manifest.omp !== "object") errors.push(`${label}: package.json needs an "omp" object, or OMP ignores the pack`);
+	const omp = manifest.omp && typeof manifest.omp === "object" && !Array.isArray(manifest.omp) ? (manifest.omp as { extensions?: string[] }) : undefined;
+	if (!omp) errors.push(`${label}: package.json needs an "omp" object, or OMP ignores the pack`);
 	if (upstream) {
 		const expectedVersion = `0.0.0-g${upstream.sha.slice(0, 7)}`;
 		if (manifest.version !== expectedVersion) errors.push(`${label}: generated version must be ${expectedVersion}`);
@@ -741,7 +743,11 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 		}
 		agents.push(item(file, meta?.name));
 	}
-	const rules = (await flatMarkdown(packDir, "rules", /\.mdc?$/, errors, label)).map(file => item(file));
+	// OMP's discoverRuleFromMarkdown drops a rule whose frontmatter sets `enabled: false`.
+	const rules: Item[] = [];
+	for (const file of await flatMarkdown(packDir, "rules", /\.mdc?$/, errors, label)) {
+		if (frontmatter(await Bun.file(path.join(packDir, file)).text())?.enabled !== false) rules.push(item(file));
+	}
 	const commands = (await flatMarkdown(packDir, "commands", /\.md$/, errors, label)).map(file => item(file));
 	const tools: Item[] = [];
 	for (const entry of await entries(path.join(packDir, "tools"))) {
@@ -754,7 +760,7 @@ async function inspectPack(dir: string, upstream: Upstream | undefined, errors: 
 		const file = path.posix.join("tools", entry.name, "index.ts");
 		if (await Bun.file(path.join(packDir, file)).exists()) tools.push(item(file, entry.name));
 	}
-	const extensions = manifest.omp?.extensions ?? [];
+	const extensions = omp?.extensions ?? [];
 	for (const extension of extensions) {
 		if (!(await Bun.file(path.join(packDir, extension)).exists())) errors.push(`${label}: extension ${extension} does not exist`);
 	}
@@ -895,6 +901,20 @@ export function commitStamp(commit: Commit | undefined): string {
 		: "—";
 }
 
+/** Escape the characters that end or split a Markdown link label inside a table cell. */
+export function escapeLabel(label: string): string {
+	return label.replace(/[\\[\]|]/g, "\\$&");
+}
+
+/** GitHub blob URL; every path segment is percent-encoded, including the parentheses that would end a Markdown link. */
+export function blobUrl(repository: string, ref: string, filePath: string): string {
+	const encoded = filePath
+		.split("/")
+		.map(segment => encodeURIComponent(segment).replace(/[()]/g, character => `%${character.charCodeAt(0).toString(16).toUpperCase()}`))
+		.join("/");
+	return `https://github.com/${repository}/blob/${ref}/${encoded}`;
+}
+
 export async function renderReadme(sources: Sources, packs: Pack[], commits?: ReadmeCommits): Promise<string> {
 	const repo = sources.repository;
 	const localCommits = commits?.local ?? localLastCommits(repo);
@@ -904,14 +924,14 @@ export async function renderReadme(sources: Sources, packs: Pack[], commits?: Re
 		if (pack.upstream) {
 			return {
 				at: pack.upstream.repo,
-				url: `https://github.com/${pack.upstream.repo}/blob/${pack.upstream.sha}/${upstreamPath(pack, item.file)}`,
+				url: blobUrl(pack.upstream.repo, pack.upstream.sha, upstreamPath(pack, item.file)),
 				commit: upstreamCommits.get(`${pack.name}/${path.posix.dirname(item.file)}`),
 			};
 		}
 		const commit = localCommits.get(path.posix.join(pack.dir, item.file));
 		return {
 			at: pack.repository ?? repo,
-			url: `https://github.com/${repo}/blob/${commit?.sha ?? "main"}/${pack.dir}/${item.file}`,
+			url: blobUrl(repo, commit?.sha ?? "main", `${pack.dir}/${item.file}`),
 			commit,
 		};
 	};
@@ -921,7 +941,7 @@ export async function renderReadme(sources: Sources, packs: Pack[], commits?: Re
 			.sort((a, b) => `${a.pack.name}/${a.item.name}`.localeCompare(`${b.pack.name}/${b.item.name}`))
 			.map(({ pack, item }) => {
 				const link = source(pack, item);
-				return `| [${item.name}](${link.url}) | \`${pack.name}\` | \`${pack.version}\` | [${link.at}](https://github.com/${link.at}) | ${commitStamp(link.commit)} |`;
+				return `| [${escapeLabel(item.name)}](${link.url}) | \`${pack.name}\` | \`${pack.version}\` | [${link.at}](https://github.com/${link.at}) | ${commitStamp(link.commit)} |`;
 			});
 		if (rows.length === 0) return [];
 		return [`## ${kind}`, "", `| ${kind.slice(0, -1)} | Pack | Version | Source | Last updated |`, "| --- | --- | --- | --- | --- |", ...rows, ""];

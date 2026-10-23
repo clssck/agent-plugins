@@ -112,6 +112,7 @@ jobs:
           git push origin HEAD:refs/heads/main
 
   omp-baseline:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -132,6 +133,7 @@ jobs:
 
   # Vendored upstreams are never synced: a change opens one assigned issue so a maintainer can port it by hand.
   upstream-watch:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read

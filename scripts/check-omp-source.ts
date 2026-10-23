@@ -24,8 +24,13 @@ export interface Issue {
 	title: string;
 	body: string | null;
 	state: "open" | "closed";
+	/** Null when the author account was deleted. */
+	user: { login: string } | null;
 	pull_request?: unknown;
 }
+
+/** Process environment fields that decide whether this run may write issues. */
+export type NotifyEnv = Record<string, string | undefined>;
 
 const LOCK_PATH = path.resolve(import.meta.dir, "..", "omp-source-lock.json");
 
@@ -35,6 +40,11 @@ const ISSUES_PER_PAGE = 100;
 const RESOLVED_MARKER = "<!-- omp-source-resolved -->";
 const DRIFT_MARKER_LINE = /^<!-- omp-source-current:[0-9a-f]+ -->[ \t]*$/gm;
 const DRIFT_MARKER = /<!-- omp-source-current:[0-9a-f]+ -->/;
+/** Login GitHub records as the author of issues created with the workflow's `github.token`. */
+export const NOTIFICATION_AUTHOR = "github-actions[bot]";
+/** Stable hidden marker in every body this automation writes; unlike the drift marker it never changes. */
+export const OWNERSHIP_MARKER = "<!-- agent-plugins:omp-source-notification -->";
+const NOTIFY_REF = "refs/heads/main";
 
 async function rest<T>(endpoint: string, init: RequestInit, allowed: number[]): Promise<T> {
 	const token = process.env.GITHUB_TOKEN;
@@ -88,8 +98,27 @@ function issueBody(lock: SourceLock, head: string, current: Record<string, strin
 		"",
 		"`clssck` is first-party and is not synced. Review the diff, adapt anything useful by hand, then update `omp-source-lock.json` to the reviewed commit and tree.",
 		"",
+		OWNERSHIP_MARKER,
 		marker,
 	].join("\n");
+}
+
+/** Only issues this automation created may be selected or written: authored by the workflow bot and carrying the ownership marker. */
+export function isOwned(issue: Issue): boolean {
+	return issue.user?.login === NOTIFICATION_AUTHOR && (issue.body ?? "").includes(OWNERSHIP_MARKER);
+}
+
+/**
+ * Refuse to notify from a repository other than the configured one, or from a GitHub Actions run on any ref but main.
+ * Runs outside GitHub Actions skip the ref check so maintainers can notify manually.
+ */
+export function assertNotifyContext(repository: string, env: NotifyEnv = process.env): void {
+	if (env.GITHUB_REPOSITORY !== repository) {
+		throw new Error(`Refusing to notify ${repository} from GITHUB_REPOSITORY=${env.GITHUB_REPOSITORY ?? "<unset>"}`);
+	}
+	if (env.GITHUB_ACTIONS === "true" && env.GITHUB_REF !== NOTIFY_REF) {
+		throw new Error(`Refusing to notify ${repository} from GITHUB_REF=${env.GITHUB_REF ?? "<unset>"}; only ${NOTIFY_REF} may write issues`);
+	}
 }
 
 export type NotifyAction = "create" | "refresh" | "close" | "resolve" | "none";
@@ -125,11 +154,14 @@ export function driftMarker(current: Record<string, string | null>): string {
 interface NotificationIssues {
 	/** The issue drift is reported in: an open issue if any, otherwise the oldest. */
 	canonical: Issue | undefined;
-	/** Every same-title non-PR issue, oldest first; duplicates may carry stale drift markers. */
+	/** Every same-title non-PR issue this automation owns, oldest first; duplicates may carry stale drift markers. */
 	matches: Issue[];
 }
 
-/** Scan every issue page (never just the newest) for same-title issues; pull requests are excluded. */
+/**
+ * Scan every issue page (never just the newest) for same-title issues this automation owns; pull requests and foreign
+ * issues (another author, or no ownership marker) are excluded.
+ */
 async function scanNotificationIssues(repository: string, title: string, request: Request): Promise<NotificationIssues> {
 	const matches: Issue[] = [];
 	let canonical: Issue | undefined;
@@ -140,7 +172,7 @@ async function scanNotificationIssues(repository: string, title: string, request
 			[200],
 		);
 		for (const issue of issues) {
-			if (issue.pull_request || issue.title !== title) continue;
+			if (issue.pull_request || issue.title !== title || !isOwned(issue)) continue;
 			matches.push(issue);
 			if (!canonical || (issue.state === "open" && canonical.state !== "open")) canonical = issue;
 		}
@@ -148,7 +180,7 @@ async function scanNotificationIssues(repository: string, title: string, request
 	}
 }
 
-/** Scan every issue page (never just the newest) for the notification issue; pull requests are excluded. Prefers an open issue, then the oldest. */
+/** Scan every issue page (never just the newest) for the owned notification issue; pull requests and foreign issues are excluded. Prefers an open issue, then the oldest. */
 export async function findNotificationIssue(repository: string, title: string, request: Request = rest): Promise<Issue | undefined> {
 	return (await scanNotificationIssues(repository, title, request)).canonical;
 }
@@ -159,12 +191,10 @@ export async function notify(
 	current: Record<string, string | null>,
 	changed: boolean,
 	request: Request = rest,
-	githubRepository: string | undefined = process.env.GITHUB_REPOSITORY,
+	env: NotifyEnv = process.env,
 ): Promise<void> {
 	const { repository, assignee, issueTitle } = lock.notification;
-	if (githubRepository !== repository) {
-		throw new Error(`Refusing to notify ${repository} from GITHUB_REPOSITORY=${githubRepository ?? "<unset>"}`);
-	}
+	assertNotifyContext(repository, env);
 	const { canonical: existing, matches } = await scanNotificationIssues(repository, issueTitle, request);
 	const marker = driftMarker(current);
 	if (!changed) {
@@ -214,6 +244,8 @@ if (import.meta.main) {
 	if (!lock.repository || !lock.ref || !lock.reviewedCommit || Object.keys(lock.trees ?? {}).length === 0) {
 		throw new Error(`Invalid OMP source lock: ${LOCK_PATH}`);
 	}
+	// Refuse a wrong repository or ref before spending any API calls.
+	if (process.argv.includes("--notify")) assertNotifyContext(lock.notification.repository);
 	const current = await currentTrees(lock);
 	const changed = Object.keys(lock.trees).sort().filter(sourcePath => lock.trees[sourcePath] !== current.trees[sourcePath]);
 	if (process.argv.includes("--notify")) await notify(lock, current.head, current.trees, changed.length > 0);

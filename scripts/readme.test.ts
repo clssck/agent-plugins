@@ -60,4 +60,25 @@ describe("README commit links", () => {
 		expect(readme).toContain("covers all material authored in this repository");
 		expect(readme).toContain("`local-pack`");
 	});
+
+	test("normal item rows render exactly as plain links", async () => {
+		const readme = await renderReadme(sources, [localPack] as never, commits());
+		expect(readme).toContain(`| [mine](https://github.com/${LOCAL_REPO}/blob/${LOCAL_SHA}/packs/local-pack/skills/mine/SKILL.md) | \`local-pack\` |`);
+	});
+
+	test("labels escape table and link syntax; every path segment is percent-encoded", async () => {
+		const file = "skills/a b#c?d(e)/SKILL.md";
+		const pack = { ...localPack, skills: [{ name: "pipe|[x]\\y", file }] };
+		const readme = await renderReadme(sources, [pack] as never, { local: new Map(), upstream: new Map() });
+		const row = readme.split("\n").find(line => line.startsWith("| [pipe"))!;
+		expect(row.startsWith("| [pipe\\|\\[x\\]\\\\y](")).toBe(true);
+		expect(row).toContain(`](https://github.com/${LOCAL_REPO}/blob/main/packs/local-pack/skills/a%20b%23c%3Fd%28e%29/SKILL.md) |`);
+	});
+
+	test("upstream item URLs encode the upstream path the same way", async () => {
+		const pack = { ...upstreamPack, skills: [{ name: "odd", file: "skills/x y#z/SKILL.md" }] };
+		const readme = await renderReadme(sources, [pack] as never, { local: new Map(), upstream: new Map() });
+		const row = readme.split("\n").find(line => line.startsWith("| [odd]"))!;
+		expect(row).toContain(`](https://github.com/${UPSTREAM_REPO}/blob/${PIN_SHA}/skills/x%20y%23z/SKILL.md) |`);
+	});
 });

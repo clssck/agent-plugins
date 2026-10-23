@@ -34,8 +34,13 @@ export interface Issue {
 	title: string;
 	body: string | null;
 	state: "open" | "closed";
+	/** Null when the author account was deleted. */
+	user: { login: string } | null;
 	pull_request?: unknown;
 }
+
+/** Process environment fields that decide whether this run may write issues. */
+export type NotifyEnv = Record<string, string | undefined>;
 
 export type Request = <T>(endpoint: string, init: RequestInit, allowed: number[]) => Promise<T>;
 
@@ -47,6 +52,11 @@ const DRIFT_MARKER_LINE = /^<!-- upstream-watch-current:[0-9a-f]+ -->[ \t]*$/gm;
 const DRIFT_MARKER = /<!-- upstream-watch-current:[0-9a-f]+ -->/;
 const REPOSITORY_SLUG = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const COMMIT_SHA = /^[0-9a-f]{40}$/;
+/** Login GitHub records as the author of issues created with the workflow's `github.token`. */
+export const NOTIFICATION_AUTHOR = "github-actions[bot]";
+/** Stable hidden marker in every body this automation writes; unlike the drift markers it never changes. */
+export const OWNERSHIP_MARKER = "<!-- agent-plugins:upstream-watch-notification -->";
+const NOTIFY_REF = "refs/heads/main";
 
 async function rest<T>(endpoint: string, init: RequestInit, allowed: number[]): Promise<T> {
 	const token = process.env.GITHUB_TOKEN;
@@ -181,8 +191,27 @@ export function issueBody(config: WatchConfig, source: WatchSource, state: Sourc
 		`4. Update \`reviewedCommit\` for \`${source.name}\` in \`upstream-watch.json\` to \`${state.latest}\` (or the newest upstream commit you reviewed).`,
 		"5. Close this issue. The next run also closes it once the pin is current.",
 		"",
+		OWNERSHIP_MARKER,
 		marker,
 	].join("\n");
+}
+
+/** Only issues this automation created may be selected or written: authored by the workflow bot and carrying the ownership marker. */
+export function isOwned(issue: Issue): boolean {
+	return issue.user?.login === NOTIFICATION_AUTHOR && (issue.body ?? "").includes(OWNERSHIP_MARKER);
+}
+
+/**
+ * Refuse to notify from a repository other than the configured one, or from a GitHub Actions run on any ref but main.
+ * Runs outside GitHub Actions skip the ref check so maintainers can notify manually.
+ */
+export function assertNotifyContext(repository: string, env: NotifyEnv = process.env): void {
+	if (env.GITHUB_REPOSITORY !== repository) {
+		throw new Error(`Refusing to notify ${repository} from GITHUB_REPOSITORY=${env.GITHUB_REPOSITORY ?? "<unset>"}`);
+	}
+	if (env.GITHUB_ACTIONS === "true" && env.GITHUB_REF !== NOTIFY_REF) {
+		throw new Error(`Refusing to notify ${repository} from GITHUB_REF=${env.GITHUB_REF ?? "<unset>"}; only ${NOTIFY_REF} may write issues`);
+	}
 }
 
 export type NotifyAction = "create" | "refresh" | "close" | "resolve" | "none";
@@ -210,7 +239,10 @@ export function resolvedBody(body: string | null): string {
 	return kept.includes(RESOLVED_MARKER) ? kept : `${kept}${kept ? "\n\n" : ""}${RESOLVED_MARKER}`;
 }
 
-/** Scan every issue page (never just the newest) for same-title issues; pull requests are excluded. Matches are oldest first. */
+/**
+ * Scan every issue page (never just the newest) for same-title issues this automation owns; pull requests and foreign
+ * issues (another author, or no ownership marker) are excluded. Matches are oldest first.
+ */
 export async function scanIssues(repository: string, title: string, request: Request): Promise<{ canonical: Issue | undefined; matches: Issue[] }> {
 	const matches: Issue[] = [];
 	let canonical: Issue | undefined;
@@ -221,7 +253,7 @@ export async function scanIssues(repository: string, title: string, request: Req
 			[200],
 		);
 		for (const issue of issues) {
-			if (issue.pull_request || issue.title !== title) continue;
+			if (issue.pull_request || issue.title !== title || !isOwned(issue)) continue;
 			matches.push(issue);
 			// Prefer an open issue, then the oldest.
 			if (!canonical || (issue.state === "open" && canonical.state !== "open")) canonical = issue;
@@ -283,26 +315,17 @@ export async function notifySource(
 	console.log(`updated ${source.name} issue #${existing!.number}`);
 }
 
-/** Notify for every source. Refuses before any request when run from a repository other than the configured one. */
-export async function notify(
-	config: WatchConfig,
-	states: SourceState[],
-	request: Request = rest,
-	githubRepository: string | undefined = process.env.GITHUB_REPOSITORY,
-): Promise<void> {
-	if (githubRepository !== config.repository) {
-		throw new Error(`Refusing to notify ${config.repository} from GITHUB_REPOSITORY=${githubRepository ?? "<unset>"}`);
-	}
+/** Notify for every source. Refuses before any request when run from another repository or a non-main Actions ref. */
+export async function notify(config: WatchConfig, states: SourceState[], request: Request = rest, env: NotifyEnv = process.env): Promise<void> {
+	assertNotifyContext(config.repository, env);
 	for (const [index, source] of config.sources.entries()) await notifySource(config, source, states[index], request);
 }
 
 if (import.meta.main) {
 	const config = parseConfig(await Bun.file(CONFIG_PATH).json());
 	const notifyMode = process.argv.includes("--notify");
-	// Fail on a wrong repository before spending any API calls.
-	if (notifyMode && process.env.GITHUB_REPOSITORY !== config.repository) {
-		throw new Error(`Refusing to notify ${config.repository} from GITHUB_REPOSITORY=${process.env.GITHUB_REPOSITORY ?? "<unset>"}`);
-	}
+	// Fail on a wrong repository or ref before spending any API calls.
+	if (notifyMode) assertNotifyContext(config.repository);
 	const states = await fetchStates(config.sources);
 	const changed = changedSources(config.sources, states);
 	if (notifyMode) await notify(config, states);
