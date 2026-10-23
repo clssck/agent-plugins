@@ -142,6 +142,14 @@ Is the element entering or exiting?
 
 **Rule: UI animations should stay under 300ms.** A 180ms dropdown feels more responsive than a 400ms one. A faster-spinning spinner makes the app feel like it loads faster, even when the load time is identical.
 
+Documented exceptions, and the only ones:
+
+- **Toasts**: Sonner-style toasts use 400ms `ease`, deliberately slower for cohesion (see The Sonner Principles).
+- **Modals and drawers**: up to 500ms, per the table above.
+- **Gesture springs**: `{ type: "spring", duration: 0.5 }` settles physically and stays interruptible; it is not a fixed tween.
+- **Deliberate hold progress**: hold-to-confirm runs 2s linear while pressed; release still snaps back within 200ms.
+- **Marketing/explanatory motion**: scroll reveals and similar non-interactive sequences can run longer.
+
 ### Perceived performance
 
 Speed in animation is not just about feeling snappy — it directly affects how users perceive your app's performance:
@@ -666,7 +674,16 @@ Things to look for in slow motion:
 
 ### Frame-by-frame inspection
 
-Step through animations frame by frame in Chrome DevTools (Animations panel). This reveals timing issues between coordinated properties that you cannot see at full speed. With no one at the screen, record it in `browser`: `tab.recordStart('motion.mp4', { fps: 60, contactSheet: true })`, trigger the interaction, then call `tab.recordStop()` (requires ffmpeg). Treat its changed-frame contact sheet as an overview; if a subtle or small-area motion is missing, inspect the recording at intermediate timestamps rather than assuming only the first/last states occurred.
+Step through animations frame by frame in Chrome DevTools (Animations panel). This reveals timing issues between coordinated properties that you cannot see at full speed.
+
+With no one at the screen, record through Eval's `browser` object:
+
+1. Open a dedicated named tab: `const tab = await browser.open({ name: 'motion-inspect', url })`. Never record a borrowed relay tab or an adopted Tern block.
+2. Confirm recording capability before triggering anything: `ffmpeg` must be on `PATH` and `await tab.recordStart('motion.mp4', { fps: 60, contactSheet: true })` must resolve. Backends without screencast support (cmux, for example) reject it.
+3. Trigger the interaction, then call `await tab.recordStop()` and close the tab.
+4. Treat the changed-frame contact sheet as an overview; if a subtle or small-area motion is missing, inspect the recording at intermediate timestamps rather than assuming only the first/last states occurred.
+
+If Eval or its `browser` object is unavailable, `ffmpeg` is missing, or `recordStart` rejects: close the tab, report source-only observations (declared durations, easings, properties, and coordination read from the code), and mark the frame-by-frame check unverified.
 
 ### Test on real devices
 
@@ -683,7 +700,7 @@ When reviewing UI code, check for:
 | `ease-in` on UI element                    | Switch to `ease-out` or custom curve                             |
 | `transform-origin: center` on popover      | Set to trigger location or use Base UI's `var(--transform-origin)` (modals are exempt — keep centered) |
 | Animation on keyboard action               | Remove animation entirely                                        |
-| Duration > 300ms on UI element             | Reduce to 150-250ms                                              |
+| Duration > 300ms on UI element, outside the documented exceptions (toast, modal/drawer, gesture spring, hold progress, marketing) | Reduce to 150-250ms |
 | Hover animation without media query        | Add `@media (hover: hover) and (pointer: fine)`                  |
 | Keyframes on rapidly-triggered element     | Use CSS transitions for interruptibility                         |
 | Framer Motion `x`/`y` props under load     | Use `transform: "translateX()"` for hardware acceleration        |

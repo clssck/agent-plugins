@@ -33,7 +33,7 @@ Decision order for easing:
 --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);     /* iOS-like drawer curve */
 ```
 
-Duration budgets — **UI animations stay under 300ms**:
+Duration budgets — **UI animations stay under 300ms**, with two exemptions: modals/drawers (200–500ms, below) and gesture springs (`duration: 0.5`, §4):
 
 | Element | Duration |
 | --- | --- |
@@ -43,7 +43,7 @@ Duration budgets — **UI animations stay under 300ms**:
 | Modals, drawers | 200–500ms |
 | Marketing / explanatory | Can be longer |
 
-Hunt for: `ease-in` anywhere, bare `ease`/`linear` on entrances, durations > 300ms on UI elements, tooltip delay + animation on every tooltip in a toolbar (after the first, they should be instant).
+Hunt for: `ease-in` anywhere, bare `ease`/`linear` on entrances, durations > 300ms on UI elements other than modals/drawers (up to 500ms) and gesture springs (`duration: 0.5`), tooltip delay + animation on every tooltip in a toolbar (after the first, they should be instant).
 
 ## 3. Physicality & origin
 
@@ -70,14 +70,17 @@ Hunt for: `@keyframes` on toasts/toggles/rapidly-triggered UI, gesture handlers 
 
 ## 5. Performance
 
-- **Animate `transform` and `opacity` only.** `width`/`height`/`margin`/`padding`/`top`/`left` trigger layout + paint + composite. The sole exception is `height` (incl. `auto`) on accordions/collapses, which no transform can reproduce (content reflow); pair it with opacity and don't flag it.
+- **Animate `transform` and `opacity` only.** `width`/`height`/`margin`/`padding`/`top`/`left` trigger layout + paint + composite. Bounded exceptions — don't flag them:
+  - `height` (incl. `auto`) on accordions/collapses, which no transform can reproduce (content reflow); pair it with opacity.
+  - `filter: blur()` below 20px on a crossfade, masking the double exposure (§7).
+  - `clip-path: inset()` reveals (§8).
 - **`transition: all`** animates unintended properties off-GPU — always a finding.
 - **Framer Motion `x`/`y`/`scale` shorthands are not hardware-accelerated** — they run on the main thread and drop frames under load. Target: the full transform string, `animate={{ transform: "translateX(100px)" }}`.
 - **Don't drive child transforms via a CSS variable on the parent** — it recalcs styles for all children. Set `transform` directly on the element.
 - CSS (and WAAPI) beat rAF-based JS under load — use CSS for predetermined motion, JS/springs for dynamic and gesture-driven motion.
-- Keep transition-time `filter: blur()` under 20px — heavy blur is expensive, especially in Safari.
+- Keep transition-time `filter: blur()` under 20px and on crossfades only — heavy blur is expensive, especially in Safari.
 
-Hunt for: `transition: all`, animated layout properties (except accordion/collapse `height`), Framer Motion shorthand props on busy pages, `setProperty('--x', …)` driving child transforms, rAF loops doing what CSS could.
+Hunt for: `transition: all`, animated layout properties (except accordion/collapse `height`), `filter: blur()` of 20px or more or outside a crossfade, Framer Motion shorthand props on busy pages, `setProperty('--x', …)` driving child transforms, rAF loops doing what CSS could.
 
 ## 6. Accessibility
 

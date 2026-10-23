@@ -33,7 +33,7 @@ Distilled from every bundled primitive at the pinned OMP commit. Match this shap
 | `<caution>`, `<example>` | failure modes; runnable sample | as needed |
 | `<critical>` | 1-6 lines restating the load-bearing `MUST`/`NEVER` | **closing**, last block |
 
-- `<critical>` is a recap, not the constraint block: it is the last block in 21 of the 22 host files that use it, usually 1-6 lines of `MUST`/`NEVER`. Open with it only when the constraint must gate the first action (`ci-green-request.md` is the host example).
+- `<critical>` is a recap, not the constraint block: among the 26 host files that use it at the reviewed pin, 16 close the file, 4 both open and close, 1 opens, and 5 place it mid-document. Closing is the convention, not a host rule. Open with it only when the constraint must gate the first action (`cleanse/prompts/discovery.md` is the host example).
 - Constraints that gate behaviour go in `<directives>`, as `scout.md` and `task.md` do; the closing `<critical>` repeats only what a rushed reader must not miss.
 - Rules are plain Markdown with no tags: the harness wraps the body in its own `<system-interrupt>` or `<system-reminder>`. Lead with one enforceable claim, then `## Why`, `## Avoid` / `## Use`, `## Exceptions`.
 - Skills are heading-first. Tags are optional and used only when a block carries a decision; reference sections keep noun headings and no tags.

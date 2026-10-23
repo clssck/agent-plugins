@@ -73,7 +73,7 @@ Work down this list. It's ordered by how often each one is the cause:
 6. **Any animated `blur()` above 20px?**
 7. **Still shifting or stuttering?** Now add `will-change: transform` to the animating element.
 
-Confirm with a recording, not by feel. When the page runs locally, measure it through the Eval `browser` object: `browser.open({ name, url, app: { tern: false } })` opens an OMP Chromium tab (Tern tabs reject CPU throttling and tracing), then throttle with `tab.emulate({ cpuThrottling: 4 })`, read `tab.metrics()` before and after the interaction, and collect `long-animation-frame` entries with a `PerformanceObserver`. Whole-page `LayoutCount` and `RecalcStyleDuration` deltas are signals only; unrelated work and legitimate mount/layout can change them. Use `tab.traceStart()` / `tab.traceStop()` plus the source to attribute layout, style recalculation, or main-thread work before naming a cause. Only when Eval or its `browser` object is unavailable, or no app is running, use the DevTools Performance panel for dropped frames and long tasks; test on a real phone before claiming mobile smoothness.
+Confirm with a recording, not by feel. When the page runs locally, measure it through the Eval `browser` object: open the tab with `browser.open({ name, url, app: { tern: false, relay: false } })`. That skips Tern's native WKWebView and the user's relayed Chrome, but a configured `browser.cdpUrl` or cmux still wins over managed Chromium, so read the open result to see which backend you got. Throttle with `tab.emulate({ cpuThrottling: 4 })`, read `tab.metrics()` before and after the interaction, and collect `long-animation-frame` entries with a `PerformanceObserver`. Whole-page `LayoutCount` and `RecalcStyleDuration` deltas are signals only; unrelated work and legitimate mount/layout can change them. Use `tab.traceStart()` / `tab.traceStop()` plus the source to attribute layout, style recalculation, or main-thread work before naming a cause. If Eval or its `browser` object is unavailable, no app is running, or the selected backend rejects CPU throttling, `tab.metrics()`, or tracing (Tern tabs throw on throttling and do not support tracing), use the DevTools Performance panel or a device recording for dropped frames and long tasks instead. Label any claim neither measuring path covered as unverified. Test on a real phone before claiming mobile smoothness.
 
 ### Phase 3: Report
 
@@ -84,7 +84,7 @@ For each finding:
 Cause: [which of the causes above]
 Before: `transition: all 200ms` (animates `padding`, triggers layout)
 After: `transition: transform 200ms` with `scale(0.97)`
-Verified: from code / measured on a throttled desktop / needs a device recording
+Verified: from code / measured on a throttled desktop / unverified: needs a DevTools or device recording
 ```
 
 Order findings by cost: layout before paint, busy-main-thread before idle. Then stop. Apply fixes when asked.
@@ -227,7 +227,7 @@ A browser can hand an animation from the CPU to the GPU mid-flight, and that han
 Where it earns its place is an expensive paint, like a large blurred or filtered element. Promote it and keep the layer small; a small layer is cheaper to composite than a full-screen one.
 
 <critical>
-- MUST name the cause behind every proposed fix, and label each finding as verified from code, measured on a throttled desktop, or needing a device recording.
+- MUST name the cause behind every proposed fix, and label each finding as verified from code, measured on a throttled desktop, or unverified pending a DevTools or device recording.
 - NEVER conclude "it's fine" from a fast machine or by feel.
 - MUST stop after the report once every in-scope animation has a finding or an evidenced clean result; apply fixes only when asked.
 </critical>

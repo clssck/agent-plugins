@@ -10,13 +10,20 @@ Detail for [SKILL.md](skill://confluence-html-editor/SKILL.md); the numbered ste
 - Multiple plausible hits → accept only an exact title+space match; otherwise ask.
 - New page → require space and parent when location is not obvious. NEVER invent a parent.
 
-## 2. Fetch
+## 2. Fetch or prepare
+
+Update only: a new page has no live body, so skip the fetch, the captured metadata, and `snapshotToken`.
 
 - `getConfluenceContent` with HTML format and `detail="full"` for the page ID (the default `summary` returns title, excerpt, counts, no body). Document responses carry the `snapshotToken`; `include_metadata` adds `hasSpaceInstructions`. v1 servers: `getConfluencePage`.
 - Capture `id`, `title`, `spaceId`, `parentId`, version, `snapshotToken`, URL. `parentId` may be absent on v2 reads; do not infer it.
-- Space instructions: `getConfluenceSpace` once per space unless the fetch said `hasSpaceInstructions=false`. They override this skill's design defaults when they conflict.
+
+New page: `getConfluenceSpace` for the destination space, plus `getContentFormatGuide` with `toolName` = `createConfluencePage`. The `spaceId` and parent page ID for `parent` come from the user or step 1; NEVER invent them.
+
+- Space instructions: `getConfluenceSpace` once per space. Updates skip it only if the fetch said `hasSpaceInstructions=false`; new pages always read it. They override this skill's design defaults when they conflict.
 
 ## 3. Apply the edit
+
+New page: compose the body from a template instead of editing; the preservation rules below apply to updates.
 
 - Keep page purpose and audience; preserve useful links, headings, tables, code blocks.
 - Redesigns → [rich-page-design.md](skill://confluence-html-editor/references/rich-page-design.md); templates in [SKILL.md](skill://confluence-html-editor/SKILL.md#templates).
@@ -44,25 +51,31 @@ Large or attachment-heavy pages: treat the local body as a dry run using the che
 
 ## 5. Validate before writing
 
+Update only:
+
 - Body contains the full original plus intended edits.
 - Targeted replacements matched the expected count.
-- Links preserved; no local targets; table and list nesting valid.
-- No unsupported classes, inline styles, scripts, wrappers; no duplicate `data-local-id`; no unclosed tags.
+- Links preserved.
 - Extensions, image sources, links, mentions, dates, tasks, decisions still present unless replaced on purpose.
 
-Run `check_confluence_html.py` and, for large or attachment-heavy updates, `review_confluence_publish.py` with the commands in SKILL.md step 4.
+Every write, update or new page:
 
-The checker rejects local image/link paths (Windows, `file:`, `/Users`, `/home`, `/private`, `/tmp`, `~/`), reports unclosed inner tags that an ancestor's end tag swallowed (legal optional end tags such as `<li>`, `<p>`, `<td>` are exempt), and diffs the preserved inventory against `--original`. `ERROR` blocks; review each `WARNING`. Use `--allow-major-rewrite` on the reviewer only for an intended large reduction.
+- No local link or image targets; table and list nesting valid.
+- No unsupported classes, inline styles, scripts, wrappers; no duplicate `data-local-id`; no unclosed tags.
+
+Run `check_confluence_html.py` with the commands in SKILL.md step 4. Run `review_confluence_publish.py` for large or attachment-heavy updates and for every new page. New page: no `--original`, no `--page-id`, reviewer `--operation create`.
+
+The checker rejects local image/link paths (Windows, `file:`, `/Users`, `/home`, `/private`, `/tmp`, `~/`), reports unclosed inner tags that an ancestor's end tag swallowed (legal optional end tags such as `<li>`, `<p>`, `<td>` are exempt), and, on updates, diffs the preserved inventory against `--original`. `ERROR` blocks; review each `WARNING`. Use `--allow-major-rewrite` on the reviewer only for an intended large reduction.
 
 ## 6. Write
 
-- Existing page → update tool with HTML content format, the latest `snapshotToken`, and either node `edits` (`dryRun: true` first) or the full body. New page → create tool with `parent` and `contentType`.
+- Existing page → update tool with HTML content format, the latest `snapshotToken`, and either node `edits` (`dryRun: true` first) or the full body. New page → create tool with `parent` (`spaceId`, `parentContentId`), `contentType`, `title`, and `body`; no `snapshotToken`.
 - Ask the update tool for a minimal response if its schema offers an option for that; otherwise ignore the returned body.
 - Version message example: `Polish status report layout`.
 
 ## 7. Verify
 
-- Refetch. Report title, ID, version, changes.
+- Refetch (new page: by the ID the create call returned). Report title, ID, version, changes.
 - Compare intent, not bytes; Confluence normalizes HTML.
 - Rich pages: fetch ADF too and run the verifier.
 

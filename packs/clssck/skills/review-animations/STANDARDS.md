@@ -48,6 +48,16 @@ Find curves at [easing.dev](https://easing.dev/) or [easings.co](https://easings
 
 **Rule: UI animations stay under 300ms.** A 180ms dropdown feels more responsive than a 400ms one. Faster spinners make load feel faster (same actual time). Instant tooltips after the first (skip delay + animation) make a toolbar feel faster.
 
+Documented exceptions, each acceptable only when the finding states the reason:
+
+- **Modals and drawers** (200–500ms): large surfaces travelling far; keep the entry on `ease-out`/`--ease-drawer`.
+- **Toast enter/exit** (up to 400ms, as in the Interruptibility examples): slow, elegant slide that must stay interruptible.
+- **Gesture springs** (`{ type: "spring", duration: 0.5, bounce: 0.2 }` on interruptible gestures): the spring's settle time is the feedback, and interrupting it mid-flight must not snap.
+- **Hold interaction press phase** (~2s, as in Asymmetric timing): the duration is the confirmation delay, and the release must stay fast (~200ms).
+- **Marketing / explanatory** motion: may run longer.
+
+Any other UI duration over 300ms is a finding, and so is an exempt duration whose review row does not name the exemption and why it applies.
+
 ## Physicality
 
 - **Never `scale(0)`.** Start from `scale(0.9–0.97)` + `opacity: 0`. Nothing in the real world appears from nothing.
@@ -109,7 +119,7 @@ Slow where the user is deciding, fast where the system responds.
 
 ## Performance
 
-- **Only animate `transform` and `opacity`** — they skip layout/paint and run on the GPU. `padding`/`margin`/`height`/`width`/`top`/`left` trigger all three rendering steps. Three exceptions: `height` (incl. `auto`) on accordions/collapses, which no transform can reproduce (content reflow), paired with opacity; bounded `filter: blur()` (under 20px) that masks a crossfade (see Masking imperfect crossfades); and `clip-path` driving the progress overlay of a deliberate hold interaction (see Asymmetric timing).
+- **Only animate `transform` and `opacity`** — they skip layout/paint and run on the GPU. `padding`/`margin`/`height`/`width`/`top`/`left` trigger all three rendering steps. Bounded exceptions: `height` (incl. `auto`) on accordions/collapses and on entering/exiting list items, which no transform can reproduce (content reflow), paired with opacity (see Cohesion); bounded `filter: blur()` (under 20px) that masks a crossfade (see Masking imperfect crossfades); and `clip-path: inset()` on a single element for a reveal — reveal-on-scroll, the progress overlay of a deliberate hold interaction (see Asymmetric timing), the clipped duplicate in a tab color transition, or a comparison slider (see Transforms & clip-path). Any other layout-property or `clip-path` animation is a finding.
 - **Don't drive child transforms via a CSS variable on the parent** — it recalcs styles for all children. Set `transform` directly on the element.
   ```js
   element.style.setProperty('--swipe-amount', `${d}px`); // bad: recalc on all children

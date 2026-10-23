@@ -2,15 +2,13 @@
 
 Map what an endpoint agent monitors, then measure which countermeasure classes defeat which telemetry in an isolated lab. The deliverable is a detection-gap report, not a working intrusion tool.
 
-<critical>
+## Boundaries
 
 - Your own lab VMs, written-scope hosts, or an exercise range only; a CTF range within its rules.
 - No vendor binaries or extracted code leave the lab.
 - Simulated alerts or invented detections are never reported as measured.
 - The environment needs an authorized Windows lab VM reachable from the task environment. If none exists, report the gap and stop.
 - Borrowed public code is read, attributed, and kept minimal before it runs on a lab host.
-
-</critical>
 
 ## Surfaces
 

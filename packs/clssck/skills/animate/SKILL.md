@@ -204,14 +204,15 @@ Before you finish, MUST replace every pattern in the Never column with its Inste
 
 <procedure>
 
-Check what code cannot prove. Entry gate: the page runs locally and an OMP `browser` tool is available; otherwise skip this procedure and leave these checks to the feel-check.
+Check what code cannot prove. Entry gate: the page runs locally and Eval is available with its `browser` object enabled; otherwise skip this procedure and leave these checks to the feel-check, marked unverified.
 
-1. Open a Chromium tab (`app: { tern: false }`) and start `tab.recordStart(path, { contactSheet: true })`.
-2. Trigger the motion, then call `tab.recordStop()`.
-3. Treat the returned contact sheet as a coarse overview. If a small motion, origin, or stagger is absent, inspect the recording at intermediate timestamps instead of assuming it did not happen.
-4. Apply `tab.emulate({ reducedMotion: true })` to the same tab, then repeat steps 1–3 there without opening a second tab: a new tab would not carry the emulation and would record normal motion again.
+1. In Eval, open a dedicated named tab with `browser.open({ name, url, app: { tern: false, relay: false } })`. That skips Tern and the relay but does not guarantee Chromium: a configured CDP URL or cmux still wins. Read the open result to see which backend you got.
+2. Check support on that backend before relying on it. cmux rejects `tab.recordStart`; Tern's native webview throws on any `reducedMotion` emulation. If `recordStart` or `tab.emulate({ reducedMotion: true })` throws or the backend is known not to support it, skip that check and name it in the feel-check as unverified.
+3. If recording is supported, start `tab.recordStart(path, { contactSheet: true })`, trigger the motion, then call `tab.recordStop()`.
+4. Treat the returned contact sheet as a coarse overview. If a small motion, origin, or stagger is absent, inspect the recording at intermediate timestamps instead of assuming it did not happen.
+5. If reduced-motion emulation is supported, apply `tab.emulate({ reducedMotion: true })` to the same tab, then repeat steps 3–4 there without opening a second tab: a new tab would not carry the emulation and would record normal motion again.
 
-Exit gate: both variants inspected, or the gap named in the feel-check.
+Exit gate: both variants inspected, or each unsupported or skipped check named as unverified in the feel-check.
 </procedure>
 
 ## Recipes
