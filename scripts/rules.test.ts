@@ -45,7 +45,31 @@ const join = (...parts: string[]) => parts.join("");
 interface Cases {
 	flagged: string[];
 	ignored: string[];
+	/**
+	 * Unsafe only once complete: matching waits for a real terminator (finalized JSON quote, JSON-escaped newline, or
+	 * shell separator), so every raw streamed prefix stays silent while the finalized snapshot and a terminated raw
+	 * segment match.
+	 */
+	prefixSilent?: string[];
 }
+
+/**
+ * Bash arguments reach TTSR twice: as raw JSON fragments while streaming (an unfinished `{"command":"...` buffer)
+ * and as one `JSON.stringify` snapshot once finalized.
+ */
+const finalized = (command: string, extra: Record<string, unknown> = {}) => JSON.stringify({ command, ...extra });
+/** Raw streamed buffer holding the whole command, before the closing quote of the JSON string arrives. */
+const streamed = (command: string) => finalized(command).slice(0, -2);
+/** Finalized snapshots with sibling argument keys on either side of `command`. */
+const finalizedVariants = (command: string) => [
+	finalized(command),
+	finalized(command, { timeout: 30 }),
+	JSON.stringify({ cwd: "/repo", command }),
+];
+/** Every non-empty prefix a provider could have streamed so far. */
+const prefixes = (text: string) => Array.from({ length: text.length }, (_, index) => text.slice(0, index + 1));
+/** Visible shell separators and the JSON escape of a newline: each ends an unsafe raw segment. */
+const TERMINATORS = [" && true", ";", " | cat", "\\n"];
 
 /** Bash rules see raw streamed arguments and the final `{"command":"..."}` JSON snapshot. */
 const bashCases: Record<string, Cases> = {
@@ -77,21 +101,29 @@ const bashCases: Record<string, Cases> = {
 	},
 	"dbt-command-scope": {
 		flagged: [
+			"dbt run --select x --empty",
+			"dbt build -s x --full-refresh",
+			"dbt build --target prod --full-refresh --select x",
+			"dbt build && dbt ls --select x",
+			"dbt build\ndbt ls -s x",
+		],
+		prefixSilent: [
 			"dbt build",
 			"dbt run",
 			"dbt seed",
 			"dbt snapshot",
 			"dbt clone --state prod-artifacts",
 			"uv run dbt test",
-			"dbt run --select x --empty",
-			"dbt build -s x --full-refresh",
-			"dbt build --target prod --full-refresh --select x",
+			`bash -c "dbt build"`,
 		],
 		ignored: [
 			"dbt run --select my_model",
+			"dbt run --select my_model --exclude other",
 			"dbt test -s my_model",
 			"dbt build --selector nightly",
 			"dbt build --select=fct_orders+",
+			"dbt test --select=x",
+			`dbt build -s "x"`,
 			"dbt ls",
 			"dbt compile",
 			"dbt docs generate",
@@ -208,6 +240,15 @@ const bashCases: Record<string, Cases> = {
 	},
 	"git-commit-conventions": {
 		flagged: [
+			"git add . && git commit -m x",
+			"git add -A\ngit status",
+			"git add -u; git status",
+			"git commit -a -m x",
+			"git commit -am x",
+			"git commit -qam x",
+			"git commit --all -m x",
+		],
+		prefixSilent: [
 			"git add -A",
 			"git add .",
 			"git add -- .",
@@ -215,12 +256,10 @@ const bashCases: Record<string, Cases> = {
 			"git add -u",
 			"git add --all",
 			"git add --update",
-			"git add . && git commit -m x",
-			"git commit -a -m x",
-			"git commit -am x",
-			"git commit -qam x",
-			"git commit --all -m x",
 			"git -C repo add --all",
+			`bash -c "git add ."`,
+			"git commit -a",
+			"git commit --all",
 			"git -C repo commit -a",
 		],
 		ignored: [
@@ -230,15 +269,25 @@ const bashCases: Record<string, Cases> = {
 			"git add .github/workflows/ci.yml",
 			"git add -A src",
 			"git add -u src",
+			"git add -A src && git commit -m x",
 			"git add -p",
 			"git commit -m x",
 			`git commit -m "add feature"`,
 			"git commit --amend",
 			"git commit -m x --amend",
+			"git commit --allow-empty",
+			"git commit --allow-empty -m x",
 		],
 	},
 	"git-push-safety": {
 		flagged: [
+			"git push && git status",
+			"git push origin main; echo done",
+			"git push origin main | cat",
+			"git push origin main\ngit log -n 3",
+			"git push --force origin feature && git fetch",
+		],
+		prefixSilent: [
 			"git push",
 			"git push -u origin main",
 			"git push --force origin feature",
@@ -250,6 +299,11 @@ const bashCases: Record<string, Cases> = {
 		ignored: [
 			"git push --dry-run origin main",
 			"git push -n",
+			"git push -n origin main",
+			"git push origin main --dry-run",
+			`git push "origin" --dry-run`,
+			"git push origin main --dry-run && git status",
+			"git push --dry-run\ngit status",
 			"git status",
 			"git log origin/main",
 			"git fetch origin",
@@ -261,24 +315,40 @@ const bashCases: Record<string, Cases> = {
 		flagged: [
 			"git restore .",
 			"git restore --staged src/a.ts",
-			"git checkout .",
 			"git checkout -- .",
 			"git checkout -- src/a.ts",
 			"git checkout HEAD -- src/a.ts",
 			"git checkout HEAD~1 -- src/a.ts src/b.ts",
 			"git checkout origin/main -- .",
-			"git checkout HEAD .",
+			"git checkout HEAD~1 src/a.ts src/b.ts",
+			"git checkout . && git status",
+			"git checkout .\ngit status",
 			"git checkout -f main",
 			"git -C ../wt checkout HEAD -- src/a.ts",
 			"git switch -f main",
 			"git switch --discard-changes main",
 			"git clean -fd",
 			"git clean -fdx",
+			"git clean -d -f",
+			"git clean -f -d",
+			"git clean -d -x -f",
+			"git clean --force -d",
+			"git clean -d --force",
+			"git -C ../wt clean -d -f",
 			"git reset --hard",
 			"git -C ../wt reset --hard HEAD~1",
 			"git stash drop",
 			"git stash clear",
 			"git worktree remove --force ../wt",
+			"git worktree remove ../wt --force",
+		],
+		prefixSilent: [
+			"git checkout .",
+			"git checkout HEAD .",
+			"git checkout HEAD src/config.ts",
+			"git checkout origin/main src/a.ts",
+			"git -C ../wt checkout HEAD src/a.ts",
+			`bash -c "git checkout ."`,
 		],
 		ignored: [
 			"git status",
@@ -287,8 +357,16 @@ const bashCases: Record<string, Cases> = {
 			"git log -- src/a.ts",
 			"git clean -n",
 			"git clean --dry-run",
+			"git clean -d",
+			"git clean -nd",
+			"git clean -d --dry-run",
+			"git clean -n -d build/",
 			"git checkout main",
 			"git checkout feature/x",
+			"git checkout feature/x\ngit status",
+			"git checkout main && git pull",
+			"git checkout main 2>&1",
+			"git checkout main --quiet",
 			"git checkout -b feature",
 			"git checkout -b feature origin/main",
 			"git switch main",
@@ -304,6 +382,11 @@ const bashCases: Record<string, Cases> = {
 			`psql -c '${join("DELETE", " FROM users")}'`,
 			`snowsql -q '${join("TRUNCATE", " TABLE users;")}'`,
 			`psql -c '${join("TRUNCATE", " orders")}'`,
+			`psql -c '${join("TRUNCATE", " public.orders;")}'`,
+			`psql -c '${join("TRUNCATE", ' "orders"')}'`,
+			`psql -c '${join("TRUNCATE", ' TABLE "orders"')}'`,
+			`psql -c '${join("TRUNC", "ATE orders /* nightly reset */")}'`,
+			`psql -c "${join("TRUNC", "ATE orders -- nightly reset\n")}"`,
 			`psql -c '${join("DROP", " TABLE users")}'`,
 			`mysql -e "${join("DROP", " DATABASE app")}"`,
 			`psql -c '${join("UPDATE", " users SET active = false")}'`,
@@ -334,6 +417,9 @@ const bashCases: Record<string, Cases> = {
 			"python -c 'f.truncate(0)'",
 			"truncate -s 0 app.log",
 			`echo "please update the docs"`,
+			`echo "Does OMP limit, rank, filter, or truncate the visible skills catalog by count or token budget?"`,
+			`rg -n "how to truncate the visible skills catalog" docs`,
+			`echo "${join("trunc", "ate logs -- or rotate them?")}"`,
 		],
 	},
 	"temp-cleanup-ownership": {
@@ -343,19 +429,33 @@ const bashCases: Record<string, Cases> = {
 			"rm -rf $TMPDIR/*",
 			"rm -rf ${TMPDIR}/build-*",
 			"rm -f /tmp/build-?",
+			'rm -rf "$TMPDIR"/*',
+			'rm -rf "$TMPDIR/build-*"',
+			'rm -rf "${TMPDIR}"/*',
+			"rm -rf '/tmp/build-*'",
 			"find /tmp -mtime +1 -delete",
 			"find /var/folders -mtime +7 -delete",
 			"find $TMPDIR -name '*.tmp' -exec rm {} +",
 			"find /tmp -name '*.log' | xargs rm",
+			`find "$TMPDIR" -name '*.log' | xargs rm`,
+			'find "/tmp" -mtime +1 -delete',
+			"find '/var/folders' -delete",
+			'find "${TMPDIR}" -name x -delete',
 		],
 		ignored: [
 			"ls /tmp",
 			"ls /tmp/*",
+			'ls "$TMPDIR"/*',
 			"rm -rf /tmp/mydir-123",
+			'rm -rf "/tmp/mydir-123"',
+			'rm -rf "$scratch"',
 			"rm /tmp/session-out.txt",
 			"rm -rf ./out/*",
+			'rm -rf "./out/*"',
 			"find /tmp -name x",
+			'find "$TMPDIR" -name x',
 			"find ./build -delete",
+			'find "./build" -delete',
 		],
 	},
 };
@@ -366,9 +466,20 @@ const sourceCases: Record<string, Cases> = {
 		flagged: [
 			`db.execute("${join("DELETE", " FROM users")} WHERE id = 1")`,
 			`cur.execute("${join("DROP", " TABLE users")}")`,
+			`cur.execute("${join("TRUNCATE", " orders")}")`,
+			`cur.execute('${join("TRUNCATE", ' "orders"')}')`,
+			`cur.execute("${join("TRUNC", "ATE orders /* reset */")}")`,
+			`cur.execute("${join("TRUNC", "ATE orders -- reset\\n")}")`,
+			join("SELECT 1;\n", "TRUNC", "ATE orders\n"),
 			`os.system("rails db:drop")`,
 		],
-		ignored: [`db.execute("SELECT * FROM users")`, `db.execute("insert into users (id) values (1)")`, `f.truncate(0)`],
+		ignored: [
+			`db.execute("SELECT * FROM users")`,
+			`db.execute("insert into users (id) values (1)")`,
+			`f.truncate(0)`,
+			`# truncate the log before rotating it`,
+			`label = "Does OMP truncate the visible skills catalog?"`,
+		],
 	},
 	"temp-cleanup-ownership": {
 		flagged: [
@@ -485,12 +596,16 @@ const judgedCases: Record<string, { scope: string; asked: string[]; skipped: str
 			"Typecheck is green.",
 			"Checks passed.",
 			"Ran `bun test`: 14 tests pass, 0 fail.",
+			"All tests passed: 14 passed, 0 failed.",
+			"Ran `bun test` and every check is green.",
+			"Tests pass.",
 		],
 		skipped: [
 			"I did not run the tests.",
 			"The build failed with 3 errors.",
 			"Tests are failing in CI.",
 			"Added a lint rule for imports.",
+			"Checks were skipped; nothing was run.",
 		],
 	},
 };
@@ -525,12 +640,19 @@ describe("bash rules", () => {
 	for (const [name, cases] of Object.entries(bashCases)) {
 		test(name, () => {
 			for (const command of cases.flagged) {
-				expect(matches(name, command), command).toBe(true);
-				expect(matches(name, JSON.stringify({ command })), `JSON ${command}`).toBe(true);
+				for (const snapshot of finalizedVariants(command)) expect(matches(name, snapshot), snapshot).toBe(true);
+				expect(matches(name, streamed(command)), `raw ${command}`).toBe(true);
+			}
+			for (const command of cases.prefixSilent ?? []) {
+				for (const snapshot of finalizedVariants(command)) expect(matches(name, snapshot), snapshot).toBe(true);
+				for (const chunk of prefixes(streamed(command))) expect(matches(name, chunk), `raw prefix ${chunk}`).toBe(false);
+				for (const end of TERMINATORS) {
+					expect(matches(name, streamed(command) + end), `raw ${command} then ${JSON.stringify(end)}`).toBe(true);
+				}
 			}
 			for (const command of cases.ignored) {
-				expect(matches(name, command), command).toBe(false);
-				expect(matches(name, JSON.stringify({ command })), `JSON ${command}`).toBe(false);
+				for (const snapshot of finalizedVariants(command)) expect(matches(name, snapshot), snapshot).toBe(false);
+				for (const chunk of prefixes(finalized(command))) expect(matches(name, chunk), `raw prefix ${chunk}`).toBe(false);
 			}
 		});
 	}
@@ -544,16 +666,112 @@ describe("bash rules", () => {
 			["gh-external-mutation-safety", `gh api -X "POST" repos/o/r/issues`, true],
 			["gh-external-mutation-safety", `gh api -X "GET" repos/o/r/issues -f state=open`, false],
 		] as const) {
-			expect(matches(name, JSON.stringify({ command })), command).toBe(flagged);
+			expect(matches(name, finalized(command)), command).toBe(flagged);
+		}
+	});
+
+	test("an escape split across chunks decides only once it is complete", () => {
+		for (const [name, command] of [
+			["git-push-safety", "git push origin main"],
+			["dbt-command-scope", "dbt build"],
+			["git-commit-conventions", "git add -A"],
+		] as const) {
+			const raw = streamed(command);
+			expect(matches(name, `${raw}\\`), `${command} + lone backslash`).toBe(false);
+			expect(matches(name, `${raw}\\n`), `${command} + escaped newline`).toBe(true);
+			expect(matches(name, `${raw}\\"`), `${command} + escaped quote`).toBe(false);
+			expect(matches(name, `${raw}\\""`), `${command} + escaped quote then closing quote`).toBe(true);
+		}
+	});
+
+	test("a safe suffix arriving after an unsafe-looking prefix never retroactively matches", () => {
+		for (const [name, command] of [
+			["git-push-safety", "git push origin main --dry-run"],
+			["dbt-command-scope", "dbt run --select my_model"],
+			["dbt-command-scope", "dbt build --selector nightly"],
+			["git-commit-conventions", "git add -A src"],
+			["git-commit-conventions", "git commit --allow-empty -m x"],
+			["git-worktree-restore-safety", "git checkout main"],
+		] as const) {
+			let buffer = "";
+			for (const chunk of finalized(command).match(/.{1,3}/gs) ?? []) {
+				buffer += chunk;
+				expect(matches(name, buffer), `${command} after ${JSON.stringify(buffer)}`).toBe(false);
+			}
+		}
+	});
+});
+
+describe("connector arguments", () => {
+	/** Any tool's arguments are matched as JSON: quoted identifiers arrive with escaped quotes. */
+	const flagged: Record<string, string>[] = [
+		{ sql: join("TRUNC", "ATE orders") },
+		{ query: join("TRUNC", "ATE ", '"orders"') },
+		{ query: join("TRUNC", "ATE TABLE ", '"orders"') },
+		{ query: join("TRUNC", "ATE ", '"public"."orders";') },
+		{ query: join("TRUNC", "ATE orders, users CASCADE") },
+		{ query: join("TRUNC", "ATE ONLY orders RESTART IDENTITY") },
+		{ query: join("SELECT 1;\n", "TRUNC", "ATE orders") },
+		{ query: join("DELETE", " FROM users WHERE id = 1") },
+		{ sql: join("TRUNC", "ATE orders /* reset */") },
+		{ query: join("TRUNC", "ATE public.orders -- nightly reset\nCOMMIT;") },
+	];
+	const ignored: Record<string, string>[] = [
+		{ query: "Does OMP limit, rank, filter, or truncate the visible skills catalog by count or token budget before rendering the system prompt?" },
+		{ path: "docs/skills.md", i: join("Reading TRUNC", "ATE syntax notes") },
+		{ q: "How do I truncate a string in SQL?" },
+		{ query: "truncate the log file" },
+		{ query: "select count(*) from orders" },
+		{ query: join("trunc", "ate logs -- or rotate them?"), note: "line one\nline two" },
+		{ query: join("trunc", "ate logs -- or\trotate them?"), note: "line one\nline two" },
+		{ query: join("trunc", "ate logs /* still deciding") },
+	];
+
+	test("sql-mutation-safety", () => {
+		for (const args of flagged) expect(matches("sql-mutation-safety", JSON.stringify(args)), JSON.stringify(args)).toBe(true);
+		for (const args of ignored) {
+			for (const chunk of prefixes(JSON.stringify(args))) {
+				expect(matches("sql-mutation-safety", chunk), `prefix ${chunk}`).toBe(false);
+			}
+		}
+	});
+
+	test("a bare statement without a table keyword waits for its terminator", () => {
+		for (const args of flagged.slice(0, 2)) {
+			const snapshot = JSON.stringify(args);
+			expect(matches("sql-mutation-safety", snapshot.slice(0, -2)), `raw ${snapshot}`).toBe(false);
+			expect(matches("sql-mutation-safety", snapshot), snapshot).toBe(true);
+		}
+	});
+
+	test("a comment after a bare statement defers to the terminator that follows it", () => {
+		for (const [args, terminator] of [
+			[{ sql: join("TRUNC", "ATE orders /* reset */") }, '"}'],
+			[{ query: join("TRUNC", "ATE public.orders -- nightly reset\nCOMMIT;") }, "\\n"],
+		] as const) {
+			const snapshot = JSON.stringify(args);
+			for (const chunk of prefixes(snapshot.slice(0, snapshot.indexOf(terminator)))) {
+				expect(matches("sql-mutation-safety", chunk), `streamed ${chunk}`).toBe(false);
+			}
+			expect(matches("sql-mutation-safety", snapshot), snapshot).toBe(true);
 		}
 	});
 });
 
 describe("source rules", () => {
+	/** Eval and other non-edit tools reach TTSR as JSON arguments, not as raw source. */
+	const serialized: Record<string, true> = { "sql-mutation-safety": true, "temp-cleanup-ownership": true };
 	for (const [name, cases] of Object.entries(sourceCases)) {
 		test(name, () => {
 			for (const text of cases.flagged) expect(matches(name, text), text).toBe(true);
 			for (const text of cases.ignored) expect(matches(name, text), text).toBe(false);
+			if (!serialized[name]) return;
+			for (const text of cases.flagged) {
+				expect(matches(name, JSON.stringify({ code: text })), `JSON ${text}`).toBe(true);
+			}
+			for (const text of cases.ignored) {
+				expect(matches(name, JSON.stringify({ code: text })), `JSON ${text}`).toBe(false);
+			}
 		});
 	}
 });

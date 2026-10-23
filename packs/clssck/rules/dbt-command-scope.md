@@ -1,8 +1,8 @@
 ---
 description: Scope dbt build/run commands, keep --empty off upstream tables, and check hooks before a prod full refresh
 condition:
-  - '\bdbt\s+(?:build|run|test|seed|snapshot|clone)(?![-\w])(?!(?:(?!\\n)[^\n;&|])*\s(?:--select|-s|--selector)(?:[\s=]|$))'
-  - '\bdbt\s+(?:build|run|seed|snapshot|clone)(?![-\w])[^\n;&|]*\s--(?:empty|full-refresh)\b'
+  - '\bdbt\s+(?:build|run|test|seed|snapshot|clone)(?![-\w])(?!(?:[^\\"\n;&|]|\\[^n])*\s(?:--select|-s|--selector)[\s=])(?:[^\\"\n;&|]|\\[^n])*(?:["\n;&|]|\\n)'
+  - '\bdbt\s+(?:build|run|seed|snapshot|clone)(?![-\w])(?:[^\\"\n;&|]|\\[^n])*\s--(?:empty|full-refresh)\b'
 scope: "tool:bash"
 interruptMode: always
 ---

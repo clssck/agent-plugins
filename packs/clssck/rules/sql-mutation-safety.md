@@ -1,7 +1,8 @@
 ---
 description: Check target, authorization, and recovery before destructive SQL or migration execution
 condition:
-  - '(?i)\b(?:delete(?:\s|\\[nrt])+from|update(?:\s|\\[nrt])+\S+(?:\s|\\[nrt])+set|merge(?:\s|\\[nrt])+into|truncate(?:\s|\\[nrt])+(?:table(?:\s|\\[nrt])+)?["`\[]?\w+|drop(?:\s|\\[nrt])+(?:table|schema|database|view|index|sequence|type|function|procedure|materialized(?:\s|\\[nrt])+view)|alter(?:\s|\\[nrt])+table\b[^;\n]*\b(?:drop|alter|modify|change)|(?:replace|insert(?:\s|\\[nrt])+or(?:\s|\\[nrt])+replace)(?:\s|\\[nrt])+into)\b'
+  - '(?i)\b(?:delete(?:\s|\\[nrt])+from|update(?:\s|\\[nrt])+\S+(?:\s|\\[nrt])+set|merge(?:\s|\\[nrt])+into|truncate(?:\s|\\[nrt])+table(?:\s|\\[nrt])+(?:only(?:\s|\\[nrt])+)?(?:\\?["`\[])?\w+|drop(?:\s|\\[nrt])+(?:table|schema|database|view|index|sequence|type|function|procedure|materialized(?:\s|\\[nrt])+view)|alter(?:\s|\\[nrt])+table\b[^;\n]*\b(?:drop|alter|modify|change)|(?:replace|insert(?:\s|\\[nrt])+or(?:\s|\\[nrt])+replace)(?:\s|\\[nrt])+into)\b'
+  - '(?i)(?:^|[;(\n''"`]|\\[nrt])(?:\s|\\[nrt])*truncate(?:\s|\\[nrt])+(?:only(?:\s|\\[nrt])+)?(?:\\?["`\[])?\w+(?:\\?["`\]])?(?:\.(?:\\?["`\[])?\w+(?:\\?["`\]])?)*\*?(?:(?:\s|\\[nrt])*,(?:\s|\\[nrt])*(?:\\?["`\[])?\w+(?:\\?["`\]])?(?:\.(?:\\?["`\[])?\w+(?:\\?["`\]])?)*\*?)*(?:(?:\s|\\[nrt])*/\*(?:[^*"\\]|\\[\s\S]|\*+(?:[^*/"\\]|\\[\s\S]))*\*+/)*(?:(?:\s|\\[nrt])*(?:[;)''"`\n]|\\[nrt]|\\"(?=[\s;)''"`]|\\[nrt])|--(?:[^\n\\"]|\\(?![nr])"?)*(?:\n|\\[nr]))|(?:\s|\\[nrt])+(?:restart|continue|cascade|restrict)\b)'
   - '\b(?:rails|rake)(?:\s|\\[nrt])+db:(?:drop|reset|rollback|purge|schema:load|migrate:reset)\b'
   - '\b(?:alembic(?:\s|\\[nrt])+downgrade|prisma(?:\s|\\[nrt])+(?:migrate(?:\s|\\[nrt])+reset|db(?:\s|\\[nrt])+push\b[^\n;&|]*--force-reset)|flyway(?:\s|\\[nrt])+clean|sequelize(?:\s|\\[nrt])+db:(?:drop|migrate:undo))\b'
 scope: "tool"

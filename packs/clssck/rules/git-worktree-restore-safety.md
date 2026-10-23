@@ -1,6 +1,6 @@
 ---
 description: Protect staged, sibling, and untracked work before destructive Git restore or clean operations
-condition: '\bgit(?:\s+-[Cc]\s+\S+)*\s+(?:restore\b|reset\s+--hard\b|clean\s+(?:-[A-Za-z]*f|--force)|checkout\s+(?:-f\b|--force\b|--\s|\.(?:\s|$|["''`;&|)]|\\n)|[^\s;&|-][^\s;&|]*\s+(?:--\s|\.(?:\s|$|["''`;&|)]|\\n)))|switch\s+(?:-f|--force|--discard-changes)\b|stash\s+(?:drop|clear)\b|worktree\s+remove\b[^\n;&|]*\s(?:-f|--force)\b)'
+condition: '\bgit(?:\s+-[Cc]\s+\S+)*\s+(?:restore\b|reset\s+--hard\b|clean\b(?:[^\\"\n;&|]|\\[^n])*\s(?:-[A-Za-z]*f|--force\b)|checkout\s+(?:-f\b|--force\b|--\s|\.(?:\s|["''`;&|)]|\\n|\\"(?=[\s"''`;&|)]|\\n))|(?:[^\s\\";&|-]|\\[^n])(?:[^\s\\";&|]|\\[^n])*\s+(?:--\s|[\w.~/:*@^{}+][\w.~/:*@^{}+-]*(?=\s|["''`;&|)]|\\n|\\"(?=[\s"''`;&|)]|\\n))))|switch\s+(?:-f|--force|--discard-changes)\b|stash\s+(?:drop|clear)\b|worktree\s+remove\b(?:[^\\"\n;&|]|\\[^n])*\s(?:-f|--force)\b)'
 scope: "tool:bash"
 interruptMode: always
 ---

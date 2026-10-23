@@ -1,8 +1,8 @@
 ---
 description: Delete only the temp paths this session created; never clean /tmp or $TMPDIR by glob, pattern, or time window
 condition:
-  - '\brm\b[^\n;&|]*\s["'']?(?:(?:/private)?/tmp|/var/folders|\$\{?TMPDIR\}?)/[^\s;&|]*[*?\[]'
-  - '\bfind\s+["'']?(?:(?:/private)?/tmp|/var/folders|\$\{?TMPDIR\}?)\b[^\n;&|]*(?:-delete\b|-exec\s+rm\b|\|\s*xargs\b[^\n;&|]*\brm\b)'
+  - '\brm\b(?:[^\\"\n;&|]|\\[^n])*\s(?:\\?["''])?(?:(?:/private)?/tmp|/var/folders|\$\{?TMPDIR\}?)(?:\\?["''])?/(?:[^\s\\";&|]|\\[^n])*[*?\[]'
+  - '\bfind\s+(?:\\?["''])?(?:(?:/private)?/tmp|/var/folders|\$\{?TMPDIR\}?)\b(?:[^\\"\n;&|]|\\[^n])*(?:-delete\b|-exec\s+rm\b|\|\s*xargs\b(?:[^\\"\n;&|]|\\[^n])*\brm\b)'
   - '(?:listdir|glob\.i?glob|iterdir|scandir|\.r?glob)\([^)]*(?:/tmp|TMPDIR|gettempdir|/var/folders)[\s\S]{0,800}?(?:rmtree|os\.remove|os\.unlink|\.unlink)\('
   - 'Path\([^)]*(?:/tmp|TMPDIR|gettempdir|/var/folders)[^)]*\)\s*\.\s*(?:r?glob|iterdir)\([\s\S]{0,800}?(?:rmtree|os\.remove|os\.unlink|\.unlink)\('
 scope: "tool:bash, tool:eval"
