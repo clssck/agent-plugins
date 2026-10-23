@@ -2,7 +2,7 @@
 
 Use bbot when breadth matters more than request control: every discovery becomes an event and seeds the next module. Keep single-purpose tools (subfinder, httpx, katana, ffuf, nuclei) for exact requests. Verify `bbot --version` and the live module table before planning; a missing binary is a blocker unless the operator authorizes `uv tool install bbot`.
 
-## Boundaries
+<critical>
 
 - Targets and seeds stay inside the recorded scope. Third-party sources are queried about the target, never exploited.
 - Derive the mode from program policy: scanner bans or limits at or below 5 req/s mean passive only; active requires permission; loud families require explicit permission.
@@ -10,6 +10,8 @@ Use bbot when breadth matters more than request control: every discovery becomes
 - Keyless modules by default. A vault key goes into a private YAML config created for the run and passed as `-c <file>`; never on the command line, in output, or in the transcript. Delete the file after the scan.
 - Never run the `kitchen-sink` preset against a live target.
 - A bbot `FINDING` is a lead, not proof.
+
+</critical>
 
 ## Modes and modules
 

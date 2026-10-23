@@ -2,12 +2,14 @@
 
 Recover the bug from the vendor fix that closed it: obtain both builds, align symbols, diff, read the added guards, infer the class, and prove it with a PoC that triggers only the unpatched build.
 
-## Boundaries
+<critical>
 
 - Diff and test builds in your own lab, inside written scope, or in a benchmark range.
 - Run a recovered PoC only against builds you own; an advisory covering the bug does not authorize a live target.
 - Publish with `{target}`, `{host}`, `{user}` placeholders; keep real hostnames and paths inside the lab.
 - If the diff toolchain is missing (`ghidriff`, BinDiff, Diaphora, `radiff2`), report the gap and stop. Never simulate diff output or a clean patched run.
+
+</critical>
 
 ## Workflow
 

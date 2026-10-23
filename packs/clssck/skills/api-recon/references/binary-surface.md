@@ -2,7 +2,7 @@
 
 Static analysis answers a specific question about a build: which secrets and endpoints it embeds, which libraries it links, how managed or wasm structure is organized, and which exact build it is. Work from primitives — identify, unpack, extract, disassemble — and choose the engine you already have. OMP's IDA integration is preferred when available; Ghidra headless, `objdump`, or a helper the agent writes are equal alternatives.
 
-## Boundaries
+<critical>
 
 - Analyze artifacts from authorized targets or the operator's own builds.
 - Static reads only. The target is never executed by this path.
@@ -10,6 +10,8 @@ Static analysis answers a specific question about a build: which secrets and end
 - Strings, symbols, and decompiler output are candidates, never confirmed secrets or vulnerabilities; verify against configuration or a live response.
 - A missing toolchain is not a blocker: switch primitive, use an available engine, or write a bounded helper. Record which path and version produced the evidence.
 - Do not install third-party packages or MCP servers into the host without explicit authorization.
+
+</critical>
 
 ## Artifact classes
 
