@@ -63,6 +63,8 @@ Can't name it? Don't build it.
 
 ### 3. Pick the tool — cheapest that works
 
+**Check the project before choosing.** Read `package.json` and the app config for the Expo SDK (`expo` version), the installed `react-native-reanimated` major, and whether the New Architecture is enabled. Those decide which rows below are available: Reanimated CSS transitions and animations, `scheduleOnRN` and `react-native-worklets` need Reanimated 4, and Reanimated 4 needs the New Architecture. On 3.x, use the 3.x equivalents (`withTiming` / `withSpring` in `useAnimatedStyle`, `runOnJS`). Expo Router features such as `NativeTabs` and `Link.Preview` exist only in recent SDKs, so confirm them against the installed `expo-router`.
+
 Walk down; stop at the first that fits.
 
 | Need | Tool |
@@ -83,7 +85,7 @@ Walk down; stop at the first that fits.
 
 Reach for a shared value only when the value is continuous or interruptible. A press scale is a CSS transition; a drag is a shared value. Using a worklet for a two-state toggle is the mobile equivalent of installing a motion library for a fade.
 
-**Dependencies.** Install with `npx expo install <package>` — it resolves the version that matches the project's SDK, which plain `npm install` won't:
+**Dependencies.** Keep installed dependencies that already fit the SDK. NEVER upgrade or replace a working dependency just to reach a newer API. Adding a package or changing a version is a dependency change, so get the user's authorization first, then install with `npx expo install <package>`. It resolves the version that matches the project's SDK, which plain `npm install` won't. Without authorization, or when the project can't meet a prerequisite (Reanimated 4 on the Old Architecture), stop and name what's missing, or build with the APIs the installed versions provide:
 
 | Need | Package |
 | --- | --- |
@@ -107,7 +109,7 @@ Reach for a shared value only when the value is continuous or interruptible. A p
 
 ### 5. Timing or spring
 
-**If a finger was involved, use a spring.** Springs carry velocity through an interruption; timing curves restart. Everything else uses timing.
+**Spring when a continuous gesture lets go: a drag, swipe or flick that is released or interrupted mid-flight.** Springs carry the gesture's velocity through an interruption; timing curves restart. Discrete press feedback stays on a timing transition (step 7), even though a finger caused it. Everything else uses timing.
 
 Reanimated's spring takes Apple's two designer parameters directly — use this form, not mass/stiffness/damping:
 
@@ -120,7 +122,7 @@ Reanimated's spring takes Apple's two designer parameters directly — use this 
 
 **Bounce only when the gesture carried momentum.** Overshoot on a menu that faded in feels wrong; overshoot on a card you flicked feels right.
 
-**Easing**, for everything without a finger on it:
+**Easing**, for everything that isn't a gesture release:
 
 | Situation | Easing |
 | --- | --- |
@@ -210,13 +212,13 @@ Reduced motion means **fewer and gentler**, not zero: keep opacity and color cha
 
 Check these first when "the animation just doesn't run":
 
-- Install through Expo so versions match the SDK: `npx expo install react-native-reanimated react-native-worklets`. In an Expo project, `babel-preset-expo` configures the worklets Babel plugin automatically — no `babel.config.js` step. Only a bare RN project without that preset adds the plugin manually, and there it must be last in the list. A missing or misplaced plugin doesn't silently fall back anymore — it throws `Failed to create a worklet` at runtime.
+- Versions must match the SDK: with the user's authorization (step 3), install through Expo, `npx expo install react-native-reanimated react-native-worklets`. In an Expo project, `babel-preset-expo` configures the worklets Babel plugin automatically — no `babel.config.js` step. Only a bare RN project without that preset adds the plugin manually, and there it must be last in the list. A missing or misplaced plugin doesn't silently fall back anymore — it throws `Failed to create a worklet` at runtime.
 - `GestureHandlerRootView` must wrap the app, or gestures do nothing with no error.
 - Reanimated 4 requires the New Architecture. Check the installed `react-native-reanimated` major in `package.json` before writing code: on 3.x, `runOnJS` is still the API and `react-native-worklets` isn't installed. For an API this skill doesn't pin down, look it up for that version through the context7 MCP server, or `web_search` when it isn't connected.
 - **Expo Go is not a performance environment.** Judge feel in a release build; a dev build's JS thread is slow enough to hide exactly the problems you're looking for.
 </caution>
 
-<critical>
+## Never / instead
 
 | Never | Instead |
 | --- | --- |
@@ -237,7 +239,6 @@ Check these first when "the animation just doesn't run":
 | Hard stop at a boundary | rubber-band resistance |
 | A haptic per frame, or as the only feedback | one per commit, always paired with a visual |
 | Judging feel in Expo Go or the simulator | release build, slowest supported device |
-</critical>
 
 ## 120fps
 
@@ -251,7 +252,7 @@ Then the frame budget is 8ms, not 16. This is also why a UI-thread animation mat
 
 ## Recipes
 
-For ready-to-build implementations — press feedback, drag-to-dismiss sheet, swipe-to-delete, collapsing header, list entrances, keyboard-synced UI, tab indicator, screen transitions — see [RECIPES.md](RECIPES.md). Load it whenever the request matches one; start from the recipe rather than from a blank file.
+For ready-to-build implementations — press feedback, drag-to-dismiss sheet, swipe-to-delete, collapsing header, list entrances, keyboard-synced UI, tab indicator, screen transitions — read `skill://animate-expo/RECIPES.md`. Load it whenever the request matches one; start from the recipe rather than from a blank file.
 
 ## Output
 
@@ -266,3 +267,11 @@ The code is the deliverable. Don't pad it into a report.
 ## Tone
 
 Opinionated and brief. When the honest answer is "this shouldn't animate," or "this needs a real device before I can tell you if it's right," give it.
+
+<critical>
+- NEVER animate what fails the frequency gate or has no named purpose.
+- MUST check the SDK, Reanimated major and architecture before choosing APIs; NEVER change dependencies without the user's authorization.
+- NEVER drive per-frame motion from the RN runtime: no `setState`, per-frame `scheduleOnRN`, or shared-value access during render.
+- MUST animate only `transform`, `opacity`, and state-driven color; other properties only on absolutely positioned childless elements.
+- MUST ship reduced motion with the animation and judge feel on a release build on the slowest supported device.
+</critical>

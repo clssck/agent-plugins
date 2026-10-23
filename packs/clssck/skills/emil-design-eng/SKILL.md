@@ -1,6 +1,6 @@
 ---
 name: emil-design-eng
-description: "Use when polishing UI components, dialogs, toasts, or micro-interactions: Emil Kowalski's philosophy on UI polish, component design, animation decisions, and the invisible details that make software feel great."
+description: "Use when polishing UI components, dialogs, toasts, or micro-interactions with Emil Kowalski's craft guidance: hierarchy, spacing, typography, motion taste, and the invisible details that make software feel great. Not for motion review (review-animations), motion implementation (animate), Sonner API work (ask-sonner), or worst-case UI stress tests (break-ui)."
 ---
 
 # Design Engineering
@@ -34,6 +34,14 @@ Every decision below exists because the aggregate of invisible correctness creat
 ### Beauty is leverage
 
 People select tools based on the overall experience, not just functionality. Good defaults and good animations are real differentiators. Beauty is underutilized in software. Use it as leverage to stand out.
+
+<directives>
+
+- **Critique is read-only.** Reviewing, auditing, or critiquing UI returns findings and a Before/After table; it NEVER edits files.
+- **Implement only on request.** Apply changes only when the request asks to implement, fix, or build, and only on a named isolated development surface; get approval before integrating into a shared checkout.
+- **Route motion and tooling work.** Motion review → `skill://review-animations`; motion implementation → `skill://animate`; Sonner API work → `skill://ask-sonner`; worst-case UI stress → `skill://break-ui`.
+
+</directives>
 
 ## Review Format (Required)
 
@@ -480,9 +488,11 @@ Instead of preventing upward drag entirely, allow it with increasing friction. I
 
 ## Performance Rules
 
-### Only animate transform and opacity
+### Animate compositor-friendly properties
 
 These properties skip layout and paint, running on the GPU. Animating `padding`, `margin`, `height`, or `width` triggers all three rendering steps.
+
+Animate `transform`, `opacity`, `clip-path`, and bounded `filter` masks freely: the recipes below use `clip-path` for tab indicators, image reveals, and hold progress. `height` is allowed only for bounded accordion, collapse, and short list-entry transitions. Anything that animates the layout of a large subtree — full-width `width`/`height`, `top`/`left`, margins — is still a defect.
 
 ### CSS variables are inheritable
 

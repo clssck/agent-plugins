@@ -58,7 +58,7 @@ $env:TEMP
 
 </instruction>
 
-<critical>
+<directives>
 
 - **Install name:** MUST be free before scaffolding (`command -v <tool-name> || true`; PowerShell `Get-Command <tool-name> -ErrorAction SilentlyContinue`). Taken → clearer install name, or ask.
 - **Shell syntax:** NEVER emit PowerShell syntax for a POSIX shell or the reverse.
@@ -75,7 +75,7 @@ Precedence: env var with the service's standard name (`GITHUB_TOKEN`) > user con
 - NEVER commit copied cookies, bearer tokens, customer secrets, full production payloads.
 - Screenshots show workflow and vocabulary only; NEVER API evidence without a request, export, docs page, or fixture.
 
-</critical>
+</directives>
 
 <procedure>
 
@@ -115,7 +115,7 @@ Get-Command <tool-name>; <tool-name> --help; <tool-name> --json doctor
 
 Not on PATH → run the wrapper or binary by absolute path from the fresh directory; NEVER install just to pass the smoke test.
 
-**TTY behavior:** the omp `bash` tool runs with no TTY on stdin or stdout, so the smoke commands above are the no-TTY check; set a short `timeout` so a prompt that waits instead of failing fast shows up as a timeout, not a stall. Interactive prompts or a TUI → drive the ordinary CLI on a real PTY with `xd://tui` (`{"op":"start","bin":"<tool-name>","args":[…]}`, then `screen`, `send` the terminal input, and `stop`); reserve `keys` for OMP/pi-tui hosts with the debug socket. If `xd://tui` is unavailable, use `bash` with `pty: true`.
+**TTY behavior:** the omp `bash` tool runs with no TTY on stdin or stdout, so the smoke commands above are the no-TTY check; set a short `timeout` so a prompt that waits instead of failing fast shows up as a timeout, not a stall. Interactive prompts or a TUI → drive the ordinary CLI on a real PTY as a uniquely named `bash` service with `pty: true`; omit `async` and `timeout` (launch `<tool-name>` with its arguments); inspect its output through `proc://<name>`, write terminal input to `proc://<name>`, and stop it through `proc://<name>/kill`. Reserve any debug-socket key mechanism for OMP/pi-tui hosts, and only when that socket is actually available.
 
 Done = all hold: `--help`, `--version`, `--json doctor`, discovery, resolve, reads, raw escape hatch present · runs without a TTY (no prompts without one, documented nonzero exit codes, `NO_COLOR` honored, network timeout set) · `--json` errors carry no credentials · Python is a uv project or PEP 723 script, nothing `pip install`ed into system Python · no live write without approval.
 
@@ -136,3 +136,12 @@ After the CLI works, create or update a normal omp skill that teaches it.
 - **Body:** `# Title`, dense intro, `##` sections (task names for procedures, noun names for reference), bold-lead rules. Detail in `references/*.md`; link every runtime asset with `skill://<tool-name>/...`. Skeleton → [agent-cli-patterns.md](skill://cli-creator/references/agent-cli-patterns.md#companion-skill).
 - **Bundled scripts:** PEP 723 header with `#!/usr/bin/env -S uv run --script`; invoke as `uv run "$(realpath skill://<tool-name>/scripts/<file>.py)"` in the omp `bash` tool. Bare `skill://` path fails in external programs; `realpath` prints the physical path.
 - **Verify:** `read skill://<tool-name>` resolves, every link resolves, example commands run from a fresh directory. Pack skill → also `bun scripts/sync.ts --local` from the repo root (`skill-authoring` → Validate).
+
+<critical>
+
+- MUST meet every Done condition, smoke-tested from a fresh directory, before calling the CLI finished.
+- MUST create or update the companion skill after the CLI works.
+- MUST confirm `read skill://<tool-name>` resolves, every link resolves, and example commands run from a fresh directory.
+- NEVER accept secrets as plain flag values, print full tokens, or perform a live write without approval.
+
+</critical>

@@ -1,6 +1,6 @@
 ---
 name: apple-design
-description: Apple's approach to interface design and fluid, physical motion, translated for the web. Use when building or reviewing gesture-driven UI, spring animations, drag/swipe/sheet interactions, momentum and interruptible transitions, translucent materials and depth, typography (optical sizing, tracking, leading), reduced-motion, or the design foundations (feedback, spatial consistency, restraint) behind Apple-style interfaces.
+description: Use for Apple-style interface and motion design guidance, translated for the web — gesture-driven UI, spring animations, drag/swipe/sheet interactions, momentum and interruptible transitions, translucent materials and depth, typography (optical sizing, tracking, leading), reduced-motion, or the design foundations (feedback, spatial consistency, restraint) behind Apple-style interfaces. Not for general animation construction (animate), reviewing a single motion diff (review-animations), motion audits (improve-animations), finding what could animate (find-animation-opportunities), or naming a motion (animation-vocabulary).
 ---
 
 # Apple Design
@@ -223,7 +223,7 @@ Also: avoid full-viewport moving backgrounds, slow looping oscillations (near 0.
 }
 ```
 
-Verify the reduced-motion path rather than trusting the media query: in `browser`, `tab.emulate({ reducedMotion: true })`, trigger the transition, and check `tab.styles(selector, ['transform', 'transition'])`. Transparency and contrast preferences can't be emulated there (nor reduced motion in Tern tabs); verify those by reading the CSS.
+Verify the reduced-motion path rather than trusting the media query. When the app is running, open it from Eval with `browser.open({ …, app: { tern: false } })`, call `tab.emulate({ reducedMotion: true })`, trigger the transition, and check `tab.styles(selector, ['transform', 'transition'])`. If no app is running, or the tab cannot emulate reduced motion, inspect the CSS instead and report rendered reduced-motion behavior as unverified. Transparency and contrast preferences can't be emulated; verify those by reading the CSS.
 
 ## 15. Typography — optical sizing, tracking, leading
 

@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Evidence-Led Exploration
 
-Keeps facts about the subject separate from the history of exploring it. Short investigation → compact inline ledger; likely context loss, branching, or handoff → persist a task-owned artifact in the project's notes location if one exists. NEVER create hidden global state. The failure this prevents: an inference repeated until it reads as fact, a failed probe retried by the next worker, a contradiction resolved by intuition.
+Keeps facts about the subject separate from the history of exploring it. Short investigation → compact inline ledger; likely context loss, branching, or handoff → persist the files in [Deliverables](#deliverables). NEVER create hidden global state. The failure this prevents: an inference repeated until it reads as fact, a failed probe retried by the next worker, a contradiction resolved by intuition.
 
 Ledger template → [investigation-ledger.md](skill://evidence-led-exploration/references/investigation-ledger.md). Worker or session boundary → [handoff-packet.md](skill://evidence-led-exploration/references/handoff-packet.md).
 
@@ -67,6 +67,17 @@ Stable IDs shared across evidence, claims, branches, probes. Append or supersede
 9. **Continue or hand off:** next frontier item, stop on the done condition, or emit a handoff packet.
 
 </procedure>
+
+## Deliverables
+
+`<slug>` = short kebab-case investigation name, fixed at Frame. Default location is `local://`; if the project has a notes location, use it instead and record the paths in the ledger header. NEVER write outside the chosen location.
+
+|File|Created|Contents|
+|---|---|---|
+|`<slug>-ledger.md`|Step 2 (Inventory), once persistence is warranted: context loss likely, work will branch, or a handoff is expected|[investigation-ledger.md](skill://evidence-led-exploration/references/investigation-ledger.md) sections: Header, Subject Ledger, Evidence Registry, Contradictions, Investigation Ledger, Decision Log, Current State; rewritten with `write`/`edit` after each step-7 merge, so `Last updated` and Frontier match the latest merge|
+|`<slug>-handoff.md`|Step 9, before stopping or crossing a worker or session boundary|[handoff-packet.md](skill://evidence-led-exploration/references/handoff-packet.md) Full Handoff: objective with outcome and stop reason, evidence-based state, frontier, artifacts table, one best next action|
+
+**Compact-inline exception:** a short investigation with no expected context loss, branching, or handoff keeps the ledger as inline tables in the reply and creates no `<slug>-ledger.md`. The handoff packet is still produced before stopping, inline in the final report. Parallel workers return a Worker Delta in their result, not a file; the coordinator merges it into `<slug>-ledger.md`.
 
 ## Branch lifecycle
 

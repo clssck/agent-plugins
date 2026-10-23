@@ -1,6 +1,6 @@
 ---
 name: write-swift
-description: How to write modern Swift well — modeling with value types, Swift 6 data-race safety and approachable concurrency (@concurrent, main-actor-by-default, actors, task groups), protocols and generics (some vs any), API design, performance and ARC, Swift Testing, macros, and the modern language features agents don't know about yet. Use when writing, reviewing, or migrating Swift, or when a concurrency error, a hang, a data race, a retain cycle, or a performance problem needs fixing.
+description: How to write modern Swift well — modeling with value types, Swift 6 data-race safety and approachable concurrency (@concurrent, main-actor-by-default, actors, task groups), protocols and generics (some vs any), API design, performance and ARC, Swift Testing, macros, and the modern language features agents don't know about yet. Use when writing, reviewing, or migrating Swift, or when a concurrency error, a hang, a data race, a retain cycle, or a performance problem needs fixing. Not for visual interface or motion design (layout, look, gestures, springs — use apple-design); SwiftUI language, state, and concurrency questions still belong here.
 ---
 
 # Write Swift
@@ -14,6 +14,8 @@ When this skill is first invoked without a specific question, respond only with:
 Do not provide any other information until the user asks a question.
 
 How to write Swift the way the language wants to be written, current through Swift 6.4.
+
+**Scope:** Swift language, concurrency, API, performance, and testing — including SwiftUI's language and concurrency side (state ownership, isolation, `Task` lifetimes). Visual interface and motion design (layout, look, gestures, springs) belongs to `skill://apple-design`.
 
 **Toolchain baseline: Swift 6.3** (current release as of August 2026). Everything here compiles on 6.3 unless marked ⚠, which flags unreleased Swift 6.4 features. Concurrency guidance assumes the Swift 6.2 model — if the project is on 6.1 or earlier, §3's rules about `async` and `@concurrent` do not apply.
 
@@ -95,7 +97,7 @@ Start every app entirely on the main thread. Single-threaded code goes a long wa
 
 - **`@concurrent`** — always switches to the concurrent thread pool. Use it on _your_ CPU-heavy work.
 - **`nonisolated`** — runs wherever it's called from. **This is the right default for library APIs**, because the caller decides. `nonisolated` on a type makes all its members nonisolated (Swift 6.1+).
-- Neither one — stays on the caller's actor.
+- Neither one — depends on isolation. A **nonisolated** `async` function stays on the caller's actor (Swift 6.2 with `NonisolatedNonsendingByDefault`, which Approachable Concurrency turns on). An **actor-isolated** function — declared (`@MainActor`, an `actor` member) or inferred (Default Actor Isolation, a `@MainActor` type) — always runs on its own actor, wherever it's called from.
 
 ```swift
 nonisolated struct PhotoProcessor {          // decoupled from the main actor
@@ -152,7 +154,7 @@ Actors guarantee mutual exclusion, not transactions. Between two `await`s on the
 
 Always prefer structured tasks.
 
-Structured tasks (`async let`, task groups) are scoped like local variables: they can't outlive the block, they're awaited automatically, and they inherit cancellation, priority, and task-local values through the task tree. Unstructured tasks (`Task { }`, `Task.detached`) give you none of that automatically.
+Structured tasks (`async let`, task groups) are scoped like local variables: they can't outlive the block, they're awaited automatically, and they inherit cancellation, priority, and task-local values through the task tree. Unstructured tasks lose the scoping: their lifetime and cancellation are yours to manage. `Task { }` still inherits priority, task-local values, and the enclosing actor context; only `Task.detached` starts with no inherited context at all.
 
 - **`async let`** for a fixed, statically known number of concurrent children.
 - **`withTaskGroup`** when the number is dynamic. Task groups conform to `AsyncSequence` — iterate results as they land. Use **`withDiscardingTaskGroup`** when children return nothing: it frees each child's resources immediately. Its children can't throw; use **`withThrowingDiscardingTaskGroup`** when they can — the first child error cancels the siblings and is rethrown.
@@ -216,7 +218,7 @@ Clarity at the point of use is the goal that outranks every other one here.
 
 - **No type prefixes in Swift-only APIs.** Modules disambiguate. Keep prefixes only where the API mirrors an Objective-C one. But avoid very general names from specific frameworks — they read badly out of context and force manual disambiguation.
 - **Drop leading `get`** from async alternatives and from anything that returns its result directly. `persistentPosts`, not `getPersistentPosts`.
-- **Access control is documentation.** `private` (file), `internal` (module, and the default), `package`, `public`. Being explicit at the boundary is what forces the sendability and API-evolution decisions above.
+- **Access control is documentation.** `private` (the enclosing declaration, plus its extensions in the same file), `fileprivate` (the whole file), `internal` (module, and the default), `package`, `public`. Being explicit at the boundary is what forces the sendability and API-evolution decisions above.
 - **Design the model so illegal states can't be spelled.** Private setters plus a validating mutating method; enums for closed sets; a strongly typed `UUID` instead of a `String`.
 - **Property wrappers** factor out an _access policy_ (`@Argument`, `@Published`, defensive copying, lazy, thread-local) so the declaration site states the policy in one word. Combine with `@dynamicMemberLookup` on a key path to project through a wrapper (that's how `$binding.title` works).
 - **Result builders** for declarative DSLs. **Macros** when the boilerplate is code the compiler could have written (§12).

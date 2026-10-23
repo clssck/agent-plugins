@@ -1,7 +1,6 @@
 ---
 name: review-animations
-description: "Reviews animation and motion code against a high craft bar derived from Emil Kowalski's design engineering philosophy. Default to flagging; approval is earned."
-disable-model-invocation: true
+description: "Review or critique existing web animation and motion code (CSS transitions, keyframes, Framer Motion/Motion, springs, easing, timing, hover/enter/exit, reduced-motion) against Emil Kowalski's design-engineering craft bar; default to flagging, approval is earned. Use for 'review my animation', 'does this motion feel right', 'critique this transition'. Not for building or adding motion (use animate), whole-repository motion audits or roadmaps (use improve-animations), or Expo/React Native motion (use animate-expo)."
 ---
 
 # Reviewing Animations
@@ -15,6 +14,13 @@ When this skill is first invoked without a specific question, respond only with:
 Do not provide any other information until the user asks a question.
 
 A specialized review skill. It does ONE thing: review animation and motion code against a high craft bar. It does not write features, fix unrelated bugs, or review non-motion code. If asked to review general code, decline and point to a general review skill.
+
+<directives>
+- Review is source-read-only with no execute mode: NEVER edit files or apply fixes, including the motion fixes this review proposes. Fixes appear only as rows in the findings table.
+- Building, adding, or applying motion → `skill://animate`.
+- Expo/React Native motion → `skill://animate-expo`.
+- Whole-repository motion audits or roadmaps → `skill://improve-animations`.
+</directives>
 
 <critical>
 
@@ -32,7 +38,7 @@ Every animation in the diff is measured against these. A violation is a finding.
 
 6. **Interruptibility.** Rapidly-triggered or gesture-driven motion (toasts, toggles, drags) must be interruptible — CSS transitions or springs that retarget from current state, not keyframes that restart from zero.
 
-7. **GPU-only properties.** Animate `transform` and `opacity` only. Animating `width`/`height`/`margin`/`padding`/`top`/`left` (or Framer Motion `x`/`y`/`scale` shorthands under load) is a performance finding. The sole exception is `height` (incl. `auto`) on accordions/collapses, which no transform can reproduce (content reflow); pair it with opacity and don't flag it.
+7. **GPU-only properties.** Animate `transform` and `opacity` only. Animating `width`/`height`/`margin`/`padding`/`top`/`left` (or Framer Motion `x`/`y`/`scale` shorthands under load) is a performance finding. Three exceptions, not flagged: `height` (incl. `auto`) on accordions/collapses, which no transform can reproduce (content reflow), paired with opacity; bounded `filter: blur()` (under 20px) that masks a crossfade; and `clip-path` driving the progress overlay of a deliberate hold interaction (hold-to-confirm/delete).
 
 8. **Accessibility.** `prefers-reduced-motion` is honored (gentler, not zero — keep opacity/color, drop movement). Hover animations are gated behind `@media (hover: hover) and (pointer: fine)`.
 

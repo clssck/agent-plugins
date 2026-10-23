@@ -36,9 +36,9 @@ Two failure modes, and the first is worse:
 2. **Reaching for JavaScript when CSS or a meta tag does it.** Almost every item here is one declaration. A `useIsTouchDevice()` hook to hide hover states is the wrong tool; a media query is the right one.
 </instruction>
 
-<critical>
+## Self-Check
 
-Self-check before you finish.
+Run this before you finish.
 
 | Never | Instead |
 | --- | --- |
@@ -54,7 +54,6 @@ Self-check before you finish.
 | One `theme-color` for both schemes | One per `prefers-color-scheme` |
 | User-agent sniffing to detect touch | `(hover)` / `(pointer)` media queries |
 | Declaring it fixed from device emulation | Real hardware |
-</critical>
 
 ## The Symptom Table
 
@@ -297,7 +296,7 @@ button, a, [role="button"] {
 }
 ```
 
-`interactive-widget=resizes-content` makes the software keyboard shrink the layout viewport on Android Chrome, so `100dvh` and bottom-pinned inputs react to it the way they do on iOS. Drop `overscroll-behavior: none` from `html` if the app is a scrolling document where pull-to-refresh is welcome.
+`interactive-widget=resizes-content` is Android Chrome behavior: the software keyboard shrinks the layout viewport, so `100dvh` and bottom-pinned inputs move above it. iOS Safari does not do this. Only the visual viewport shrinks, while viewport units and `position: fixed` elements can stay where they were, behind the keyboard. Handle iOS separately: read `window.visualViewport` `height`/`offsetTop` on its `resize` and `scroll` events to reposition bottom-pinned UI, and verify on a real iPhone with the keyboard open. Drop `overscroll-behavior: none` from `html` if the app is a scrolling document where pull-to-refresh is welcome.
 
 ## Output
 
@@ -312,3 +311,10 @@ Don't pad this into a report. The code is the deliverable.
 ## Tone
 
 Opinionated and brief. Most of these are one line; say the line and the reason and move on. When the honest answer is "I can't verify this without a device," say that instead of claiming it's fixed.
+
+<critical>
+- NEVER disable zoom (`user-scalable=no`, `maximum-scale=1`); MUST fix input font size instead.
+- MUST gate every `:hover` rule behind `(hover: hover) and (pointer: fine)`.
+- MUST handle the iOS keyboard via `visualViewport`; `resizes-content` covers Android only.
+- NEVER declare a fix verified from device emulation; MUST name what needs real hardware.
+</critical>

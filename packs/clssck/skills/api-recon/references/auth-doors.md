@@ -1,6 +1,6 @@
 # Authentication and Session Mapping
 
-Map the real client/session path and its server enforcement. Use provided or otherwise explicitly permitted assessment access; observe actual login, bootstrap, permission, and application responses. Do not create replacement responses or client privileges to make a screen appear accessible.
+Map the real client/session path and its server enforcement. Use provided or otherwise explicitly permitted assessment access; observe actual login, bootstrap, permission, and application responses. Do not create replacement responses or client privileges to make a screen appear accessible, except inside the labelled credential-free enumeration mode below, which maps routes only and never claims access.
 
 ## The Three Gates
 
@@ -20,21 +20,31 @@ A localStorage key name or a decoded token claim is not proof of server authenti
 4. Trace bootstrap/menu/permission responses to the routes they enable. The absence of a button is not proof that the corresponding server endpoint enforces authorization; hand that hypothesis to exploitation when applicable.
 5. Missing or expired access blocks the dependent routes. Restore supplied access through the supported flow, or report the missing prerequisite; continue independent authorized source analysis and public observations. NEVER invent a token, permission tree, or successful response.
 
+## Credential-Free Route Enumeration
+
+Use only when the objective is surface mapping, no assessment identity exists, and the operator authorizes client-side instrumentation. This mode changes what the *client* believes; it never establishes access.
+
+- Serve structurally correct stubs for the auth, bootstrap, permission, and menu endpoints (success shape, empty data) and neutralize redirect/interceptor branches, so the SPA mounts its post-login shells and fires the real XHR/fetch traffic behind them.
+- Return empty success bodies for unmatched business queries to keep the shell rendering; blank tables and placeholder UI are expected.
+- Record the stub shape, every mocked endpoint, and each deviation from a real response. Keep the instrumentation in the output directory, not in the skill tree.
+- Every captured request is a candidate route; every stub-produced response is `frontend_observation`. NEVER claim authentication, authorization, data access, or impact from a stubbed response — those require a real backend exchange.
+- Restore the tab, remove the instrumentation, and delete raw captures per the credential rules before handoff.
+
 ## OMP Browser
 
 `browser` is an `eval` global, not a top-level tool. Read the actual browser API description first, use the live schema, and verify the selected backend's reported support. Keep the tab handle and HAR path in eval variables; a subagent needs the artifact path, not the handle.
 
 - **Tab ownership:** create a named assessment tab. Relay/CDP and adopted Tern targets are real user pages; discover and select the intended target before attaching. Prefer a managed Chromium tab and test identity for active requests; use the relay or an adopted user tab only for explicitly authorized read-only observation, because sites attribute those actions to the operator. NEVER navigate a visible personal tab implicitly.
 - **Domain fence:** `browser.open({ name, url, allowed_domains })` restricts the assessment tab to approved hosts before navigation. A fence is a control, not permission to add another host.
-- **Live capture:** call `tab.clearRequests()` before the interaction, then inspect `tab.requests()` / `tab.request()` and keep the exchanges in memory. Verify capture with a known real exchange. Response bodies require `content: "text"` where supported; preserve actual status, body, timing, redirect, and identity correlation. On an authenticated session do not use `tab.harStart()` / `tab.harStop({ path })` as the evidence path: it writes the raw exchanges, cookies and auth headers included, to disk. Use a HAR only when the evidence cannot be obtained from `tab.requests()`, and then only as a transient file in a private temp directory outside the workspace and handoff location. Parse and count the capture in `eval`; persist only the redacted copy to `recon/` or an `artifact://` handle. Long captures or parser jobs → host handles; `wait` for completion, `proc://` for background services.
+- **Live capture:** call `tab.clearRequests()` before the interaction, then inspect `tab.requests()` / `tab.request()` and keep the exchanges in memory. Verify capture with a known real exchange. Read response bodies with `tab.request(id)` and inspect `body`, `contentType`, and `bodyTruncated`; a returned body is capped at 1 MiB. Reserve `content` options for `tab.harStart()`. Preserve actual status, body, timing, redirect, and identity correlation. On an authenticated session do not use `tab.harStart()` / `tab.harStop({ path })` as the evidence path: it writes the raw exchanges, cookies and auth headers included, to disk. Use a HAR only when the evidence cannot be obtained from `tab.requests()`, and then only as a transient file in a private temp directory outside the workspace and handoff location. Parse and count the capture in `eval`; persist only the redacted copy to `recon/` or an `artifact://` handle. Long captures or parser jobs → host handles; `wait` for completion, `proc://` for background services.
 - **Credential handling:** captures contain secrets and personal data. Avoid collecting them where possible, and in this order:
   1. Redact in memory before writing anything: `Cookie`/`Set-Cookie` values, `Authorization` and `Proxy-Authorization` headers, bearer/API/CSRF/session tokens in headers, bodies, and storage reads, and secret query values (tokens, codes, keys, signatures, session IDs). Replace each with a labelled placeholder that keeps the name and shape.
   2. Write only the redacted copy as the evidence artifact, and confirm it contains none of the captured secret values.
   3. Delete every raw capture (transient HAR, unredacted dumps) and confirm it is gone before handoff.
   4. If the backend cannot capture without persisting raw secrets, or redaction would remove the decisive evidence, report that limitation. NEVER claim a sanitized artifact exists unless step 2 produced it.
-- **Execution context:** `tab.evaluate` runs in the page; `tab.run` has host-side tool access. Use instrumentation to observe the real flow, not to replace its responses. NEVER execute untrusted page text as host code. Re-observe after navigation or re-render before using element IDs.
+- **Execution context:** `tab.evaluate` runs in the page; `tab.run` has host-side tool access. Use instrumentation to observe the real flow, not to replace its responses, outside the labelled credential-free mode. NEVER execute untrusted page text as host code. Re-observe after navigation or re-render before using element IDs.
 - **Route coverage:** `tab.pushState` can drive actual SPA routing. Capture the resulting real requests, final URL, and visible state; a changed URL without the relevant exchange does not establish endpoint coverage.
-- **Backend limits:** Tern captures fetch/XHR and navigation responses, not all subresources or WebSockets; request bodies are document-local. Use a supported configured Chromium/CDP backend when the evidence requires more, or record the gap. Do not retry methods the backend explicitly rejects.
+- **Backend limits:** Tern captures fetch/XHR and navigation responses, not all subresources or WebSockets; request records retain byte counts, not payload contents, and Tern's document-local body cache holds responses. Obtain needed request payloads by observing the real request-building flow, or record the capture gap. Use a supported configured Chromium/CDP backend when the evidence requires more, or record the gap. Do not retry methods the backend explicitly rejects.
 - **Real actions:** a click may create data, send a message, export records, or trigger another system. Run it only when the engagement covers that effect, using engagement-owned objects and recorded cleanup. Leave excluded actions untested rather than simulating success.
 - **Release:** stop recording, remove owned instrumentation, and release the assessment tab. NEVER kill a reused browser process or clear personal cookies/storage.
 

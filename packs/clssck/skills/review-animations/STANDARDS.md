@@ -109,7 +109,7 @@ Slow where the user is deciding, fast where the system responds.
 
 ## Performance
 
-- **Only animate `transform` and `opacity`** — they skip layout/paint and run on the GPU. `padding`/`margin`/`height`/`width`/`top`/`left` trigger all three rendering steps. The sole exception is `height` (incl. `auto`) on accordions/collapses, which no transform can reproduce (content reflow); pair it with opacity.
+- **Only animate `transform` and `opacity`** — they skip layout/paint and run on the GPU. `padding`/`margin`/`height`/`width`/`top`/`left` trigger all three rendering steps. Three exceptions: `height` (incl. `auto`) on accordions/collapses, which no transform can reproduce (content reflow), paired with opacity; bounded `filter: blur()` (under 20px) that masks a crossfade (see Masking imperfect crossfades); and `clip-path` driving the progress overlay of a deliberate hold interaction (see Asymmetric timing).
 - **Don't drive child transforms via a CSS variable on the parent** — it recalcs styles for all children. Set `transform` directly on the element.
   ```js
   element.style.setProperty('--swipe-amount', `${d}px`); // bad: recalc on all children

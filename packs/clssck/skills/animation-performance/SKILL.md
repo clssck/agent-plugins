@@ -19,14 +19,14 @@ A diagnostic skill. It does ONE thing: make motion land every frame. It does not
 
 Imagine [Sonner](https://sonner.emilkowal.ski/) running at 30fps. Same easing, same durations, same code. Nobody would have cared. Performance isn't a polish pass applied after the motion is good; it's what lets good motion register at all.
 
-<critical>
+<directives>
 
 1. **`transform` and `opacity` by default.** Anything else needs a reason. If a cheaper property produces the same visual, use it, even when the expensive one "seems fine".
 2. **Name the cause before changing code.** Every fix you propose names which of the causes below it addresses. "Added `will-change`, seems smoother" is not a diagnosis.
 3. **Never conclude "it's fine" from a fast machine.** Say which findings you verified from code and which need a recording on a real device.
 4. **Never `transition: all`.** List the exact properties. `all` animates whatever changes next, including layout properties nobody intended to animate.
 5. **Don't trade correctness for a best-effort optimization.** Hardware acceleration is something the browser may grant. Which properties you animate is something you control. Spend effort on the second.
-</critical>
+</directives>
 
 <instruction>
 
@@ -73,7 +73,7 @@ Work down this list. It's ordered by how often each one is the cause:
 6. **Any animated `blur()` above 20px?**
 7. **Still shifting or stuttering?** Now add `will-change: transform` to the animating element.
 
-Confirm with a recording, not by feel. When the page runs locally, measure it in an OMP Chromium tab (inside Tern open with `app: { tern: false }`): throttle with `tab.emulate({ cpuThrottling: 4 })`, read `tab.metrics()` before and after the interaction, and collect `long-animation-frame` entries with a `PerformanceObserver`. Whole-page `LayoutCount` and `RecalcStyleDuration` deltas are signals only; unrelated work and legitimate mount/layout can change them. Use `tab.traceStart()` / `tab.traceStop()` plus the source to attribute layout, style recalculation, or main-thread work before naming a cause. Without a browser tool or running app, use the DevTools Performance panel for dropped frames and long tasks; test on a real phone before claiming mobile smoothness.
+Confirm with a recording, not by feel. When the page runs locally, measure it through the Eval `browser` object: `browser.open({ name, url, app: { tern: false } })` opens an OMP Chromium tab (Tern tabs reject CPU throttling and tracing), then throttle with `tab.emulate({ cpuThrottling: 4 })`, read `tab.metrics()` before and after the interaction, and collect `long-animation-frame` entries with a `PerformanceObserver`. Whole-page `LayoutCount` and `RecalcStyleDuration` deltas are signals only; unrelated work and legitimate mount/layout can change them. Use `tab.traceStart()` / `tab.traceStop()` plus the source to attribute layout, style recalculation, or main-thread work before naming a cause. Only when Eval or its `browser` object is unavailable, or no app is running, use the DevTools Performance panel for dropped frames and long tasks; test on a real phone before claiming mobile smoothness.
 
 ### Phase 3: Report
 
@@ -176,8 +176,8 @@ Two things follow:
 
 | Driver | Thread |
 | --- | --- |
-| JS + `requestAnimationFrame` (GSAP, `motion/react` components) | Main thread, always |
-| Web Animations API (`element.animate()`, Motion's `animate()`) | Can be hardware-accelerated |
+| JS + `requestAnimationFrame` (GSAP, hand-rolled loops, `motion/react` layout animations and `x`/`y`/`scale`/`rotate` shorthands) | Main thread, always |
+| Web Animations API (`element.animate()`, Motion's `animate()`, `motion/react` animating `opacity` or a full `transform` string) | Can be hardware-accelerated |
 | CSS transitions and keyframes | Can be hardware-accelerated |
 
 Hardware acceleration means the animation runs off the main thread, so it stays smooth no matter what JavaScript is doing. "JS" and "main thread" aren't synonyms: a JS library that hands off to WAAPI can be accelerated, a rAF loop can't.
@@ -225,3 +225,9 @@ A browser can hand an animation from the CPU to the GPU mid-flight, and that han
 **Add it only once you see the shift or measured dropped frames.** Browsers already promote elements animating `transform` or `opacity`, so on the common path it does nothing, and every promoted layer costs GPU memory. Put it on the element that animates, never on `*` or large containers.
 
 Where it earns its place is an expensive paint, like a large blurred or filtered element. Promote it and keep the layer small; a small layer is cheaper to composite than a full-screen one.
+
+<critical>
+- MUST name the cause behind every proposed fix, and label each finding as verified from code, measured on a throttled desktop, or needing a device recording.
+- NEVER conclude "it's fine" from a fast machine or by feel.
+- MUST stop after the report once every in-scope animation has a finding or an evidenced clean result; apply fixes only when asked.
+</critical>

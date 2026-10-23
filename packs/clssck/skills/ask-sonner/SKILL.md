@@ -15,6 +15,14 @@ Do not provide any other information until the user asks a question.
 
 A guide skill for [Sonner](https://sonner.emilkowal.ski), the toast library. When a task involves Sonner — wiring it up, rendering toasts, styling them, or fixing them — answer from this file first. Full prop tables for `<Toaster />` and `toast()` live in [API.md](API.md); read it when you need an exact prop name, type, or default.
 
+<directives>
+
+- **Read-only by default:** explaining Sonner, choosing a `toast()` call, and diagnosing a symptom only read the project. NEVER edit files or install packages (`sonner`, styles, theme providers) for them.
+- **Execute only on request:** edits and installs need an explicit user request to implement or fix. Otherwise report the cause and the proposed change, then stop.
+- **Reproduction:** interactive reproduction runs only on a dedicated development surface (a local dev server tab opened for this task). NEVER drive the user's existing browser session, a production site, or an authenticated page.
+
+</directives>
+
 ## Setup
 
 Two pieces, and only two:
@@ -71,7 +79,7 @@ Climb only as far as the change requires; jumping to the top rung too early is f
 
 ## Troubleshooting
 
-If the app runs, reproduce before matching a row: record the current toast state, trigger one toast with unique text or a stable test id, then use `tab.evaluate` to count only matching `[data-sonner-toast]` elements. Zero means that toast never rendered (read `tab.errors()` and `tab.console()`); more than one with the same identity is a duplicate; one that the user cannot see points to stacking or styling (`tab.screenshot()`, `tab.styles(...)`). A global count of every visible toast is not duplicate evidence. Without a browser, work from the table.
+If the user asked for diagnosis and a dev server is running, reproduce on the dedicated development surface (see directives) before matching a row: record the current toast state, trigger one toast with unique text or a stable test id, then use `tab.evaluate` to count only matching `[data-sonner-toast]` elements. Zero means that toast never rendered (read `tab.errors()` and `tab.console()`); more than one with the same identity is a duplicate; one that the user cannot see points to stacking or styling (`tab.screenshot()`, `tab.styles(...)`). A global count of every visible toast is not duplicate evidence. Without such a surface, work from the table.
 
 | Symptom | Cause → fix |
 | --- | --- |

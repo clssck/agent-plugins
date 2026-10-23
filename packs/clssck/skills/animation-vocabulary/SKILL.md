@@ -63,7 +63,7 @@ Output:
 
 ## Glossary
 
-_A curated snapshot mirroring the project's `/vocabulary` page; keep the two in sync when either changes._
+_Self-contained glossary; this list is the canonical source for the skill._
 
 ### Entrances & Exits — how elements appear and disappear
 - **Fade in / Fade out** — Element appears or disappears by changing opacity.

@@ -21,7 +21,7 @@ A divergence skill. It does ONE thing: take a described piece of UI ("a toast", 
 1. **Never touch production code during exploration.** Everything lives in an isolated prototype surface (see Phase 4). Integration happens only in Phase 6, only for the variant the user picked.
 2. **Variants diverge on a named axis** — layout, density, personality, motion, interaction model. Before building, you must be able to state each variant's axis in a phrase. Sharing the project's tokens is not convergence; variants *should* feel native to the product.
 3. **Every variant fully works.** Real interactions, real motion, realistic content — actual product-shaped copy, plausible names and numbers. No lorem ipsum, no dead buttons, no "imagine this part".
-4. **The picker is chrome, not a contestant.** Its exact markup, styles, and behavior are specified in [PICKER.md](PICKER.md) — copy them verbatim. Its look is not a design decision and never adapts to the project.
+4. **The picker is chrome, not a contestant.** Its exact markup, styles, and behavior are specified in [PICKER.md](skill://prototype/references/PICKER.md) — copy them verbatim. Its look is not a design decision and never adapts to the project.
 5. **Clean up after the choice.** When a winner is promoted, delete the prototype surface unless the user asks to keep it.
 </critical>
 
@@ -58,7 +58,7 @@ Before designing anything, map the ground the variants must stand on:
 - **Personality**: playful consumer app or crisp dashboard? This bounds how far the boldest variant may go.
 - **Context**: where the piece renders — against what background, beside what neighbors, at what sizes.
 
-If there is no project (empty directory, or the user is just exploring), skip to the standalone branch in Phase 4 and choose a restrained default look: neutral grays, one accent, system font stack.
+If there is no project (empty directory, or the user is just exploring), choose a restrained default look — neutral grays, one accent, system font stack — and treat it as the token set. Continue through Phase 3, then take the standalone branch in Phase 4.
 
 ### Phase 3 — Choose directions
 
@@ -75,11 +75,13 @@ Two branches, by what exists:
 - **In a project with a dev server** — an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent), one file per variant plus a small harness file. Nothing imports from the prototype surface into production code.
 - **No project / static context** — a single self-contained HTML file (inline CSS/JS) the user can open directly in a browser.
 
-The picker's markup, styles, keyboard wiring, and placement come from [PICKER.md](PICKER.md), verbatim — load it now and build exactly that. Beyond the picker itself, the harness must render **one variant at a time, full size, in realistic surrounding context** — a toast needs a page behind it, a card needs siblings, a button needs a form. Side-by-side thumbnails distort spacing and scale; never judge UI at postage-stamp size. Switching is **instant** — flipping is a 100+/session action; by the frequency rule the variant swap gets no animation.
+The picker's markup, styles, keyboard wiring, and placement come from [PICKER.md](skill://prototype/references/PICKER.md), verbatim — load it now and build exactly that. Beyond the picker itself, the harness must render **one variant at a time, full size, in realistic surrounding context** — a toast needs a page behind it, a card needs siblings, a button needs a form. Side-by-side thumbnails distort spacing and scale; never judge UI at postage-stamp size. Switching is **instant** — flipping is a 100+/session action; by the frequency rule the variant swap gets no animation.
 
 ### Phase 5 — Verify and hand off
 
 Run the harness and drive it with `eval`'s `browser`: `browser.open` the harness URL, switch through the picker (`tab.click` or keyboard shortcuts via `tab.press`), assert the selected variant's own rendered content/state changed, exercise its distinguishing interaction, take a `tab.screenshot({ format: "png" })`, and check `tab.errors()` / `tab.console()`. A `tab.diffScreenshot(previousVariantPath)` MAY supplement that assertion, but a viewport diff alone proves nothing because the picker chrome also changes. Confirm every variant renders, every interaction responds, and the console is clean before showing the user anything. Close the tab with `browser.close`. Give screenshot paths to the `vision` agent for visual comparison.
+
+**Blocked path:** if `eval`'s `browser` is unavailable or cannot reach the harness, keep the harness and every variant file in place, give the user the harness URL or file path, and list each check that did not run (picker switching, per-variant interactions, screenshots, console errors). Label the set unverified; NEVER claim the Phase 5 completion criterion or present the exploration as done.
 
 Then present the set and **stop — the choice belongs to the user**:
 

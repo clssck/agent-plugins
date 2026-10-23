@@ -1,6 +1,6 @@
 ---
 name: animate
-description: Build an animation from scratch, making the decisions in the order that determines whether it feels right — should it animate at all, what purpose, which tool, which properties, which curve and duration, how it interrupts, how it exits. Writes the implementation. Use when asked to animate something, add motion, make a component feel alive, or build a transition. For critiquing existing motion use review-animations; for auditing a whole codebase use improve-animations.
+description: Implement a requested animation, transition, or motion in code, deciding in order whether it should animate at all, its purpose, tool, properties, curve and duration, interruption, and exit. Use when explicitly asked to animate a named element, add motion to it, or build a transition. For discovering what could animate or feel more alive use find-animation-opportunities; for critiquing existing motion use review-animations; for auditing a whole codebase use improve-animations.
 ---
 
 # Building Animations
@@ -15,14 +15,14 @@ Do not provide any other information until the user asks a question.
 
 A construction skill. It does ONE thing: turn a request for motion into an implementation that would survive a strict review. It does not audit a codebase (that's `improve-animations`), critique a diff (that's `review-animations`), hunt for places that could animate (that's `find-animation-opportunities`), or build for React Native (that's `animate-expo`).
 
-<critical>
+<directives>
 
 1. **Run the sequence in order.** Steps 1 and 2 gate everything. Don't reach for a curve before you know whether it animates at all.
 2. **No approximated values.** Every curve, duration, and spring config comes from the tables below. Never invent `cubic-bezier(0.4, 0, 0.2, 1)` because it looks familiar.
 3. **Extend the codebase's tokens, don't fork them.** If `--ease-out` or a duration scale already exists, use it. Adding a parallel system is a defect.
 4. **Reduced motion and hover gating ship with the animation**, not as a follow-up.
 5. **Cheapest tool that works.** Don't install a motion library for a fade.
-</critical>
+</directives>
 
 <instruction>
 
@@ -177,9 +177,11 @@ const closedX = reduce ? 0 : '-100%';
 Reduced motion means **fewer and gentler** animations, not zero — keep transitions that aid comprehension, remove movement and position changes.
 </procedure>
 
-<critical>
+## Self-check
 
-Self-check before you finish. Each of these is an automatic block in `review-animations`:
+<directives>
+
+Before you finish, MUST replace every pattern in the Never column with its Instead. Each is an automatic block in `review-animations`:
 
 | Never | Instead |
 | --- | --- |
@@ -196,13 +198,25 @@ Self-check before you finish. Each of these is an automatic block in `review-ani
 | Ungated `:hover` motion | `@media (hover: hover) and (pointer: fine)` |
 | Missing `prefers-reduced-motion` | Gentler variant, not zero |
 | Everything entering at once | 30–80ms stagger |
+</directives>
 
-When the page runs locally, check what code cannot prove in an OMP `browser` tab. Open Chromium (`app: { tern: false }`), start `tab.recordStart(path, { contactSheet: true })`, trigger the motion, then call `tab.recordStop()`. Treat the returned contact sheet as a coarse overview: if a small motion, origin, or stagger is absent, inspect the recording at intermediate timestamps instead of assuming it did not happen. Re-run after `tab.emulate({ reducedMotion: true })` to inspect the reduced-motion variant. Without a browser tool or running app, leave these to the feel-check.
-</critical>
+## Browser verification
+
+<procedure>
+
+Check what code cannot prove. Entry gate: the page runs locally and an OMP `browser` tool is available; otherwise skip this procedure and leave these checks to the feel-check.
+
+1. Open a Chromium tab (`app: { tern: false }`) and start `tab.recordStart(path, { contactSheet: true })`.
+2. Trigger the motion, then call `tab.recordStop()`.
+3. Treat the returned contact sheet as a coarse overview. If a small motion, origin, or stagger is absent, inspect the recording at intermediate timestamps instead of assuming it did not happen.
+4. Apply `tab.emulate({ reducedMotion: true })` to the same tab, then repeat steps 1–3 there without opening a second tab: a new tab would not carry the emulation and would record normal motion again.
+
+Exit gate: both variants inspected, or the gap named in the feel-check.
+</procedure>
 
 ## Recipes
 
-For ready-to-build implementations of the common cases — button press, dropdown, tooltip, modal, drawer, toast, accordion, stagger, hold-to-confirm, tab indicator, scroll reveal, drag-to-dismiss — see [RECIPES.md](RECIPES.md). Load it whenever the request matches one of those components; start from the recipe rather than from a blank file.
+For ready-to-build implementations of the common cases — button press, dropdown, tooltip, modal, drawer, toast, accordion, stagger, hold-to-confirm, tab indicator, scroll reveal, drag-to-dismiss — load `skill://animate/RECIPES.md`. Load it whenever the request matches one of those components; start from the recipe rather than from a blank file.
 
 ## Output
 
@@ -217,3 +231,10 @@ Don't pad this into a report. The code is the deliverable.
 ## Tone
 
 Opinionated and brief. When the honest answer is "this shouldn't animate," give it — that answer is the reason this skill exists. When feel genuinely can't be settled from code, say so instead of guessing at a value.
+
+<critical>
+- MUST run the gate first; "this shouldn't animate" is a valid result.
+- NEVER approximate a curve, duration, or spring config; take it from the tables.
+- MUST ship reduced-motion and hover gating with the animation.
+- NEVER finish with a Self-check Never pattern still in the code.
+</critical>

@@ -60,17 +60,21 @@ A closing `## Checklist` summarizes the skill's verifiable rules; every item is 
 
 <procedure>
 
-Static gates, run from the agent-plugins repo root (what each one proves is in CONTRIBUTING.md):
+1. **Resolve the source:** a working-tree edit reaches a session only through a source OMP currently loads (for this repo's normal development flow, `omp plugin link ~/Projects/agent-plugins/packs/clssck`; custom directories or explicit extension roots are alternatives). `read skill://<name>` and compare the resolved copy with the edited file. Exit: they match; otherwise fix the load source before any trial.
+2. **Validate statically.** Exit: every applicable check below passed, or is recorded as not run with its reason.
+   - **Inside an agent-plugins checkout:** run the repository gates from its root (what each one proves is in CONTRIBUTING.md):
 
-```bash
-bun scripts/sync.ts --local   # description present, concrete skill:// targets resolve, names unambiguous; no network, never loads OMP
-bun test scripts              # sync, rule, and README behavior
-OMP_ROOT=/path/to/oh-my-pi bun scripts/check-omp-loader.ts   # OMP's own loaders accept every pack; needs an OMP checkout with a built native addon
-```
+     ```bash
+     bun scripts/sync.ts --local   # description present, concrete skill:// targets resolve, names unambiguous; no network, never loads OMP
+     bun test scripts              # sync, rule, and README behavior
+     OMP_ROOT=/path/to/oh-my-pi bun scripts/check-omp-loader.ts   # OMP's own loaders accept every pack; needs an OMP checkout with a built native addon
+     ```
 
-- **Passing the gates ≠ the skill works:** they check discovery and structure, not behavior. Behavior check: `task` one fresh subagent with `# Target` = the user's real request and instruction "read `skill://<name>`, then do it" — children start blank, so the skill alone carries the workflow. Then read its transcript at `history://<id>`: wrong turns, skipped gates, and improvised steps are skill defects; fix the text, rerun.
-- **Which copy runs:** a working-tree edit reaches a session only through a source OMP currently loads (for this repo's normal development flow, `omp plugin link ~/Projects/agent-plugins/packs/clssck`; custom directories or explicit extension roots are alternatives). `read skill://<name>` shows which copy resolves before you trust a trial.
-- **Description retrieval:** `judge_batch` (eval) over 10+ real user phrasings, half that should trigger and half that should not, state `{description, request}` per phrasing, one `bool` question ("would an agent pick this skill for this request?"). A small-model proxy: use it to find missed triggers and sibling collisions, label the result inferred, and NEVER treat it as proof of routing.
+     No OMP checkout with a built native addon → the loader check is unavailable; record it as not run.
+   - **Installed or standalone skill, no checkout:** the repository gates do not exist; check directly. Frontmatter parses; `name` = directory name; `description` present; no key beyond `name` and `description` (`disable-model-invocation` only for an OMP manual-only skill, never in a standard `plugin.json` package); `read` each `skill://<name>/...` target and confirm it resolves; the `grep` tool finds no relative link to a runtime entry point.
+3. **Run a behavior trial:** passing static checks ≠ the skill works; they check discovery and structure, not behavior. `task` one fresh subagent with `# Target` = the user's real request and instruction "read `skill://<name>`, then do it" — children start blank, so the skill alone carries the workflow. Then read its transcript at `history://<id>`: wrong turns, skipped gates, and improvised steps are skill defects; fix the text, rerun. Exit: a trial transcript with no skill-attributable defect.
+4. **Check retrieval:** `judge_batch` (eval) over 10+ real user phrasings, half that should trigger and half that should not, state `{description, request}` per phrasing, one `bool` question ("would an agent pick this skill for this request?"). A small-model proxy: use it to find missed triggers and sibling collisions, label the result inferred, and NEVER treat it as proof of routing. Exit: no missed trigger or sibling collision remains unaddressed.
+5. **Report coverage:** list each check run with its result, and each unavailable check (no checkout, no OMP build, no `task` or eval) as not run with the reason. Exit: every step above appears as passed or not run.
 
 </procedure>
 
@@ -100,6 +104,6 @@ OMP_ROOT=/path/to/oh-my-pi bun scripts/check-omp-loader.ts   # OMP's own loaders
 </caution>
 
 <critical>
-- Never ship a skill whose gates were not run; report the unrun check as unverified.
+- NEVER report a skill as verified while an applicable check did not run; name each unrun check as unverified, with the reason.
 - NEVER present inferred or copied material as verified behaviour.
 </critical>

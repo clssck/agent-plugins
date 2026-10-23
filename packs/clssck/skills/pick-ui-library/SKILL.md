@@ -1,6 +1,6 @@
 ---
 name: pick-ui-library
-description: Pick the right library for a given frontend task from a curated, opinionated list — numbers, OTP inputs, charts, command menus, virtualization, drag and drop, toasts, state, styling, and more. Only runs when explicitly invoked; it does not trigger on its own.
+description: Pick the right library for a given frontend task from a curated, opinionated list — numbers, OTP inputs, charts, command menus, virtualization, drag and drop, toasts, state, styling, and more. Not for troubleshooting an existing Sonner integration (use ask-sonner). Only runs when explicitly invoked; it does not trigger on its own.
 disable-model-invocation: true
 ---
 
@@ -15,6 +15,8 @@ When this skill is first invoked without a specific question, respond only with:
 Do not provide any other information until the user asks a question.
 
 A lookup skill. When invoked with a task ("I need toasts", "what should I use for drag and drop?"), match the task to the curated list below and recommend the library. These are deliberate, taste-driven picks — don't substitute alternatives outside this list unless the user asks for one or the task genuinely isn't covered.
+
+This skill selects dependencies and performs requested setup. Troubleshooting an existing Sonner integration (missing or duplicate toasts, styling, positioning, `toast.promise`) belongs to `skill://ask-sonner`.
 
 ## How to use this
 

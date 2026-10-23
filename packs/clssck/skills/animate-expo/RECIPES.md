@@ -6,6 +6,8 @@ Ready-to-build implementations for the cases that come up most in a React Native
 
 ## Setup the recipes assume
 
+Run these installs only for packages the project lacks, after the compatibility check and with the user's authorization (see Dependencies in `skill://animate-expo/SKILL.md`). Skip any package already installed at a compatible version.
+
 ```bash
 npx expo install react-native-reanimated react-native-worklets react-native-gesture-handler expo-haptics
 ```
@@ -252,7 +254,7 @@ Entrance animations are for content the user asked for and is waiting on. A list
 
 ## Keyboard-synced UI
 
-Needs its own module and a one-time provider ([Expo keyboard guide](https://docs.expo.dev/guides/keyboard-handling/)):
+Needs its own module and a one-time provider ([Expo keyboard guide](https://docs.expo.dev/guides/keyboard-handling/)); install it only under the same authorization:
 
 ```bash
 npx expo install react-native-keyboard-controller

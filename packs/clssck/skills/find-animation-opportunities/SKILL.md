@@ -68,7 +68,7 @@ The answer must be one of these, named explicitly:
 
 ### 3. Speed — can it stay inside budget?
 
-The suggestion must work within the standard budgets (UI under 300ms):
+The suggestion must work within the standard budgets (UI under 300ms). Sole exemption: deliberate hold-progress timing — a hold-to-confirm fill lasts as long as the hold it measures (e.g. 2s linear); its release snap-back stays inside the budget.
 
 | Element | Duration |
 | --- | --- |
@@ -110,7 +110,7 @@ Sweep for these seams — each is a known class of genuine opportunity:
 **The delight budget**
 - Rare, high-emotion moments rendered flat — first-run, empty states, success/completion, celebration. These are the only places bounce, stagger generosity, or a longer beat are welcome.
 
-Useful sweeps: `grep` for `display: none` toggles, `onClick` handlers on elements with no `:active`/transition styles, `details`/accordion markup, drag handlers, and empty-state and success components. For conditional renders with no transition, use `ast-grep` with `lang: "tsx"` (one pattern per call, narrow `path`): `$C && <$T $$$ />` and `$C && <$T $$$>$$$</$T>` for JSX, `$C ? $A : null` for ternaries. For entering lists, `.map(` renders. A match is a candidate, not a finding — check whether the parent already animates presence (`AnimatePresence`, `@starting-style`, a transition on the wrapper).
+Useful sweeps: `grep` for `display: none` toggles, `onClick` handlers on elements with no `:active`/transition styles, `details`/accordion markup, drag handlers, and empty-state and success components. For conditional renders with no transition, use the `ast_grep` tool when it is enabled (it is disabled by default): one pattern per call as `pat`, with `lang: "tsx"` and a narrow `path` — `$C && <$T $$$ />` and `$C && <$T $$$>$$$</$T>` for JSX, `$C ? $A : null` for ternaries. When `ast_grep` is unavailable, run `grep` scoped to the component directories for `&& <` and `: null`, then read the surrounding source to confirm each hit is a conditional render. For entering lists, `.map(` renders. A match is a candidate, not a finding — check whether the parent already animates presence (`AnimatePresence`, `@starting-style`, a transition on the wrapper).
 
 ## Required Output Format
 
@@ -123,7 +123,7 @@ One row per surviving suggestion, ordered by leverage:
 | 1 | `Toast.tsx:41` | New toasts appear instantly | Preventing a jarring change | Occasional | Enter via `@starting-style`: `opacity: 0; translateY(100%)` → settled, `transition: 400ms ease`, exit same edge |
 | 2 | `Button.tsx:18` | No press feedback | Feedback | Tens/day | `:active { transform: scale(0.97) }`, `transition: transform 160ms ease-out` — subtle enough for the frequency tier |
 
-Every "Suggested motion" cell carries exact values — the curve, the duration, the properties — pulled from this repo's shared vocabulary (`--ease-out: cubic-bezier(0.23, 1, 0.32, 1)`, `--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1)`, `--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1)`), never approximated. Animate `transform` and `opacity` only. The sole exception is height on accordions/collapses, which has no transform equivalent; pair it with opacity. Include reduced-motion handling (gentler, not zero) and `@media (hover: hover) and (pointer: fine)` gating when the suggestion involves hover.
+Every "Suggested motion" cell carries exact values — the curve, the duration, the properties — pulled from this repo's shared vocabulary (`--ease-out: cubic-bezier(0.23, 1, 0.32, 1)`, `--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1)`, `--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1)`), never approximated. Animate `transform` and `opacity` only. Two exceptions: height on accordions/collapses, which has no transform equivalent (pair it with opacity), and the `clip-path` fill of a deliberate hold-to-confirm, which renders hold progress. Include reduced-motion handling (gentler, not zero) and `@media (hover: hover) and (pointer: fine)` gating when the suggestion involves hover.
 
 ### Part 2 — Rejected candidates (REQUIRED)
 
