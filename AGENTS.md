@@ -29,6 +29,23 @@ Measured at `reviewedCommit` across every `*.md` under `packages/coding-agent/sr
 | `<example>` | 3 | mid-body | Runnable sample, nested under the section that needs it |
 | `<caution>` | 2 | mid-body | Failure modes; blocked, unavailable, or partial behavior |
 
+### Tag inventory
+
+Every distinct `<lowercase-kebab>` name in the corpus, classified: 131 names. Only the first two classes carry semantics.
+
+| Class | Names | Our rule |
+|---|---|---|
+| Semantic, ordered and tiered | `critical`, `instruction`, `procedure`, `caution`, `example` | Use in this order; tier violations fail the gate |
+| Gating section tag | `directives` | Host idiom for `MUST`/`NEVER` blocks; no order, no tier |
+| Harness-owned | `system-reminder`, `system-interrupt`, `system-notice`, `system-notification`, `system-injection`, `system-conventions`, `objective` | Authored by the host; NEVER emit them |
+| Section tags | `workflow`, `examples`, `output`, `instructions`, `diff`, `context`, `completeness`, `file`, `rules`, `skills`, `plan`, `role`, `conventions`, `project-context`, `error`, `when`, `anti-patterns`, `format`, `irc`, `verification`, `criteria`, `findings`, `title`, `body`, `structure`, `thoroughness`, … (~110 more) | Free-form, with the local exceptions below |
+| Placeholders in examples | `name`, `n`, `owner`, `repo`, `slug`, `scope`, `path`, `title` | Not tags: URL and CLI shape inside command examples |
+
+<instruction>
+- Section tags are free-form except where the gate enforces a local convention: a name within edit distance 2 of a semantic tag is rejected as a likely typo (`<examples>`, `<instructions>`, `<cautions>`), and three legacy names are retired in favour of the semantic tag carrying the same decision — `<workflow>` → `<procedure>`, `<when>` → `<instruction>`, `<anti-patterns>` → `<caution>`.
+- The host uses all five of those names (`<examples>` 5 files, `<instructions>` 5, `<workflow>` 5, `<when>` 2, `<anti-patterns>` 2). This repository does not, deliberately: one canonical name per decision. When porting host prose, rename them instead of copying.
+</instruction>
+
 <instruction>
 - `<critical>` is dual-purpose in the host: `cleanse/prompts/discovery.md` and `.omp/commands/cleanup.md:5` open with it, while 20 of 26 files close with it. An opening block is legal when the constraint gates the first action. NEVER retag an existing opening `<critical>` for style alone; the gate permits one opening and one closing block per payload.
 - `<directives>` is rare in the host (4 files) and specific to agents and notices (`prompts/agents/scout.md`, `task.md`, `init.md`). Use it for a block of gating rules that precede the work; do not invent it to carry prose.
