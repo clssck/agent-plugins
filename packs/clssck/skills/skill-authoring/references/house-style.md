@@ -35,7 +35,7 @@ Distilled from every bundled primitive at the pinned OMP commit. Match this shap
 
 - `<critical>` is a recap, not the constraint block: among the 26 host files that use it at the reviewed pin, 16 close the file, 4 both open and close, 1 opens, and 5 place it mid-document. Closing is the convention, not a host rule. Open with it only when the constraint must gate the first action (`cleanse/prompts/discovery.md` is the host example).
 - Constraints that gate behaviour go in `<directives>`, as `scout.md` and `task.md` do; the closing `<critical>` repeats only what a rushed reader must not miss.
-- Rules are plain Markdown with no tags: the harness wraps the body in its own `<system-interrupt>` or `<system-reminder>`. Lead with one enforceable claim, then `## Why`, `## Avoid` / `## Use`, `## Exceptions`.
+- Rules are plain Markdown by default, as all 26 bundled rules are: the harness wraps the body in its own `<system-interrupt>` or `<system-reminder>`, so never author that wrapper. Lead with one enforceable claim, then `## Why`, `## Avoid` / `## Use`, `## Exceptions`. A closing `<critical>` is allowed when one line must survive a rushed reader; a tagged rule must then carry it, and the gate enforces presence and tier.
 - Skills are heading-first. Tags are optional and used only when a block carries a decision; reference sections keep noun headings and no tags.
 - State the completion condition as a checkable fact, not an encouragement. Name the source of truth when two observations can disagree.
 - Tier: a prohibition inside `<instruction>`, or advice inside `<critical>`, is a defect. `<procedure>` and `<caution>` may carry `MUST`/`NEVER`.

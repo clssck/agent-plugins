@@ -32,7 +32,7 @@ Measured at `reviewedCommit` across every `*.md` under `packages/coding-agent/sr
 <instruction>
 - `<critical>` is dual-purpose in the host: `cleanse/prompts/discovery.md` and `.omp/commands/cleanup.md:5` open with it, while 20 of 26 files close with it. An opening block is legal when the constraint gates the first action. NEVER retag an existing opening `<critical>` for style alone; the gate permits one opening and one closing block per payload.
 - `<directives>` is rare in the host (4 files) and specific to agents and notices (`prompts/agents/scout.md`, `task.md`, `init.md`). Use it for a block of gating rules that precede the work; do not invent it to carry prose.
-- Rules are never tagged: 26 of 26 bundled rules and every rule in this repo are untagged prose, because the host wraps the body itself. Skills are our divergence — the host ships all 3 untagged — so a tag there is deliberate, applied when a block carries a distinct decision.
+- Bundled rules happen to be untagged (0 of 26), as are all ours today, but that is a default, not a prohibition: a rule body is plain Markdown in every delivery path, so a pack rule MAY add a closing `<critical>` when one line must survive a rushed reader. Tagged rules must include `<critical>` — the gate enforces it — and MUST NEVER reproduce the host's `<system-interrupt>` / `<system-reminder>` wrapper. Skills are our larger divergence: the host ships all 3 untagged, so tagging a skill is deliberate, applied when a block carries a distinct decision.
 - Tier is enforced: a prohibition inside `<instruction>` fails (`move it to <critical>`), and an advisory word inside `<critical>` fails. Decide the tier first, then the tag.
 - New capabilities and substantive rewrites MUST use the grammar. Reference-only sections keep noun headings and MAY carry no tags.
 - Migration: an existing body MAY keep its current shape until its next substantive edit; do not mass-rewrite a pack just to convert tags.
@@ -330,7 +330,7 @@ State the violated invariant and the exact corrective action.
 Keep the body short enough to inject at the point of violation.
 
 <instruction>
-- A rule body is prose, matching the 26 bundled rules: `## Avoid`, `## Use`, `## Why`, and `## Exceptions` when it applies. Do not wrap a rule in tags; the host wraps it.
+- A rule body is prose, matching the 26 bundled rules: `## Avoid`, `## Use`, `## Why`, and `## Exceptions` when it applies. Keep that default. A closing `<critical>` is allowed when one line must survive a rushed reader — and then the gate requires it — but NEVER reproduce the host's own `<system-interrupt>` or `<system-reminder>` wrapper.
 - Lead with the violated invariant and the exact corrective action; add the authorization or recovery step when the action can destroy or mutate state.
 - Omit background teaching; put long workflows in a skill.
 - The host wraps the body in its own `<system-interrupt>` or `<system-reminder>`; do not emulate that wrapper, and do not repeat the rule name or path.
