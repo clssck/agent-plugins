@@ -361,21 +361,22 @@ Stable fields at the reviewed contract:
 | `thinking-level` | Supported effort value |
 | `tools` | CSV/list allowlist; omitted selects the default toolset |
 | `spawns` | `*`, CSV, or list of permitted child agents |
-| `output` | Optional output schema, effective only for a host run that enables structured output |
+| `output` | Optional output schema, applied only on structured runs: `task.structured` on, or this agent declaring `structured: true` |
+| `structured` | Keep structured results for this agent even while the session-wide `task.structured` setting is off |
 | `blocking` | Parent waits for this agent |
 | `autoloadSkills` | Skills injected before the first assignment |
 | `read-summarize` | Structural read-summary control |
 | `prewalk`, `advisor` | Advanced model hand-off/advisor policy; verify against the pin before use |
 
 <critical>
-Declare the exact valid `tools` list; do not use an empty or malformed value as a security boundary, because behavior changed across OMP revisions.
+Omitted or YAML-null `tools` selects the default built-ins. Any other declaration with no tool names — `tools: []`, an empty CSV, or a malformed value — selects no built-ins. Declare an explicit list either way; an empty value is a statement about tools, not a security boundary.
 </critical>
 
 <caution>
 - Omitted `tools` means default built-ins, including mutation-capable tools.
 - If `tools` contains `task` and `spawns` is omitted, OMP infers unrestricted spawning. Declare `spawns` explicitly.
 - OMP derives its read-only label from a non-empty declared tool list containing only host read-tier tools. For a repository/file read-only specialist, use only the necessary subset of `read`, `find`, `grep`, `glob`, `web_search`, `ast_grep`, and `wait`; omit `bash`, `eval`, `edit`, `write`, and `task`. This narrows exposed built-ins; it is not an OS sandbox.
-- An `output` schema does not replace a clear prose output contract. Verify the caller/session actually runs the agent in structured mode at the reviewed host.
+- An `output` schema does not replace a clear prose output contract. Verify the caller/session actually runs the agent in structured mode at the reviewed host; a definition that needs its schema resolves it only with `structured: true` or a session-wide `task.structured` setting.
 </caution>
 
 Example:

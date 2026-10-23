@@ -1,14 +1,14 @@
 {
   "repository": "can1357/oh-my-pi",
   "ref": "main",
-  "reviewedCommit": "b91db66e9b0b65a2c977e6a5bc74b0f4b1d58d1c",
+  "reviewedCommit": "0b5c27ab24719c86a5986b95ee55f4e75bc1aaa0",
   "trees": {
     ".omp/commands": "1b7b7b8390f2d6b458f7f9d61ffa0adece0590dd"
   },
   "natives": {
     "package": "@oh-my-pi/pi-natives-linux-x64",
-    "version": "18.10.4",
-    "integrity": "sha512-lZuS16oyg6QY95aujBO5hKYOOtjlZrm7cgHk8zvR2tNi3U6OucNYWFGGNJsFF7cY2dR4kODQjmJl6doguoLaEQ=="
+    "version": "18.12.6",
+    "integrity": "sha512-Dr03a4R2sU03/Qn5I9JgY8c3dnt7O2JNeV8FaFEJsiAlp8DKgfKfrsbVHDk4kqYgiNVfD4Zbyr20e3eFra6rSg=="
   },
   "notification": {
     "repository": "clssck/agent-plugins",
