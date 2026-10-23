@@ -32,7 +32,7 @@ Measured at `reviewedCommit` across every `*.md` under `packages/coding-agent/sr
 <instruction>
 - `<critical>` is dual-purpose in the host: `cleanse/prompts/discovery.md` and `.omp/commands/cleanup.md:5` open with it, while 20 of 26 files close with it. An opening block is legal when the constraint gates the first action. NEVER retag an existing opening `<critical>` for style alone; the gate permits one opening and one closing block per payload.
 - `<directives>` is rare in the host (4 files) and specific to agents and notices (`prompts/agents/scout.md`, `task.md`, `init.md`). Use it for a block of gating rules that precede the work; do not invent it to carry prose.
-- Rules and skills are untagged in the host: 0 of 26 bundled rules and 0 of 3 bundled skills carry any tag. Tagged pack rules or skills are our convention, so tag only when a block carries a distinct decision.
+- Rules are never tagged: 26 of 26 bundled rules and every rule in this repo are untagged prose, because the host wraps the body itself. Skills are our divergence — the host ships all 3 untagged — so a tag there is deliberate, applied when a block carries a distinct decision.
 - Tier is enforced: a prohibition inside `<instruction>` fails (`move it to <critical>`), and an advisory word inside `<critical>` fails. Decide the tier first, then the tag.
 - New capabilities and substantive rewrites MUST use the grammar. Reference-only sections keep noun headings and MAY carry no tags.
 - Migration: an existing body MAY keep its current shape until its next substantive edit; do not mass-rewrite a pack just to convert tags.
@@ -48,6 +48,8 @@ Distilled from every bundled primitive at the pinned commit. Match this unless a
 | Agents | 8 | `name`, `description`, `tools`, `output`, `model`, `thinking-level`, `spawns` | median 19 lines, range 1-119 | 5 tagged: `<directives>` 3, `<procedure>` 2, `<example>`/`<output>` 1 each, `<critical>` 3 (all closing) |
 | Tools | 82 | none | median 6 lines (range 1-80) | 11 of 82 tagged: `<instruction>` 8 (7 open the file) then `<critical>` 9 (8 close it); median block 3 lines |
 | Commands | 5 | none | 29-89 lines | no semantic tags; `<owner>`/`<n>`/`<scope>` are URL placeholders. `cleanup.md` carries `<critical>` twice, opening and closing |
+| Commit prompts | 13 | none | 1-83 lines | no payload tags; `##` sections plus Handlebars (`commit/prompts`, `commit/agentic/prompts`, `commit/conventional/prompts`) |
+| Steering messages | 2 | none | 4 lines | no payload tags; Handlebars text the host delivers inside `<system-interrupt>` |
 | System prompt template | 1 | none | 264 lines | `§ Role/Runtime/Scratchpad/Tool Policy/Workflow/Delivery/Critical`, closing `<contract>`, `<completeness>`, `<evidence-and-output>`, `<yielding>`, `<critical>` |
 | System and notice templates | 103 | none | median 6 lines | 8 tagged; `system-*` tags (`system-reminder`, `system-notice`), Handlebars-gated |
 | Skills | 3 | `name`, `description` | 75-127 lines | heading-first: **0** carry any tag |
@@ -61,11 +63,10 @@ Distilled from every bundled primitive at the pinned commit. Match this unless a
 </instruction>
 
 <instruction>
-- `<critical>` is the only tag every primitive shares, and it is dual-purpose: 20 of 26 host files close with it, 5 open with it. Treat closing as the default and opening as a deliberate gate, never an accident.
-- Constraints that gate behaviour belong in a `<directives>` section tag where the host uses one (`agents/scout.md`, `agents/task.md`, `agents/init.md`); the closing `<critical>` restates the one or two that a rushed reader must not miss.
-- Rules are injected inside the host's own `<system-interrupt>`/`<system-reminder>` wrapper, so a rule body is prose with `## Avoid` / `## Use` / `## Why`. Do not wrap a rule in tags.
-- Agents carry their contract in frontmatter (`tools`, `spawns`, `model`, `output`); the body stays short and says what the specialty does that the schema cannot.
+- Per-tag placement and its rationale live in §Payload grammar; the ratios above are the evidence behind it. Two host facts that follow: a rule body stays prose because the host wraps it in its own `<system-interrupt>`/`<system-reminder>` (so never wrap a rule in tags), and an agent carries its contract in frontmatter rather than in body tags.
+- An agent body stays short and says what the specialty does that the schema cannot.
 - Tools describe a decision surface in about six lines; examples are nested, not appended. Only 11 of 82 use any tag — when they do, `<instruction>` opens and `<critical>` closes; the dialect follows the tool's complexity, not a house template.
+- Commit and steering prompts carry no payload tags at all: 13 Handlebars commit templates and 2 four-line steering messages. Steering reaches the model as host content inside `<system-interrupt>`, so never wrap a message, interjection, or commit instruction in our tags — that impersonates the host wrapper.
 - Host command templates carry no frontmatter and use `$ARGUMENTS` alone, with `## Arguments`, numbered phases, and a closing `## Rules`. Our commands keep `{{ARGUMENTS}}` context insertion for injection safety: a deliberate divergence, recorded here so it is not mistaken for drift.
 </instruction>
 
@@ -307,9 +308,7 @@ condition: '(?i)\btests?\b.*\bpass(?:ed|es)?\b'
 question: "Does this output claim a check passed without naming the command or concrete result? Answer no when the command or result is present."
 scope: text
 ---
-<critical>
 State the violated invariant and the exact corrective action.
-</critical>
 ```
 
 <instruction>
@@ -331,7 +330,7 @@ State the violated invariant and the exact corrective action.
 Keep the body short enough to inject at the point of violation.
 
 <instruction>
-- A rule body is prose, matching the 27 bundled rules: `## Avoid`, `## Use`, `## Why`, and `## Exceptions` when it applies. Do not wrap a rule in tags; the host wraps it.
+- A rule body is prose, matching the 26 bundled rules: `## Avoid`, `## Use`, `## Why`, and `## Exceptions` when it applies. Do not wrap a rule in tags; the host wraps it.
 - Lead with the violated invariant and the exact corrective action; add the authorization or recovery step when the action can destroy or mutate state.
 - Omit background teaching; put long workflows in a skill.
 - The host wraps the body in its own `<system-interrupt>` or `<system-reminder>`; do not emulate that wrapper, and do not repeat the rule name or path.
