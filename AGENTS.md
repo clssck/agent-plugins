@@ -12,14 +12,30 @@ This repository publishes first-party OMP extension packs. Write every capabilit
 
 ## Payload grammar
 
-Canonical tag set, order, and semantics: `packs/clssck/skills/skill-authoring/references/house-style.md` §Payload grammar. That file is the single source; do not restate the table here.
+Canonical tag set, order, and authoring detail: `packs/clssck/skills/skill-authoring/references/house-style.md` §Payload grammar. `bun scripts/sync.ts --check` enforces it: a retired or harness-owned name fails, an unclosed tag fails, the semantic tags must keep their order and tier, and every `skill://…` link with an `#anchor` must match a real heading. Section tags are free-form.
 
-`bun scripts/sync.ts --check` enforces it: a retired or harness-owned name fails, an unclosed tag fails, the semantic tags must keep their order and tier, and every `skill://…` link with an `#anchor` must match a real heading. Section tags are free-form.
+These are structural tags, not formatting: `compress/prompts/system.md` names `<critical>`, `<instruction>`, and `<example>` among the tags the harness matches on and requires a compression pass to keep while rewriting only the prose inside.
+
+### What the host actually does
+
+Measured at `reviewedCommit` across every `*.md` under `packages/coding-agent/src`, with fenced examples masked so a documented tag is not counted as a used one:
+
+| Tag | Host files | Placement in host | Our rule |
+|---|---:|---|---|
+| `<critical>` | 26 | 20 close the file, 5 open it, 1 only mid-body | Constraint block when it must gate the first action; otherwise a closing 1–6-line recap |
+| `<instruction>` | 12 | 8 open the file | Choices, fallbacks, source of truth. Opening is normal |
+| `<procedure>` | 5 | mid-body only | Numbered actions with entry and exit gates |
+| `<directives>` | 4 | 1 opening, 3 mid-body | Gating `MUST`/`NEVER` rules that must be read before the work |
+| `<example>` | 3 | mid-body | Runnable sample, nested under the section that needs it |
+| `<caution>` | 2 | mid-body | Failure modes; blocked, unavailable, or partial behavior |
 
 <instruction>
+- `<critical>` is dual-purpose in the host: `cleanse/prompts/discovery.md` and `.omp/commands/cleanup.md:5` open with it, while 20 of 26 files close with it. An opening block is legal when the constraint gates the first action. NEVER retag an existing opening `<critical>` for style alone; the gate permits one opening and one closing block per payload.
+- `<directives>` is rare in the host (4 files) and specific to agents and notices (`prompts/agents/scout.md`, `task.md`, `init.md`). Use it for a block of gating rules that precede the work; do not invent it to carry prose.
+- Rules and skills are untagged in the host: 0 of 26 bundled rules and 0 of 3 bundled skills carry any tag. Tagged pack rules or skills are our convention, so tag only when a block carries a distinct decision.
+- Tier is enforced: a prohibition inside `<instruction>` fails (`move it to <critical>`), and an advisory word inside `<critical>` fails. Decide the tier first, then the tag.
 - New capabilities and substantive rewrites MUST use the grammar. Reference-only sections keep noun headings and MAY carry no tags.
-- Completion conditions belong in `<critical>` as checkable facts; capability choice, fallback chains, and the source of truth belong in `<instruction>`.
-- Migration: an existing body MAY keep its current shape until its next substantive edit; do not mass-rewrite a pack just to convert headings.
+- Migration: an existing body MAY keep its current shape until its next substantive edit; do not mass-rewrite a pack just to convert tags.
 </instruction>
 
 ## Host technique
@@ -28,13 +44,13 @@ Distilled from every bundled primitive at the pinned commit. Match this unless a
 
 | Primitive | Files | Frontmatter | Body (non-blank lines) | Tags |
 |---|---:|---|---|---|
-| Rules | 27 | always `description`, `scope`, `interruptMode`, plus `condition` or `astCondition` | prose, median 26 lines, `## Avoid` / `## Use` / `## Why` / `## Exceptions` | **none** |
-| Agents | 7 | `name`, `description`, `tools`, `output`, `model`, `thinking-level`, `spawns` | median 13 lines | 4 tagged with role tags; `<critical>` last in 2 (`reviewer`, `scout`) |
-| Tools | 75 | none | median 6 lines (range 1-80) | three dialects: tagged (`<instruction>` → `<examples>` → `<critical>`), `#`-headed, or plain bullets; examples optional |
-| Commands | 5 | none | 29-89 lines | `$ARGUMENTS` only; `## Arguments`, numbered phases, closing `## Rules` |
-| System prompt template | 1 | none | 236 lines | `§ Role/Runtime/Workflow/Delivery/Critical`; named blocks (`<contract>`, `<completeness>`); `<critical>` recap |
-| System and notice templates | 94 | none | median 6 lines | `system-*` tags (`system-reminder`, `system-notice`), Handlebars-gated |
-| Skills | 3 | `name`, `description` | 75-127 lines | heading-first: 2 of 3 untagged; 1 tagged with a closing `<critical>` |
+| Rules | 26 | always `description`, `scope`, `interruptMode`, plus `condition` or `astCondition` | prose, median 26 lines, `## Avoid` / `## Use` / `## Why` / `## Exceptions` | **none** |
+| Agents | 8 | `name`, `description`, `tools`, `output`, `model`, `thinking-level`, `spawns` | median 19 lines, range 1-119 | 5 tagged: `<directives>` 3, `<procedure>` 2, `<example>`/`<output>` 1 each, `<critical>` 3 (all closing) |
+| Tools | 82 | none | median 6 lines (range 1-80) | 11 of 82 tagged: `<instruction>` 8 (7 open the file) then `<critical>` 9 (8 close it); median block 3 lines |
+| Commands | 5 | none | 29-89 lines | no semantic tags; `<owner>`/`<n>`/`<scope>` are URL placeholders. `cleanup.md` carries `<critical>` twice, opening and closing |
+| System prompt template | 1 | none | 264 lines | `§ Role/Runtime/Scratchpad/Tool Policy/Workflow/Delivery/Critical`, closing `<contract>`, `<completeness>`, `<evidence-and-output>`, `<yielding>`, `<critical>` |
+| System and notice templates | 103 | none | median 6 lines | 8 tagged; `system-*` tags (`system-reminder`, `system-notice`), Handlebars-gated |
+| Skills | 3 | `name`, `description` | 75-127 lines | heading-first: **0** carry any tag |
 
 <instruction>
 - `system-prompt.md` is one Handlebars template with `§ Role`, `§ Runtime`, `§ Workflow`, `§ Delivery`, `§ Critical` markers; capability sections are gated by `{{#if …}}`, so never assume a section is present.
@@ -45,16 +61,16 @@ Distilled from every bundled primitive at the pinned commit. Match this unless a
 </instruction>
 
 <instruction>
-- `<critical>` is a **closing recap**, not the main constraint block: it is the last block in 21 of the 22 host files that use it, and 28 of 29 blocks run 1-6 lines of `MUST`/`NEVER`. Open with it only when the constraint must gate the first action.
-- Constraints that gate behaviour belong in a `<directives>` section tag, as `scout.md` and `task.md` do; the closing `<critical>` restates the one or two that a rushed reader must not miss.
+- `<critical>` is the only tag every primitive shares, and it is dual-purpose: 20 of 26 host files close with it, 5 open with it. Treat closing as the default and opening as a deliberate gate, never an accident.
+- Constraints that gate behaviour belong in a `<directives>` section tag where the host uses one (`agents/scout.md`, `agents/task.md`, `agents/init.md`); the closing `<critical>` restates the one or two that a rushed reader must not miss.
 - Rules are injected inside the host's own `<system-interrupt>`/`<system-reminder>` wrapper, so a rule body is prose with `## Avoid` / `## Use` / `## Why`. Do not wrap a rule in tags.
 - Agents carry their contract in frontmatter (`tools`, `spawns`, `model`, `output`); the body stays short and says what the specialty does that the schema cannot.
-- Tools describe a decision surface in about six lines; examples are nested, not appended. Only 19 of 75 use tags — the dialect follows the tool's complexity, not a house template.
+- Tools describe a decision surface in about six lines; examples are nested, not appended. Only 11 of 82 use any tag — when they do, `<instruction>` opens and `<critical>` closes; the dialect follows the tool's complexity, not a house template.
 - Host command templates carry no frontmatter and use `$ARGUMENTS` alone, with `## Arguments`, numbered phases, and a closing `## Rules`. Our commands keep `{{ARGUMENTS}}` context insertion for injection safety: a deliberate divergence, recorded here so it is not mistaken for drift.
 </instruction>
 
 <caution>
-Our packs diverged from this in two ways before this section existed: rules were wrapped in `<critical>`, and agent constraints sat in an opening `<critical>` instead of `<directives>` plus a closing recap. Both are corrected below only where the file is substantive; do not mass-rewrite for style alone.
+Our packs diverged from the host in two ways before this section existed: rules were wrapped in tags at all (the host never tags them), and agent constraints sat in an opening `<critical>` where the host would use `<directives>` plus a closing recap. Correct only where the file is substantive; the host itself allows an opening `<critical>`, so never rewrite for style alone.
 </caution>
 
 ## Authority and source protocol
