@@ -7,7 +7,7 @@ Use bbot when breadth matters more than request control: every discovery becomes
 - Targets and seeds stay inside the recorded scope. Third-party sources are queried about the target, never exploited.
 - Derive the mode from program policy: scanner bans or limits at or below 5 req/s mean passive only; active requires permission; loud families require explicit permission.
 - In-scope targets go in `-t`, exclusions in `-b`; `--strict-scope` when subdomains are not implicitly in scope. Events with `scope_distance > 0` are intel, never probe targets.
-- Keyless modules by default; a vault key goes in per-run `-c modules.<name>.api_key=...` and never enters output.
+- Keyless modules by default. A vault key goes into a private YAML config created for the run and passed as `-c <file>`; never on the command line, in output, or in the transcript. Delete the file after the scan.
 - Never run the `kitchen-sink` preset against a live target.
 - A bbot `FINDING` is a lead, not proof.
 
