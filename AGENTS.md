@@ -22,11 +22,11 @@ Measured at `reviewedCommit` across every `*.md` under `packages/coding-agent/sr
 
 | Tag | Host files | Placement in host | Our rule |
 |---|---:|---|---|
-| `<critical>` | 26 | 20 close the file, 5 open it, 1 only mid-body | Constraint block when it must gate the first action; otherwise a closing 1–6-line recap |
-| `<instruction>` | 12 | 8 open the file | Choices, fallbacks, source of truth. Opening is normal |
+| `<critical>` | 26 | 20 close the file, 5 open it, 5 neither | Constraint block when it must gate the first action; otherwise a closing 1–6-line recap |
+| `<instruction>` | 11 | 8 open the file | Choices, fallbacks, source of truth. Opening is normal |
 | `<procedure>` | 5 | mid-body only | Numbered actions with entry and exit gates |
 | `<directives>` | 4 | 1 opening, 3 mid-body | Gating `MUST`/`NEVER` rules that must be read before the work |
-| `<example>` | 3 | mid-body | Runnable sample, nested under the section that needs it |
+| `<example>` | 2 | mid-body | Runnable sample, nested under the section that needs it |
 | `<caution>` | 2 | mid-body | Failure modes; blocked, unavailable, or partial behavior |
 
 ### Tag inventory
@@ -37,9 +37,9 @@ Every distinct `<lowercase-kebab>` name in the corpus, classified: 131 names. On
 |---|---|---|
 | Semantic, ordered and tiered | `critical`, `instruction`, `procedure`, `caution`, `example` | Use in this order; tier violations fail the gate |
 | Gating section tag | `directives` | Host idiom for `MUST`/`NEVER` blocks; no order, no tier |
-| Harness-owned | `system-reminder`, `system-interrupt`, `system-notice`, `system-notification`, `system-injection`, `system-conventions`, `objective` | Authored by the host; NEVER emit them |
-| Section tags | `workflow`, `examples`, `output`, `instructions`, `diff`, `context`, `completeness`, `file`, `rules`, `skills`, `plan`, `role`, `conventions`, `project-context`, `error`, `when`, `anti-patterns`, `format`, `irc`, `verification`, `criteria`, `findings`, `title`, `body`, `structure`, `thoroughness`, … (~110 more) | Free-form, with the local exceptions below |
-| Placeholders in examples | `name`, `n`, `owner`, `repo`, `slug`, `scope`, `path`, `title` | Not tags: URL and CLI shape inside command examples |
+| Harness-owned | `system-reminder`, `system-interrupt`, `system-notice`, `system-notification`, `system-injection`, `system-conventions`, `objective`, `project-context`, `repo-rules`, `file`, `skills`, `skill` | Authored by the host when it injects AGENTS.md or the skill list; NEVER emit them. The gate's `RESERVED` rejects every one |
+| Section tags | `workflow`, `examples`, `output`, `instructions`, `diff`, `context`, `completeness`, `rules`, `plan`, `role`, `conventions`, `error`, `when`, `anti-patterns`, `format`, `irc`, `verification`, `criteria`, `findings`, `title`, `body`, `structure`, `thoroughness`, … (~105 more) | Free-form, with the local exceptions below |
+| Placeholders in examples | `name`, `n`, `owner`, `repo`, `slug`, `scope`, `path` | Not tags: URL and CLI shape inside command examples |
 
 <instruction>
 - Section tags are free-form except where the gate enforces a local convention: a name within edit distance 2 of a semantic tag is rejected as a likely typo (`<examples>`, `<instructions>`, `<cautions>`), and three legacy names are retired in favour of the semantic tag carrying the same decision — `<workflow>` → `<procedure>`, `<when>` → `<instruction>`, `<anti-patterns>` → `<caution>`.

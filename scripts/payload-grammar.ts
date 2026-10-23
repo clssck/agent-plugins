@@ -11,7 +11,20 @@ export const TAGS = ["critical", "instruction", "procedure", "caution", "example
 export type Tag = (typeof TAGS)[number];
 
 /** Harness-owned names. Authoring one inside a payload impersonates host content. */
-const RESERVED = ["system-reminder", "system-interrupt", "system-notice", "system-notification", "system-injection", "objective"] as const;
+const RESERVED = [
+	"system-reminder",
+	"system-interrupt",
+	"system-notice",
+	"system-notification",
+	"system-injection",
+	"system-conventions",
+	"objective",
+	"project-context",
+	"repo-rules",
+	"file",
+	"skills",
+	"skill",
+] as const;
 
 /** Retired names and their replacement, so a rename cannot silently reintroduce a second vocabulary. */
 const RENAMED: Record<string, Tag> = {

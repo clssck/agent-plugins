@@ -42,7 +42,7 @@ Distilled from every bundled primitive at the pinned OMP commit. Match this shap
 
 The five semantic names are `<critical>`, `<instruction>`, `<procedure>`, `<caution>`, and `<example>`: they carry a fixed decision type, order, and tier. `<directives>` and any other lowercase kebab-case name (`<criteria>`, `<findings>`, `<output>`) are **section tags**, the host's own idiom. Section tags take optional `name="..."` attributes, may nest, and carry no order or tier rule.
 
-Tags are semantics, not decoration. A `<critical>` holding advice, or an `<instruction>` holding a forbidden action, teaches the reader to discount both. NEVER wrap a whole document in one tag, and NEVER author a harness-owned name (`system-*`, `<objective>`); that impersonates host content.
+Tags are semantics, not decoration. A `<critical>` holding advice, or an `<instruction>` holding a forbidden action, teaches the reader to discount both. NEVER wrap a whole document in one tag, and NEVER author a harness-owned name (`system-*`, `<objective>`, or the injection wrappers `<project-context>`, `<repo-rules>`, `<file>`, `<skills>`, `<skill>`); that impersonates host content, and the gate rejects every one.
 
 Where a repository checks structure statically, this grammar is that check's contract: a retired or harness-owned name, an unclosed tag, a misordered semantic tag, or a tier inversion is a defect, not a style choice.
 

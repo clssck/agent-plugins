@@ -128,8 +128,10 @@ describe("payloadProblems", () => {
 	});
 
 	test("reports host-owned tags", () => {
-		const problems = payloadProblems("rule", "<critical>\n- NEVER.\n</critical>\n<system-reminder>\nx\n</system-reminder>\n");
-		expect(problems.some(problem => problem.message.includes("host-owned"))).toBe(true);
+		for (const name of ["system-reminder", "system-conventions", "objective", "project-context", "repo-rules", "file", "skills", "skill"]) {
+			const problems = payloadProblems("rule", `<critical>\n- NEVER.\n</critical>\n<${name}>\nx\n</${name}>\n`);
+			expect(problems.some(problem => problem.message.includes("host-owned")), name).toBe(true);
+		}
 	});
 
 	test("ignores tag mentions inside inline code", () => {
