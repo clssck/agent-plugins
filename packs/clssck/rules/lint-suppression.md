@@ -2,13 +2,13 @@
 description: Fix the diagnostic instead of adding lint or type-checker suppressions
 condition:
   - '#\s*noqa(?!:)'
-  - '#\s*(?:type|pyright|ty):\s*ignore(?!\[)'
-  - '#\s*(?:ruff|flake8):\s*noqa|mypy:\s*ignore-errors|pylint:\s*(?:disable=all|skip-file)'
-  - '#!\[allow\(|#\[allow\((?:warnings|clippy::(?:all|pedantic|nursery|restriction|cargo))\b'
-  - '@ts-(?:ignore|nocheck)|biome-ignore-all'
+  - '#\s*(?:type|pyright|ty)\s*:\s*ignore(?!\[)'
+  - '#\s*(?:(?:ruff|flake8)\s*:\s*noqa|mypy\s*:\s*ignore-errors|pylint\s*:\s*(?:disable\s*=\s*all|skip-file))'
+  - '#\s*!\s*\[\s*allow\s*\(|#\s*\[\s*allow\s*\(\s*(?:warnings|clippy\s*::\s*(?:all|pedantic|nursery|restriction|cargo))\b'
+  - '(?://|/\*|\*)\s*(?:@ts-(?:ignore|nocheck)|biome-ignore-all)'
   - '(?:eslint|oxlint)-disable(?:-next-line|-line)?\s*(?:\*/|--|\n|$)'
+question: "Decide whether the source contains a real blanket lint or type-check suppression. Step 1, real syntax only: a directive counts only when it is an actual comment (after a `#`, `//` or `/*`, or on a `*` line inside a block comment) or an actual Rust attribute line starting with `#[` or `#![`, with that `#`, `//`, `/*` or attribute outside any quotes. Anything between quotes (single, double, backtick or triple-quoted strings, template literals, docstrings, regexes) is data even when it contains `#`, `//`, `noqa`, `@ts-ignore` or `#![allow(...)]`, and prose that merely mentions a directive is not one; if every candidate is such text, answer NO. Step 2, classify each real directive. YES for file-wide or whole-check forms even when they carry a code, rule name or reason: `# ruff: noqa` and `# flake8: noqa` (the `ruff:` or `flake8:` prefix makes them file-wide even as `# ruff: noqa: F401`), `# mypy: ignore-errors`, `# pylint: disable=all`, `# pylint: skip-file`, `@ts-nocheck`, `biome-ignore-all` and any Rust inner attribute `#![allow(...)]`. YES for any `@ts-ignore`. YES for line forms that name nothing: `# noqa`, `# type: ignore`, `# pyright: ignore` or `# ty: ignore` with no code, and `eslint-disable`, `eslint-disable-line`, `eslint-disable-next-line` or their `oxlint-` equivalents with no rule name, even at end of input. YES for an outer `#[allow(...)]` naming `warnings` or exactly one of `clippy::all`, `clippy::pedantic`, `clippy::nursery`, `clippy::restriction`, `clippy::cargo`; a specific lint that only starts with such a word is narrow. NO for narrow forms: `# noqa: CODE` without a `ruff:` or `flake8:` prefix, coded Python ignores like `# type: ignore[arg-type]`, `@ts-expect-error`, single-line `biome-ignore` naming a rule, ESLint or Oxlint disables naming a rule, and outer Rust `#[allow]` or `#[expect]` naming specific lints. A narrow suppression does not cancel a blanket one elsewhere in the same source."
 scope: "tool:edit(**/*.{py,pyi,rs,ts,tsx,mts,cts,js,jsx,mjs,cjs}), tool:write(**/*.{py,pyi,rs,ts,tsx,mts,cts,js,jsx,mjs,cjs})"
-interruptMode: never
 ---
 
 A suppression hides a diagnostic; it does not fix the code. Lint and type errors usually point at a real defect, an unsafe call, or a wrong type.
@@ -61,4 +61,4 @@ NEVER suppress to make a check pass when the project's lint or type check is par
 
 ## What this reminder matches
 
-This reminder matches only the blanket forms in the Bad column. It cannot tell new text from re-pasted text, so a blanket suppression you merely moved still matches. Named single-line suppressions never match; apply the checks above to them anyway: a verified false positive and a stated reason.
+This reminder is judged, not deterministic. A regex only decides whether the judge is asked about a completed edit or write; the judge then separates real blanket suppressions from strings, ordinary comments and named suppressions. It never interrupts and never fires while a call is still streaming. It runs only when `ttsr.judge` enables judging (`auto` needs the host's native judge, `off` disables it), so with judging off these checks are not applied. It cannot tell new text from re-pasted text, so a blanket suppression you merely moved still counts. File-level and whole-check forms (`# ruff: noqa: F401`, `biome-ignore-all`, `#![allow(dead_code)]`) and `@ts-ignore` count even with a code or reason. Named single-line suppressions and outer attributes naming one lint are not flagged; apply the checks above to them anyway: a verified false positive and a stated reason.

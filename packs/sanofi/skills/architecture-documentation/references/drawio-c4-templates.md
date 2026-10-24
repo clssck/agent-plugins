@@ -96,7 +96,7 @@ For persons (no technology):
         <mxCell id="8" value="&lt;b&gt;{Message Queue}&lt;/b&gt;&lt;br&gt;[Container: SQS]&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Decouples async&lt;br&gt;processing&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;fontSize=13;fillColor=#4B9CD3;fontColor=#000000;strokeColor=none;arcSize=10;" vertex="1" parent="1">
           <mxGeometry x="700" y="480" width="200" height="140" as="geometry"/>
         </mxCell>
-        <mxCell id="9" value="Uses&lt;br&gt;[HTTPS]" style="endArrow=blockThin;endFill=1;html=1;fontSize=11;fontColor=#707070;strokeColor=#707070;" edge="1" parent="1" source="4" target="5">
+        <mxCell id="9" value="Browses and submits requests via&lt;br&gt;[HTTPS]" style="endArrow=blockThin;endFill=1;html=1;fontSize=11;fontColor=#707070;strokeColor=#707070;" edge="1" parent="1" source="4" target="5">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <mxCell id="10" value="Fetches data via&lt;br&gt;[HTTP/REST JSON]" style="endArrow=blockThin;endFill=1;html=1;fontSize=11;fontColor=#707070;strokeColor=#707070;" edge="1" parent="1" source="5" target="6">

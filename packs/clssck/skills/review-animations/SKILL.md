@@ -1,6 +1,6 @@
 ---
 name: review-animations
-description: "Review or critique existing web animation and motion code (CSS transitions, keyframes, Framer Motion/Motion, springs, easing, timing, hover/enter/exit, reduced-motion) against Emil Kowalski's design-engineering craft bar; default to flagging, approval is earned. Use for 'review my animation', 'does this motion feel right', 'critique this transition'. Not for building or adding motion (use animate), whole-repository motion audits or roadmaps (use improve-animations), or Expo/React Native motion (use animate-expo)."
+description: "Review scoped web motion; not implementation, whole-app audits, or roadmaps. Critique existing animation code (CSS transitions, keyframes, Framer Motion/Motion, springs, easing, timing, hover/enter/exit, reduced-motion) against Emil Kowalski's design-engineering craft bar; default to flagging, approval is earned. Use for 'review my animation', 'does this motion feel right', 'critique this transition'. Not for building or adding motion (use animate), whole-repository motion audits or roadmaps (use improve-animations), or Expo/React Native motion (use animate-expo)."
 ---
 
 # Reviewing Animations
@@ -30,7 +30,7 @@ Every animation in the diff is measured against these. A violation is a finding.
 
 2. **Frequency-appropriate.** Match motion to how often it's seen. Keyboard-initiated and 100+/day actions get **no** animation. Tens/day gets reduced motion. Occasional gets standard. Rare/first-time can have delight.
 
-3. **Responsive easing.** Entering/exiting elements use `ease-out` or a strong custom curve. `ease-in` on UI is a block — it delays the moment the user watches most. Built-in CSS easings are too weak; expect custom cubic-beziers.
+3. **Responsive easing.** Entering/exiting elements use `ease-out` or a strong custom curve. `ease-in` on UI is a block — it delays the moment the user watches most. Built-in CSS easings are too weak; expect custom cubic-beziers. Sole exemption: toast enter/exit (Sonner-style) may use `ease` for a slower, elegant feel, as in `skill://review-animations/STANDARDS.md` Interruptibility and Cohesion; the finding names the exemption.
 
 4. **Sub-300ms UI.** UI animations stay under 300ms. Exempt only with the reason stated in the finding: modals/drawers (200–500ms), toast enter/exit (up to 400ms), gesture springs (`{ type: "spring", duration: 0.5 }` on interruptible gestures), the press phase of a deliberate hold interaction (~2s, release still fast), and marketing/explanatory motion. Any other UI duration over 300ms, or an exempt duration whose finding omits its reason, is a finding. Per-element budgets live in `skill://review-animations/STANDARDS.md`.
 
@@ -63,7 +63,7 @@ Flag these on sight, hard:
 
 - `transition: all` (unbounded property animation)
 - `scale(0)` or pure-fade entrances with no initial transform — except under `prefers-reduced-motion` or anywhere movement is inappropriate (standard 8), where an opacity-only fade is the compliant treatment; don't flag it
-- `ease-in` on any UI interaction; weak built-in easing on a deliberate animation
+- `ease-in` on any UI interaction; weak built-in easing on a deliberate animation (except the toast `ease` exemption in standard 3)
 - Animation on a keyboard shortcut, command-palette toggle, or 100+/day action
 - UI duration > 300ms outside the exemptions in standard 4, or an exemption with no stated reason
 - `transform-origin: center` on a trigger-anchored popover/dropdown/tooltip
@@ -121,7 +121,7 @@ Close with an explicit decision:
 - **Block** — any feel-breaking regression, animation on a keyboard/high-frequency action, `scale(0)`/`ease-in` on UI, or a non-GPU animation with an easy GPU fix.
 - **Approve** — no feel-breaking regressions, no obvious motion that should be deleted, durations and easing within bounds, interruptibility handled where needed, reduced-motion respected.
 
-Be specific and cite `file:line`. When a value is needed (a curve, a duration, a spring config), pull the exact one from `skill://review-animations/STANDARDS.md` rather than approximating. When accepting an exempt duration or property (standards 4 and 7), name the exemption and its reason in the findings.
+Be specific and cite `file:line`. When a value is needed (a curve, a duration, a spring config), pull the exact one from `skill://review-animations/STANDARDS.md` rather than approximating. When accepting an exempt easing, duration, or property (standards 3, 4, and 7), name the exemption and its reason in the findings.
 
 ## Guidelines
 
@@ -131,6 +131,6 @@ Be specific and cite `file:line`. When a value is needed (a curve, a duration, a
 <critical>
 - NEVER edit files or apply fixes; fixes appear only as findings-table rows.
 - Every animation is measured against the Non-Negotiable Standards; a violation is a finding, and approval is earned.
-- Exempt durations and properties MUST be named with their reason; any other UI motion over 300ms or off `transform`/`opacity` is a finding.
+- Exempt easing, durations, and properties MUST be named with their reason; any other UI motion over 300ms or off `transform`/`opacity` is a finding.
 - Output MUST be the findings table, then the tiered verdict ending in Block or Approve, citing `file:line`.
 </critical>

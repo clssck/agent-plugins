@@ -1,6 +1,6 @@
 ---
 description: "Tests must exercise behavior, never read implementation source and assert on its text"
-condition: "readFile|Bun\\.file\\(|\\.text\\(\\)|readFileSync"
+condition: "readFile|Bun\\.file\\(|\\.text\\(\\)|readFileSync|\\?raw\\b"
 question: "Does this test read an implementation source file (.ts, .rs, a build script) and assert on its text, such as toContain or toMatch on the source, instead of running the code and checking its output, state, or errors?"
 scope: "tool:write(*.test.ts), tool:edit(*.test.ts), tool:write(*.test.tsx), tool:edit(*.test.tsx)"
 ---

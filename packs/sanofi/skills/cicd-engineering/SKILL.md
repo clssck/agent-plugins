@@ -55,8 +55,13 @@ Production images SHOULD carry a build-provenance attestation ([security-hardeni
    - Unknown runner label → `atmos-aws-arc-runner-set` must be under `self-hosted-runner.labels` in `.github/actionlint.yaml`.
    - v1.7.12 also rejects the newer `cache-mode` key and `vulnerability-alerts` permission (see Failure Modes).
    - No `actionlint` → parse each YAML file; check every `needs.<job>.outputs.<name>` and `secrets.<NAME>` reference resolves.
-6. Verify on GitHub when a run exists: `xd://github` `op: run_watch` (omit `run` → every run for the current HEAD, fast-fails on the first failed job; a failing run the user names → `run: <id or URL>`, raise `tail` for more lines per failed job). Failure logs land in a session artifact: diagnose from that log, not from the YAML alone. NEVER push to trigger a run without the user's go-ahead.
-7. Report changed behavior, required secrets/environments/variables, manual platform setup.
+6. Verify on GitHub when a run exists, by the first available route. NEVER push to trigger a run, or install/authenticate `gh`, without the user's go-ahead.
+   - Usable GitHub route — the top-level `github` tool, or the `xd://github` device when xd transport is available → `op: run_watch` (omit `run` → every run for the current HEAD, fast-fails on the first failed job; a failing run the user names → `run: <id or URL>`, raise `tail` for more lines per failed job). Failure logs land in a session artifact. One route rejected (xd transport unavailable, tool disabled) → try the other before falling back.
+   - No usable GitHub tool or device route, `gh auth status` succeeds → `gh run list --commit "$(git rev-parse HEAD)"`, then `gh run watch <id> --exit-status`; failed run → `gh run view <id> --log-failed`.
+   - Neither → keep the local/static results; GitHub verification is unverified, naming the missing prerequisite (GitHub tool, xd transport, `gh`, or `gh` auth).
+
+   Diagnose from the failure log, not from the YAML alone.
+7. Report changed behavior, required secrets/environments/variables, manual platform setup, and GitHub verification: passed/failed with the run ID, or unverified with the missing prerequisite.
 </procedure>
 
 <caution>
@@ -72,7 +77,7 @@ Production images SHOULD carry a build-provenance attestation ([security-hardeni
 | Job receiving `JFROG_TOKEN`/`SONAR_TOKEN`/AWS credentials, or running credentialed `terraform init`/plan/apply, without `environment:` | Bind the protected environment and approval gate on every credentialed job; secretless PR `init -backend=false`/`validate` needs none |
 | Sonar scan without gate wait, excluded from `Build Complete` | `sonar.qualitygate.wait=true`, job in `needs` |
 | OIDC trust copied as `repo:ORG/REPO:...` | Confirm the repo's `sub` format (name or owner/repo IDs) first |
-| Tag pin of an action still on `node20` | Upgrade to a release declaring `node24`; Node 20 is gone from runners. Check with `xd://github` `op: file_read`, `path: action.yml` (or `action.yaml`), `branch: <tag>` → `runs.using` |
+| Tag pin of an action still on `node20` | Upgrade to a release declaring `node24`; Node 20 is gone from runners. Check `runs.using` with the top-level `github` tool or `xd://github` device (whichever is usable) `op: file_read`, `path: action.yml` (or `action.yaml`), `branch: <tag>`; no usable GitHub tool or device route → `gh api 'repos/O/R/contents/action.yml?ref=TAG' --jq .content \| base64 --decode`; neither → report the runtime unverified, naming the missing prerequisite (GitHub tool, xd transport, `gh`, or `gh` auth) |
 | Delete `cache-mode`/`vulnerability-alerts` because `actionlint` flags them | Keep them; valid GitHub syntax that `actionlint` v1.7.12 does not know yet |
 | Rely on Dependabot alerts for SHA-pinned actions | Alerts cover only semver-tagged actions; keep the version comment and Dependabot version updates |
 | Environment rule `refs/heads/feature` for a `pull_request` job | PR jobs evaluate `refs/pull/N/merge`; `pull_request_target` evaluates the default branch |

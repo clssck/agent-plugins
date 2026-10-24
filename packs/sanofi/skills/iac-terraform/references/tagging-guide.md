@@ -23,7 +23,7 @@ Every taggable AWS resource carries 10 mandatory tags (accepted RFC, `Sanofi-Acc
 | `version` | Semver of the deployed resources | `1.0.0` |
 | `service` | Service identifier | `api-gateway` |
 | `cost_center` | Prefix `cc-`, `dp-`, or `apm-` | `apm-1234567` |
-| `contact` | Team/tech-lead `@sanofi.com` email | `platform-team@sanofi.com` |
+| `contact` | Team/tech-lead email: non-empty local part, no whitespace or `@`, then `@sanofi.com` | `platform-team@sanofi.com` |
 | `CE_Application_ID` | `APM` + 7 digits | `APM1234567` |
 | `CE_Application_Name` | Free text, human-readable application name | `Order Portal` |
 | `CE_Environment` | Uppercase `env` | `DEV` |
@@ -109,8 +109,8 @@ variable "contact_email" {
   description = "Team/tech lead email"
 
   validation {
-    condition     = can(regex("@sanofi\\.com$", var.contact_email))
-    error_message = "Contact must be a @sanofi.com email."
+    condition     = can(regex("^[^\\s@]+@sanofi\\.com$", var.contact_email))
+    error_message = "Contact must be a local-part@sanofi.com email."
   }
 }
 ```
@@ -224,10 +224,15 @@ User-only command (the user runs it; NEVER run it without explicit user authoriz
 terraform plan -out=tfplan
 ```
 
-Read-only conversion and check, from a user-supplied `tfplan`. Write the derived JSON to an assistant-owned private temp directory and delete only that directory:
+Read-only conversion and check, from a user-supplied `tfplan`. Create an assistant-owned private temp directory first; if that fails, nothing runs. Write the derived JSON only inside it and delete only that directory:
 
 ```bash
-tmp="$(mktemp -d)" && chmod 700 "$tmp"
+tmp="$(mktemp -d)" || { echo "mktemp failed; not converting plan" >&2; exit 1; }
+if [ -z "$tmp" ] || ! chmod 700 "$tmp"; then
+  [ -n "$tmp" ] && rm -rf "$tmp"
+  echo "private temp directory setup failed; not converting plan" >&2
+  exit 1
+fi
 status=0
 terraform show -json tfplan > "$tmp/plan.json" || status=$?
 if [ "$status" -eq 0 ]; then
@@ -237,7 +242,7 @@ rm -rf "$tmp"
 exit "$status"
 ```
 
-The block preserves the checker's exit status (0 compliant, 1 violations, 2 unreadable input) while still deleting its own temp directory; a failed conversion never becomes a successful block.
+The block preserves the checker's exit status (0 compliant, 1 violations, 2 unreadable input) while still deleting its own temp directory; setup failure exits 1 before any plan JSON is written, and a failed conversion never becomes a successful block.
 
 Run only the conversion/check block in the omp `bash` tool; `realpath` resolves `skill://` there; script needs no installed dependencies. Script walks `resource_changes`, reads `tags_all` (fallback `tags`), fails on missing/empty tags, wrong case, bad prefixes, mismatched `CE_Environment`. `aws_autoscaling_group` checked via `tag` blocks (key, value, `propagate_at_launch = true`). Tags or tag values unknown until apply → warnings (`--strict` fails them); invalid known values still fail. Exit codes: 0 compliant, 1 violations, 2 unreadable input.
 

@@ -18,7 +18,7 @@ Valid purposes for motion: spatial consistency, state indication, explanation, f
 ## Easing
 
 Decision order:
-- Entering or exiting → **`ease-out`** (starts fast, feels responsive)
+- Entering or exiting → **`ease-out`** (starts fast, feels responsive). Sole exception: toast enter/exit may use **`ease`** (see Cohesion and the toast duration exception).
 - Moving / morphing on screen → **`ease-in-out`**
 - Hover / color change → **`ease`**
 - Constant motion (marquee, progress) → **`linear`**
@@ -26,7 +26,7 @@ Decision order:
 
 **Never `ease-in` on UI.** It starts slow, delaying the exact moment the user is watching. `ease-out` at 200ms *feels* faster than `ease-in` at 200ms.
 
-Built-in CSS easings are too weak. Use strong custom curves:
+Built-in CSS easings are too weak outside the toast exception above. Use strong custom curves:
 
 ```css
 --ease-out: cubic-bezier(0.23, 1, 0.32, 1);        /* strong ease-out for UI */
@@ -51,7 +51,7 @@ Find curves at [easing.dev](https://easing.dev/) or [easings.co](https://easings
 Documented exceptions, each acceptable only when the finding states the reason:
 
 - **Modals and drawers** (200–500ms): large surfaces travelling far; keep the entry on `ease-out`/`--ease-drawer`.
-- **Toast enter/exit** (up to 400ms, as in the Interruptibility examples): slow, elegant slide that must stay interruptible.
+- **Toast enter/exit** (up to 400ms, as in the Interruptibility examples): slow, elegant slide that must stay interruptible; may use `ease` rather than `ease-out` (see Cohesion).
 - **Gesture springs** (`{ type: "spring", duration: 0.5, bounce: 0.2 }` on interruptible gestures): the spring's settle time is the feedback, and interrupting it mid-flight must not snap.
 - **Hold interaction press phase** (~2s, as in Asymmetric timing): the duration is the confirmation delay, and the release must stay fast (~200ms).
 - **Marketing / explanatory** motion: may run longer.

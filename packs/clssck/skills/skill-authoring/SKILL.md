@@ -9,6 +9,8 @@ A skill is a control surface loaded on demand: what the agent MAY do, in what or
 
 House style → [references/house-style.md](skill://skill-authoring/references/house-style.md): dense imperative voice, RFC vocabulary, lossless compression, and tool-description boundaries. This skill applies that style to skill structure and quality gates.
 
+Definition patterns → [references/definition-examples.md](skill://skill-authoring/references/definition-examples.md): annotated OMP examples for agents, skills, rules, commands, and tools, each with its adaptation limits.
+
 <instruction>
 
 The description is **retrieval surface**: the model sees only it before choosing, and matches it against the user's own phrasing.
@@ -73,7 +75,7 @@ A closing `## Checklist` summarizes the skill's verifiable rules; every item is 
      No OMP checkout with a built native addon → the loader check is unavailable; record it as not run.
    - **Installed or standalone skill, no checkout:** the repository gates do not exist; check directly. Frontmatter parses; `name` = directory name; `description` present; no key beyond `name` and `description` (`disable-model-invocation` only for an OMP manual-only skill, never in a standard `plugin.json` package); `read` each `skill://<name>/...` target and confirm it resolves; the `grep` tool finds no relative link to a runtime entry point.
 3. **Run a behavior trial:** passing static checks ≠ the skill works; they check discovery and structure, not behavior. `task` one fresh subagent with `# Target` = the user's real request and instruction "read `skill://<name>`, then do it" — children start blank, so the skill alone carries the workflow. Then read its transcript at `history://<id>`: wrong turns, skipped gates, and improvised steps are skill defects; fix the text, rerun. Exit: a trial transcript with no skill-attributable defect.
-4. **Check retrieval:** `judge_batch` (eval) over 10+ real user phrasings, half that should trigger and half that should not, state `{description, request}` per phrasing, one `bool` question ("would an agent pick this skill for this request?"). A small-model proxy: use it to find missed triggers and sibling collisions, label the result inferred, and NEVER treat it as proof of routing. Exit: no missed trigger or sibling collision remains unaddressed.
+4. **Check retrieval:** obtain the name and description OMP actually lists, not full frontmatter. For a cold-cache check, use the pinned `previewSkillDescription` on `loadSkillsFromDir` results ([recipe](skill://skill-authoring/references/definition-examples.md#skill-retrieval-preview)). A cached hint must come from an actual render; isolated catalog checks require an explicitly owned store, NEVER the shared default. Use `judge_batch` (Python eval) over 10+ real user phrasings, half that should trigger and half that should not, state `{name, description: renderedHint, request}` per phrasing, one `bool` question ("would an agent pick this skill for this request?"). Record the surface and model used. If rendered text is unavailable, a full-description trial is preliminary only; mark the host-visible surface unverified. Label selection inferred, NEVER proof of routing. Exit: no missed trigger or sibling collision remains unaddressed.
 5. **Report coverage:** list each check run with its result, and each unavailable check (no checkout, no OMP build, no `task` or eval) as not run with the reason. Exit: every step above appears as passed or not run.
 
 </procedure>

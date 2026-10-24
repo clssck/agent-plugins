@@ -1,8 +1,8 @@
 ---
 description: 'Stage named paths, not everything: guard git add -A/./-u and git commit -a'
 condition:
-  - '\bgit(?:\s+-[Cc]\s+\S+)*\s+add\s+(?:(?:-A|--all|-u|--update|--)\s+)*(?:-A|--all|-u|--update|\.)\s*(?:["\n;&|)]|\\n|\\"(?=[\s"\n;&|)]|\\n))'
-  - '\bgit(?:\s+-[Cc]\s+\S+)*\s+commit\b(?:[^\\"\n;&|]|\\[^n])*\s(?:-[A-Za-z]*a[A-Za-z]*|--all)(?=[\s"''`;&|)]|\\[n"])'
+  - '\bgit\b[^\n;&|]*\sadd\s+(?:-A|--all|-u|--update|\.)(?![\w./-])'
+  - '\bgit\b[^\n;&|]*\scommit\b[^\n;&|]*\s(?:-\w*a\w*|--all)\b'
 scope: "tool:bash"
 interruptMode: always
 ---
@@ -47,3 +47,7 @@ git commit -m "fix(auth): retry login once after token refresh"
 ## Body
 
 Add a body only when it explains rationale, risk, or follow-up.
+
+## Exceptions
+
+A match is a reminder, not a violation. `git add -A <paths>` or `git commit -a` in a worktree you verified holds only this task's changes needs no correction, and literal examples in docs or echoed text need no action.

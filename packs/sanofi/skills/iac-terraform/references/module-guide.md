@@ -18,13 +18,35 @@ Module usage for Sanofi AWS Terraform: discovery, call pattern, validation, vers
 
 ## Discovery
 
-Use OMP's native GitHub device first. Send the JSON below to `xd://github` with `write`; `file_read` reads repository files without cloning, and `search_code` discovers paths while applying the named repository scope automatically. Omit `branch` to use the default branch. No repository access → stop and report; NEVER guess module inputs.
+Use OMP's native GitHub device first. Each JSON object below is a separate `write` to `xd://github`, one object per call, in this order; NEVER join them into one payload. `file_read` reads repository files without cloning, and `search_code` discovers paths while applying the named repository scope automatically. Omit `branch` to use the default branch. No repository access → stop and report; NEVER guess module inputs.
+
+1. Library overview:
 
 ```json
 {"op":"file_read","repo":"Sanofi-InnerSource/terraform-aws-library","path":"README.md"}
+```
+
+2. Find the service's module READMEs:
+
+```json
 {"op":"search_code","repo":"Sanofi-InnerSource/terraform-aws-library","query":"path:src/SERVICE filename:README.md","limit":100}
+```
+
+3. Module README (after step 2 names the module):
+
+```json
 {"op":"file_read","repo":"Sanofi-InnerSource/terraform-aws-library","path":"src/SERVICE/MODULE/README.md"}
+```
+
+4. Module inputs:
+
+```json
 {"op":"file_read","repo":"Sanofi-InnerSource/terraform-aws-library","path":"src/SERVICE/MODULE/variables.tf"}
+```
+
+5. Accepted tagging RFC:
+
+```json
 {"op":"search_code","repo":"Sanofi-Accelerator/Request-for-Comments","query":"tagging path:accepted","limit":100}
 ```
 

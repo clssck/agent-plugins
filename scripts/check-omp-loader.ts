@@ -103,6 +103,8 @@ const utils = (await import(path.join(OMP_ROOT, "packages/utils/src/frontmatter.
 const ruleCapability = (await import(path.join(AGENT_SRC, "capability/rule.ts"))) as {
 	compileRuleCondition(pattern: string): RegExp;
 };
+const ttsrCoordinator = await import(path.join(AGENT_SRC, "session/ttsr-coordinator.ts"));
+const sessionManager = await import(path.join(AGENT_SRC, "session/session-manager.ts"));
 
 const sources = await Bun.file(path.join(ROOT, "sources.json")).json();
 const repositoryErrors: string[] = [];
@@ -282,6 +284,133 @@ for (const [toolName, args, expected] of [
 		problems.push("SQL safety rule mismatch for " + toolName + ": " + JSON.stringify(args));
 	}
 }
+
+// A source digest has no EOF marker: judged rules must never deliver on an unfinished named directive.
+const lintRule = loadedRules.items.find((rule) => rule.name === "lint-suppression");
+for (const [filePath, source, expectedCandidate] of [
+	["example.py", "x = f()  # noqa", true],
+	["example.py", "x = f()  # noqa   ", true],
+	["example.py", "x = f()  #  type : ignore   ", true],
+	["example.py", "x = f()  # noqa: S603", false],
+	["example.py", "x = f()  # type: ignore[arg-type]", false],
+	["example.ts", "// eslint-disable-next-line", true],
+	["example.ts", "//  eslint-disable-next-line   ", true],
+	["example.ts", "// eslint-disable-next-line no-console -- reason", false],
+	["example.ts", 'const note = "avoid @ts-ignore";', false],
+	["example.rs", '#[allow(clippy::cargo_common_metadata, reason = "x")]', false],
+] as const) {
+	const manager = new ruleRuntime.TtsrManager({ enabled: true });
+	if (!lintRule || !manager.addRule(lintRule)) {
+		problems.push("Suppression rule could not be registered in OMP");
+		break;
+	}
+	const context = { source: "tool" as const, toolName: "write", filePaths: [filePath] };
+	for (let length = 1; length <= source.length; length++) {
+		if (manager.checkSnapshot(source.slice(0, length), context, { final: false }).length > 0) {
+			problems.push("Suppression rule delivered before source completion: " + JSON.stringify(source.slice(0, length)));
+			break;
+		}
+	}
+	if (manager.checkSnapshot(source, context, { final: true }).length > 0) {
+		problems.push("Suppression rule bypassed completed-output judging: " + JSON.stringify(source));
+	}
+	const candidates = await manager.judgedCandidates(source, context);
+	if (candidates.some((candidate: { rule: LoadedItem }) => candidate.rule.name === "lint-suppression") !== expectedCandidate) {
+		problems.push("Suppression judge prefilter mismatch for " + filePath + ": " + JSON.stringify(source));
+	}
+}
+
+// Destructive-action guards must stop a finalized bridged call before it runs, not remind after it ran.
+// The controlled host exposes tool metadata only, never an executor: no fixture command is run.
+const bridgedTools = [
+	{ name: "bash" },
+	{ name: "customConnector" },
+	{
+		name: "write",
+		matcherDigest: (args: { content?: unknown }) => (typeof args.content === "string" ? args.content : undefined),
+		matcherPaths: (args: { path?: unknown }) => (typeof args.path === "string" ? [args.path] : []),
+	},
+];
+let preflightCases = 0;
+for (const [ruleName, toolName, args, expected] of [
+	["build-cache-deletion-safety", "bash", { command: "rm -rf node_modules" }, "block"],
+	["dbt-command-scope", "bash", { command: "dbt build" }, "block"],
+	["docker-data-safety", "bash", { command: "docker system prune --volumes" }, "block"],
+	["gh-external-mutation-safety", "bash", { command: "gh pr create --dry-run" }, "block"],
+	["git-commit-conventions", "bash", { command: "git add -A" }, "block"],
+	["git-push-safety", "bash", { command: "git push --force origin main" }, "block"],
+	["git-worktree-restore-safety", "bash", { command: "git reset --hard" }, "block"],
+	["temp-cleanup-ownership", "bash", { command: "rm -rf /tmp/*" }, "block"],
+	["sql-mutation-safety", "customConnector", { statement: "DROP TABLE orders" }, "block"],
+	["git-push-safety", "bash", { command: "git status" }, "silent"],
+	[
+		"dbt-test-arguments",
+		"write",
+		{ path: "analytics/models/schema.yml", content: "data_tests:\n  - accepted_values:\n      values: [a]\n" },
+		"after-result",
+	],
+] as const) {
+	const rule = loadedRules.items.find((item) => item.name === ruleName);
+	const manager = new ruleRuntime.TtsrManager({ enabled: true });
+	if (!rule || !manager.addRule(rule)) {
+		problems.push("Guard rule could not be registered in OMP: " + ruleName);
+		continue;
+	}
+	const triggered: string[] = [];
+	const unexpected: string[] = [];
+	const coordinator = new ttsrCoordinator.TtsrCoordinator(
+		{
+			agent: { state: { messages: [], tools: bridgedTools } },
+			sessionManager: sessionManager.SessionManager.inMemory(ROOT),
+			settings: {},
+			emitSessionEvent: async (event: { type: string; rules?: LoadedItem[] }) => {
+				if (event.type === "ttsr_triggered") triggered.push(...(event.rules ?? []).map((item) => item.name));
+			},
+			schedulePostPromptTask: () => unexpected.push("post-prompt task"),
+			scheduleAgentContinue: () => unexpected.push("agent continue"),
+			promptGeneration: () => 0,
+			ruleJudge: () => undefined,
+			deliverRuleWarning: async () => {
+				unexpected.push("judged warning");
+			},
+			sessionGeneration: () => 0,
+		},
+		manager,
+	);
+	const toolCallId = "guard-preflight-" + preflightCases++;
+	const tool = bridgedTools.find((candidate) => candidate.name === toolName);
+	const preflight = await coordinator.beforeBridgedToolCall(toolCallId, tool, args);
+	const blocked = preflight?.block === true && String(preflight.reason).includes(ruleName);
+	// A blocked call never runs, so only an allowed call reaches the result hook (with an empty, inert result).
+	const reminders: string[] = [];
+	if (preflight === undefined) {
+		coordinator.afterBridgedToolCall(toolCallId, { content: [] }, {
+			addAdditionalContext: (text: string) => reminders.push(text),
+		});
+	}
+	const delivered = reminders.length === 1 && reminders[0].includes(ruleName);
+	const matches =
+		expected === "block"
+			? blocked && reminders.length === 0 && triggered.join() === ruleName
+			: expected === "silent"
+				? preflight === undefined && reminders.length === 0 && triggered.length === 0
+				: preflight === undefined && delivered && triggered.join() === ruleName;
+	if (!matches || unexpected.length > 0) {
+		problems.push(
+			"Guard preflight mismatch for " +
+				ruleName +
+				" on " +
+				toolName +
+				" " +
+				JSON.stringify(args) +
+				": expected " +
+				expected +
+				", got " +
+				JSON.stringify({ preflight, triggered, reminders, unexpected }),
+		);
+	}
+}
+totals.push(preflightCases + " guard preflight cases");
 
 // Expand every shipped command through OMP's own slash-command path: user arguments must arrive as inert data,
 // so template-looking text (`{{missing}}`, block helpers, `$1`, HTML) is never evaluated, escaped, or dropped.

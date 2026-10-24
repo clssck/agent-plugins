@@ -1,15 +1,17 @@
 ---
 description: Protect reusable build and dependency caches from destructive cleanup
 condition:
-  - '\brm\b[^\n;&|]*\s-(?:[A-Za-z]*[rR][A-Za-z]*|-recursive)\b[^\n;&|]*(?:node_modules|target|dist|build|bazel-\w+|\.cache|\.venv|\.gradle|\.pnpm-store|\.cargo|go-build|go/pkg/mod|Library/Caches)'
+  - '\brm\b[^\n;&|]*(?:node_modules|\btarget\b|\bdist\b|\bbuild\b|bazel-|\.cache|\.venv|\.gradle|\.pnpm-store|pnpm/store|\.npm|\.bun/install/cache|\.cargo|go-build|go/pkg/mod|Library/Caches)'
   - '\b(?:cargo|bazel|bazelisk)\s+clean\b'
-  - '\b(?:npm|yarn|pnpm|bun|uv|pip3?)\s+(?:cache\s+(?:clean|clear|prune|purge|rm)|store\s+prune|pm\s+cache\s+rm)\b'
+  - '\b(?:npm|yarn|pnpm|bun|uv|pip3?)\s+(?:cache\s+(?:clean|clear|prune|purge|rm|remove)|store\s+prune|pm\s+cache\s+rm)\b'
   - '\bgo\s+clean\s+-(?:cache|modcache|testcache|fuzzcache)\b'
 scope: "tool:bash"
 interruptMode: always
 ---
 
 Build outputs and dependency caches are reusable user data; broad deletion is destructive. Delete or clean only when the user explicitly requested this exact target; otherwise ask first.
+
+A match is a reminder, not a violation: dry-runs, literal examples, and cleanups the user already requested for this exact target need no extra permission or correction.
 
 ## Before deleting
 

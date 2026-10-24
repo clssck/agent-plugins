@@ -1,6 +1,6 @@
 ---
 description: Check authorization, target, and outgoing commits before git push
-condition: '\bgit(?:\s+-[Cc]\s+\S+)*\s+push\b(?!(?:[^\\"\n;&|]|\\[^n])*\s(?:--dry-run|-n)\b)(?:[^\\"\n;&|]|\\[^n])*(?:["\n;&|]|\\n)'
+condition: '\bgit\b[^\n;&|]*\spush\b'
 scope: "tool:bash"
 interruptMode: always
 ---
@@ -47,3 +47,7 @@ Deleting remote refs (`--delete`, `:<branch>`) requires an explicit request nami
 # Only after the user names feature/old-spike for deletion
 git push origin --delete feature/old-spike
 ```
+
+## Exceptions
+
+A match is a reminder, not a violation. `git push --dry-run`, literal examples in docs or echoed text, and a push the user already requested to an explicit remote and branch need no correction or extra permission. Absence of a reminder is not authorization to push.

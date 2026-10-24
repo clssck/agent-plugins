@@ -99,6 +99,21 @@ class ValidateTests(unittest.TestCase):
         tags = {key: value for key, value in GOOD.items() if key not in ("name", "version")}
         self.assertEqual(validate(tags, frozenset({"name", "version"})), [])
 
+    def test_contact_rejects_malformed_mailboxes(self):
+        for value in ("@sanofi.com", "x@evil.com@sanofi.com", "a@b@sanofi.com", "a b@sanofi.com", " x@sanofi.com", "x@sanofi.com\n", "x@sanofi.com ", "x@sanofi.com.evil.com", "x@@sanofi.com"):
+            with self.subTest(contact=value):
+                result = run({"resource_changes": [resource("aws_s3_bucket.example", {"tags_all": {**GOOD, "contact": value}})]})
+                self.assertEqual(result.returncode, 1, result.stderr)
+
+    def test_contact_accepts_sanofi_mailboxes(self):
+        for value in ("platform-team@sanofi.com", "a@sanofi.com", "first.last+tag@sanofi.com"):
+            with self.subTest(contact=value):
+                self.assertEqual(validate({**GOOD, "contact": value}), [])
+
+    def test_unknown_contact_is_not_a_format_error(self):
+        tags = {key: value for key, value in GOOD.items() if key != "contact"}
+        self.assertEqual(validate(tags, frozenset({"contact"})), [])
+
     def test_apm_cost_center_must_match_application_id(self):
         problems = validate({**GOOD, "CE_Application_ID": "APM7654321"})
         self.assertTrue(any("does not match" in problem for problem in problems), problems)

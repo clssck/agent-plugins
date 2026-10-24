@@ -77,7 +77,7 @@ TTD = Detection − Start · TTA = Acknowledgement − Detection · TTM = Mitiga
 | SEV1 / SEV2 | REQUIRED within 5 business days of incident closure |
 | SEV3 | Optional; recommend when a trigger in [severity-levels.md](skill://incident-postmortem/references/severity-levels.md#sev3--moderate) applies |
 
-- **Check every SEV1 criterion independently**; security or compliance impact makes any size SEV1.
+- **Check every SEV1 criterion in the [severity-levels.md](skill://incident-postmortem/references/severity-levels.md#decision-flow) decision flow independently**; any one met makes it SEV1 whatever the outage size, including data loss, corruption, or exposure, a breach or credible suspected breach, and a regulatory-reporting failure. Security or compliance effects meeting none of them follow the rest of the flow; an ambiguous result takes the higher severity.
 - **NEVER classify down** to dodge the deadline.
 
 ## Root cause

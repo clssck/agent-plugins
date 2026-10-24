@@ -189,9 +189,9 @@ const pan = useMemo(() => Gesture.Pan()
   .onEnd((e) => {
     const projected = x.get() + project(e.velocityX);
     if (projected < -SWIPE_THRESHOLD) {
-      x.set(withTiming(-WIDTH, { duration: 200, easing: EASE_OUT }, (f) => {
-        if (f) scheduleOnRN(onDelete, id);
-      }));
+      x.set(withSpring(-WIDTH, {
+        duration: 300, dampingRatio: 1, velocity: e.velocityX, overshootClamping: true,
+      }, (finished) => { if (finished) scheduleOnRN(onDelete, id); }));
     } else {
       x.set(withSpring(0, { duration: 300, dampingRatio: 1, velocity: e.velocityX }));
     }

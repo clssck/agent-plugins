@@ -1,6 +1,6 @@
 ---
 name: improve-animations
-description: Survey a codebase's animation and motion code as a senior motion advisor, then produce a prioritized audit and self-contained implementation plans for other agents (or cheaper models) to execute. Read-only on source code — it plans improvements, it does not apply them. Use when the user asks to "improve the animations", "audit the motion", "make this app feel better", or wants a roadmap of animation fixes rather than a review of a single diff.
+description: Audit and plan animation improvements; not direct implementation or single-diff review. Produce a prioritized motion audit and self-contained implementation plans for other agents to execute. Read-only on source code; explicit execute <plan> uses the isolated-executor workflow. Use when the user asks to "improve the animations", "audit the motion", "make this app feel better", or wants a roadmap of animation fixes.
 ---
 
 # Improving Animations
@@ -85,6 +85,8 @@ Audit against the eight categories in `skill://improve-animations/AUDIT.md`:
 8. Missed opportunities
 
 For anything beyond a small repo, fan out read-only `scout` agents in one OMP `task` call (`tasks[]`) — one per category (or per app area for large monorepos). Put the recon facts (stack, motion libraries, token conventions, frequency map) in the shared `context` once; each task must include the absolute path to AUDIT.md and its section heading, an instruction to return findings only (file:line + evidence, no fixes), and Directive 4 quoted verbatim.
+
+If `scout` cannot be spawned (missing from the `task` agent list, disabled, or the dispatch is rejected by spawn policy), audit the same in-scope categories inline, one at a time. Keep the selected effort's coverage, findings depth, and file:line evidence; only the Subagents column drops to 0. State in the Phase 3 findings presentation that the audit ran inline because scout fan-out was unavailable.
 
 Depth follows effort level (default `standard`):
 

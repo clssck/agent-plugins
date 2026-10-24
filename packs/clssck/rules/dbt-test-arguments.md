@@ -1,8 +1,9 @@
 ---
 description: Nest generic dbt test parameters under arguments on dbt 1.10.8 and later
 condition:
-  - '(?:accepted_values|relationships|(?:dbt_utils|dbt_expectations|dbt_date|audit_helper|elementary)\.\w+)["'']?:[ \t]*\n([ \t]+)(?:(?:arguments|config|severity|where|store_failures|name|description|tags|meta|enabled)[ \t]*:[^\n]*\n(?:\1[ \t]+[^\n]*\n|\n)*\1)*(?!(?:arguments|config|severity|where|store_failures|name|description|tags|meta|enabled)\s*:)\w+\s*:'
-  - '(?:accepted_values|relationships|(?:dbt_utils|dbt_expectations|dbt_date|audit_helper|elementary)\.\w+)["'']?:\s*\{\s*(?:(?:arguments|config|severity|where|store_failures|name|description|tags|meta|enabled)\s*:\s*(?:\{[^{}]*\}|\[[^\]]*\]|[^,{}\[\]]*),\s*)*(?!(?:arguments|config|severity|where|store_failures|name|description|tags|meta|enabled)\s*:)\w+\s*:'
+  - "\\b(?:accepted_values|relationships)\\s*:"
+  - "\\b(?:dbt_utils|dbt_expectations|dbt_date|audit_helper|elementary)\\.\\w+\\s*:"
+  - "\\b(?:data_tests|tests)\\s*:"
 scope: "tool:edit(**/*.{yml,yaml}), tool:write(**/*.{yml,yaml})"
 interruptMode: never
 ---
@@ -64,3 +65,11 @@ Applies under `tests:` or `data_tests:`, including package tests such as `dbt_ut
 ## Legacy files
 
 Legacy file on a modern dbt? Migrate the tests you touch; `uvx dbt-autofix deprecations --dry-run` lists the rest.
+
+## Exceptions
+
+- Tests already written with `arguments:` and `config:` beside it are compliant; they need no edit.
+- Files on dbt < 1.10.5, or 1.10.5–1.10.7 without the flag, keep top-level parameters.
+- Singular tests, model-level `config:`, and literal examples in docs need no change.
+
+This reminder matches any generic-test declaration or test block, so it can appear for compliant YAML. Decide nesting from the actual YAML and the dbt version, not from the match.

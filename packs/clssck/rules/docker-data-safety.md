@@ -1,9 +1,9 @@
 ---
 description: Protect container volumes, images, and build cache from destructive Docker/Podman cleanup
 condition:
-  - '\b(?:docker|podman)\s+(?:system|image|container|network|builder|buildx|volume)\s+prune\b'
-  - '\b(?:docker|podman)\s+volume\s+(?:rm|remove)\b'
-  - '\b(?:(?:docker|podman)\s+compose|docker-compose|podman-compose)\b[^\n;&|]*\sdown\b[^\n;&|]*\s(?:-v|--volumes|--rmi)\b'
+  - '\b(?:docker|podman)\b[^;&|\n]*\s(?:system|image|container|network|builder|buildx|volume)\s+prune\b'
+  - '\b(?:docker|podman)\b[^;&|\n]*\svolume\s+(?:rm|remove)\b'
+  - '\b(?:docker|podman)\b[^;&|\n]*\sdown\b[^;&|\n]*\s(?:-v|--volumes|--rmi)\b'
 scope: "tool:bash"
 interruptMode: always
 ---
@@ -23,7 +23,7 @@ docker volume inspect --format '{{ index .Labels "com.docker.compose.project" }}
 
 ## Volumes are user data
 
-Volumes for long-lived services (Postgres, memory/vector stores, caches shared across projects) are user data, not disposable test fixtures.
+Volumes for long-lived services (Postgres, memory/vector stores, caches shared across projects) are user data, not disposable test fixtures. Without a backup or an explicit acceptance of loss, keep them.
 
 ## Not troubleshooting
 
@@ -41,4 +41,5 @@ docker image rm my-test-image:dev
 
 ## Exceptions
 
-Containers and volumes this session created for a throwaway test may be removed once their owner process exits.
+- Containers and volumes this session created for a throwaway test may be removed once their owner process exits.
+- An explicitly requested removal of a named target, a listing/inspection command, or a literal example needs no extra confirmation just because this reminder appeared.

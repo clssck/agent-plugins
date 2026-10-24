@@ -40,7 +40,7 @@ REQUIRED = (
 ENV_TO_CE = {"dev": "DEV", "test": "TEST", "prod": "PROD"}
 COST_CENTER = re.compile(r"^(cc|dp|apm)-\S+$")
 APPLICATION_ID = re.compile(r"^APM[0-9]{7}$")
-CONTACT = re.compile(r"@sanofi\.com$")
+CONTACT = re.compile(r"[^\s@]+@sanofi\.com")
 NAME = re.compile(r"[A-Za-z0-9_-]+")
 # Official SemVer 2.0.0 grammar (https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string).
 SEMVER = re.compile(
@@ -68,8 +68,8 @@ def validate(tags: dict, unknown: frozenset[str] = frozenset()) -> list[str]:
     if cost_center and cost_center.startswith("apm-") and app_id and app_id != "APM" + cost_center[4:]:
         problems.append(f"`CE_Application_ID` `{app_id}` does not match apm- cost_center `{cost_center}`")
     contact = tags.get("contact")
-    if contact and not CONTACT.search(contact):
-        problems.append(f"`contact` must be an @sanofi.com email, got `{contact}`")
+    if contact and not CONTACT.fullmatch(contact):
+        problems.append(f"`contact` must be a `local-part@sanofi.com` email, got `{contact}`")
     if tags.get("team") and re.search(r"\s", tags["team"]):
         problems.append("`team` must be a single word")
     name = tags.get("name")

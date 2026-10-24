@@ -1,10 +1,14 @@
 ---
 description: Check target, authorization, and recovery before destructive SQL or migration execution
 condition:
-  - '(?i)\b(?:delete(?:\s|\\[nrt])+from|update(?:\s|\\[nrt])+\S+(?:\s|\\[nrt])+set|merge(?:\s|\\[nrt])+into|truncate(?:\s|\\[nrt])+table(?:\s|\\[nrt])+(?:only(?:\s|\\[nrt])+)?(?:\\?["`\[])?\w+|drop(?:\s|\\[nrt])+(?:table|schema|database|view|index|sequence|type|function|procedure|materialized(?:\s|\\[nrt])+view)|alter(?:\s|\\[nrt])+table\b[^;\n]*\b(?:drop|alter|modify|change)|(?:replace|insert(?:\s|\\[nrt])+or(?:\s|\\[nrt])+replace)(?:\s|\\[nrt])+into)\b'
-  - '(?i)(?:^|[;(\n''"`]|\\[nrt])(?:\s|\\[nrt])*truncate(?:\s|\\[nrt])+(?:only(?:\s|\\[nrt])+)?(?:\\?["`\[])?\w+(?:\\?["`\]])?(?:\.(?:\\?["`\[])?\w+(?:\\?["`\]])?)*\*?(?:(?:\s|\\[nrt])*,(?:\s|\\[nrt])*(?:\\?["`\[])?\w+(?:\\?["`\]])?(?:\.(?:\\?["`\[])?\w+(?:\\?["`\]])?)*\*?)*(?:(?:\s|\\[nrt])*/\*(?:[^*"\\]|\\[\s\S]|\*+(?:[^*/"\\]|\\[\s\S]))*\*+/)*(?:(?:\s|\\[nrt])*(?:[;)''"`\n]|\\[nrt]|\\"(?=[\s;)''"`]|\\[nrt])|--(?:[^\n\\"]|\\(?![nr])"?)*(?:\n|\\[nr]))|(?:\s|\\[nrt])+(?:restart|continue|cascade|restrict)\b)'
-  - '\b(?:rails|rake)(?:\s|\\[nrt])+db:(?:drop|reset|rollback|purge|schema:load|migrate:reset)\b'
-  - '\b(?:alembic(?:\s|\\[nrt])+downgrade|prisma(?:\s|\\[nrt])+(?:migrate(?:\s|\\[nrt])+reset|db(?:\s|\\[nrt])+push\b[^\n;&|]*--force-reset)|flyway(?:\s|\\[nrt])+clean|sequelize(?:\s|\\[nrt])+db:(?:drop|migrate:undo))\b'
+  - '(?i)\b(?:delete(?:\s|\\[nrt])+from|update(?:\s|\\[nrt])+\S+(?:\s|\\[nrt])+set|merge(?:\s|\\[nrt])+into)\b'
+  - '(?i)\b(?:replace|insert(?:\s|\\[nrt])+or(?:\s|\\[nrt])+replace)(?:\s|\\[nrt])+into\b'
+  - '(?i)\btruncate(?:\s|\\[nrt])+(?!-)\S'
+  - '(?i)\bdrop(?:\s|\\[nrt])+(?:table|schema|database|view|index|sequence|type|function|procedure|trigger|materialized)\b'
+  - '(?i)\balter(?:\s|\\[nrt])+table\b.*\b(?:drop|alter|modify|change)\b'
+  - '\b(?:(?:rails|rake)(?:\s|\\[nrt])+db:(?:drop|reset|rollback|purge|schema:load|migrate:reset)|alembic(?:\s|\\[nrt])+downgrade|flyway(?:\s|\\[nrt])+clean)\b'
+  - '\bprisma(?:\s|\\[nrt])+(?:migrate(?:\s|\\[nrt])+reset|db(?:\s|\\[nrt])+push\b.*--force-reset)'
+  - '\bsequelize(?:\s|\\[nrt])+db:(?:drop|migrate:undo)'
 scope: "tool"
 interruptMode: tool-only
 ---
@@ -66,7 +70,7 @@ Verify the resulting row changes or schema state; report what was actually check
 ## Exceptions
 
 - Disposable databases created solely for this task need no additional confirmation when their ownership and isolation are clear.
-- A read-only query or inert example does not become a mutation merely because this reminder matched.
+- A read-only query, prose, or inert example does not become a mutation merely because this reminder matched; already-authorized work needs no redundant permission.
 
 ## Prefer
 

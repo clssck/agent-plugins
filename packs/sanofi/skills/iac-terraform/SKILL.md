@@ -1,6 +1,6 @@
 ---
 name: iac-terraform
-description: "Author and review AWS Terraform at Sanofi. Use when picking terraform-aws-library modules, pinning module versions, applying or checking the 10 mandatory tags, S3 backend locking, AWS provider v6 upgrades, secrets via write-only arguments, terraform test, or validating a plan with check_tags.py. Not for IaC security audits — iac-security-review instead; not for CI/CD pipelines — cicd-engineering instead."
+description: "Author and review AWS Terraform at Sanofi; not security-only audits or CI/CD pipelines. Use when picking terraform-aws-library modules, pinning module versions, applying or checking the 10 mandatory tags, S3 backend locking, AWS provider v6 upgrades, secrets via write-only arguments, terraform test, or validating a plan with check_tags.py. Not for IaC security audits — iac-security-review instead; not for CI/CD pipelines — cicd-engineering instead."
 ---
 
 # Terraform IaC

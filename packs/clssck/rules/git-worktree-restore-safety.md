@@ -1,11 +1,16 @@
 ---
 description: Protect staged, sibling, and untracked work before destructive Git restore or clean operations
-condition: '\bgit(?:\s+-[Cc]\s+\S+)*\s+(?:restore\b|reset\s+--hard\b|clean\b(?:[^\\"\n;&|]|\\[^n])*\s(?:-[A-Za-z]*f|--force\b)|checkout\s+(?:-f\b|--force\b|--\s|\.(?:\s|["''`;&|)]|\\n|\\"(?=[\s"''`;&|)]|\\n))|(?:[^\s\\";&|-]|\\[^n])(?:[^\s\\";&|]|\\[^n])*\s+(?:--\s|[\w.~/:*@^{}+][\w.~/:*@^{}+-]*(?=\s|["''`;&|)]|\\n|\\"(?=[\s"''`;&|)]|\\n))))|switch\s+(?:-f|--force|--discard-changes)\b|stash\s+(?:drop|clear)\b|worktree\s+remove\b(?:[^\\"\n;&|]|\\[^n])*\s(?:-f|--force)\b)'
+condition:
+  - '\bgit\b[^\n;&|]*\s(?:restore|worktree\s+remove|stash\s+(?:drop|clear))\b'
+  - '\bgit\b[^\n;&|]*\sreset\b[^\n;&|]*--hard\b'
+  - '\bgit\b[^\n;&|]*\sclean\b[^\n;&|]*\s(?:-\w*f|--force)'
+  - '\bgit\b[^\n;&|]*\scheckout\s+\.(?:\s|"|$)'
+  - '\bgit\b[^\n;&|]*\s(?:checkout|switch)\b[^\n;&|]*(?:\s--\s|\s-f\b|--force|--discard-changes)'
 scope: "tool:bash"
 interruptMode: always
 ---
 
-Before restoring, resetting, force-switching, force-cleaning, dropping stashes, or force-removing worktrees, prove which worktree and index you are changing. NEVER blanket-checkout, restore, reset, or force-clean a shared or dirty worktree.
+Before restoring, resetting, force-switching, force-cleaning, dropping stashes, or removing worktrees, prove which worktree and index you are changing. NEVER blanket-checkout, restore, reset, or force-clean a shared or dirty worktree.
 
 ## Before running
 
@@ -61,3 +66,7 @@ git stash drop stash@{2}
 git -C ../feature-wt status --short
 git worktree remove --force ../feature-wt
 ```
+
+## Exceptions
+
+A match is a reminder, not a violation. Plain branch switching, `git clean -n` previews, and restores of named paths you inspected need no correction or extra permission. Files and worktrees this session created for a throwaway task may be discarded after their owner exits. Absence of a reminder is not proof that a destructive command is safe.
