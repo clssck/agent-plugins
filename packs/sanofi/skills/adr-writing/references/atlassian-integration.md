@@ -1,6 +1,6 @@
 # Atlassian Integration — ADR-Specific
 
-Use the Atlassian/Confluence/Jira tools available in the session. If the exact tool is not loaded, search for it, or use the search-company-knowledge and confluence-html-editor skills where they fit. NEVER assume a fixed tool name.
+Use the Atlassian/Confluence/Jira tools available in the session. Prefer the `atl` skill (`bun add -g @clssck/atl-cli && atl skill install`) for reading, searching, and publishing Confluence/Jira content. If it is not installed, use the other tools loaded in the session. NEVER assume a fixed tool name.
 
 ## Fetching an ADR from Confluence
 

@@ -1,6 +1,6 @@
 ---
 name: architecture-documentation
-description: "Document a system's architecture with the C4 model at Sanofi: system context, container, component, deployment, landscape, and dynamic views. Use when reverse-engineering architecture from a codebase, editing Structurizr DSL, C4-PlantUML, Mermaid C4 or Draw.io sources, versioning diagrams, preparing Confluence architecture page content, or arc42 mapping. Not for ADRs — use adr-writing; not for live Confluence publishing — use confluence-html-editor; API specs out of scope."
+description: "Document a system's architecture with the C4 model at Sanofi: system context, container, component, deployment, landscape, and dynamic views. Use when reverse-engineering architecture from a codebase, editing Structurizr DSL, C4-PlantUML, Mermaid C4 or Draw.io sources, versioning diagrams, preparing Confluence architecture page content, or arc42 mapping. Not for ADRs — use adr-writing; not for live Confluence publishing — use the atl skill; API specs out of scope."
 ---
 
 # Architecture Documentation
@@ -14,7 +14,7 @@ Classification follows runtime responsibility, never repo layout or team ownersh
 | Concern | Owner |
 |---|---|
 | C4 scope, element classification, relationships, reviewable page and diagram content, versions, change history | this skill |
-| Live Confluence create/update — fetch page, preserve macros and attachments, publish HTML, verify | `confluence-html-editor` (MUST) |
+| Live Confluence create/update — fetch page, preserve macros, publish, verify | `atl` skill (MUST) |
 | Decisions behind the architecture | `adr-writing` |
 | API specifications | out of scope |
 
@@ -28,7 +28,7 @@ Classification follows runtime responsibility, never repo layout or team ownersh
 - Version, changelog, attribution recorded.
 - [c4-notation-checklist.md](skill://architecture-documentation/references/c4-notation-checklist.md) passed.
 - Existing diagram-as-code source edited in place, not replaced.
-- Live publishing handed to `confluence-html-editor`.
+- Live publishing handed to the `atl` skill.
 </critical>
 
 <procedure>
@@ -39,7 +39,7 @@ Classification follows runtime responsibility, never repo layout or team ownersh
 4. **Produce** model narrative, relationship labels, requested diagram content. Repository holds C4 as code (Structurizr DSL, C4-PlantUML, Mermaid C4) → detect with `glob`/`grep`, edit that format in place → [diagrams-as-code.md](skill://architecture-documentation/references/diagrams-as-code.md).
 5. **Version** the logical artifact and record change history.
 6. **Validate** with [c4-notation-checklist.md](skill://architecture-documentation/references/c4-notation-checklist.md) before presenting or handing off.
-7. **Hand off** live Confluence work to `confluence-html-editor` with prepared content and target-page context. Save the content with `write` to `local://<identifier>.html` (identifier per Version and Attribute) and pass that path; `confluence-html-editor` reads `local://` files, and a long body stays out of the conversation.
+7. **Hand off** live Confluence work to the `atl` skill (install: `bun add -g @clssck/atl-cli && atl skill install`) with prepared content and target-page context. Save the content with `write` to a markdown or storage-XHTML file (identifier per Version and Attribute) and pass it as `atl page create|update --file <path>`, with `--plan` first; a long body stays out of the conversation. `atl` does not upload attachments: tell the user to upload them in the Confluence UI.
 </procedure>
 
 ## Classify Elements

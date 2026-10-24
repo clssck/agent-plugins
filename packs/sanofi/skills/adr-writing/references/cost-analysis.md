@@ -14,7 +14,7 @@ Applies when an ADR involves infrastructure, cloud services, or tooling with var
 
 5. **Provide wide-format and long-format tables:** wide for readability, long (one row per option and scenario) as chart-ready data.
 
-6. **Supply chart data and intent** if the user intends to publish to Confluence: keep the long-format table in the ADR, and state the intended visualization (e.g., grouped bar chart, x = scenario, y = monthly cost in USD, one series per option). NEVER write Confluence wiki markup or macro syntax here; `confluence-html-editor` owns the chart representation and publishing.
+6. **Supply chart data and intent** if the user intends to publish to Confluence: keep the long-format table in the ADR, and state the intended visualization (e.g., grouped bar chart, x = scenario, y = monthly cost in USD, one series per option). NEVER write Confluence wiki markup or macro syntax here; the `atl` skill owns the chart representation and publishing.
 
 ## Source Requirements
 

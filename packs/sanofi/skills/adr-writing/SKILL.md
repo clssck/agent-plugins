@@ -1,13 +1,13 @@
 ---
 name: adr-writing
-description: "Write, review, and fact-check architecture decision records (ADR, MADR) in the Sanofi format; owns ADR content, decision, status, and review. Use when recording a technology choice, numbering docs/adr files, comparing options with pros/cons, Architecture Manifesto Alignment, cost annex, drafting from Jira tickets or Confluence pages, auditing ADR comment threads. Not for C4/architecture docs — use architecture-documentation; not for Confluence HTML/ADF formatting or publishing an approved ADR — use confluence-html-editor; not for code review — use /review."
+description: "Write, review, and fact-check architecture decision records (ADR, MADR) in the Sanofi format; owns ADR content, decision, status, and review. Use when recording a technology choice, numbering docs/adr files, comparing options with pros/cons, Architecture Manifesto Alignment, cost annex, drafting from Jira tickets or Confluence pages, auditing ADR comment threads. Not for C4/architecture docs — use architecture-documentation; not for Confluence formatting or publishing an approved ADR — use the atl skill; not for code review — use /review."
 ---
 
 # Architecture Decision Records
 
 Sanofi ADRs: a variant of [MADR](https://adr.github.io/madr/) — MADR 2.x Positive/Negative Consequences layout (MADR 3.0.0 merged them into one `Consequences` list) plus mandatory Architecture Manifesto Alignment. Scope: numbering, template, option evidence, cost annex, drafting from Jira/Confluence, fact-checking.
 
-Governing principle: an ADR records a decision and its evidence, never a fabrication of either. Unknown numbers, options, or choices → ask or mark `proposed`; a sourced gap beats an invented fact, because reviewers and future readers act on the record. Ownership: this skill owns ADR content, decision, status, and review; confluence-html-editor owns Confluence HTML/ADF formatting, page mechanics, and publishing of the approved ADR. Sibling skills: C4/architecture docs → architecture-documentation · Confluence formatting and publishing → confluence-html-editor · code review → `/review`.
+Governing principle: an ADR records a decision and its evidence, never a fabrication of either. Unknown numbers, options, or choices → ask or mark `proposed`; a sourced gap beats an invented fact, because reviewers and future readers act on the record. Ownership: this skill owns ADR content, decision, status, and review; the `atl` skill (from the `atl` CLI: `bun add -g @clssck/atl-cli && atl skill install`) owns Confluence formatting, page mechanics, and publishing of the approved ADR, never its content. Sibling skills: C4/architecture docs → architecture-documentation · Confluence/Jira reading, formatting, and publishing → `atl` · code review → `/review`.
 
 ## Layout
 
@@ -49,7 +49,7 @@ Governing principle: an ADR records a decision and its evidence, never a fabrica
 | Pricing, Cost Annex, Confluence charts | [cost-analysis.md](skill://adr-writing/references/cost-analysis.md) |
 | Depth/style: 2 options, no optional sections | [example-minimal.md](skill://adr-writing/references/example-minimal.md) |
 | Depth/style: Cost Annex, Options Ruled Out, Drivers | [example-comprehensive.md](skill://adr-writing/references/example-comprehensive.md) |
-| Publishing an approved ADR to Confluence (formatting, page mechanics) | confluence-html-editor skill; content stays as approved here |
+| Publishing an approved ADR to Confluence (formatting, page mechanics) | `atl` skill: save the approved ADR as a markdown or storage-XHTML file, run `atl page create\|update ... --file <path> --plan`, then without `--plan`; content stays as approved here |
 </instruction>
 
 <caution>

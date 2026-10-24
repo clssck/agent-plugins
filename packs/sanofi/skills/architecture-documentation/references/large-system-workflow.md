@@ -57,4 +57,4 @@ Tells engineers which repo to consult for L3 deep-dives or code changes.
 ### Confluence page creation fails
 
 **Cause**: Atlassian/Confluence connection unavailable, or user lacks write permission on the target space.
-**Solution**: save a tool-neutral page outline, model narrative, and artifact references locally. When publishing access returns, use `confluence-html-editor` so it fetches the target page, preserves its macros and attachments, and publishes safely.
+**Solution**: save a tool-neutral page outline, model narrative, and artifact references locally. When publishing access returns, use the `atl` skill (`atl page update <page> --file <path> --plan` first) so the page is fetched, its macros are preserved, and the update is safe.

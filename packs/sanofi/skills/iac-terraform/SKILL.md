@@ -36,7 +36,7 @@ Complements built-in `/review`: that finds generic defects; this skill checks mo
 <procedure>
 
 1. **Scope**: service, environment, modules needed, missing inputs. Existing code → `glob` `**/*.tf` (excluding `.terraform/`), then `read`.
-2. **Discover** modules + RFC guidance → [module-guide.md](skill://iac-terraform/references/module-guide.md#discovery). Confluence CODE-space docs → `search-company-knowledge` skill.
+2. **Discover** modules + RFC guidance → [module-guide.md](skill://iac-terraform/references/module-guide.md#discovery). Confluence CODE-space docs → `atl` skill.
 3. **Implement**: pinned modules, `tags = local.tags` → [tagging-guide.md](skill://iac-terraform/references/tagging-guide.md). No library module → state the reason in the report.
 4. **Validate locally** (order matters; private modules need JFrog credentials for `init` → [module-guide.md](skill://iac-terraform/references/module-guide.md#validation)):
 
@@ -81,5 +81,5 @@ Done when each holds, or its blocker is reported:
 | --- | --- |
 | Security audit of Terraform, CDK, CloudFormation. NEVER duplicate its findings or severity model here. | `iac-security-review` |
 | GitHub Actions Terraform plan/apply workflows; JFrog credentials in CI | `cicd-engineering` |
-| Confluence + company knowledge lookups | `search-company-knowledge` |
+| Confluence/Jira lookups and page publishing | `atl` |
 </critical>

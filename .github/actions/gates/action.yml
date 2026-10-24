@@ -28,7 +28,7 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        for skill in iac-terraform datacontract-writing adr-writing confluence-html-editor; do
+        for skill in iac-terraform datacontract-writing adr-writing; do
           echo "::group::$skill"
           (cd "packs/sanofi/skills/$skill/scripts" && uv run --no-project --python 3.12 python -B -m unittest discover -p 'test_*.py')
           echo "::endgroup::"

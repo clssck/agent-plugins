@@ -12,7 +12,7 @@ Gates ([`.github/actions/gates`](./.github/actions/gates/action.yml), shared by 
 |---|---|---|
 | Root install | `bun install --frozen-lockfile` | Root manifest installs cleanly; currently no root dependencies |
 | Bun tests | `bun test scripts` | Sync, rule, and README behavior |
-| Python helpers | `uv run --no-project python -B -m unittest discover -p 'test_*.py'` in each of `packs/sanofi/skills/{iac-terraform,datacontract-writing,adr-writing,confluence-html-editor}/scripts` | First-party helper scripts work |
+| Python helpers | `uv run --no-project python -B -m unittest discover -p 'test_*.py'` in each of `packs/sanofi/skills/{iac-terraform,datacontract-writing,adr-writing}/scripts` | First-party helper scripts work |
 | Static repository check | `bun scripts/sync.ts --check` | Declared skills, rules, agents, commands, and tools are discoverable; concrete `skill://` targets resolve and their `#anchor` matches a real heading; tagged capability payloads use the closed grammar in order without nesting; skill names are unambiguous; every generated `upstream/<name>` tree matches its digest. It does not run OMP and does not execute a skill workflow |
 | OMP host-loader smoke | `OMP_ROOT=… bun scripts/check-omp-loader.ts` | OMP's own providers, task-agent parser, and extension loader accept every pack, at the `reviewedCommit` in [`omp-source-lock.json`](./omp-source-lock.json) with the `natives` addon pinned there by tarball integrity (`bun install --frozen-lockfile` in the checkout) |
 

@@ -30,7 +30,7 @@ Ask ONE message covering all fields; NEVER split across turns:
 
 Per Jira ticket: fetch with the available Atlassian Jira tool; extract problem context, acceptance criteria, linked issues, decision comments.
 
-Per Confluence page: resolve tiny URLs per [atlassian-integration.md](skill://adr-writing/references/atlassian-integration.md); search by title via Atlassian tools or the search-company-knowledge skill; fetch by page ID. Extract context, constraints, prior decisions.
+Per Confluence page: resolve tiny URLs per [atlassian-integration.md](skill://adr-writing/references/atlassian-integration.md); search by title via Atlassian tools or the `atl` skill; fetch by page ID. Extract context, constraints, prior decisions.
 
 - List each fetched page title and ticket summary; ask the user to confirm.
 - Unresolved link: say "I could not resolve [link]. Provide the page title or numeric ID."

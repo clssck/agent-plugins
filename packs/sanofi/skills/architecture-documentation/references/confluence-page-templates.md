@@ -1,6 +1,6 @@
 # Confluence Page Content Outlines
 
-Outlines for preparing architecture-page content — NOT a publishable HTML or storage-format payload. Live Confluence work → hand target-page context and prepared content to `confluence-html-editor`: it fetches the current page, preserves macros and attachments, publishes a complete HTML body, verifies.
+Outlines for preparing architecture-page content — NOT a publishable storage-format payload. Live Confluence work → hand target-page context and prepared content to the `atl` skill: `atl page update` replaces the body of the current page, warns when the body would drop macros or inline-comment anchors, and supports `--plan` to preview.
 
 NEVER construct raw macro markup from this reference. Describe a required diagram, attachment, panel, or internal link in the content; the publishing workflow preserves or creates the native Confluence representation.
 
@@ -395,13 +395,13 @@ deployment topology are documented below.</p>
 
 ## Diagram Artifact Placement
 
-Live page → give `confluence-html-editor` the logical artifact identifier, current attachment or embed context, and intended placement. NEVER construct a macro payload or reference a local file path in the page body. The publisher fetches the page, preserves compatible existing embeds, uploads new attachments only through an available attachment path, verifies the resulting page.
+Live page → give the `atl` skill the logical artifact identifier, current attachment or embed context, and intended placement. NEVER construct a macro payload or reference a local file path in the page body. `atl` does not upload attachments: the user uploads them in the Confluence UI; the body references existing attachments or embeds only. Verify the resulting page after publishing.
 
 ---
 
 ## Callout Content
 
-Supply intended meaning and text; `confluence-html-editor` selects or preserves the native callout representation.
+Supply intended meaning and text; `atl` selects or preserves the native callout representation.
 
 - **Current**: This diagram reflects the current production architecture as of
   `{YYYY-MM-DD}`.

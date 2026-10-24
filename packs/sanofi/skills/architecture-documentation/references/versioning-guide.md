@@ -279,8 +279,8 @@ v3.0.0 (from v2.0.1):
 ### How to Archive
 
 1. Archive old architecture artifacts in the repository's established location or,
-   for Confluence pages, use `confluence-html-editor` to preserve page structure and
-   attachments while recording the archive status
+   for Confluence pages, use the `atl` skill to preserve page structure
+   while recording the archive status
 2. Add an info panel on the archived page: "This version is archived. Current
    version: [link to current page]"
 3. Do NOT delete archived diagrams -- they serve as historical record
@@ -307,7 +307,7 @@ For significant architecture changes (MAJOR/MINOR), follow this flow:
 3. Draft Update     -> Agent prepares new model content and artifact version(s)
 4. Review           -> Engineer reviews the draft for accuracy
 5. Approval         -> Technical lead approves the architecture change
-6. Implementation   -> Publish to Confluence through confluence-html-editor when a live page is in scope
+6. Implementation   -> Publish to Confluence through the atl skill when a live page is in scope
 7. Communication    -> Team notified of architecture update
 8. Validation       -> Verify published diagrams render correctly
 ```
