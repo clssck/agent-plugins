@@ -32,7 +32,7 @@ Maintainer docs: [CONTRIBUTING.md](./CONTRIBUTING.md).
 | --- | --- | --- | --- | --- | --- |
 | `clssck` | `2.1.21` | this repo | — | 22 skills, 14 rules, 2 agents, 3 commands | [2026-10-24 13:37 UTC](https://github.com/clssck/agent-plugins/commit/0c4d1043af6e5d15c5df00d7d5abf5580dc695b7) |
 | `improve` | `0.0.0-gcac56e1` | [shadcn/improve@cac56e1](https://github.com/shadcn/improve/tree/cac56e1ebd3c279aa9153616cfeac7b174ab90f9) | — | 1 skill | [2026-10-19 15:41 UTC](https://github.com/clssck/agent-plugins/commit/b9fe6ee60af0df8125db6e70e35bc5ce31ddc2e6) |
-| `sanofi` | `1.2.1` | this repo | — | 10 skills | [2026-10-24 20:04 UTC](https://github.com/clssck/agent-plugins/commit/5a4dd4617ba4cb62e31c0ba61c4808962ecc6558) |
+| `sanofi` | `1.2.1` | this repo | — | 10 skills | [2026-10-25 11:20 UTC](https://github.com/clssck/agent-plugins/commit/b6f306e52aecf84cb31affcde9e2ce3988529a9d) |
 
 ## Skills
 
