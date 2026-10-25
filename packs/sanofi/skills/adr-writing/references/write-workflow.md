@@ -16,7 +16,7 @@ Ask ONE message covering all fields; NEVER split across turns:
 
 - Only a topic supplied: proceed, ask ONE follow-up for options and chosen option.
 - A Jira key or title in the request: treat as field 1, fetch the ticket, then one follow-up.
-- Atlassian unavailable: still collect refs; record them as Links.
+- `atl` unavailable after its Setup: still collect refs; record them as Links.
 
 ### Status rules
 
@@ -28,17 +28,17 @@ Ask ONE message covering all fields; NEVER split across turns:
 
 ## 2. Fetch Atlassian Context
 
-Per Jira ticket: fetch with the available Atlassian Jira tool; extract problem context, acceptance criteria, linked issues, decision comments.
+Per Jira ticket: `atl issue get KEY --comments 10` and `atl issue links KEY`; extract problem context, acceptance criteria, linked issues, decision comments.
 
-Per Confluence page: resolve tiny URLs per [atlassian-integration.md](skill://adr-writing/references/atlassian-integration.md); search by title via Atlassian tools or the `atl` skill; fetch by page ID. Extract context, constraints, prior decisions.
+Per Confluence page: resolve and fetch per [atlassian-integration.md](skill://adr-writing/references/atlassian-integration.md) (`atl page get` takes an id, URL, tiny link, or exact title with `--space`). Extract context, constraints, prior decisions.
 
 - List each fetched page title and ticket summary; ask the user to confirm.
 - Unresolved link: say "I could not resolve [link]. Provide the page title or numeric ID."
-- Search Confluence for existing standards on the topic. Surface an enterprise standard as context and a factor in the analysis.
-- Fetch the Sanofi Architecture Manifesto through Atlassian tools. If unavailable, use the principle list in [adr.template.md](skill://adr-writing/assets/adr.template.md) and say the live source was unavailable.
+- Search Confluence for existing standards on the topic (`atl search "<2-3 terms>" --product confluence`). Surface an enterprise standard as context and a factor in the analysis.
+- Fetch the Sanofi Architecture Manifesto (`atl page get <Manifesto URL from adr.template.md>`). If unavailable, use the principle list in [adr.template.md](skill://adr-writing/assets/adr.template.md) and say the live source was unavailable.
 - Present a consolidated summary and confirm before continuing.
 
-| Atlassian access | User gave refs | Behavior |
+| `atl` access | User gave refs | Behavior |
 |:-:|:-:|:--|
 | Yes | Yes | Fetch all, summarize, confirm |
 | Yes | No | Skip user-reference fetching only; still search standards and fetch the Manifesto, summarize, confirm |

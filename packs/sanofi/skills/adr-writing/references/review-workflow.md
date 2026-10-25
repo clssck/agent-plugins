@@ -4,15 +4,15 @@
 
 Source from the user's input:
 
-- **Confluence URL:** resolve the page (including tiny URLs), fetch content via Atlassian/Confluence tools. Also fetch inline comments, footer comments, reply threads. Comment tools unavailable → note that comment review was skipped.
+- **Confluence URL:** fetch the page and every comment thread per [atlassian-integration.md](skill://adr-writing/references/atlassian-integration.md) (`atl page get`, `atl comment list <id> --kind all --replies`). Comments unavailable → note that comment review was skipped.
 - **Local file path:** `read` the file.
-- **Jira ticket:** fetch the ticket; look for linked Confluence pages containing the ADR.
+- **Jira ticket:** `atl issue get KEY`, then `atl issue links KEY` for linked Confluence pages containing the ADR.
 
 ## R2. Run the MADR Review Checklist
 
 Evaluate against [review-checklist.md](skill://adr-writing/references/review-checklist.md), including S13 (Architecture Manifesto Alignment). Verdicts: Pass, Fail, Partial, N/A. Optional check with validly omitted section → N/A; a documented single mandated option is not a Fail on S7/S8/S10.
 
-Manifesto check: fetch the Architecture Manifesto page through Atlassian/Confluence tools when available; otherwise use the embedded principle list in [adr.template.md](skill://adr-writing/assets/adr.template.md) and flag the source gap.
+Manifesto check: fetch the Architecture Manifesto page (`atl page get <Manifesto URL from adr.template.md>`) when `atl` is available; otherwise use the embedded principle list in [adr.template.md](skill://adr-writing/assets/adr.template.md) and flag the source gap.
 
 Compare the decision and consequences against the 10 manifesto principles. Flag any principle the decision strains (e.g., a cost increase strains Principle 10 — Frugality). Present results as a table.
 
@@ -54,6 +54,6 @@ Write `docs/adr/ADR-NNN-slug-review.md` (ADR's number and slug) containing:
 After presenting the review, offer:
 
 - Draft suggested text for sections needing improvement.
-- Draft reply text for unresolved Confluence comment threads.
-- Post the review as a footer comment on the Confluence page.
+- Draft reply text for unresolved Confluence comment threads; post a reply only on request (`atl comment add --reply-to <comment id> --file reply.md`).
+- Post the review as a footer comment on the Confluence page, only on request: `atl comment add <page id> --file review.md --plan`, then without `--plan`.
 - Create a local ADR file incorporating the suggested improvements.
