@@ -531,7 +531,7 @@ Run the capability-specific behavior checks above, then applicable repository ga
 | Sanofi Python helper | `uv run --no-project python -B -m unittest discover -p 'test_*.py'` in the affected scripts directory |
 | Any edit | `git diff --check` |
 | Authoring guide | Resolve cited source paths and exercise changed examples against the pinned host |
-| Published behavior or metadata | Bump the affected pack's patch version; regenerate README metadata with `bun scripts/sync.ts --readme` |
+| Published behavior or metadata | Bump the affected pack's patch version; add its `CHANGELOG.md` section; regenerate README metadata with `bun scripts/sync.ts --readme` |
 
 `sync --check` validates payload grammar for discovered first-party skills, rules, agents, and commands—not `AGENTS.md` or generated upstream payloads. Tag scanning masks frontmatter, fenced examples, and inline code; tier checks inspect only top-level semantic blocks. Reserved-name validation uses an explicit list, not a `system-*` wildcard. Review examples, nested blocks, and broader authoring policy separately.
 

@@ -24,142 +24,212 @@ Blocked -> report the prerequisite.
 `;
 
 describe("headingSlug", () => {
-	test("matches GitHub anchors for headings used in skill links", () => {
-		expect(headingSlug("Payload grammar")).toBe("payload-grammar");
-		expect(headingSlug("dbt `data_type`")).toBe("dbt-data_type");
-		expect(headingSlug("8. Environment-Scoped Secrets vs `secrets: inherit`")).toBe(
-			"8-environment-scoped-secrets-vs-secrets-inherit",
-		);
-		expect(headingSlug("SEV3 — Moderate")).toBe("sev3--moderate");
-	});
+  test("matches GitHub anchors for headings used in skill links", () => {
+    expect(headingSlug("Payload grammar")).toBe("payload-grammar");
+    expect(headingSlug("dbt `data_type`")).toBe("dbt-data_type");
+    expect(headingSlug("8. Environment-Scoped Secrets vs `secrets: inherit`")).toBe(
+      "8-environment-scoped-secrets-vs-secrets-inherit",
+    );
+    expect(headingSlug("SEV3 — Moderate")).toBe("sev3--moderate");
+  });
 });
 
 describe("maskFences", () => {
-	test("keeps inline code so heading slugs stay exact", () => {
-		expect(maskFences("## 12. Cache Poisoning and `cache-mode`")).toBe("## 12. Cache Poisoning and `cache-mode`");
-	});
+  test("keeps inline code so heading slugs stay exact", () => {
+    expect(maskFences("## 12. Cache Poisoning and `cache-mode`")).toBe(
+      "## 12. Cache Poisoning and `cache-mode`",
+    );
+  });
 
-	test("an inner shorter or different fence cannot close the outer fence", () => {
-		const text = ["````md", "```", "<procedure>", "```", "~~~~", "<caution>", "````", "<critical>"].join("\n");
-		const masked = maskFences(text).split("\n");
-		expect(masked).toHaveLength(8);
-		expect(masked.slice(0, 7).every(line => line === "")).toBe(true);
-		expect(masked[7]).toBe("<critical>");
-	});
+  test("an inner shorter or different fence cannot close the outer fence", () => {
+    const text = [
+      "````md",
+      "```",
+      "<procedure>",
+      "```",
+      "~~~~",
+      "<caution>",
+      "````",
+      "<critical>",
+    ].join("\n");
+    const masked = maskFences(text).split("\n");
+    expect(masked).toHaveLength(8);
+    expect(masked.slice(0, 7).every((line) => line === "")).toBe(true);
+    expect(masked[7]).toBe("<critical>");
+  });
 
-	test("a tilde fence is closed only by a tilde run at least as long", () => {
-		const text = ["~~~~", "```", "~~~", "<procedure>", "~~~~~", "<critical>"].join("\n");
-		expect(maskFences(text).split("\n")).toEqual(["", "", "", "", "", "<critical>"]);
-	});
+  test("a tilde fence is closed only by a tilde run at least as long", () => {
+    const text = ["~~~~", "```", "~~~", "<procedure>", "~~~~~", "<critical>"].join("\n");
+    expect(maskFences(text).split("\n")).toEqual(["", "", "", "", "", "<critical>"]);
+  });
 
-	test("a closing fence cannot carry an info string, and a line with inline backticks opens nothing", () => {
-		expect(maskFences(["```", "```md", "<procedure>", "```", "<critical>"].join("\n")).split("\n")).toEqual(["", "", "", "", "<critical>"]);
-		expect(maskFences("```code``` <critical>")).toBe("```code``` <critical>");
-	});
+  test("a closing fence cannot carry an info string, and a line with inline backticks opens nothing", () => {
+    expect(
+      maskFences(["```", "```md", "<procedure>", "```", "<critical>"].join("\n")).split("\n"),
+    ).toEqual(["", "", "", "", "<critical>"]);
+    expect(maskFences("```code``` <critical>")).toBe("```code``` <critical>");
+  });
 
-	test("payload tags inside a four-backtick block with an inner triple fence are not read as payload", () => {
-		const text = ["````md", "```", "<procedure>", "```", "<procedure>", "````"].join("\n");
-		expect(maskNonPayload(text)).not.toContain("<procedure>");
-	});
+  test("payload tags inside a four-backtick block with an inner triple fence are not read as payload", () => {
+    const text = ["````md", "```", "<procedure>", "```", "<procedure>", "````"].join("\n");
+    expect(maskNonPayload(text)).not.toContain("<procedure>");
+  });
 });
 
 describe("maskNonPayload", () => {
-	test("blanks frontmatter, fences, and inline code while keeping line numbers", () => {
-		const text = ["---", "description: '<critical>'", "---", "", "```md", "<procedure>", "```", "`<caution>`"].join("\n");
-		const masked = maskNonPayload(text);
-		expect(masked.split("\n")).toHaveLength(8);
-		expect(masked).not.toContain("<critical>");
-		expect(masked).not.toContain("<procedure>");
-		expect(masked).not.toContain("<caution>");
-	});
+  test("blanks frontmatter, fences, and inline code while keeping line numbers", () => {
+    const text = [
+      "---",
+      "description: '<critical>'",
+      "---",
+      "",
+      "```md",
+      "<procedure>",
+      "```",
+      "`<caution>`",
+    ].join("\n");
+    const masked = maskNonPayload(text);
+    expect(masked.split("\n")).toHaveLength(8);
+    expect(masked).not.toContain("<critical>");
+    expect(masked).not.toContain("<procedure>");
+    expect(masked).not.toContain("<caution>");
+  });
 });
 
 describe("payloadProblems", () => {
-	test("accepts an ordered, closed payload", () => {
-		expect(payloadProblems("skill", SKILL)).toEqual([]);
-	});
+  test("accepts an ordered, closed payload", () => {
+    expect(payloadProblems("skill", SKILL)).toEqual([]);
+  });
 
-	test("accepts a skill that has not converted yet", () => {
-		expect(payloadProblems("skill", "# Title\n\nProse only.\n")).toEqual([]);
-	});
+  test("accepts a skill that has not converted yet", () => {
+    expect(payloadProblems("skill", "# Title\n\nProse only.\n")).toEqual([]);
+  });
 
-	test("reports an unclosed tag", () => {
-		const problems = payloadProblems("skill", "<critical>\n- NEVER.\n");
-		expect(problems.map(problem => problem.message)).toContain("<critical> is never closed");
-	});
+  test("reports an unclosed tag", () => {
+    const problems = payloadProblems("skill", "<critical>\n- NEVER.\n");
+    expect(problems.map((problem) => problem.message)).toContain("<critical> is never closed");
+  });
 
-	test("allows host-style section tags, attributes, and nesting", () => {
-		const body = "<directives>\n- MUST do it.\n- SHOULD prefer it.\n</directives>\n\n<example name=\"finding\">\n<title>Short title</title>\n<body>Bug, trigger, impact.</body>\n</example>\n";
-		expect(payloadProblems("agent", `${body}<critical>\n- NEVER.\n</critical>\n`)).toEqual([]);
-	});
+  test("allows host-style section tags, attributes, and nesting", () => {
+    const body =
+      '<directives>\n- MUST do it.\n- SHOULD prefer it.\n</directives>\n\n<example name="finding">\n<title>Short title</title>\n<body>Bug, trigger, impact.</body>\n</example>\n';
+    expect(payloadProblems("agent", `${body}<critical>\n- NEVER.\n</critical>\n`)).toEqual([]);
+  });
 
-	test("reports out-of-order tags", () => {
-		const problems = payloadProblems("skill", "<critical>\n- NEVER.\n</critical>\n<caution>\nCareful.\n</caution>\n<procedure>\n1. Step.\n</procedure>\n");
-		expect(problems.some(problem => problem.message.includes("out of order"))).toBe(true);
-	});
+  test("reports out-of-order tags", () => {
+    const problems = payloadProblems(
+      "skill",
+      "<critical>\n- NEVER.\n</critical>\n<caution>\nCareful.\n</caution>\n<procedure>\n1. Step.\n</procedure>\n",
+    );
+    expect(problems.some((problem) => problem.message.includes("out of order"))).toBe(true);
+  });
 
-	test("allows a closing critical but not a third block", () => {
-		const closing = "<critical>\n- NEVER.\n</critical>\n<procedure>\n1. Step.\n</procedure>\n<critical>\n- Done when verified.\n</critical>\n";
-		expect(payloadProblems("skill", closing)).toEqual([]);
-		const third = `${closing}<critical>\n- Again.\n</critical>\n`;
-		expect(payloadProblems("skill", third).map(problem => problem.message)).toContain(
-			"<critical> appears more than twice; keep one opening and one closing block",
-		);
-	});
+  test("allows a closing critical but not a third block", () => {
+    const closing =
+      "<critical>\n- NEVER.\n</critical>\n<procedure>\n1. Step.\n</procedure>\n<critical>\n- Done when verified.\n</critical>\n";
+    expect(payloadProblems("skill", closing)).toEqual([]);
+    const third = `${closing}<critical>\n- Again.\n</critical>\n`;
+    expect(payloadProblems("skill", third).map((problem) => problem.message)).toContain(
+      "<critical> appears more than twice; keep one opening and one closing block",
+    );
+  });
 
-	test("reports a prohibition inside instruction", () => {
-		const problems = payloadProblems("skill", "<critical>\n- NEVER.\n</critical>\n<instruction>\n- MUST check the name.\n</instruction>\n");
-		expect(problems.map(problem => problem.message)).toContain("prohibition inside <instruction>; move it to <critical>");
-	});
+  test("reports a prohibition inside instruction", () => {
+    const problems = payloadProblems(
+      "skill",
+      "<critical>\n- NEVER.\n</critical>\n<instruction>\n- MUST check the name.\n</instruction>\n",
+    );
+    expect(problems.map((problem) => problem.message)).toContain(
+      "prohibition inside <instruction>; move it to <critical>",
+    );
+  });
 
-	test("reports advice inside critical", () => {
-		const problems = payloadProblems("skill", "<critical>\n- SHOULD prefer drafts.\n</critical>\n");
-		expect(problems.map(problem => problem.message)).toContain("advisory word inside <critical>; move it to <instruction>");
-	});
+  test("reports advice inside critical", () => {
+    const problems = payloadProblems("skill", "<critical>\n- SHOULD prefer drafts.\n</critical>\n");
+    expect(problems.map((problem) => problem.message)).toContain(
+      "advisory word inside <critical>; move it to <instruction>",
+    );
+  });
 
-	test("allows prohibitions in caution and procedure", () => {
-		const body = "<critical>\n- NEVER.\n</critical>\n<procedure>\n1. MUST verify.\n</procedure>\n<caution>\n- NEVER treat empty output as clean.\n</caution>\n";
-		expect(payloadProblems("skill", body)).toEqual([]);
-	});
+  test("allows prohibitions in caution and procedure", () => {
+    const body =
+      "<critical>\n- NEVER.\n</critical>\n<procedure>\n1. MUST verify.\n</procedure>\n<caution>\n- NEVER treat empty output as clean.\n</caution>\n";
+    expect(payloadProblems("skill", body)).toEqual([]);
+  });
 
-	test("reports an unknown tag with the allowed set", () => {
-		const problems = payloadProblems("skill", "<critical>\n- NEVER.\n</critical>\n<workflow>\n1. Step.\n</workflow>\n");
-		expect(problems.map(problem => problem.message)).toContain("<workflow> is retired; use <procedure>");
-	});
+  test("reports an unknown tag with the allowed set", () => {
+    const problems = payloadProblems(
+      "skill",
+      "<critical>\n- NEVER.\n</critical>\n<workflow>\n1. Step.\n</workflow>\n",
+    );
+    expect(problems.map((problem) => problem.message)).toContain(
+      "<workflow> is retired; use <procedure>",
+    );
+  });
 
-	test("reports host-owned tags", () => {
-		for (const name of ["system-reminder", "system-conventions", "objective", "project-context", "repo-rules", "file", "skills", "skill"]) {
-			const problems = payloadProblems("rule", `<critical>\n- NEVER.\n</critical>\n<${name}>\nx\n</${name}>\n`);
-			expect(problems.some(problem => problem.message.includes("host-owned")), name).toBe(true);
-		}
-	});
+  test("reports host-owned tags", () => {
+    for (const name of [
+      "system-reminder",
+      "system-conventions",
+      "objective",
+      "project-context",
+      "repo-rules",
+      "file",
+      "skills",
+      "skill",
+    ]) {
+      const problems = payloadProblems(
+        "rule",
+        `<critical>\n- NEVER.\n</critical>\n<${name}>\nx\n</${name}>\n`,
+      );
+      expect(
+        problems.some((problem) => problem.message.includes("host-owned")),
+        name,
+      ).toBe(true);
+    }
+  });
 
-	test("ignores tag mentions inside inline code", () => {
-		expect(payloadProblems("skill", "<critical>\n- NEVER. Tags live in `<instruction>` blocks.\n</critical>\n")).toEqual([]);
-	});
+  test("ignores tag mentions inside inline code", () => {
+    expect(
+      payloadProblems(
+        "skill",
+        "<critical>\n- NEVER. Tags live in `<instruction>` blocks.\n</critical>\n",
+      ),
+    ).toEqual([]);
+  });
 
-	test("requires critical once an agent or command uses a semantic tag", () => {
-		expect(payloadProblems("agent", "You are a reviewer.\n")).toEqual([]);
-		expect(payloadProblems("agent", "<directives>\n- MUST finish.\n</directives>\n")).toEqual([]);
-		expect(payloadProblems("agent", "<procedure>\n1. Step.\n</procedure>\n").map(problem => problem.message)).toContain(
-			"a tagged agent payload MUST include <critical>",
-		);
-		expect(payloadProblems("command", "<procedure>\n1. Step.\n</procedure>\n").map(problem => problem.message)).toContain(
-			"a tagged command payload MUST include <critical>",
-		);
-	});
+  test("requires critical once an agent or command uses a semantic tag", () => {
+    expect(payloadProblems("agent", "You are a reviewer.\n")).toEqual([]);
+    expect(payloadProblems("agent", "<directives>\n- MUST finish.\n</directives>\n")).toEqual([]);
+    expect(
+      payloadProblems("agent", "<procedure>\n1. Step.\n</procedure>\n").map(
+        (problem) => problem.message,
+      ),
+    ).toContain("a tagged agent payload MUST include <critical>");
+    expect(
+      payloadProblems("command", "<procedure>\n1. Step.\n</procedure>\n").map(
+        (problem) => problem.message,
+      ),
+    ).toContain("a tagged command payload MUST include <critical>");
+  });
 
-	test("rejects near-miss semantic tags", () => {
-		for (const name of ["critcal", "instructions", "procedures", "cautionn"]) {
-			const problems = payloadProblems("skill", `<critical>\n- NEVER.\n</critical>\n<${name}>\nx\n</${name}>\n`);
-			expect(problems.some(problem => problem.message.includes("looks like a mis-typed"))).toBe(true);
-		}
-	});
+  test("rejects near-miss semantic tags", () => {
+    for (const name of ["critcal", "instructions", "procedures", "cautionn"]) {
+      const problems = payloadProblems(
+        "skill",
+        `<critical>\n- NEVER.\n</critical>\n<${name}>\nx\n</${name}>\n`,
+      );
+      expect(problems.some((problem) => problem.message.includes("looks like a mis-typed"))).toBe(
+        true,
+      );
+    }
+  });
 
-	test("keeps checking after an attributed nested block", () => {
-		const body = "<instruction>\n- Choose X.\n<example name=\"x\">\n- Sample.\n</example>\n- MUST never skip.\n</instruction>\n<critical>\n- NEVER.\n</critical>\n";
-		expect(payloadProblems("skill", body).map(problem => problem.message)).toContain(
-			"prohibition inside <instruction>; move it to <critical>",
-		);
-	});
+  test("keeps checking after an attributed nested block", () => {
+    const body =
+      '<instruction>\n- Choose X.\n<example name="x">\n- Sample.\n</example>\n- MUST never skip.\n</instruction>\n<critical>\n- NEVER.\n</critical>\n';
+    expect(payloadProblems("skill", body).map((problem) => problem.message)).toContain(
+      "prohibition inside <instruction>; move it to <critical>",
+    );
+  });
 });

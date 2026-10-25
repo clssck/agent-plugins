@@ -17,92 +17,103 @@ import { check } from "./sync";
 const ROOT = path.resolve(import.meta.dir, "..");
 const ompRootInput = process.env.OMP_ROOT ?? process.argv[2];
 if (!ompRootInput) {
-	console.error("OMP_ROOT is required (env var or first argument): path to an oh-my-pi checkout");
-	process.exit(2);
+  process.stderr.write(
+    "OMP_ROOT is required (env var or first argument): path to an oh-my-pi checkout\n",
+  );
+  process.exit(2);
 }
 const OMP_ROOT = path.resolve(ompRootInput);
 const AGENT_SRC = path.join(OMP_ROOT, "packages/coding-agent/src");
 
 // Refuse any checkout that is not the reviewed commit before a single host module is loaded.
 const lock: unknown = await Bun.file(path.join(ROOT, "omp-source-lock.json")).json();
-const expectedCommit = lock && typeof lock === "object" && "reviewedCommit" in lock ? lock.reviewedCommit : undefined;
+const expectedCommit =
+  lock && typeof lock === "object" && "reviewedCommit" in lock ? lock.reviewedCommit : undefined;
 if (typeof expectedCommit !== "string" || !/^[0-9a-f]{40}$/.test(expectedCommit)) {
-	console.error("omp-source-lock.json reviewedCommit must be a full 40-character SHA");
-	process.exit(2);
+  process.stderr.write("omp-source-lock.json reviewedCommit must be a full 40-character SHA\n");
+  process.exit(2);
 }
 function git(...args: string[]): string | undefined {
-	const result = Bun.spawnSync(["git", "-C", OMP_ROOT, ...args], { stdout: "pipe", stderr: "pipe" });
-	return result.exitCode === 0 ? result.stdout.toString().trim() : undefined;
+  const result = Bun.spawnSync(["git", "-C", OMP_ROOT, ...args], {
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  return result.exitCode === 0 ? result.stdout.toString().trim() : undefined;
 }
 const toplevel = git("rev-parse", "--show-toplevel");
-if (!toplevel || (await fs.realpath(toplevel)) !== (await fs.realpath(OMP_ROOT).catch(() => OMP_ROOT))) {
-	console.error("OMP_ROOT is not the root of a Git checkout: " + OMP_ROOT);
-	process.exit(2);
+if (
+  !toplevel ||
+  (await fs.realpath(toplevel)) !== (await fs.realpath(OMP_ROOT).catch(() => OMP_ROOT))
+) {
+  process.stderr.write("OMP_ROOT is not the root of a Git checkout: " + OMP_ROOT + "\n");
+  process.exit(2);
 }
 const actualCommit = git("rev-parse", "HEAD");
 if (actualCommit !== expectedCommit) {
-	console.error("OMP_ROOT is not at the reviewed commit; refusing to load host modules from " + OMP_ROOT);
-	console.error("  expected: " + expectedCommit);
-	console.error("  actual:   " + (actualCommit ?? "unreadable"));
-	process.exit(1);
+  process.stderr.write(
+    "OMP_ROOT is not at the reviewed commit; refusing to load host modules from " + OMP_ROOT + "\n",
+  );
+  process.stderr.write("  expected: " + expectedCommit + "\n");
+  process.stderr.write("  actual:   " + (actualCommit ?? "unreadable") + "\n");
+  process.exit(1);
 }
 
 interface LoadedItem {
-	name: string;
-	path: string;
-	/** Present on rules: OMP's normalized regex condition strings. */
-	condition?: string[];
+  name: string;
+  path: string;
+  /** Present on rules: OMP's normalized regex condition strings. */
+  condition?: string[];
 }
 
 interface CapabilityLoadResult<T> {
-	items: T[];
-	warnings: string[];
+  items: T[];
+  warnings: string[];
 }
 interface SlashCommandTemplate {
-	name: string;
-	description: string;
-	content: string;
-	source: string;
+  name: string;
+  description: string;
+  content: string;
+  source: string;
 }
 
 interface ExtensionRoots {
-	explicit: readonly string[];
-	mode: "explicit-only";
-	configured: readonly string[];
-	configuredLevel: "user";
+  explicit: readonly string[];
+  mode: "explicit-only";
+  configured: readonly string[];
+  configuredLevel: "user";
 }
 
 // Dynamic imports: OMP_ROOT selects the checkout at runtime, so static specifiers cannot work.
 await import(path.join(AGENT_SRC, "discovery/omp-plugins.ts"));
-const capability = (await import(path.join(AGENT_SRC, "capability/index.ts"))) as {
-	loadCapability<T>(
-		id: string,
-		options: { cwd: string; providers: string[]; extensionRoots: ExtensionRoots },
-	): Promise<CapabilityLoadResult<T>>;
-};
-const taskAgents = (await import(path.join(AGENT_SRC, "task/agents.ts"))) as {
-	parseAgent(filePath: string, content: string, source: "user", level: "fatal"): { name: string };
-};
-const extensionLoader = (await import(path.join(AGENT_SRC, "extensibility/extensions/loader.ts"))) as {
-	loadExtensions(
-		paths: string[],
-		cwd: string,
-	): Promise<{ extensions: unknown[]; errors: Array<{ path: string; error: string }> }>;
-};
+const capability: {
+  loadCapability<T>(
+    id: string,
+    options: { cwd: string; providers: string[]; extensionRoots: ExtensionRoots },
+  ): Promise<CapabilityLoadResult<T>>;
+} = await import(path.join(AGENT_SRC, "capability/index.ts"));
+const taskAgents: {
+  parseAgent(filePath: string, content: string, source: "user", level: "fatal"): { name: string };
+} = await import(path.join(AGENT_SRC, "task/agents.ts"));
+const extensionLoader: {
+  loadExtensions(
+    paths: string[],
+    cwd: string,
+  ): Promise<{ extensions: unknown[]; errors: Array<{ path: string; error: string }> }>;
+} = await import(path.join(AGENT_SRC, "extensibility/extensions/loader.ts"));
 const customToolLoader = await import(path.join(AGENT_SRC, "extensibility/custom-tools/loader.ts"));
 const ruleRuntime = await import(path.join(AGENT_SRC, "export/ttsr.ts"));
-const slashCommands = (await import(path.join(AGENT_SRC, "extensibility/slash-commands.ts"))) as {
-	expandSlashCommand(text: string, fileCommands: SlashCommandTemplate[]): string;
-};
-const utils = (await import(path.join(OMP_ROOT, "packages/utils/src/frontmatter.ts"))) as {
-	parseFrontmatter(
-		content: string,
-		options?: { source?: unknown; level?: "off" | "warn" | "fatal" },
-	): { frontmatter: Record<string, unknown>; body: string };
-};
-const ruleCapability = (await import(path.join(AGENT_SRC, "capability/rule.ts"))) as {
-	compileRuleCondition(pattern: string): RegExp;
-};
+const slashCommands: {
+  expandSlashCommand(text: string, fileCommands: SlashCommandTemplate[]): string;
+} = await import(path.join(AGENT_SRC, "extensibility/slash-commands.ts"));
+const utils: {
+  parseFrontmatter(
+    content: string,
+    options?: { source?: unknown; level?: "off" | "warn" | "fatal" },
+  ): { frontmatter: Record<string, unknown>; body: string };
+} = await import(path.join(OMP_ROOT, "packages/utils/src/frontmatter.ts"));
+const ruleCapability: {
+  compileRuleCondition(pattern: string): RegExp;
+} = await import(path.join(AGENT_SRC, "capability/rule.ts"));
 const ttsrCoordinator = await import(path.join(AGENT_SRC, "session/ttsr-coordinator.ts"));
 const sessionManager = await import(path.join(AGENT_SRC, "session/session-manager.ts"));
 
@@ -112,364 +123,478 @@ const packs = await check(sources, repositoryErrors);
 const problems = repositoryErrors.map((error) => "repository check: " + error);
 const packRoots = packs.map((pack) => path.join(ROOT, pack.dir));
 const extensionRoots: ExtensionRoots = {
-	explicit: packRoots,
-	mode: "explicit-only",
-	configured: [],
-	configuredLevel: "user",
+  explicit: packRoots,
+  mode: "explicit-only",
+  configured: [],
+  configuredLevel: "user",
 };
 
 const surfaces = [
-	{
-		id: "skills",
-		label: "skills",
-		select: (pack: (typeof packs)[number]) => pack.skills,
-		strictFrontmatter: true,
-	},
-	{
-		id: "slash-commands",
-		label: "commands",
-		select: (pack: (typeof packs)[number]) => pack.commands,
-		strictFrontmatter: false,
-	},
-	{
-		id: "rules",
-		label: "rules",
-		select: (pack: (typeof packs)[number]) => pack.rules,
-		strictFrontmatter: false,
-	},
-	{
-		id: "tools",
-		label: "tools",
-		select: (pack: (typeof packs)[number]) => pack.tools,
-		strictFrontmatter: false,
-	},
+  {
+    id: "skills",
+    label: "skills",
+    select: (pack: (typeof packs)[number]) => pack.skills,
+    strictFrontmatter: true,
+  },
+  {
+    id: "slash-commands",
+    label: "commands",
+    select: (pack: (typeof packs)[number]) => pack.commands,
+    strictFrontmatter: false,
+  },
+  {
+    id: "rules",
+    label: "rules",
+    select: (pack: (typeof packs)[number]) => pack.rules,
+    strictFrontmatter: false,
+  },
+  {
+    id: "tools",
+    label: "tools",
+    select: (pack: (typeof packs)[number]) => pack.tools,
+    strictFrontmatter: false,
+  },
 ] as const;
 const totals: string[] = [];
 
 for (const surface of surfaces) {
-	const result = await capability.loadCapability<LoadedItem>(surface.id, {
-		cwd: ROOT,
-		providers: ["omp-plugins"],
-		extensionRoots,
-	});
-	for (const warning of result.warnings) problems.push("OMP " + surface.label + " warning: " + warning);
+  const result = await capability.loadCapability<LoadedItem>(surface.id, {
+    cwd: ROOT,
+    providers: ["omp-plugins"],
+    extensionRoots,
+  });
+  for (const warning of result.warnings) {
+    problems.push("OMP " + surface.label + " warning: " + warning);
+  }
 
-	if (surface.id === "rules") {
-		for (const rule of result.items) {
-			for (const [index, condition] of (rule.condition ?? []).entries()) {
-				try {
-					ruleCapability.compileRuleCondition(condition);
-				} catch (error) {
-					problems.push("OMP cannot compile rule " + rule.path + " condition[" + index + "]: " + String(error));
-				}
-			}
-		}
-	}
-	const discovered = new Map(result.items.map((item) => [path.resolve(item.path), item]));
-	let expectedCount = 0;
-	for (const pack of packs) {
-		for (const item of surface.select(pack)) {
-			expectedCount++;
-			const absolute = path.resolve(ROOT, pack.dir, item.file);
-			const found = discovered.get(absolute);
-			if (!found) {
-				problems.push(pack.name + ": " + item.file + ' expected as "' + item.name + '" but OMP did not discover it');
-				continue;
-			}
-			if (found.name !== item.name) {
-				problems.push(
-					pack.name + ": " + item.file + ' expected as "' + item.name + '" but OMP named it "' + found.name + '"',
-				);
-			}
-			discovered.delete(absolute);
-			if (surface.strictFrontmatter) {
-				try {
-					utils.parseFrontmatter(await Bun.file(absolute).text(), {
-						source: absolute,
-						level: "fatal",
-					});
-				} catch (error) {
-					problems.push(
-						pack.name + ": " + item.file + " frontmatter only loads via OMP's lenient fallback: " + String(error),
-					);
-				}
-			}
-		}
-	}
-	for (const item of discovered.values()) {
-		problems.push("OMP discovered unexpected " + surface.label + ' item "' + item.name + '" at ' + item.path);
-	}
-	totals.push(expectedCount + " " + (expectedCount === 1 ? surface.label.slice(0, -1) : surface.label));
+  if (surface.id === "rules") {
+    for (const rule of result.items) {
+      for (const [index, condition] of (rule.condition ?? []).entries()) {
+        try {
+          ruleCapability.compileRuleCondition(condition);
+        } catch (error) {
+          problems.push(
+            "OMP cannot compile rule " + rule.path + " condition[" + index + "]: " + String(error),
+          );
+        }
+      }
+    }
+  }
+  const discovered = new Map(result.items.map((item) => [path.resolve(item.path), item]));
+  let expectedCount = 0;
+  for (const pack of packs) {
+    for (const item of surface.select(pack)) {
+      expectedCount++;
+      const absolute = path.resolve(ROOT, pack.dir, item.file);
+      const found = discovered.get(absolute);
+      if (!found) {
+        problems.push(
+          pack.name +
+            ": " +
+            item.file +
+            ' expected as "' +
+            item.name +
+            '" but OMP did not discover it',
+        );
+        continue;
+      }
+      if (found.name !== item.name) {
+        problems.push(
+          pack.name +
+            ": " +
+            item.file +
+            ' expected as "' +
+            item.name +
+            '" but OMP named it "' +
+            found.name +
+            '"',
+        );
+      }
+      discovered.delete(absolute);
+      if (surface.strictFrontmatter) {
+        try {
+          utils.parseFrontmatter(await Bun.file(absolute).text(), {
+            source: absolute,
+            level: "fatal",
+          });
+        } catch (error) {
+          problems.push(
+            pack.name +
+              ": " +
+              item.file +
+              " frontmatter only loads via OMP's lenient fallback: " +
+              String(error),
+          );
+        }
+      }
+    }
+  }
+  for (const item of discovered.values()) {
+    problems.push(
+      "OMP discovered unexpected " + surface.label + ' item "' + item.name + '" at ' + item.path,
+    );
+  }
+  totals.push(
+    expectedCount + " " + (expectedCount === 1 ? surface.label.slice(0, -1) : surface.label),
+  );
 }
 const packsByName = new Map(packs.map((pack) => [pack.name, pack]));
 for (const pack of packs) {
-	const dependencyNames = Object.keys(pack.skillReferences.requires ?? {});
-	const dependencyPacks = dependencyNames.map((name) => packsByName.get(name)!);
-	const roots = [pack, ...dependencyPacks].map((item) => path.join(ROOT, item.dir));
-	const scopedRoots: ExtensionRoots = {
-		explicit: roots,
-		mode: "explicit-only",
-		configured: [],
-		configuredLevel: "user",
-	};
-	for (const surface of surfaces) {
-		const result = await capability.loadCapability<LoadedItem>(surface.id, {
-			cwd: ROOT,
-			providers: ["omp-plugins"],
-			extensionRoots: scopedRoots,
-		});
-		for (const warning of result.warnings) {
-			problems.push("OMP " + pack.name + " dependency-closure " + surface.label + " warning: " + warning);
-		}
-		const discovered = new Map(result.items.map((item) => [path.resolve(item.path), item]));
-		for (const item of surface.select(pack)) {
-			const absolute = path.resolve(ROOT, pack.dir, item.file);
-			const found = discovered.get(absolute);
-			if (!found) {
-				problems.push(pack.name + ": " + item.file + " was not discovered from its declared dependency closure");
-			} else if (found.name !== item.name) {
-				problems.push(
-					pack.name + ": " + item.file + ' loaded as "' + found.name + '" from its declared dependency closure',
-				);
-			}
-		}
-	}
+  const dependencyNames = Object.keys(pack.skillReferences.requires ?? {});
+  const dependencyPacks = dependencyNames.map((name) => {
+    const dependency = packsByName.get(name);
+    if (dependency === undefined) {
+      throw new Error(pack.name + ": declared dependency pack " + name + " is not in sources.json");
+    }
+    return dependency;
+  });
+  const roots = [pack, ...dependencyPacks].map((item) => path.join(ROOT, item.dir));
+  const scopedRoots: ExtensionRoots = {
+    explicit: roots,
+    mode: "explicit-only",
+    configured: [],
+    configuredLevel: "user",
+  };
+  for (const surface of surfaces) {
+    const result = await capability.loadCapability<LoadedItem>(surface.id, {
+      cwd: ROOT,
+      providers: ["omp-plugins"],
+      extensionRoots: scopedRoots,
+    });
+    for (const warning of result.warnings) {
+      problems.push(
+        "OMP " + pack.name + " dependency-closure " + surface.label + " warning: " + warning,
+      );
+    }
+    const discovered = new Map(result.items.map((item) => [path.resolve(item.path), item]));
+    for (const item of surface.select(pack)) {
+      const absolute = path.resolve(ROOT, pack.dir, item.file);
+      const found = discovered.get(absolute);
+      if (!found) {
+        problems.push(
+          pack.name + ": " + item.file + " was not discovered from its declared dependency closure",
+        );
+      } else if (found.name !== item.name) {
+        problems.push(
+          pack.name +
+            ": " +
+            item.file +
+            ' loaded as "' +
+            found.name +
+            '" from its declared dependency closure',
+        );
+      }
+    }
+  }
 }
 
 let agentCount = 0;
 for (const pack of packs) {
-	for (const item of pack.agents) {
-		agentCount++;
-		const absolute = path.resolve(ROOT, pack.dir, item.file);
-		try {
-			const parsed = taskAgents.parseAgent(absolute, await Bun.file(absolute).text(), "user", "fatal");
-			if (parsed.name !== item.name) {
-				problems.push(
-					pack.name + ": " + item.file + ' expected as "' + item.name + '" but OMP named it "' + parsed.name + '"',
-				);
-			}
-		} catch (error) {
-			problems.push(pack.name + ": OMP rejected agent " + item.file + ": " + String(error));
-		}
-	}
+  for (const item of pack.agents) {
+    agentCount++;
+    const absolute = path.resolve(ROOT, pack.dir, item.file);
+    try {
+      const parsed = taskAgents.parseAgent(
+        absolute,
+        await Bun.file(absolute).text(),
+        "user",
+        "fatal",
+      );
+      if (parsed.name !== item.name) {
+        problems.push(
+          pack.name +
+            ": " +
+            item.file +
+            ' expected as "' +
+            item.name +
+            '" but OMP named it "' +
+            parsed.name +
+            '"',
+        );
+      }
+    } catch (error) {
+      problems.push(pack.name + ": OMP rejected agent " + item.file + ": " + String(error));
+    }
+  }
 }
 totals.push(agentCount + " " + (agentCount === 1 ? "agent" : "agents"));
 
 // Exercise the actual TTSR matcher with finalized connector arguments, not a local scope approximation.
 const loadedRules = await capability.loadCapability<LoadedItem>("rules", {
-	cwd: ROOT,
-	providers: ["omp-plugins"],
-	extensionRoots,
+  cwd: ROOT,
+  providers: ["omp-plugins"],
+  extensionRoots,
 });
 const sqlRule = loadedRules.items.find((rule) => rule.name === "sql-mutation-safety");
 for (const [toolName, args, expected] of [
-	["bash", { command: "snow sql -q 'DROP TABLE orders'" }, true],
-	["snowflake_sql_execute", { sql: "DELETE FROM orders WHERE id = 7" }, true],
-	["mcp__warehouse__query", { query: "TRUNCATE TABLE orders" }, true],
-	["customConnector", { statement: "UPDATE orders SET status = 'closed' WHERE id = 7" }, true],
-	["mcp__warehouse__query", { query: "DELETE\nFROM orders WHERE id = 7" }, true],
-	["mcp__warehouse__query", { query: "DROP\nTABLE orders" }, true],
-	["mcp__warehouse__query", { query: "DELETE\tFROM orders WHERE id = 7" }, true],
-	["customConnector", { statement: "UPDATE\norders\nSET status = 'closed' WHERE id = 7" }, true],
-	["bash", { command: "alembic\ndowngrade -1" }, true],
-	["mcp__warehouse__query", { query: "SELECT\nid FROM orders LIMIT 1" }, false],
+  ["bash", { command: "snow sql -q 'DROP TABLE orders'" }, true],
+  ["snowflake_sql_execute", { sql: "DELETE FROM orders WHERE id = 7" }, true],
+  ["mcp__warehouse__query", { query: "TRUNCATE TABLE orders" }, true],
+  ["customConnector", { statement: "UPDATE orders SET status = 'closed' WHERE id = 7" }, true],
+  ["mcp__warehouse__query", { query: "DELETE\nFROM orders WHERE id = 7" }, true],
+  ["mcp__warehouse__query", { query: "DROP\nTABLE orders" }, true],
+  ["mcp__warehouse__query", { query: "DELETE\tFROM orders WHERE id = 7" }, true],
+  ["customConnector", { statement: "UPDATE\norders\nSET status = 'closed' WHERE id = 7" }, true],
+  ["bash", { command: "alembic\ndowngrade -1" }, true],
+  ["mcp__warehouse__query", { query: "SELECT\nid FROM orders LIMIT 1" }, false],
 ] as const) {
-	const manager = new ruleRuntime.TtsrManager({ enabled: true });
-	if (!sqlRule || !manager.addRule(sqlRule)) {
-		problems.push("SQL safety rule could not be registered in OMP");
-		break;
-	}
-	const hit = manager.checkSnapshot(JSON.stringify(args), { source: "tool", toolName });
-	if (hit.some((rule: LoadedItem) => rule.name === "sql-mutation-safety") !== expected) {
-		problems.push("SQL safety rule mismatch for " + toolName + ": " + JSON.stringify(args));
-	}
+  const manager = new ruleRuntime.TtsrManager({ enabled: true });
+  if (!sqlRule || !manager.addRule(sqlRule)) {
+    problems.push("SQL safety rule could not be registered in OMP");
+    break;
+  }
+  const hit = manager.checkSnapshot(JSON.stringify(args), { source: "tool", toolName });
+  if (hit.some((rule: LoadedItem) => rule.name === "sql-mutation-safety") !== expected) {
+    problems.push("SQL safety rule mismatch for " + toolName + ": " + JSON.stringify(args));
+  }
 }
 
 // A source digest has no EOF marker: judged rules must never deliver on an unfinished named directive.
 const lintRule = loadedRules.items.find((rule) => rule.name === "lint-suppression");
 for (const [filePath, source, expectedCandidate] of [
-	["example.py", "x = f()  # noqa", true],
-	["example.py", "x = f()  # noqa   ", true],
-	["example.py", "x = f()  #  type : ignore   ", true],
-	["example.py", "x = f()  # noqa: S603", false],
-	["example.py", "x = f()  # type: ignore[arg-type]", false],
-	["example.ts", "// eslint-disable-next-line", true],
-	["example.ts", "//  eslint-disable-next-line   ", true],
-	["example.ts", "// eslint-disable-next-line no-console -- reason", false],
-	["example.ts", 'const note = "avoid @ts-ignore";', false],
-	["example.rs", '#[allow(clippy::cargo_common_metadata, reason = "x")]', false],
+  ["example.py", "x = f()  # noqa", true],
+  ["example.py", "x = f()  # noqa   ", true],
+  ["example.py", "x = f()  #  type : ignore   ", true],
+  ["example.py", "x = f()  # noqa: S603", false],
+  ["example.py", "x = f()  # type: ignore[arg-type]", false],
+  ["example.ts", "// eslint-disable-next-line", true],
+  ["example.ts", "//  eslint-disable-next-line   ", true],
+  ["example.ts", "// eslint-disable-next-line no-console -- reason", false],
+  ["example.ts", 'const note = "avoid @ts-ignore";', false],
+  ["example.rs", '#[allow(clippy::cargo_common_metadata, reason = "x")]', false],
 ] as const) {
-	const manager = new ruleRuntime.TtsrManager({ enabled: true });
-	if (!lintRule || !manager.addRule(lintRule)) {
-		problems.push("Suppression rule could not be registered in OMP");
-		break;
-	}
-	const context = { source: "tool" as const, toolName: "write", filePaths: [filePath] };
-	for (let length = 1; length <= source.length; length++) {
-		if (manager.checkSnapshot(source.slice(0, length), context, { final: false }).length > 0) {
-			problems.push("Suppression rule delivered before source completion: " + JSON.stringify(source.slice(0, length)));
-			break;
-		}
-	}
-	if (manager.checkSnapshot(source, context, { final: true }).length > 0) {
-		problems.push("Suppression rule bypassed completed-output judging: " + JSON.stringify(source));
-	}
-	const candidates = await manager.judgedCandidates(source, context);
-	if (candidates.some((candidate: { rule: LoadedItem }) => candidate.rule.name === "lint-suppression") !== expectedCandidate) {
-		problems.push("Suppression judge prefilter mismatch for " + filePath + ": " + JSON.stringify(source));
-	}
+  const manager = new ruleRuntime.TtsrManager({ enabled: true });
+  if (!lintRule || !manager.addRule(lintRule)) {
+    problems.push("Suppression rule could not be registered in OMP");
+    break;
+  }
+  const context = { source: "tool" as const, toolName: "write", filePaths: [filePath] };
+  for (let length = 1; length <= source.length; length++) {
+    if (manager.checkSnapshot(source.slice(0, length), context, { final: false }).length > 0) {
+      problems.push(
+        "Suppression rule delivered before source completion: " +
+          JSON.stringify(source.slice(0, length)),
+      );
+      break;
+    }
+  }
+  if (manager.checkSnapshot(source, context, { final: true }).length > 0) {
+    problems.push("Suppression rule bypassed completed-output judging: " + JSON.stringify(source));
+  }
+  const candidates = await manager.judgedCandidates(source, context);
+  if (
+    candidates.some(
+      (candidate: { rule: LoadedItem }) => candidate.rule.name === "lint-suppression",
+    ) !== expectedCandidate
+  ) {
+    problems.push(
+      "Suppression judge prefilter mismatch for " + filePath + ": " + JSON.stringify(source),
+    );
+  }
 }
 
 // Destructive-action guards must stop a finalized bridged call before it runs, not remind after it ran.
 // The controlled host exposes tool metadata only, never an executor: no fixture command is run.
 const bridgedTools = [
-	{ name: "bash" },
-	{ name: "customConnector" },
-	{
-		name: "write",
-		matcherDigest: (args: { content?: unknown }) => (typeof args.content === "string" ? args.content : undefined),
-		matcherPaths: (args: { path?: unknown }) => (typeof args.path === "string" ? [args.path] : []),
-	},
+  { name: "bash" },
+  { name: "customConnector" },
+  {
+    name: "write",
+    matcherDigest: (args: { content?: unknown }) =>
+      typeof args.content === "string" ? args.content : undefined,
+    matcherPaths: (args: { path?: unknown }) => (typeof args.path === "string" ? [args.path] : []),
+  },
 ];
 let preflightCases = 0;
 for (const [ruleName, toolName, args, expected] of [
-	["build-cache-deletion-safety", "bash", { command: "rm -rf node_modules" }, "block"],
-	["dbt-command-scope", "bash", { command: "dbt build" }, "block"],
-	["docker-data-safety", "bash", { command: "docker system prune --volumes" }, "block"],
-	["gh-external-mutation-safety", "bash", { command: "gh pr create --dry-run" }, "block"],
-	["git-commit-conventions", "bash", { command: "git add -A" }, "block"],
-	["git-push-safety", "bash", { command: "git push --force origin main" }, "block"],
-	["git-worktree-restore-safety", "bash", { command: "git reset --hard" }, "block"],
-	["temp-cleanup-ownership", "bash", { command: "rm -rf /tmp/*" }, "block"],
-	["sql-mutation-safety", "customConnector", { statement: "DROP TABLE orders" }, "block"],
-	["git-push-safety", "bash", { command: "git status" }, "silent"],
-	[
-		"dbt-test-arguments",
-		"write",
-		{ path: "analytics/models/schema.yml", content: "data_tests:\n  - accepted_values:\n      values: [a]\n" },
-		"after-result",
-	],
+  ["build-cache-deletion-safety", "bash", { command: "rm -rf node_modules" }, "block"],
+  ["dbt-command-scope", "bash", { command: "dbt build" }, "block"],
+  ["docker-data-safety", "bash", { command: "docker system prune --volumes" }, "block"],
+  ["gh-external-mutation-safety", "bash", { command: "gh pr create --dry-run" }, "block"],
+  ["git-commit-conventions", "bash", { command: "git add -A" }, "block"],
+  ["git-push-safety", "bash", { command: "git push --force origin main" }, "block"],
+  ["git-worktree-restore-safety", "bash", { command: "git reset --hard" }, "block"],
+  ["temp-cleanup-ownership", "bash", { command: "rm -rf /tmp/*" }, "block"],
+  ["sql-mutation-safety", "customConnector", { statement: "DROP TABLE orders" }, "block"],
+  ["git-push-safety", "bash", { command: "git status" }, "silent"],
+  [
+    "dbt-test-arguments",
+    "write",
+    {
+      path: "analytics/models/schema.yml",
+      content: "data_tests:\n  - accepted_values:\n      values: [a]\n",
+    },
+    "after-result",
+  ],
 ] as const) {
-	const rule = loadedRules.items.find((item) => item.name === ruleName);
-	const manager = new ruleRuntime.TtsrManager({ enabled: true });
-	if (!rule || !manager.addRule(rule)) {
-		problems.push("Guard rule could not be registered in OMP: " + ruleName);
-		continue;
-	}
-	const triggered: string[] = [];
-	const unexpected: string[] = [];
-	const coordinator = new ttsrCoordinator.TtsrCoordinator(
-		{
-			agent: { state: { messages: [], tools: bridgedTools } },
-			sessionManager: sessionManager.SessionManager.inMemory(ROOT),
-			settings: {},
-			emitSessionEvent: async (event: { type: string; rules?: LoadedItem[] }) => {
-				if (event.type === "ttsr_triggered") triggered.push(...(event.rules ?? []).map((item) => item.name));
-			},
-			schedulePostPromptTask: () => unexpected.push("post-prompt task"),
-			scheduleAgentContinue: () => unexpected.push("agent continue"),
-			promptGeneration: () => 0,
-			ruleJudge: () => undefined,
-			deliverRuleWarning: async () => {
-				unexpected.push("judged warning");
-			},
-			sessionGeneration: () => 0,
-		},
-		manager,
-	);
-	const toolCallId = "guard-preflight-" + preflightCases++;
-	const tool = bridgedTools.find((candidate) => candidate.name === toolName);
-	const preflight = await coordinator.beforeBridgedToolCall(toolCallId, tool, args);
-	const blocked = preflight?.block === true && String(preflight.reason).includes(ruleName);
-	// A blocked call never runs, so only an allowed call reaches the result hook (with an empty, inert result).
-	const reminders: string[] = [];
-	if (preflight === undefined) {
-		coordinator.afterBridgedToolCall(toolCallId, { content: [] }, {
-			addAdditionalContext: (text: string) => reminders.push(text),
-		});
-	}
-	const delivered = reminders.length === 1 && reminders[0].includes(ruleName);
-	const matches =
-		expected === "block"
-			? blocked && reminders.length === 0 && triggered.join() === ruleName
-			: expected === "silent"
-				? preflight === undefined && reminders.length === 0 && triggered.length === 0
-				: preflight === undefined && delivered && triggered.join() === ruleName;
-	if (!matches || unexpected.length > 0) {
-		problems.push(
-			"Guard preflight mismatch for " +
-				ruleName +
-				" on " +
-				toolName +
-				" " +
-				JSON.stringify(args) +
-				": expected " +
-				expected +
-				", got " +
-				JSON.stringify({ preflight, triggered, reminders, unexpected }),
-		);
-	}
+  const rule = loadedRules.items.find((item) => item.name === ruleName);
+  const manager = new ruleRuntime.TtsrManager({ enabled: true });
+  if (!rule || !manager.addRule(rule)) {
+    problems.push("Guard rule could not be registered in OMP: " + ruleName);
+    continue;
+  }
+  const triggered: string[] = [];
+  const unexpected: string[] = [];
+  const coordinator = new ttsrCoordinator.TtsrCoordinator(
+    {
+      agent: { state: { messages: [], tools: bridgedTools } },
+      sessionManager: sessionManager.SessionManager.inMemory(ROOT),
+      settings: {},
+      emitSessionEvent: (event: { type: string; rules?: LoadedItem[] }) => {
+        if (event.type === "ttsr_triggered") {
+          triggered.push(...(event.rules ?? []).map((item) => item.name));
+        }
+        return Promise.resolve();
+      },
+      schedulePostPromptTask: () => unexpected.push("post-prompt task"),
+      scheduleAgentContinue: () => unexpected.push("agent continue"),
+      promptGeneration: () => 0,
+      ruleJudge: () => {},
+      deliverRuleWarning: () => {
+        unexpected.push("judged warning");
+        return Promise.resolve();
+      },
+      sessionGeneration: () => 0,
+    },
+    manager,
+  );
+  const toolCallId = "guard-preflight-" + preflightCases++;
+  const tool = bridgedTools.find((candidate) => candidate.name === toolName);
+  const preflight = await coordinator.beforeBridgedToolCall(toolCallId, tool, args);
+  const blocked = preflight?.block === true && String(preflight.reason).includes(ruleName);
+  // A blocked call never runs, so only an allowed call reaches the result hook (with an empty, inert result).
+  const reminders: string[] = [];
+  if (preflight === undefined) {
+    coordinator.afterBridgedToolCall(
+      toolCallId,
+      { content: [] },
+      {
+        addAdditionalContext: (text: string) => reminders.push(text),
+      },
+    );
+  }
+  const delivered = reminders.length === 1 && reminders[0]?.includes(ruleName) === true;
+  const matches =
+    expected === "block"
+      ? blocked && reminders.length === 0 && triggered.join() === ruleName
+      : expected === "silent"
+        ? preflight === undefined && reminders.length === 0 && triggered.length === 0
+        : preflight === undefined && delivered && triggered.join() === ruleName;
+  if (!matches || unexpected.length > 0) {
+    problems.push(
+      "Guard preflight mismatch for " +
+        ruleName +
+        " on " +
+        toolName +
+        " " +
+        JSON.stringify(args) +
+        ": expected " +
+        expected +
+        ", got " +
+        JSON.stringify({ preflight, triggered, reminders, unexpected }),
+    );
+  }
 }
 totals.push(preflightCases + " guard preflight cases");
 
 // Expand every shipped command through OMP's own slash-command path: user arguments must arrive as inert data,
 // so template-looking text (`{{missing}}`, block helpers, `$1`, HTML) is never evaluated, escaped, or dropped.
-const loadedCommands = await capability.loadCapability<LoadedItem & { content: string }>("slash-commands", {
-	cwd: ROOT,
-	providers: ["omp-plugins"],
-	extensionRoots,
-});
+const loadedCommands = await capability.loadCapability<LoadedItem & { content: string }>(
+  "slash-commands",
+  {
+    cwd: ROOT,
+    providers: ["omp-plugins"],
+    extensionRoots,
+  },
+);
 const inertArguments = "{{missing}} {{#if x}}y{{/if}} {{> p}} <b>&</b> $1";
 let expandedCommands = 0;
 for (const command of loadedCommands.items) {
-	const template: SlashCommandTemplate = {
-		name: command.name,
-		description: "",
-		content: utils.parseFrontmatter(command.content, { source: command.path, level: "warn" }).body,
-		source: command.path,
-	};
-	let expanded: string;
-	try {
-		expanded = slashCommands.expandSlashCommand("/" + command.name + " " + inertArguments, [template]);
-	} catch (error) {
-		problems.push("OMP could not expand command /" + command.name + " with template-like arguments: " + String(error));
-		continue;
-	}
-	expandedCommands++;
-	if (!expanded.includes(inertArguments)) {
-		problems.push("Command /" + command.name + " did not preserve literal arguments: " + JSON.stringify(inertArguments));
-	}
+  const template: SlashCommandTemplate = {
+    name: command.name,
+    description: "",
+    content: utils.parseFrontmatter(command.content, { source: command.path, level: "warn" }).body,
+    source: command.path,
+  };
+  let expanded: string;
+  try {
+    expanded = slashCommands.expandSlashCommand("/" + command.name + " " + inertArguments, [
+      template,
+    ]);
+  } catch (error) {
+    problems.push(
+      "OMP could not expand command /" +
+        command.name +
+        " with template-like arguments: " +
+        String(error),
+    );
+    continue;
+  }
+  expandedCommands++;
+  if (!expanded.includes(inertArguments)) {
+    problems.push(
+      "Command /" +
+        command.name +
+        " did not preserve literal arguments: " +
+        JSON.stringify(inertArguments),
+    );
+  }
 }
 totals.push(expandedCommands + " command expansions");
 
 const customPaths = packs.flatMap((pack) =>
-	pack.tools.map((item) => ({ path: path.resolve(ROOT, pack.dir, item.file) })),
+  pack.tools.map((item) => ({ path: path.resolve(ROOT, pack.dir, item.file) })),
 );
 const loadedCustom = await customToolLoader.loadCustomTools(customPaths, ROOT, []);
-for (const error of loadedCustom.errors) problems.push("OMP custom-tool factory: " + error.path + ": " + error.error);
-if (loadedCustom.tools.length !== customPaths.length)
-	problems.push("OMP did not instantiate every discovered custom tool");
-totals.push(loadedCustom.tools.length + " custom-tool factories; connector SQL and manual-skill runtime cases");
+for (const error of loadedCustom.errors) {
+  problems.push("OMP custom-tool factory: " + error.path + ": " + error.error);
+}
+if (loadedCustom.tools.length !== customPaths.length) {
+  problems.push("OMP did not instantiate every discovered custom tool");
+}
+totals.push(
+  loadedCustom.tools.length +
+    " custom-tool factories; connector SQL and manual-skill runtime cases",
+);
 
 const extensionPaths: string[] = [];
 for (const pack of packs) {
-	const manifest = await Bun.file(path.join(ROOT, pack.dir, "package.json")).json();
-	for (const entry of manifest.omp?.extensions ?? []) {
-		extensionPaths.push(path.resolve(ROOT, pack.dir, entry));
-	}
+  const manifest = await Bun.file(path.join(ROOT, pack.dir, "package.json")).json();
+  for (const entry of manifest.omp?.extensions ?? []) {
+    extensionPaths.push(path.resolve(ROOT, pack.dir, entry));
+  }
 }
 if (extensionPaths.length > 0) {
-	const result = await extensionLoader.loadExtensions(extensionPaths, ROOT);
-	for (const error of result.errors) problems.push("OMP rejected extension " + error.path + ": " + error.error);
-	if (result.extensions.length !== extensionPaths.length) {
-		problems.push("OMP loaded " + result.extensions.length + " of " + extensionPaths.length + " declared extensions");
-	}
+  const result = await extensionLoader.loadExtensions(extensionPaths, ROOT);
+  for (const error of result.errors) {
+    problems.push("OMP rejected extension " + error.path + ": " + error.error);
+  }
+  if (result.extensions.length !== extensionPaths.length) {
+    problems.push(
+      "OMP loaded " +
+        result.extensions.length +
+        " of " +
+        extensionPaths.length +
+        " declared extensions",
+    );
+  }
 }
-totals.push(extensionPaths.length + " " + (extensionPaths.length === 1 ? "extension" : "extensions"));
+totals.push(
+  extensionPaths.length + " " + (extensionPaths.length === 1 ? "extension" : "extensions"),
+);
 
 if (problems.length > 0) {
-	console.error("OMP loader (" + OMP_ROOT + ") disagrees with repository expectations:");
-	for (const problem of problems) console.error("  " + problem);
-	process.exit(1);
+  process.stderr.write("OMP loader (" + OMP_ROOT + ") disagrees with repository expectations:\n");
+  for (const problem of problems) {
+    process.stderr.write("  " + problem + "\n");
+  }
+  process.exit(1);
 }
-console.log(packs.length + " packs; " + totals.join(", ") + ": all match OMP at " + OMP_ROOT + ", no warnings");
+process.stdout.write(
+  packs.length +
+    " packs; " +
+    totals.join(", ") +
+    ": all match OMP at " +
+    OMP_ROOT +
+    ", no warnings\n",
+);

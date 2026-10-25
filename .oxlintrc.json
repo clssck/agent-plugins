@@ -1,0 +1,81 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "import", "promise", "oxc", "node"],
+  // Pedantic is off as a category (it is dominated by stylistic noise such as
+  // prefer-readonly-parameter-types); the useful pedantic rules are enabled explicitly below.
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error",
+    "pedantic": "off"
+  },
+  "options": {
+    "typeAware": true,
+    "denyWarnings": true,
+    "reportUnusedDisableDirectives": "error"
+  },
+  "env": {
+    "builtin": true,
+    "es2024": true
+  },
+  "ignorePatterns": ["node_modules/**", "upstream/**", "packs/**"],
+  "rules": {
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/consistent-type-imports": "error",
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/await-thenable": "error",
+    "typescript/no-unnecessary-type-assertion": "error",
+    "typescript/no-unnecessary-type-arguments": "error",
+    "typescript/no-unnecessary-boolean-literal-compare": "error",
+    "typescript/switch-exhaustiveness-check": "error",
+    "typescript/prefer-nullish-coalescing": "error",
+    "typescript/require-await": "error",
+    "eqeqeq": "error",
+    "no-console": "error",
+    "import/no-cycle": "error",
+    "no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_"
+      }
+    ],
+    "curly": "error",
+    "prefer-const": "error",
+    "no-param-reassign": "error",
+    "unicorn/prefer-node-protocol": "error",
+    "promise/no-return-wrap": "error",
+    "unicorn/prefer-string-replace-all": "error",
+    "unicorn/no-useless-promise-resolve-reject": "error",
+    "unicorn/prefer-code-point": "error",
+    "unicorn/escape-case": "error",
+    "unicorn/no-useless-undefined": "error",
+
+    // The codebase pairs `const X = Type.Object(...)` with `type X = Static<typeof X>`; that
+    // value/type declaration merge is reported as a redeclaration.
+    "no-redeclare": "off",
+    // Atlassian REST payloads use `_links`/`_expand`; the underscore is part of the wire format.
+    "no-underscore-dangle": "off",
+    // Sequential pagination and ordered writes deliberately await inside loops.
+    "no-await-in-loop": "off",
+    // Covered by typescript/require-await; the core rule duplicates every report.
+    "require-await": "off",
+    // main.ts and the parity test import ./commands/index.ts purely to register commands.
+    "import/no-unassigned-import": "off"
+  },
+  "overrides": [
+    {
+      "files": ["scripts/**/*.test.ts"],
+      "rules": {
+        "no-console": "off",
+        // bun-types declares the `expect(...).rejects.*` matchers as returning void, but the
+        // returned promise must be awaited at runtime.
+        "typescript/await-thenable": "off"
+      }
+    }
+  ]
+}

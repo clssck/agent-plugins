@@ -27,6 +27,7 @@ jobs:
   # Read-only: pins, fetches, regenerates, and runs every gate. Nothing here can write to the repository.
   sync:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       changed: ${{ steps.patch.outputs.changed }}
     steps:
@@ -38,7 +39,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: "1.4.3"
+          bun-version: "1.4.4"
 
       - name: Pin, fetch, check, and regenerate README
         env:
@@ -75,6 +76,7 @@ jobs:
     needs: sync
     if: github.ref == 'refs/heads/main' && needs.sync.outputs.changed == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
     env:
@@ -114,6 +116,7 @@ jobs:
   omp-baseline:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
       issues: write
@@ -124,7 +127,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: "1.4.3"
+          bun-version: "1.4.4"
 
       - name: Report OMP baseline changes
         env:
@@ -135,6 +138,7 @@ jobs:
   upstream-watch:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
       issues: write
@@ -145,7 +149,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: "1.4.3"
+          bun-version: "1.4.4"
 
       - name: Report vendored upstream changes
         env:
