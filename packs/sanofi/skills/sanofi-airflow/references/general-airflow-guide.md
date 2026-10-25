@@ -7,7 +7,7 @@ Sanofi Airflow guidance for the shared MWAA platform, derived from the OneMesh "
 - **Precedence:** repository files > examples here; call out any mismatch. Platform behavior (scheduler, parse cycle, MWAA sizing) → OneMesh guide. Cross-space DAG standards = supporting evidence when a pattern recurs, never grounds to overwrite a repo's documented local contract.
 - **Placeholders:** all project names, `dag_id`s, folders, roles, schemas, warehouses, IAM group names, paths, dates in examples, unless explicitly marked as a Sanofi platform fact. Adapt to the target repo and current platform guidance.
 
-Core references, base `https://sanofi.atlassian.net/wiki/spaces/OneMesh/pages/`:
+Core references, base `https://sanofi.atlassian.net/wiki/spaces/OneMesh/pages/`; read a page with `atl page get <id>` (add `--grep "<term>"` to extract matches) per the `atl` skill; `atl` unavailable → ask the user to paste the content:
 
 | Page | ID |
 |---|---|

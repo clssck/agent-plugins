@@ -16,7 +16,7 @@ Ask ONE message covering all fields; NEVER split across turns:
 
 - Only a topic supplied: proceed, ask ONE follow-up for options and chosen option.
 - A Jira key or title in the request: treat as field 1, fetch the ticket, then one follow-up.
-- `atl` unavailable after its Setup: still collect refs; record them as Links.
+- `atl` unavailable after its Setup: ask the user to paste the content; record the references as Links/sources; never publish.
 
 ### Status rules
 

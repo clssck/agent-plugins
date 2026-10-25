@@ -6,7 +6,7 @@ Sanofi dbt guidance derived from the OneMesh "dbt - how to guide" Confluence hub
 
 **Precedence on conflict, high → low:** (1) target repository's documented contract, incl. documented local exceptions; (2) applicable, approved, current team standard; (3) cross-space standards as supporting evidence; (4) Draft/WIP material, advisory only. NEVER use a lower rank to override a higher contract. Applicability, approval status, currency, or conflict resolution unclear ⇒ ask before proceeding.
 
-Core references, base `https://sanofi.atlassian.net/wiki/spaces/OneMesh/pages/`:
+Core references, base `https://sanofi.atlassian.net/wiki/spaces/OneMesh/pages/`; read a page with `atl page get <id>` (add `--grep "<term>"` to extract matches) per the `atl` skill; `atl` unavailable → ask the user to paste the content:
 
 | Page | ID |
 |---|---|

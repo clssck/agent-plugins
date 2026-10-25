@@ -14,7 +14,7 @@ Classification follows runtime responsibility, never repo layout or team ownersh
 | Concern | Owner |
 |---|---|
 | C4 scope, element classification, relationships, reviewable page and diagram content, versions, change history | this skill |
-| Live Confluence create/update — fetch page, preserve macros, publish, verify | `atl` skill (MUST) |
+| Confluence/Jira reading, search, or publishing: fetch page, preserve macros, publish, verify | `atl` skill (MUST; install once: `bun add -g @clssck/atl-cli && atl skill install`) |
 | Decisions behind the architecture | `adr-writing` |
 | API specifications | out of scope |
 
@@ -39,7 +39,7 @@ Classification follows runtime responsibility, never repo layout or team ownersh
 4. **Produce** model narrative, relationship labels, requested diagram content. Repository holds C4 as code (Structurizr DSL, C4-PlantUML, Mermaid C4) → detect with `glob`/`grep`, edit that format in place → [diagrams-as-code.md](skill://architecture-documentation/references/diagrams-as-code.md).
 5. **Version** the logical artifact and record change history.
 6. **Validate** with [c4-notation-checklist.md](skill://architecture-documentation/references/c4-notation-checklist.md) before presenting or handing off.
-7. **Hand off** live Confluence work to the `atl` skill (install: `bun add -g @clssck/atl-cli && atl skill install`) with prepared content and target-page context. Save the content with `write` to a markdown or storage-XHTML file (identifier per Version and Attribute) and pass it as `atl page create|update --file <path>`, with `--plan` first; a long body stays out of the conversation. `atl` does not upload attachments: tell the user to upload them in the Confluence UI.
+7. **Hand off** live Confluence work to the `atl` skill with prepared content and target-page context. Save the content with `write` as `.md` (new or plain page) or `.xhtml` (existing rich page, read via `atl page get --format storage`), run `atl page create|update ... --file <path> --plan`, read every warning, then run its `next`; a long body stays out of the conversation. `atl` unavailable after its Setup → ask the user to paste the content and record the references as Links/sources; never publish. `atl` does not upload attachments: tell the user to upload them in the Confluence UI.
 </procedure>
 
 ## Classify Elements

@@ -50,7 +50,7 @@ Use OMP's native GitHub device first. Each JSON object below is a separate `writ
 {"op":"search_code","repo":"Sanofi-Accelerator/Request-for-Comments","query":"tagging path:accepted","limit":100}
 ```
 
-Replace `SERVICE` and `MODULE` only after discovery. If `xd://github` is unavailable, run the equivalent `gh api`/`gh search code` commands through OMP `bash`; `path:` is a search qualifier, not a flag. Confluence CODE-space docs → `atl` skill. No integration at all → user-provided references.
+Replace `SERVICE` and `MODULE` only after discovery. If `xd://github` is unavailable, run the equivalent `gh api`/`gh search code` commands through OMP `bash`; `path:` is a search qualifier, not a flag. Confluence CODE-space docs → `atl` skill (`atl search "<terms>" --product confluence`, `atl page get <id>`). `atl` unavailable after its Setup → ask the user to paste the content and record the references as Links/sources. No integration at all → user-provided references.
 
 ## Module call pattern
 

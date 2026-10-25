@@ -7,7 +7,7 @@ description: "Write, review, and fact-check architecture decision records (ADR, 
 
 Sanofi ADRs: a variant of [MADR](https://adr.github.io/madr/) — MADR 2.x Positive/Negative Consequences layout (MADR 3.0.0 merged them into one `Consequences` list) plus mandatory Architecture Manifesto Alignment. Scope: numbering, template, option evidence, cost annex, drafting from Jira/Confluence, fact-checking.
 
-Governing principle: an ADR records a decision and its evidence, never a fabrication of either. Unknown numbers, options, or choices → ask or mark `proposed`; a sourced gap beats an invented fact, because reviewers and future readers act on the record. Ownership: this skill owns ADR content, decision, status, and review; the `atl` skill (from the `atl` CLI: `bun add -g @clssck/atl-cli && atl skill install`) owns Confluence formatting, page mechanics, and publishing of the approved ADR, never its content. Sibling skills: C4/architecture docs → architecture-documentation · Confluence/Jira reading, formatting, and publishing → `atl` · code review → `/review`.
+Governing principle: an ADR records a decision and its evidence, never a fabrication of either. Unknown numbers, options, or choices → ask or mark `proposed`; a sourced gap beats an invented fact, because reviewers and future readers act on the record. Ownership: this skill owns ADR content, decision, status, and review; the `atl` skill owns Confluence formatting, page mechanics, and publishing of the approved ADR, never its content. Sibling skills: C4/architecture docs → architecture-documentation · Confluence/Jira reading, search, or publishing → `atl` skill (install once: `bun add -g @clssck/atl-cli && atl skill install`) · code review → `/review`.
 
 ## Layout
 
@@ -49,7 +49,7 @@ Governing principle: an ADR records a decision and its evidence, never a fabrica
 | Pricing, Cost Annex, Confluence charts | [cost-analysis.md](skill://adr-writing/references/cost-analysis.md) |
 | Depth/style: 2 options, no optional sections | [example-minimal.md](skill://adr-writing/references/example-minimal.md) |
 | Depth/style: Cost Annex, Options Ruled Out, Drivers | [example-comprehensive.md](skill://adr-writing/references/example-comprehensive.md) |
-| Publishing an approved ADR to Confluence (formatting, page mechanics) | `atl` skill: save the approved ADR as a markdown or storage-XHTML file, run `atl page create\|update ... --file <path> --plan`, then without `--plan`; content stays as approved here |
+| Publishing an approved ADR to Confluence (formatting, page mechanics) | `atl` skill: save the approved ADR with `write` as `.md` (new or plain page) or `.xhtml` (existing rich page, read via `atl page get --format storage`), run `atl page create\|update ... --file <path> --plan`, read every warning, then run its `next`; content stays as approved here |
 </instruction>
 
 <caution>
@@ -67,7 +67,7 @@ Governing principle: an ADR records a decision and its evidence, never a fabrica
 |---|---|
 | No existing ADRs | Start at `ADR-001` |
 | Duplicate numbers | Scan all files; renumber only the new ADR |
-| Confluence/Jira unavailable | Record refs as Links; ask user to paste content |
+| `atl` unavailable after its Setup | Ask the user to paste the content; record the references as Links/sources; never publish |
 </caution>
 
 ## Single Mandated Option
