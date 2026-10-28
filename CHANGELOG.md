@@ -9,6 +9,10 @@ Published changes to the first-party packs in `packs/`, newest first. Format fol
 - `animation-performance`, `animation-vocabulary`, `animate` and `animate-expo` now put the phrasing users actually type inside the ~99-character routing preview OMP shows before a description is compressed: "stutter, jank, or drop frames", "what's it called when…", "decide it shouldn't animate: easing", and "gestures, sheets, and haptics in React Native and Expo". Blind routing trials with the preview text alone now select the intended skill for "my animation stutters", "what do you call the bounce-in effect", "should it even ripple", "what easing for a tooltip" and "haptics in our native app".
 - `animation-performance` replaces a dangling "No." that answered a question no longer in the file, and states why a composited `filter: blur()` still costs.
 
+## sanofi 1.2.3 - 2026-10-28
+
+- `dbt` names dbt CI selectors and `state:modified` runs in its routing preview, so "our dbt CI selector runs every model" no longer reads as a GitHub Actions problem (`cicd-engineering`).
+
 ## sanofi 1.2.2 - 2026-10-25
 
 - Every Sanofi skill that reads, searches, or publishes Confluence/Jira hands off to the `atl` skill through one routing line with the install command, one fallback (paste the content, record references as Links, never publish), and one publish sequence (`atl page create|update --file <path> --plan`, then its `next`).

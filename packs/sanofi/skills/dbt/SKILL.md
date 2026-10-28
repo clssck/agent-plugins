@@ -1,6 +1,6 @@
 ---
 name: dbt
-description: "Build, review, test, and run Sanofi dbt Core projects on Snowflake. Use when working with models, sources, snapshots, seeds, incremental design, data and unit tests, docs and meta, contracts and versions, selectors, state:modified CI, upgrades and deprecations, failed-run triage, Elementary, WAP, feature flags, or native snow dbt. Not for generic dbt-on-Snowflake mechanics; ODCS contracts — datacontract-writing; DAGs — sanofi-airflow."
+description: "Build, review, test, and run Sanofi dbt Core projects on Snowflake, including dbt CI selectors, state:modified runs, and failed-run triage. Use when working with models, sources, snapshots, seeds, incremental design, data and unit tests, docs and meta, contracts and versions, selectors, upgrades and deprecations, Elementary, WAP, feature flags, or native snow dbt. Not for generic dbt-on-Snowflake mechanics; ODCS contracts — datacontract-writing; DAGs — sanofi-airflow."
 ---
 
 # Sanofi dbt
