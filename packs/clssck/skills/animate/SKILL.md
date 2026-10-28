@@ -1,6 +1,6 @@
 ---
 name: animate
-description: Implement a requested animation, transition, or motion in code, deciding in order whether it should animate at all, its purpose, tool, properties, curve and duration, interruption, and exit. Use when explicitly asked to animate a named element, add motion to it, or build a transition. For discovering what could animate or feel more alive use find-animation-opportunities; for critiquing existing motion use review-animations; for auditing a whole codebase use improve-animations.
+description: Implement an animation, transition, or motion in code, or decide it shouldn't animate: easing, duration, curve, properties. Use when explicitly asked to animate a named element, add motion to it, build a transition, or choose timing and easing. For discovering what could animate or feel more alive use find-animation-opportunities; for critiquing existing motion use review-animations; for auditing a whole codebase use improve-animations; for stutter, jank, or dropped frames use animation-performance.
 ---
 
 # Building Animations

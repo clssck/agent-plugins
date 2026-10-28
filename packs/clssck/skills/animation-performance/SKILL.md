@@ -1,6 +1,6 @@
 ---
 name: animation-performance
-description: Keep web animations inside the frame budget — animate composite-only properties, keep motion off the main thread when the page is busy, and find the cause when an animation drops frames. Covers the layout/paint/composite pipeline, cheaper property swaps, CSS vs WAAPI vs requestAnimationFrame, Framer Motion's hardware-accelerated path, React re-rendering per frame, inherited CSS variable recalculation, blur cost, and when `will-change` actually helps. Use when an animation is janky, choppy, stutters, or drops frames; when choosing which property to animate; when deciding between CSS and JS animation on performance grounds; or when reaching for `will-change` or GPU layers. For choosing easing, duration, or whether to animate at all use animate; for reviewing motion as a whole use review-animations.
+description: Fix web animations that stutter, jank, or drop frames, and keep motion inside the frame budget — animate composite-only properties, keep motion off the main thread when the page is busy. Covers the layout/paint/composite pipeline, cheaper property swaps, CSS vs WAAPI vs requestAnimationFrame, Framer Motion's hardware-accelerated path, React re-rendering per frame, inherited CSS variable recalculation, blur cost, and when `will-change` actually helps. Use when an animation is janky, choppy, stutters, or drops frames; when choosing which property to animate; when deciding between CSS and JS animation on performance grounds; or when reaching for `will-change` or GPU layers. For choosing easing, duration, or whether to animate at all use animate; for reviewing motion as a whole use review-animations.
 ---
 
 # Animation Performance
@@ -40,7 +40,7 @@ Two failure modes, and the first is worse:
 
 <instruction>
 
-No. Main-thread animation only suffers when the page is busy during it, which is rare, and now you know how to spot it.
+**"Never animate with a main-thread JS library" is too strong.** Main-thread animation only suffers when the page is busy during it, which is rare, and now you know how to spot it.
 
 Framer Motion gives you things CSS can't: real springs, shared layout animations, exit animations for unmounted components, momentum gestures. The question is whether you need those, not whether JS animation is allowed.
 
@@ -106,7 +106,7 @@ const style = { transform: `translateY(${draggedDistance}px)` };
 
 CSS variables inherit, so changing one on a parent triggers style recalculation for every child. The more content, the slower each frame. Suspect this whenever a `transform` animation degrades as content grows. It's the same reason Framer Motion's shorthands aren't accelerated.
 
-**Blur.** `filter: blur()` gets expensive fast, especially in Safari. Keep animated blur under 20px; 2–5px is enough to soften a crossfade.
+**Blur.** `filter: blur()` is composited, so it skips layout and paint, but a large blur is a large texture the GPU re-filters every frame — cost scales with blurred area and radius, and Safari pays most. Keep animated blur under 20px; 2–5px is enough to soften a crossfade.
 </caution>
 
 ## The Symptom Table
