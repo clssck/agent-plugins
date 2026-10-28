@@ -526,7 +526,8 @@ Run the capability-specific behavior checks above, then applicable repository ga
 | Change | Required proof |
 |---|---|
 | Any pack content | `bun scripts/sync.ts --check` |
-| Repository scripts or rules | `bun test scripts` |
+| Repository scripts or rules | `bun run check` (typecheck, lint, format check, `bun test scripts`) |
+| Skill shipped outside packs (atl-cli `skills/atl`) | `bun scripts/check-skill.ts <skill-dir>` |
 | Skills/rules/agents or loader/frontmatter/tool behavior | `OMP_ROOT=$OMP_ROOT bun scripts/check-omp-loader.ts` with `$OMP_ROOT` at `reviewedCommit` |
 | Sanofi Python helper | `uv run --no-project python -B -m unittest discover -p 'test_*.py'` in the affected scripts directory |
 | Any edit | `git diff --check` |
