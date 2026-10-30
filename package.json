@@ -13,7 +13,8 @@
     "fmt": "oxfmt -c .oxfmtrc.json scripts",
     "fmt:check": "oxfmt -c .oxfmtrc.json --check scripts",
     "test": "bun test scripts",
-    "check": "bun run typecheck && bun run lint && bun run fmt:check && bun run test"
+    "check": "bun run typecheck && bun run lint && bun run fmt:check && bun run test",
+    "eval:routing": "bun scripts/eval-routing.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.4.4",

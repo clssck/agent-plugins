@@ -1,0 +1,4 @@
+name: acme_orders
+version: "1.0.0"
+profile: snowflake
+model-paths: ["models"]
