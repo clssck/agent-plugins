@@ -11,7 +11,7 @@ only what the skill loads at runtime.
 | `packs/clssck/skills/api-recon/` | Hinln/ARTEX api-recon (methodology) | — | [clssck/api-recon/ATTRIBUTION](./clssck/api-recon/ATTRIBUTION) |
 | `packs/clssck/skills/evidence-led-exploration/` | ARTEX exploration-state design | — | [clssck/evidence-led-exploration/ATTRIBUTION](./clssck/evidence-led-exploration/ATTRIBUTION) |
 | `packs/clssck/commands/` | [can1357/oh-my-pi](https://github.com/can1357/oh-my-pi) at `5d0aaff` | MIT | [clssck/commands/ATTRIBUTION](./clssck/commands/ATTRIBUTION), [LICENSE-oh-my-pi](./clssck/commands/LICENSE-oh-my-pi) |
-| `packs/clssck/skills/` (Emil design and animation skills) | [emilkowalski/skills](https://github.com/emilkowalski/skills) at `2d22863` | MIT | [emilkowalski-skills/ATTRIBUTION](./emilkowalski-skills/ATTRIBUTION), [LICENSE](./emilkowalski-skills/LICENSE) |
+| `packs/clssck/skills/` (Emil design and animation skills) | [emilkowalski/skills](https://github.com/emilkowalski/skills) at `a81dbca` | MIT | [emilkowalski-skills/ATTRIBUTION](./emilkowalski-skills/ATTRIBUTION), [LICENSE](./emilkowalski-skills/LICENSE) |
 
 The copies under `upstream/` are reproduced as published and keep the license
 files their upstreams ship, including per-skill `LICENSE` files. The root

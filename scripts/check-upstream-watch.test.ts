@@ -23,7 +23,7 @@ import {
 
 const REPOSITORY = "clssck/agent-plugins";
 const TITLE = "Emil design skills upstream changed";
-const REVIEWED = "2d228630ba1446365f614a108cb8252f1feda202";
+const REVIEWED = "a81dbca07f2217b7103e510c0f13f8d5b017afc9";
 const LATEST = "b".repeat(40);
 
 const source: WatchSource = {

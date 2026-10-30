@@ -1,12 +1,13 @@
 Emil Kowalski design and animation skills
 
 Source: https://github.com/emilkowalski/skills
-Pinned commit: 2d228630ba1446365f614a108cb8252f1feda202
+Pinned commit: a81dbca07f2217b7103e510c0f13f8d5b017afc9
 License: MIT (see LICENSE in this directory)
 Vendored into: packs/clssck/skills/
 
 The skills were copied from the pinned commit and adapted for OMP. Local changes
 fix reduced-motion handling, touch zoom preservation, routing handoffs, and
-animation guidance; further changes are recorded in git history. The upstream
-project is not synced automatically. When it changes, the watch workflow opens
-an issue and a maintainer ports the relevant changes here.
+animation guidance; further changes are recorded in git history. remove-animations
+was ported at the pinned commit; upstream's repo-root ui-cheatsheet.md is not
+vendored. The upstream project is not synced automatically. When it changes, the
+watch workflow opens an issue and a maintainer ports the relevant changes here.

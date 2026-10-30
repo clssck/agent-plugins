@@ -7,7 +7,7 @@
 			"repository": "emilkowalski/skills",
 			"ref": "main",
 			"path": "skills",
-			"reviewedCommit": "2d228630ba1446365f614a108cb8252f1feda202",
+			"reviewedCommit": "a81dbca07f2217b7103e510c0f13f8d5b017afc9",
 			"target": "packs/clssck/skills",
 			"issueTitle": "Emil design skills upstream changed"
 		}

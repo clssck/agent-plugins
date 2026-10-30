@@ -1,6 +1,6 @@
 ---
 name: improve-animations
-description: Audit and plan animation improvements; not direct implementation or single-diff review. Produce a prioritized motion audit and self-contained implementation plans for other agents to execute. Read-only on source code; explicit execute <plan> uses the isolated-executor workflow. Use when the user asks to "improve the animations", "audit the motion", "make this app feel better", or wants a roadmap of animation fixes.
+description: Audit and plan animation improvements; not direct implementation or single-diff review. Produce a prioritized motion audit and self-contained implementation plans for other agents to execute. Read-only on source code; explicit execute <plan> uses the isolated-executor workflow. Use when the user asks to "improve the animations", "audit the motion", "make this app feel better", or wants a roadmap of animation fixes. To delete animations the app has too much of ("too much animation", "feels slow"), use remove-animations.
 ---
 
 # Improving Animations
