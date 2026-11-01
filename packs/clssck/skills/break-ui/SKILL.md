@@ -1,6 +1,6 @@
 ---
 name: break-ui
-description: Try to break a piece of UI by feeding it worst-case data — long names, unbreakable emails, one-letter names, missing fields, huge counts, zero items, long labels, non-Latin text, emoji, extreme numbers — and report everything that would break, with the fix for each; on request, render it behind a "Demo data / Worst case" toggle and verify. Use when the user asks to stress-test, break, or find edge cases in a component or screen, or to "try the worst case". For visual design critique use emil-design-eng; for motion use review-animations.
+description: "Worst-case data for a UI: what if a name is long or non-Latin, a field empty, a count 0 or huge? Use when the user asks what a component or screen does with edge-case data, or asks to stress-test it, break it, find its edge cases, or \"try the worst case\". Audits source by default against a catalog of realistic worst cases (unbreakable emails, one-letter names, wrong initials, \"1 members\", long translated labels, clipped diacritics, raw numbers, 1,000-row lists) and reports each break with severity, cause, and a fix; on request renders a Demo data / Worst case toggle and verifies. Not for visual polish or taste critique (emil-design-eng), motion review (review-animations), or writing unit tests."
 ---
 
 # Breaking UI

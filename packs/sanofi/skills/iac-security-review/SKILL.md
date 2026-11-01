@@ -1,6 +1,6 @@
 ---
 name: iac-security-review
-description: "Audit AWS infrastructure code for security — Terraform, CDK, SST, CloudFormation, Pulumi. Use when checking public S3 buckets, open security groups, wildcard IAM, missing encryption, unauthenticated API Gateway or Lambda URLs, logging gaps, hardcoded secrets, Sanofi tag and module policy, or triaging Checkov/Trivy/KICS. Read-only, evidence-graded report. Not for writing Terraform — iac-terraform instead; not CI/CD workflows — cicd-engineering."
+description: "Security-audit Terraform/CDK: what the internet can reach, judged against current AWS defaults. Use when asked whether AWS infrastructure code (Terraform, CDK, SST, CloudFormation, Pulumi) is secure or internet-exposed, or to check public S3 buckets, open security groups, wildcard IAM, missing encryption, unauthenticated API Gateway or Lambda URLs, logging gaps, hardcoded secrets, Sanofi tag and module policy, or to triage Checkov/Trivy/KICS findings. Read-only, evidence-graded report; never edits IaC. Not for adding or changing infrastructure (iac-terraform); not for CI/CD workflows (cicd-engineering)."
 ---
 
 # IaC Security Review
