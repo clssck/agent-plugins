@@ -1,6 +1,6 @@
 ---
 name: animate
-description: Implement an animation, transition, or motion in code, or decide it shouldn't animate: easing, duration, curve, properties. Use when explicitly asked to animate a named element, add motion to it, build a transition, or choose timing and easing. For discovering what could animate or feel more alive use find-animation-opportunities; for critiquing existing motion use review-animations; for auditing a whole codebase use improve-animations; for stutter, jank, or dropped frames use animation-performance.
+description: "Add new motion: make a panel slide or fade in, pick easing and duration; not review or jank. Use when asked to animate a named element, add an enter/exit or open/close transition, make a panel slide or fade in, or choose easing, duration, curve, or spring config for motion being built; runs a should-it-animate gate first and writes the code with reduced-motion and hover gating. Not for critiquing motion that already exists (review-animations), whether a property will cause jank or why it stutters (animation-performance), toning down or deleting motion (remove-animations), iOS-like web gestures, drag-to-fling, momentum, or materials (apple-design), React Native or Expo (animate-expo), naming an effect (animation-vocabulary), finding what could animate (find-animation-opportunities), or auditing a whole app (improve-animations)."
 ---
 
 # Building Animations

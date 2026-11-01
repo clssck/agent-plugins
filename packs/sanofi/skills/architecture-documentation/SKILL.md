@@ -1,6 +1,6 @@
 ---
 name: architecture-documentation
-description: "Document a system's architecture with the C4 model at Sanofi: system context, container, component, deployment, landscape, and dynamic views. Use when reverse-engineering architecture from a codebase, editing Structurizr DSL, C4-PlantUML, Mermaid C4 or Draw.io sources, versioning diagrams, preparing Confluence architecture page content, or arc42 mapping. Not for ADRs — use adr-writing; not for live Confluence publishing — use the atl skill; API specs out of scope."
+description: "Draw or document how a system's services talk to each other (C4 architecture, not ADRs). Use when asked to diagram a system, map how services and data stores connect, document the architecture of a repo, reverse-engineer context, container, component, landscape, deployment, or dynamic views from code, edit Structurizr DSL, C4-PlantUML, Mermaid C4 or Draw.io sources, version diagrams, prepare Confluence architecture page content, or map to arc42, following Sanofi conventions. Not for ADRs or decision records — use adr-writing; not for live Confluence publishing — use the atl skill; API specs out of scope."
 ---
 
 # Architecture Documentation

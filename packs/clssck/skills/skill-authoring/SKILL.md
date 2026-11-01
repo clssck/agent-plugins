@@ -1,6 +1,6 @@
 ---
 name: skill-authoring
-description: Write, revise, or audit agent skills (SKILL.md, references/, script templates) in clssck house style — trigger-rich descriptions, task-named sections, bold-lead rules, tables, runnable examples. Use when creating a skill, rewriting a description that never triggers, trimming a bloated SKILL.md, adding gates or definitions of done, or reviewing skill quality. Not for building the tool a skill wraps — cli-creator.
+description: "Write a skill teaching the agent any topic, even Terraform, or fix a SKILL.md that never fires. Write, revise, or audit agent skills (SKILL.md, references/, script templates) in clssck house style: trigger-rich descriptions, task-named sections, bold-lead rules, tables, runnable examples. Use when the user wants the agent to follow their conventions, checklist, runbook, or workflow every time without repasting it; creating a new skill; rewriting a description that never triggers or misroutes; trimming a bloated SKILL.md; adding gates or definitions of done; or reviewing skill quality. The topic a skill covers does not change the owner: a skill about Terraform, CI, releases, or data contracts is still this skill. Not for doing the topic work itself: Terraform code (iac-terraform), GitHub Actions workflows (cicd-engineering), ODCS contracts (datacontract-writing); not for building the CLI a skill wraps (cli-creator)."
 ---
 
 # Skill Authoring

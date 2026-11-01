@@ -1,6 +1,6 @@
 ---
 name: emil-design-eng
-description: "Use when polishing UI components, dialogs, toasts, or micro-interactions with Emil Kowalski's craft guidance: hierarchy, spacing, typography, motion taste, and the invisible details that make software feel great. Not for motion review (review-animations), motion implementation (animate), Sonner API work (ask-sonner), or worst-case UI stress tests (break-ui)."
+description: "Make UI feel polished, crafted, or premium instead of cheap or unfinished: refine components, forms, dialogs, toasts, and micro-interactions (spacing, typography, hierarchy, the invisible details) with Emil Kowalski's craft guidance and motion taste. Not for motion review (review-animations), motion implementation (animate), Sonner API work (ask-sonner), or worst-case UI stress tests (break-ui)."
 ---
 
 # Design Engineering

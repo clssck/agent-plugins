@@ -1,6 +1,6 @@
 ---
 name: review-animations
-description: "Review scoped web motion; not implementation, whole-app audits, or roadmaps. Critique existing animation code (CSS transitions, keyframes, Framer Motion/Motion, springs, easing, timing, hover/enter/exit, reduced-motion) against Emil Kowalski's design-engineering craft bar; default to flagging, approval is earned. Use for 'review my animation', 'does this motion feel right', 'critique this transition'. Not for building or adding motion (use animate), whole-repository motion audits or roadmaps (use improve-animations), or Expo/React Native motion (use animate-expo)."
+description: "Review or critique animation code I wrote: is this transition right, anything off before merge? Critiques existing CSS transitions, keyframes, Framer Motion/Motion, springs, easing, duration, origin, hover/enter/exit, and reduced-motion against Emil Kowalski's craft bar, returning a findings table and a Block/Approve verdict; read-only, never edits. Use for 'review my animation', 'does this motion feel right', 'critique this transition', or 'anything off with how this opens' on a component, diff, or PR. Not for building or adding motion (use animate), whole-app motion audits or roadmaps (use improve-animations), fixing jank or dropped frames (use animation-performance), general UI polish (use emil-design-eng), or Expo/React Native motion (use animate-expo)."
 ---
 
 # Reviewing Animations
