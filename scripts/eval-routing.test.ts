@@ -8,6 +8,7 @@ import {
   RoutingTracker,
   caseProblems,
   disabledSkills,
+  parseArgs,
   parseCases,
   routableSkills,
   scoreCase,
@@ -22,8 +23,16 @@ const assistant = (...content: unknown[]) => ({
 const read = (target: string) => ({ type: "toolCall", name: "read", arguments: { path: target } });
 const text = { type: "text", text: "answer" };
 
-function track(events: unknown[]): RoutingTracker {
-  const tracker = new RoutingTracker(new Set(["animate", "dbt", "break-ui"]));
+const BUDGET = 6;
+const local = assistant(read("web/src/components/Header.tsx"));
+
+const failed = (stopReason: string, ...content: unknown[]) => ({
+  type: "message_end",
+  message: { role: "assistant", content, stopReason, errorMessage: "upstream overloaded" },
+});
+
+function track(events: unknown[], maxMessages = BUDGET): RoutingTracker {
+  const tracker = new RoutingTracker(new Set(["animate", "dbt", "break-ui"]), maxMessages);
   for (const event of events) {
     if (tracker.push(event)) {
       break;
@@ -61,14 +70,42 @@ describe("RoutingTracker", () => {
   });
 
   test("non-skill reads keep watching until a skill read or the message cap", () => {
-    const local = assistant(read("web/src/components/Header.tsx"));
-    expect(track([local, local, assistant(read("skill://break-ui"))]).skills).toEqual(["break-ui"]);
-    const capped = track([
-      ...Array.from({ length: 6 }, () => local),
+    const early = track([local, local, assistant(read("skill://break-ui"))]);
+    expect(early.skills).toEqual(["break-ui"]);
+    expect(early.capped).toBe(false);
+  });
+
+  test("a run still exploring at the budget is capped, not a no-skill answer", () => {
+    const exploring = track([
+      ...Array.from({ length: BUDGET }, () => local),
       assistant(read("skill://break-ui")),
     ]);
-    expect(capped.done).toBe(true);
-    expect(capped.skills).toEqual([]);
+    expect([exploring.done, exploring.capped, exploring.messages]).toEqual([true, true, BUDGET]);
+    expect(exploring.skills).toEqual([]);
+    const answered = track([local, local, assistant(text)]);
+    expect([answered.done, answered.capped, answered.messages]).toEqual([true, false, 3]);
+    expect(answered.skills).toEqual([]);
+  });
+
+  test("a skill read or a final answer on the last budgeted message is a decision, not a cap", () => {
+    const explore = Array.from({ length: BUDGET - 1 }, () => local);
+    const skillRead = track([...explore, assistant(read("skill://break-ui"))]);
+    expect([skillRead.capped, skillRead.messages, skillRead.skills]).toEqual([
+      false,
+      BUDGET,
+      ["break-ui"],
+    ]);
+    const answered = track([...explore, assistant(text)]);
+    expect([answered.capped, answered.messages, answered.skills]).toEqual([false, BUDGET, []]);
+  });
+
+  test("a longer budget lets a late skill read through; a run that ends first is not capped", () => {
+    const late = [...Array.from({ length: BUDGET }, () => local), assistant(read("skill://dbt"))];
+    const longer = track(late, BUDGET + 2);
+    expect([longer.capped, longer.messages, longer.skills]).toEqual([false, BUDGET + 1, ["dbt"]]);
+    const ended = track([local, { type: "agent_end" }]);
+    expect([ended.done, ended.capped, ended.skills]).toEqual([true, false, []]);
+    expect(ended.error).toBeDefined();
   });
 
   test("a skill:// URL used as the tool name is a malformed attempt on that skill", () => {
@@ -89,10 +126,61 @@ describe("RoutingTracker", () => {
     expect(tracker.malformed).toEqual([]);
   });
 
-  test("agent_end without a decision still finishes; malformed events are ignored", () => {
+  test("agent_end before a decision is an error, never a no-skill answer; malformed events are ignored", () => {
     const tracker = track([null, "x", { type: "message_end" }, { type: "agent_end" }]);
     expect(tracker.done).toBe(true);
     expect(tracker.messages).toBe(0);
+    expect(tracker.skills).toEqual([]);
+    expect(tracker.capped).toBe(false);
+    expect(tracker.error).toContain("agent_end");
+  });
+
+  test("a decided run is not turned into an error by the agent_end that follows", () => {
+    const answered = track([assistant(text), { type: "agent_end" }]);
+    expect([answered.done, answered.error, answered.skills]).toEqual([true, undefined, []]);
+    const routed = track([assistant(read("skill://animate")), { type: "agent_end" }]);
+    expect([routed.done, routed.error, routed.skills]).toEqual([true, undefined, ["animate"]]);
+  });
+
+  for (const stopReason of ["error", "aborted"]) {
+    test(`an assistant message that ends ${stopReason} with no content is an error, not a no-skill answer`, () => {
+      const tracker = track([failed(stopReason)]);
+      expect([tracker.done, tracker.capped, tracker.skills, tracker.messages]).toEqual([
+        true,
+        false,
+        [],
+        1,
+      ]);
+      expect(tracker.error).toContain(stopReason);
+      expect(tracker.error).toContain("upstream overloaded");
+    });
+
+    test(`a partial skill call on a message that ends ${stopReason} is not a route`, () => {
+      const tracker = track([
+        failed(stopReason, read("skill://animate"), {
+          type: "toolCall",
+          name: "skill://<dbt>",
+          arguments: {},
+        }),
+        assistant(read("skill://break-ui")),
+      ]);
+      expect([tracker.done, tracker.skills, tracker.malformed]).toEqual([true, [], []]);
+      expect(tracker.error).toContain(stopReason);
+    });
+
+    test(`${stopReason} after exploring ends the run as an error, even on the last budgeted message`, () => {
+      const tracker = track([
+        ...Array.from({ length: BUDGET - 1 }, () => local),
+        failed(stopReason),
+      ]);
+      expect([tracker.done, tracker.capped, tracker.skills]).toEqual([true, false, []]);
+      expect(tracker.error).toContain(stopReason);
+    });
+  }
+
+  test("a skill read in the first message stays a route; a later failed message is ignored", () => {
+    const tracker = track([assistant(read("skill://animate")), failed("error")]);
+    expect([tracker.skills, tracker.error]).toEqual([["animate"], undefined]);
   });
 });
 
@@ -107,20 +195,27 @@ describe("skillOfPath", () => {
 
 describe("scoreCase", () => {
   test("only the expected skill is clean; extra reads are flagged; a miss or any read on a null case fails", () => {
-    expect(scoreCase({ prompt: "p", expect: "dbt" }, ["dbt"])).toBe("clean");
-    expect(scoreCase({ prompt: "p", expect: "dbt" }, ["atl", "dbt"])).toBe("extra");
-    expect(scoreCase({ prompt: "p", expect: "dbt" }, ["atl"])).toBe("fail");
-    expect(scoreCase({ prompt: "p", expect: null }, [])).toBe("clean");
-    expect(scoreCase({ prompt: "p", expect: null }, ["atl"])).toBe("fail");
+    expect(scoreCase({ prompt: "p", expect: "dbt" }, ["dbt"], false)).toBe("clean");
+    expect(scoreCase({ prompt: "p", expect: "dbt" }, ["atl", "dbt"], false)).toBe("extra");
+    expect(scoreCase({ prompt: "p", expect: "dbt" }, ["atl"], false)).toBe("fail");
+    expect(scoreCase({ prompt: "p", expect: null }, [], false)).toBe("clean");
+    expect(scoreCase({ prompt: "p", expect: null }, ["atl"], false)).toBe("fail");
+  });
+
+  test("a capped run fails, including a null case that read no skill", () => {
+    expect(scoreCase({ prompt: "p", expect: null }, [], true)).toBe("fail");
+    expect(scoreCase({ prompt: "p", expect: "dbt" }, [], true)).toBe("fail");
   });
 });
 
-const run = (prompt: string, outcome: CaseResult["outcome"]): CaseResult => ({
+const run = (prompt: string, outcome: CaseResult["outcome"], capped = false): CaseResult => ({
   prompt,
   expect: "dbt",
   run: 0,
   skills: [],
   malformed: [],
+  messages: capped ? BUDGET : 1,
+  capped,
   outcome,
 });
 
@@ -142,6 +237,25 @@ describe("summarizeCases", () => {
     expect([a?.pass, a?.extra, a?.rate]).toEqual([true, true, 2 / 3]);
     expect([b?.pass, b?.rate]).toEqual([false, 0.5]);
     expect([c?.pass, c?.rate]).toEqual([false, 0]);
+  });
+
+  test("capped runs count as failures toward the majority", () => {
+    const [a, b] = summarizeCases(
+      [
+        { prompt: "a", expect: "dbt" },
+        { prompt: "b", expect: "dbt" },
+      ],
+      [
+        run("a", "clean"),
+        run("a", "fail", true),
+        run("a", "fail", true),
+        run("b", "clean"),
+        run("b", "clean"),
+        run("b", "fail", true),
+      ],
+    );
+    expect([a?.pass, a?.rate]).toEqual([false, 1 / 3]);
+    expect([b?.pass, b?.rate]).toEqual([true, 2 / 3]);
   });
 
   test("cases with no runs (skipped) are left out", () => {
@@ -182,6 +296,21 @@ describe("cases", () => {
     await skill("b", "hidden", "hide: true\n");
     await skill("b", "off", "enabled: false\n");
     expect([...(await routableSkills(root))]).toEqual(["visible"]);
+  });
+
+  test("--cases resolves a relative file path and rejects a missing value", () => {
+    expect(parseArgs(["--check", "--cases", "holdout.json"]).cases).toBe(
+      path.resolve("holdout.json"),
+    );
+    expect(() => parseArgs(["--cases"])).toThrow("--cases needs a value");
+  });
+
+  test("--thinking defaults to off, accepts host levels, and rejects anything else", () => {
+    expect(parseArgs([]).thinking).toBe("off");
+    expect(parseArgs(["--thinking", "xhigh"]).thinking).toBe("xhigh");
+    expect(parseArgs(["--thinking", "auto"]).thinking).toBe("auto");
+    expect(() => parseArgs(["--thinking", "extreme"])).toThrow("--thinking must be one of");
+    expect(() => parseArgs(["--thinking"])).toThrow("--thinking needs a value");
   });
 
   test("stale, duplicate, unsafe, and uncovered cases are reported", () => {

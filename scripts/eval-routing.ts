@@ -1,13 +1,16 @@
 #!/usr/bin/env bun
-// Skill routing eval: `bun scripts/eval-routing.ts [--check] [--only a,b] [--runs N] [--concurrency N] [--model M] [--json PATH]`.
-// Each case in evals/routing.json is sent to the real host (`omp -p --mode json --no-session --tools read`) from a
-// copy of the sample project in evals/fixtures/workspace. The skills the agent reads (`read skill://<name>`) before
-// it answers are its routing decision; the run is killed at that point, so a case costs a few model turns and
-// nothing but `read` can execute.
+// Skill routing eval: `bun scripts/eval-routing.ts [--check] [--cases PATH] [--only a,b] [--runs N] [--concurrency N] [--max-messages N] [--model M] [--thinking LEVEL] [--json PATH]`.
+// Each case in the cases file (default evals/routing.json; --cases PATH selects another, e.g. a frozen holdout) is sent to the real host (`omp -p --mode json --no-session --tools read
+// --thinking LEVEL`) from a copy of evals/fixtures/workspace. The first skill-read attempt is the routing
+// decision; it does not prove successful loading or use of the body. Nothing but `read` can execute.
+// A run still undecided after --max-messages assistant messages (default 12) is reported as capped:
+// censored by the budget, scored as a failure, and kept apart from completed no-skill answers.
 // It measures the installed environment: the packs as `omp plugin list` links them, plus any other installed
-// skills, the user's settings, and the default model unless --model is given. Cases whose skill the host's
-// `disabledExtensions` setting turns off are reported as SKIP, not run. Results are model evidence, not a
-// gate. `--check` validates the cases against packs/*/skills without calling a model.
+// skills and the user's settings. The model defaults to anthropic/claude-haiku-5-5; --model default uses the
+// user's configured model. --thinking defaults to off; the host maps each level to what the model supports, so
+// "off" is not disabled reasoning on every model. Cases whose skill the host's `disabledExtensions`
+// setting turns off are reported as SKIP, not run. Results are model evidence, not a gate. `--check` validates
+// the cases against packs/*/skills without calling a model.
 
 import { cp, mkdtemp, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -18,8 +21,8 @@ const ROOT = path.resolve(import.meta.dir, "..");
 export const CASES_FILE = path.join(ROOT, "evals/routing.json");
 /** Sample project every case runs in, so requests about files find files instead of stopping to ask. */
 const WORKSPACE = path.join(ROOT, "evals/fixtures/workspace");
-/** Assistant messages to watch for a skill read; covers looking at the files first, then reading the skill. */
-const MAX_MESSAGES = 6;
+/** Default assistant-message budget for a skill read; covers looking at the files first, then reading the skill. */
+const DEFAULT_MAX_MESSAGES = 12;
 const TIMEOUT_MS = 120_000;
 
 export interface RoutingCase {
@@ -125,8 +128,14 @@ export function skillOfPath(target: unknown): string | undefined {
 }
 
 /**
- * Routing decision from the host's JSON event stream. `push` returns true once the decision is final: the first
- * assistant message that reads a skill, the first one with no tool call (it answered), or MAX_MESSAGES messages.
+ * Routing decision from the host's JSON event stream. `push` returns true once the run is over: the first
+ * assistant message that reads a skill, the first one with no tool call (it answered), a failed assistant
+ * message, `agent_end`, or the `maxMessages`-th assistant message still without a decision. Only that last
+ * case sets `capped`: the budget censored the run, so it is not a no-skill answer. A skill read or an answer
+ * on the last budgeted message is a decision, not a cap.
+ * An assistant message that ends with stopReason `error` or `aborted` is not an answer, and its tool calls (a
+ * partial stream) are not routes: the run ends with `error` set. `agent_end` before any decision likewise
+ * sets `error`; the host emits it on its own failures, so it is never a completed no-skill answer.
  * A call whose tool name is itself a skill:// URL naming a known skill is a malformed attempt on that skill: it
  * counts as the route, and `malformed` records it, because the host rejects the call and the skill never loads.
  * Unknown names (a placeholder such as `skill://<name>`) are ignored.
@@ -135,9 +144,15 @@ export class RoutingTracker {
   skills: string[] = [];
   malformed: string[] = [];
   messages = 0;
+  capped = false;
   done = false;
+  /** Why the run ended without a usable decision (failed assistant message, or agent_end with none). */
+  error: string | undefined;
 
-  constructor(private readonly known: ReadonlySet<string>) {}
+  constructor(
+    private readonly known: ReadonlySet<string>,
+    private readonly maxMessages: number,
+  ) {}
 
   push(event: unknown): boolean {
     if (this.done) {
@@ -147,6 +162,7 @@ export class RoutingTracker {
       return false;
     }
     if (event.type === "agent_end") {
+      this.error = "agent_end before a completed assistant decision";
       this.done = true;
       return true;
     }
@@ -155,6 +171,15 @@ export class RoutingTracker {
       return false;
     }
     this.messages += 1;
+    if (message.stopReason === "error" || message.stopReason === "aborted") {
+      const detail =
+        typeof message.errorMessage === "string" && message.errorMessage
+          ? `: ${message.errorMessage}`
+          : "";
+      this.error = `assistant message ended with stopReason ${message.stopReason}${detail}`;
+      this.done = true;
+      return true;
+    }
     const calls = (Array.isArray(message.content) ? message.content : []).filter(
       (part: unknown): part is Record<string, unknown> =>
         isRecord(part) && part.type === "toolCall",
@@ -175,7 +200,9 @@ export class RoutingTracker {
         this.malformed.push(attempted);
       }
     }
-    this.done = this.skills.length > 0 || calls.length === 0 || this.messages >= MAX_MESSAGES;
+    const decided = this.skills.length > 0 || calls.length === 0;
+    this.capped = !decided && this.messages >= this.maxMessages;
+    this.done = decided || this.capped;
     return this.done;
   }
 }
@@ -185,6 +212,10 @@ export interface CaseResult extends RoutingCase {
   skills: string[];
   /** Skills the agent tried to open with a malformed call (tool name `skill://...`). */
   malformed: string[];
+  /** Assistant messages seen before the run ended. */
+  messages: number;
+  /** The message budget ran out with no decision; scored as a failure. */
+  capped: boolean;
   outcome: Outcome;
   error?: string;
 }
@@ -217,7 +248,11 @@ export function summarizeCases(cases: RoutingCase[], results: CaseResult[]): Cas
   });
 }
 
-export function scoreCase(item: RoutingCase, skills: string[]): Outcome {
+/** A capped run made no decision within the message budget, so it fails whatever the case expects. */
+export function scoreCase(item: RoutingCase, skills: string[], capped: boolean): Outcome {
+  if (capped) {
+    return "fail";
+  }
   if (item.expect === null) {
     return skills.length === 0 ? "clean" : "fail";
   }
@@ -232,16 +267,30 @@ async function runCase(
   run: number,
   cwd: string,
   model: string | undefined,
+  thinking: string,
   known: ReadonlySet<string>,
+  maxMessages: number,
 ): Promise<CaseResult> {
-  const argv = ["omp", "-p", "--mode", "json", "--no-session", "--tools", "read", "--cwd", cwd];
+  const argv = [
+    "omp",
+    "-p",
+    "--mode",
+    "json",
+    "--no-session",
+    "--tools",
+    "read",
+    "--thinking",
+    thinking,
+    "--cwd",
+    cwd,
+  ];
   if (model) {
     argv.push("--model", model);
   }
   argv.push(item.prompt);
   const proc = Bun.spawn(argv, { cwd, stdout: "pipe", stderr: "pipe", stdin: "ignore" });
   const stderr = new Response(proc.stderr).text();
-  const tracker = new RoutingTracker(known);
+  const tracker = new RoutingTracker(known, maxMessages);
   const timer = setTimeout(() => proc.kill(), TIMEOUT_MS);
   let error: string | undefined;
   try {
@@ -273,14 +322,23 @@ async function runCase(
     proc.kill();
     await proc.exited;
   }
+  error = tracker.error;
   if (!tracker.done) {
     const tail = (await stderr).trim().split("\n").slice(-3).join(" | ");
     error = `no decision after ${tracker.messages} message(s), exit ${proc.signalCode ?? proc.exitCode}: ${tail}`;
   }
-  const { skills, malformed } = tracker;
+  const { skills, malformed, messages, capped } = tracker;
   return error
-    ? { ...item, run, skills, malformed, outcome: "fail", error }
-    : { ...item, run, skills, malformed, outcome: scoreCase(item, skills) };
+    ? { ...item, run, skills, malformed, messages, capped, outcome: "fail", error }
+    : {
+        ...item,
+        run,
+        skills,
+        malformed,
+        messages,
+        capped,
+        outcome: scoreCase(item, skills, capped),
+      };
 }
 
 async function pool<T, R>(items: T[], limit: number, work: (item: T) => Promise<R>): Promise<R[]> {
@@ -296,24 +354,40 @@ async function pool<T, R>(items: T[], limit: number, work: (item: T) => Promise<
   return results;
 }
 
-/** Benchmark model: cheap enough to repeat every case, and weaker models route worse than strong ones. */
-export const DEFAULT_MODEL = "claude-haiku-4-5";
+/** Benchmark model: inexpensive enough to repeat every case. */
+export const DEFAULT_MODEL = "anthropic/claude-haiku-5-5";
+/** Levels `omp --thinking` accepts. */
+export const THINKING_LEVELS = ["off", "minimal", "low", "medium", "high", "xhigh", "max", "auto"];
 
-interface Options {
+export interface Options {
   check: boolean;
   only?: Set<string>;
   runs: number;
   concurrency: number;
+  /** Assistant messages a run may take before it is capped. */
+  maxMessages: number;
   /** undefined: the user's configured omp model. */
   model: string | undefined;
+  /** Requested `omp --thinking` level; default off. */
+  thinking: string;
   json?: string;
+  /** Cases file; the shipped evals/routing.json unless --cases names another. */
+  cases: string;
 }
 
 const USAGE =
-  "usage: bun scripts/eval-routing.ts [--check] [--only skill,none,...] [--runs N] [--concurrency N] [--model M|default] [--json PATH]\n";
+  "usage: bun scripts/eval-routing.ts [--check] [--cases PATH] [--only skill,none,...] [--runs N] [--concurrency N] [--max-messages N] [--model M|default] [--thinking LEVEL] [--json PATH]\n";
 
-function parseArgs(argv: string[]): Options {
-  const options: Options = { check: false, runs: 3, concurrency: 8, model: DEFAULT_MODEL };
+export function parseArgs(argv: string[]): Options {
+  const options: Options = {
+    check: false,
+    runs: 3,
+    concurrency: 8,
+    maxMessages: DEFAULT_MAX_MESSAGES,
+    model: DEFAULT_MODEL,
+    thinking: "off",
+    cases: CASES_FILE,
+  };
   for (let index = 0; index < argv.length; index++) {
     const flag = argv[index] ?? "";
     const value = () => {
@@ -343,13 +417,27 @@ function parseArgs(argv: string[]): Options {
       case "--concurrency":
         options.concurrency = count();
         break;
+      case "--max-messages":
+        options.maxMessages = count();
+        break;
       case "--model": {
         const model = value();
         options.model = model === "default" ? undefined : model;
         break;
       }
+      case "--thinking": {
+        const thinking = value();
+        if (!THINKING_LEVELS.includes(thinking)) {
+          throw new Error(`--thinking must be one of ${THINKING_LEVELS.join(", ")}`);
+        }
+        options.thinking = thinking;
+        break;
+      }
       case "--json":
         options.json = value();
+        break;
+      case "--cases":
+        options.cases = path.resolve(value());
         break;
       default:
         throw new Error(`unknown argument ${flag}`);
@@ -366,11 +454,11 @@ if (import.meta.main) {
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n${USAGE}`);
     process.exit(2);
   }
-  const cases = parseCases(await Bun.file(CASES_FILE).text());
+  const cases = parseCases(await Bun.file(options.cases).text());
   const known = await routableSkills();
   const problems = caseProblems(cases, known);
   if (problems.length > 0) {
-    process.stderr.write(`${problems.length} case problem(s) in evals/routing.json:\n`);
+    process.stderr.write(`${problems.length} case problem(s) in ${options.cases}:\n`);
     for (const problem of problems) {
       process.stderr.write(`  - ${problem}\n`);
     }
@@ -378,7 +466,7 @@ if (import.meta.main) {
   }
   const selected = cases.filter((item) => !options.only || options.only.has(item.expect ?? "none"));
   if (options.check) {
-    process.stdout.write(`${cases.length} routing cases valid\n`);
+    process.stdout.write(`${cases.length} routing cases valid (${options.cases})\n`);
     process.exit(0);
   }
   if (selected.length === 0) {
@@ -410,7 +498,15 @@ if (import.meta.main) {
       .flatMap((item) => Array.from({ length: options.runs }, (_, run) => ({ item, run })));
     let finished = 0;
     results = await pool(jobs, options.concurrency, async ({ item, run }) => {
-      const result = await runCase(item, run, scratch, options.model, known);
+      const result = await runCase(
+        item,
+        run,
+        scratch,
+        options.model,
+        options.thinking,
+        known,
+        options.maxMessages,
+      );
       finished += 1;
       process.stderr.write(`\r${finished}/${jobs.length} runs`);
       return result;
@@ -423,10 +519,11 @@ if (import.meta.main) {
   const summaries = summarizeCases(selected, results);
   const describe = (run: CaseResult) =>
     run.error ??
-    (run.skills
-      .map((skill) => (run.malformed.includes(skill) ? `${skill} (malformed call)` : skill))
-      .join("+") ||
-      "none");
+    (run.capped
+      ? `capped after ${run.messages} messages`
+      : run.skills
+          .map((skill) => (run.malformed.includes(skill) ? `${skill} (malformed call)` : skill))
+          .join("+") || "none");
   for (const summary of summaries.toSorted((a, b) => a.rate - b.rate)) {
     const label = summary.pass ? (summary.extra ? "PASS+" : "PASS ") : "FAIL ";
     const passed = summary.runs.filter((run) => run.outcome !== "fail").length;
@@ -438,7 +535,8 @@ if (import.meta.main) {
     );
   }
 
-  // Per expected skill: the share of its runs that read it. The lowest rows are the descriptions to work on.
+  // Per expected skill: the share of its runs that read it (none, for null cases). A low row is where to look,
+  // not proof of a bad description: misroutes, skipped skills, and capped runs all lower it (see the totals).
   const bySkill = new Map<string, { ok: number; total: number }>();
   for (const result of results) {
     const key = result.expect ?? "none";
@@ -458,13 +556,16 @@ if (import.meta.main) {
   const count = (outcome: Outcome) => results.filter((row) => row.outcome === outcome).length;
   const failed = results.filter((result) => result.outcome === "fail");
   const errors = failed.filter((result) => result.error).length;
-  // A skill run can fail by reading the wrong skill (description problem) or none (the model skipped skills).
+  // A failed run either read the wrong skill (misrouted), answered without reading one (skipped skills), hit the
+  // message budget undecided (capped: censored, not an answer), or never reached a decision (error).
   const misrouted = failed.filter((result) => !result.error && result.skills.length > 0).length;
+  const capped = failed.filter((result) => result.capped).length;
   const passedCases = summaries.filter((summary) => summary.pass).length;
   process.stdout.write(
-    `\nmodel ${options.model ?? "default"}, ${options.runs} run(s) per case: ${passedCases}/${summaries.length} cases passed\n` +
+    `\nmodel ${options.model ?? "default"}, thinking ${options.thinking}, max ${options.maxMessages} messages, ${options.runs} run(s) per case: ${passedCases}/${summaries.length} cases passed\n` +
       `runs: ${count("clean")} clean, ${count("extra")} with extra skill reads, ${misrouted} misrouted ` +
-      `(includes no-skill cases that read one), ${failed.length - misrouted - errors} read no skill` +
+      `(includes no-skill cases that read one), ${failed.length - misrouted - capped - errors} completed without reading a skill, ` +
+      `${capped} capped after ${options.maxMessages} messages (no decision; counted as failures)` +
       (errors ? `, ${errors} without a decision` : "") +
       (skipped.length ? `; ${skipped.length} case(s) skipped (skill disabled)` : "") +
       `; ${results.filter((result) => result.malformed.length > 0).length} with a malformed skill call\n`,
@@ -472,7 +573,7 @@ if (import.meta.main) {
   if (options.json) {
     await Bun.write(
       options.json,
-      `${JSON.stringify({ model: options.model ?? "default", runs: options.runs, skipped, cases: summaries }, null, 2)}\n`,
+      `${JSON.stringify({ casesFile: options.cases, model: options.model ?? "default", thinking: options.thinking, maxMessages: options.maxMessages, runs: options.runs, skipped, cases: summaries }, null, 2)}\n`,
     );
   }
   process.exit(passedCases === summaries.length ? 0 : 1);
