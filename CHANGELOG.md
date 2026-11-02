@@ -6,6 +6,10 @@ Published changes to the first-party packs in `packs/`, newest first. Format fol
 
 - Routing eval defaults to Haiku 5.5 with thinking off and a configurable 12-message budget. It now rejects failed or aborted responses as decisions, distinguishes errors and budget caps from completed no-skill answers, accepts a separately validated holdout through `--cases`, and accepts `--thinking LEVEL` (default `off`).
 
+## clssck 2.1.26 - 2026-11-02
+
+- `cli-creator` records exact smoke-test scratch paths and adds scoped Bash and PowerShell cleanup on success or failure. The Bash recipe honors `TMPDIR`, preserves the caller's directory, and propagates command failure. Generated tests must own unique config/token fixture directories and register cleanup before setup or assertions can fail.
+
 ## clssck 2.1.25 - 2026-11-02
 
 - `animate` pins and confirms normal and reduced-motion preferences before inspecting each variant, so the host's Reduce Motion setting cannot silently substitute one for the other.

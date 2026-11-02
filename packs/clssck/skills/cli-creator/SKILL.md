@@ -86,7 +86,7 @@ Precedence, highest first: explicit `--token-file <path>` or token on stdin (`--
 4. Implement `doctor`, discovery, resolve, reads, one narrow draft or dry-run write if requested, raw escape hatch.
 5. **Install on PATH only when the user asks** for a globally callable command; state the target first. Otherwise keep the verified local wrapper.
 6. Smoke test from a fresh directory — not `cargo run`, `uv run`, or other package-manager wrappers.
-7. Run format, typecheck/build, unit tests (request builders, pagination, body builders), no-auth `doctor`, help output, and one fixture, dry-run, or live read-only call.
+7. Run format, typecheck/build, unit tests (request builders, pagination, body builders), no-auth `doctor`, help output, and one fixture, dry-run, or live read-only call. Generated tests MUST use unique, owned temporary directories with scoped cleanup or teardown registered immediately after creation, including config and token fixtures; setup or assertion failure must not bypass cleanup.
 
 ### Source shapes
 
@@ -103,15 +103,34 @@ Precedence, highest first: explicit `--token-file <path>` or token on stdin (`--
 
 <procedure>
 
-Installed on PATH:
+Installed on PATH (substitute the chosen command name). Record each exact scratch path before use; clean it after the command exits, on success or failure. Unknown ownership → leave it and report the path, not a pattern-based deletion.
 
 ```bash
-cd "$(mktemp -d)" && command -v <tool-name> && <tool-name> --help && <tool-name> --json doctor
+(
+  scratch=$(mktemp -d "${TMPDIR:-/tmp}/cli-smoke.XXXXXX") || exit
+  trap 'status=$?; rm -rf -- "$scratch" || exit 1; exit "$status"' EXIT
+  printf 'Smoke directory: %s\n' "$scratch" >&2
+  cd -- "$scratch" && command -v <tool-name> && <tool-name> --help && <tool-name> --json doctor
+)
 ```
 
 ```powershell
-Set-Location (New-Item -ItemType Directory (Join-Path $env:TEMP "smoke-$(Get-Random)"))
-Get-Command <tool-name>; <tool-name> --help; <tool-name> --json doctor
+$scratch = (New-Item -ItemType Directory -Path (Join-Path $env:TEMP ([IO.Path]::GetRandomFileName())) -ErrorAction Stop).FullName
+try {
+    Write-Host "Smoke directory: $scratch"
+    Push-Location -LiteralPath $scratch -ErrorAction Stop
+    try {
+        Get-Command <tool-name> -ErrorAction Stop
+        <tool-name> --help
+        if (-not $?) { throw "CLI help failed" }
+        <tool-name> --json doctor
+        if (-not $?) { throw "CLI doctor failed" }
+    } finally {
+        Pop-Location
+    }
+} finally {
+    Remove-Item -LiteralPath $scratch -Recurse -Force -ErrorAction Stop
+}
 ```
 
 Not on PATH → run the wrapper or binary by absolute path from the fresh directory; NEVER install just to pass the smoke test.
