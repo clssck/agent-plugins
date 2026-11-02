@@ -131,7 +131,8 @@ jobs:
 
 - Since 2025-12-08, `pull_request_target` always takes the workflow file and `GITHUB_REF`/`GITHUB_SHA` from the default branch, whatever the PR's base. Fixing the default branch fixes the vulnerability; outdated branches no longer run.
 - Environment branch rules now evaluate the executing ref: `refs/pull/N/merge` for `pull_request`, `pull_request_review`, and `pull_request_review_comment`; the default branch for `pull_request_target`. A rule matching only the head branch stops matching.
-- Workflow execution protections (GA 2026-09-17) add actor/event allowlists. For public repositories GitHub's default rule disables `pull_request_target`, enforced from 2026-11-02 where the default policy was in use. Internal and private repositories are unaffected.
+- Workflow execution protections (GA 2026-09-17) add actor/event allowlists. For public repositories GitHub's default rule disables `pull_request_target`, enforced from 2026-12-02 (moved from 2026-11-02) where the default policy was in use. Internal and private repositories are unaffected.
+- `actions/checkout` v7 refuses fork-PR head/merge checkouts in `pull_request_target` (and in `workflow_run` triggered by a PR event). The same guard was backported on 2026-07-20 as `v3.7.0`, `v4.4.0`, `v5.1.0`, `v6.1.0`: floating major tags pick it up, SHA and exact-version pins do not until upgraded. The opt-out input is `allow-unsafe-pr-checkout`: treat any workflow that sets it as a finding, not a fix. The guard does not cover `issue_comment`, `git`/`gh` fetches in `run:`, or checkouts of other untrusted repositories ([changelog](https://github.blog/changelog/2026-06-18-safer-pull_request_target-defaults-for-github-actions-checkout/)).
 - `workflow_run` is privileged too: treat artifacts from the triggering run as untrusted input and NEVER execute them.
 - Enable CodeQL analysis of the `actions` language to catch these patterns.
 
@@ -455,7 +456,7 @@ The OpenSSF Scorecard assesses repository security practices. Checks relevant to
 
 ```yaml
 - name: OSSF Scorecard
-  uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc # v2.4.4
+  uses: ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e # v2.5.0
   with:
     results_file: results.sarif
     results_format: sarif

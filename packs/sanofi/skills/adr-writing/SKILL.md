@@ -11,16 +11,16 @@ Governing principle: an ADR records a decision and its evidence, never a fabrica
 
 ## Layout
 
-- **Location:** `docs/adr/`; create if missing. `glob` `docs/adr/ADR-*.md` before numbering.
+- **Location:** `docs/adr/`; create if missing. `glob` `docs/adr/ADR-*.md` before numbering; ignore `*-review.md` files (they reuse their ADR's number).
 - **File name:** `ADR-NNN-slug.md` — three-digit number, kebab-case slug. Reviews: `ADR-NNN-slug-review.md`.
 - **Number:** highest existing + 1. NEVER fill gaps.
 - **Qualified titles:** `use-postgresql-for-user-profiles`, not `use-postgresql`.
 - **Match house style:** `read` 1-2 existing ADRs; match header style, section order, table alignment. None → [adr.template.md](skill://adr-writing/assets/adr.template.md).
 
-<critical>
+<directives>
 
 - **Date:** today, `YYYY-MM-DD`.
-- **Status:** `accepted` ONLY when the decision is made. Undecided → `proposed`, no invented choice; see [write-workflow.md](skill://adr-writing/references/write-workflow.md).
+- **Status:** `accepted` ONLY when the decision is made. Undecided → `proposed`, no invented choice; see [write-workflow.md](skill://adr-writing/references/write-workflow.md#status-rules).
 - **Problem statement:** 2-3 sentences, a question, with constraints or metrics.
 - **Specificity:** add technical detail ("PostgreSQL with JSONB"); stay close to user facts.
 - **NEVER invent** performance numbers, costs, benchmarks, or options. Ask.
@@ -34,7 +34,7 @@ Governing principle: an ADR records a decision and its evidence, never a fabrica
 - **NEVER self-review** an ADR written in the same conversation; shared context removes independence. Review requested on such an ADR → spawn a `task` agent (children start blank) with the file path and [review-workflow.md](skill://adr-writing/references/review-workflow.md), and relay its findings. Spawning unavailable → say the review was not independent.
 - **Links:** context from Jira/Confluence → original URL in Links.
 - **Tables:** pad cells so pipes align.
-</critical>
+</directives>
 
 <instruction>
 
@@ -97,3 +97,10 @@ Governing principle: an ADR records a decision and its evidence, never a fabrica
 - **Evidence:** options, rejection reasons, evidence present or honestly omitted.
 - **Manifesto Alignment** filled; no placeholder text.
 - **Sources:** costs and platform claims cite them.
+
+<critical>
+- `accepted` ONLY for a made decision; otherwise `proposed` with no invented choice.
+- NEVER invent numbers, costs, benchmarks, options, or a rejected alternative; unsourced → omit and list as an open item.
+- Architecture Manifesto Alignment is REQUIRED in every ADR.
+- NEVER self-review an ADR written in the same conversation.
+</critical>

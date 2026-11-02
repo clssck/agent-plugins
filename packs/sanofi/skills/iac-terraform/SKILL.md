@@ -17,10 +17,12 @@ Complements built-in `/review`: that finds generic defects; this skill checks mo
 | [tagging-guide.md](skill://iac-terraform/references/tagging-guide.md) | mandatory tag values, `local.tags` pattern, `default_tags` limits, effective-tag check, sources |
 | [scripts/check_tags.py](skill://iac-terraform/scripts/check_tags.py) | validates tags on every resource in a plan JSON; tests in [scripts/test_check_tags.py](skill://iac-terraform/scripts/test_check_tags.py); invocation → [tagging-guide.md](skill://iac-terraform/references/tagging-guide.md#effective-tag-check) |
 
-<critical>
+## Rules
+
+<directives>
 
 - **Modules**: approved library module exists → use it. NEVER write a raw `aws_*` resource for it.
-- **Read first**: module README + `variables.tf` before writing a call.
+- **Read first**: module README + `variables.tf` before writing a call. Library repo unreachable → [Module evidence offline](#module-evidence-offline).
 - **Pins**: pin registry modules by `version` and Git sources by `?ref`; NEVER float.
 - **Tags**: all 10 mandatory tags on every taggable resource.
 - **Missing values**: ASK for team, cost center, application ID, contact, environment. NEVER guess.
@@ -31,12 +33,14 @@ Complements built-in `/review`: that finds generic defects; this skill checks mo
 - **Versions**: `required_version` + provider floors = what the code needs, compatible with every module → [module-guide.md](skill://iac-terraform/references/module-guide.md#versions-and-providers).
 - **Tests**: NEVER run `terraform test` unmocked; default `command = apply` creates real resources → [module-guide.md](skill://iac-terraform/references/module-guide.md#testing).
 - **Plan files**: `tfplan` + `plan.json` hold secrets in cleartext; NEVER commit or paste them.
-</critical>
+</directives>
+
+## Author or review
 
 <procedure>
 
-1. **Scope**: service, environment, modules needed, missing inputs. Existing code → `glob` `**/*.tf` (excluding `.terraform/`), then `read`.
-2. **Discover** modules + RFC guidance → [module-guide.md](skill://iac-terraform/references/module-guide.md#discovery). Confluence CODE-space docs → `atl` skill (`atl search "<terms>" --product confluence`, `atl page get <id>`).
+1. **Scope**: service, environment, modules needed, missing inputs. Existing code → `glob` `**/*.tf` (excluding `.terraform/`), then `read`. Exit: every root that needs the change and every requested property (versioning, encryption, public access, …) listed.
+2. **Discover** modules + RFC guidance → [module-guide.md](skill://iac-terraform/references/module-guide.md#discovery). Confluence CODE-space docs → `atl` skill (`atl search "<terms>" --product confluence`, `atl page get <id>`). Exit: each requested property mapped to a module input read from the module's `variables.tf`, or marked unmet per [Module evidence offline](#module-evidence-offline). NEVER edit before this exit holds.
 3. **Implement**: pinned modules, `tags = local.tags` → [tagging-guide.md](skill://iac-terraform/references/tagging-guide.md). No library module → state the reason in the report.
 4. **Validate locally** (order matters; private modules need JFrog credentials for `init` → [module-guide.md](skill://iac-terraform/references/module-guide.md#validation)):
 
@@ -46,9 +50,18 @@ Complements built-in `/review`: that finds generic defects; this skill checks mo
    terraform validate
    ```
 
-5. **Check effective tags** from a plan the user ran: `terraform show -json tfplan` → `check_tags.py`.
-6. **Report**: manual prerequisites, unknown tag values, provider assumptions, open questions.
+   `command -v terraform` fails, or `init` cannot reach `registry.terraform.io`/`sanofi.jfrog.io` → stop probing; record each of the three as not run with the reason; the user runs them. NEVER report the change as validated.
+5. **Check effective tags** from a plan the user ran: `terraform show -json tfplan` → `check_tags.py`. No plan → record as not run.
+6. **Report**: first line names every requested property not delivered and every check not run. Then changes, manual prerequisites, unknown tag values, provider assumptions, open questions.
 </procedure>
+
+### Module evidence offline
+
+Library repo, `xd://github`, and `gh` all unavailable, and no `.terraform/modules` cache:
+
+- Inputs set by an existing call to the same module at the same pinned `version` in this repo are evidence; reuse them as written.
+- A requested property with no such observed input (e.g. versioning on `s3_bucket`) is unmet. NEVER invent an input name or assume a module default; NEVER fall back to raw `aws_*` resources to get it. Write the call with observed inputs only and report the property as a blocker for the user to resolve from the module's `variables.tf`.
+- No existing call to the module → write nothing for it; report the blocker.
 
 <caution>
 
@@ -66,20 +79,29 @@ Complements built-in `/review`: that finds generic defects; this skill checks mo
 | Tags on `aws_autoscaling_group` via `default_tags` only | `tag` blocks from `local.tags` |
 </caution>
 
-<critical>
+## Done criteria
 
-Done when each holds, or its blocker is reported:
+Each holds, or its blocker is in the report's first line:
 
 - Every resource from a library module, or stated reason no module exists.
 - Every module call is pinned (registry `version`, Git `?ref`) and passes `tags = local.tags`.
+- Every requested property set through a verified module input.
 - `terraform fmt -check`, `init -backend=false`, `validate` pass.
 - Backend uses `use_lockfile`; `versions.tf` floors match features used.
 - Plan JSON passes `check_tags.py`, or user has not yet produced a plan.
-- Security review handed to `iac-security-review`.
+- Report recommends `iac-security-review` for the security pass.
+
+## Related skills
 
 | Need | Skill |
 | --- | --- |
 | Security audit of Terraform, CDK, CloudFormation. NEVER duplicate its findings or severity model here. | `iac-security-review` |
 | GitHub Actions Terraform plan/apply workflows; JFrog credentials in CI | `cicd-engineering` |
 | Confluence/Jira reading, search, or publishing (install once: `bun add -g @clssck/atl-cli && atl skill install`) | `atl` |
+
+<critical>
+- NEVER write a raw `aws_*` resource where a library module exists; NEVER invent module inputs.
+- NEVER run `terraform apply`; `plan` only on user authorization.
+- NEVER guess tag, network, IAM, encryption, or environment values; ask.
+- NEVER report unrun validation or undelivered requested properties as done.
 </critical>

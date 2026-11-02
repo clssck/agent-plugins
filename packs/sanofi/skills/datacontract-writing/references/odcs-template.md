@@ -280,7 +280,7 @@ Set `apiVersion: v3.2.0` only when the user asks for it or the consuming tool re
 | `deprecated` | schema object, property | Boolean, default `false` |
 | `context` | root, schema object | String, or `{instructions, verifiedStatements, constraints}` for AI tools |
 | `${VAR}`, `${VAR:-default}` | any string value | Resolved by tooling at run time; secrets and hostnames stay out of the file. Server `port` may be a string |
-| Server `type` | `servers[]` | New: `hana`, `iceberg`, `exasol`, `teradata`, `ingres`, `vectorwise`, `versant`, `poet`; optional `encoding` on file/stream servers; Athena `workgroup` |
+| Server `type` | `servers[]` | New: `btrieve`, `exasol`, `fastobjects`, `hana`, `iceberg`, `ingres`, `poet`, `teradata`, `vectorwise`, `versant`; optional `encoding` on file/stream servers; Athena `workgroup` |
 | `vendor`, `id` | `customProperties[]`, `relationships[]` | Optional strings |
 | `customProperties`, `authoritativeDefinitions` | `slaProperties[]` | Optional |
 

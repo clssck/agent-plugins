@@ -61,7 +61,7 @@ Production images SHOULD carry a build-provenance attestation ([security-hardeni
    - Neither → keep the local/static results; GitHub verification is unverified, naming the missing prerequisite (GitHub tool, xd transport, `gh`, or `gh` auth).
 
    Diagnose from the failure log, not from the YAML alone.
-7. Report changed behavior, required secrets/environments/variables, manual platform setup, and GitHub verification: passed/failed with the run ID, or unverified with the missing prerequisite.
+7. Report changed behavior, required secrets/environments/variables, manual platform setup, and verification. List each local check you ran (command, result) and each you did not run as unverified; NEVER write "tests pass" or "lint passes" without a command you ran. GitHub verification: passed/failed with the run ID, or unverified with the missing prerequisite.
 </procedure>
 
 <caution>

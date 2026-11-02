@@ -194,7 +194,7 @@ Three pieces make the gate real; full workflow in [pipeline-templates.md](skill:
 3. The scan runs with `-Dsonar.qualitygate.wait=true`, and the aggregate required check (`Build Complete`) depends on the Sonar job. Alternative: require the SonarCloud status check in branch protection.
 
 ```yaml
-- uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+- uses: SonarSource/sonarqube-scan-action@4d1dc0c91ee400dcf8a6dddf2f705ac36542e304 # v8.4.0
   env:
     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   with:

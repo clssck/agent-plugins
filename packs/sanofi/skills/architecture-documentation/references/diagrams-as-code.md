@@ -81,7 +81,7 @@ Good: `docker run --rm -v "$PWD:/usr/local/structurizr" structurizr/structurizr 
 - C4 model, System landscape diagram: https://c4model.com/diagrams/system-landscape
 - Mermaid, C4 Diagrams: https://mermaid.js.org/syntax/c4.html
 - C4-PlantUML README: https://github.com/plantuml-stdlib/C4-PlantUML/blob/master/README.md
-- Structurizr, End of life: https://docs.structurizr.com/eol
+- Structurizr, Lite (states end of life and the `local` replacement): https://docs.structurizr.com/lite
 - Structurizr, Commands: https://docs.structurizr.com/commands
 - Structurizr, Binaries: https://docs.structurizr.com/binaries
 - Structurizr, export: https://docs.structurizr.com/export

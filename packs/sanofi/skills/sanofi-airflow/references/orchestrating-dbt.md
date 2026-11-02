@@ -7,6 +7,7 @@ Wiring a dbt project into a Sanofi MWAA DAG: choose the execution approach, pass
 - **OneMesh pages:** `1. DAG Authoring Best Practices` `66486699835` (§ "Running dbt from Airflow"), `3. Performance & Troubleshooting` `66486175813`, `dbt Logs and Artifacts in MWAA` `65350434990` (logs/artifacts).
 - **CIDF:** `Best practices - dbt and SQL in general` `66074739903` repeats the `BashOperator`/`DbtClient` and run-var patterns.
 - **Package versions are environment facts, not choices.** Shared central MWAA ships `dbt-core` 1.11.x and `dbt-snowflake` 1.11.x; dedicated Airflow 3.2.1 tenants track slightly newer point releases. Confirm actual versions in the target environment before relying on a version-specific dbt feature.
+- **dbt binary location is an environment fact.** Shared central: pre-installed, never add dbt to a project `requirements.txt`. Dedicated tenant: read its `startup.sh`/`requirements.txt` first. dbt pins can conflict with the Airflow constraints file (observed: `dbt-core` 1.11.x vs Airflow 3.2.1 `pathspec`/`sqlparse` pins); the AWS pattern installs dbt into a separate worker venv from `startup.sh` and calls that venv's `dbt` by absolute path. No startup venv and the pins do not resolve under the constraints → report it as a deploy blocker with that option; NEVER loosen or replace the constraints file.
 - **Placeholders:** all project names, paths, roles, `dag_id`s below.
 - **Cosmos:** `astronomer-cosmos` is pre-installed but **not used here**. Run dbt via `BashOperator` + `dbt_run.sh` or typed `DbtClient`. Revisit Cosmos only if per-model Airflow visibility becomes a hard requirement.
 
@@ -23,7 +24,11 @@ Per-owner alerting → split execution by selector (`tag:<team>`, `path:<domain>
 
 ## BashOperator + dbt_run.sh
 
-Shared `orchestration/scripts/dbt_run.sh` invoked via `BashOperator`: parse-time safe, stable at scale. **Keep the script small** — a `case` over run type plus a shared `$DBT_OPTS`. Resist deeply nested per-layer/per-exclude branches.
+Shared `orchestration/scripts/dbt_run.sh` invoked via `BashOperator`: parse-time safe, stable at scale. **Keep the script small** — a `case` over run type plus a shared `$DBT_OPTS`. Resist deeply nested per-layer/per-exclude branches. Repo has none → create it with the signature `dbt_run.sh <build|run|test> <full_refresh true|false> <selector>`, per-run `DBT_LOG_PATH`/`DBT_TARGET_PATH` outside `dags/`, `set -euo pipefail`.
+
+**`env` replaces the worker environment** unless `append_env=True` (default `False`): without it `PATH`/`HOME` vanish and `dbt` exits 127.
+
+**Credentials:** `env` is a templated field. Supply secret values as Jinja (`{{ var.value.<KEY> }}`) using only Variable/secret keys the repo already maps (`config/<env>.yml`, CI secret sync); NEVER resolve them into a module-level dict. A credential dbt's `profiles.yml` needs but the repo does not map → list it as an open question; NEVER invent a key name.
 
 ```python
 from airflow.operators.bash import BashOperator  # 3.x: airflow.providers.standard.operators.bash
@@ -31,8 +36,9 @@ from airflow.operators.bash import BashOperator  # 3.x: airflow.providers.standa
 run_dbt = BashOperator(
     task_id="run_dbt_models",
     bash_command=("/usr/local/airflow/dags/<project>/orchestration/scripts/"
-                  "dbt_run.sh run False 'stg.*,tag:daily'"),
-    env={"SNOWFLAKE_ENV": ENV, **snowflake_env_vars},
+                  "dbt_run.sh build false 'tag:daily'"),
+    env={"SNOWFLAKE_ENV": ENV, **snowflake_env_vars},  # values: Jinja refs to mapped keys
+    append_env=True,
 )
 ```
 
@@ -43,7 +49,7 @@ Replaces stringly-typed bash while staying on the dbt CLI. Typed, frozen `DbtCli
 **Selection is explicit.** Pass it through the documented extra args. A run without one builds the whole project: allowed only when the user explicitly asked for it.
 
 ```python
-@task.bash(env=snowflake_env_vars)
+@task.bash(env=snowflake_env_vars, append_env=True)
 def run_models(**context) -> str:
     return dbt.build_command(
         "run",
@@ -51,7 +57,7 @@ def run_models(**context) -> str:
         extra_args="--select <selector>",
     )
 
-@task.bash(env=snowflake_env_vars)
+@task.bash(env=snowflake_env_vars, append_env=True)
 def run_tests() -> str:
     return dbt.build_command("test", extra_args="--select <selector> --exclude test_type:unit")
 ```

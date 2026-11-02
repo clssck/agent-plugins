@@ -107,7 +107,7 @@ orchestration/
 
 ## Naming
 
-- **One DAG per file;** filename = `dag_id` exactly, so an alert names the file.
+- **One DAG per file;** filename = `dag_id` exactly, so an alert names the file. When `dag_id` embeds the environment at runtime (`f"..._{ENV}"`, see Deployment gates), the filename carries the static part only (no `_dev`/`_prod` suffix); the same file deploys to every environment.
 - **Lowercase `snake_case` only:** no capitals, no dots (dots break Python imports and DAG parsing).
 - **`dag_id`:** stable prefix + entity, `<prefix>_<entity>` (repos vary; some use `paa/caa/saa` domain prefixes). Follow the repo's convention.
 - **`task_id`:** verb-first, one unit of work: `extract_*`, `validate_*`, `load_*`, `run_dbt_*`. Should read as a pipeline so a failure names what broke.

@@ -2,7 +2,7 @@
 
 Optional cross-check with the open-source [Data Contract CLI](https://docs.datacontract.com) (`datacontract`). It validates ODCS and can import, diff, and test contracts. The bundled `validate_odcs.py` stays the primary validator; the CLI is a second opinion or a source of drafts.
 
-Verified against datacontract-cli 1.2.4 (2026-10-06). Run `datacontract --version` and `datacontract <command> --help` first; flags change between releases.
+Verified against datacontract-cli 1.2.9 (2026-11-02). Run `datacontract --version` and `datacontract <command> --help` first; flags change between releases.
 
 ## Install and Run
 
@@ -18,7 +18,7 @@ The command tables below show plain `datacontract`; prefix `uvx --from "datacont
 
 | Goal | Command | Notes |
 |------|---------|-------|
-| Validate structure | `datacontract lint FILE --all-errors --no-inline-references` | Validates against the schema for the contract's declared `apiVersion` (CLI 1.2.1+). Exit 1 = invalid. `--all-errors` reports every error instead of the first. `--no-inline-references` stops it fetching `authoritativeDefinitions` URLs |
+| Validate structure | `datacontract lint FILE --all-errors --no-inline-references` | Validates against the schema for the contract's declared `apiVersion` (CLI 1.2.1+). Exit 1 = invalid. `--all-errors` reports every error instead of the first. `--no-inline-references` stops it fetching `authoritativeDefinitions` URLs. Since 1.2.5 an unknown field such as `isNullable` is a warning with exit 0, and `enum` under `v3.1.0` passes silently: lint is weaker than `validate_odcs.py` |
 | Pin schema | `datacontract lint FILE --json-schema PATH_OR_URL` | Equivalent to `validate_odcs.py --schema` |
 | Compare versions | `datacontract changelog OLD NEW` | Lists changed fields |
 | Gate a release | `datacontract breaking OLD NEW` | Fails on backward-incompatible change (incl. `quality` rules); run before bumping a `version` major |
@@ -38,12 +38,13 @@ The command tables below show plain `datacontract`; prefix `uvx --from "datacont
 
 | CLI import behavior | Skill rule |
 |---------------------|------------|
-| Draft declares `apiVersion: v3.2.0` (observed on `import sql`, 1.2.4) | Change to `v3.1.0` unless the user wants v3.2.0 |
+| Draft declares `apiVersion: v3.2.0` (observed on `import sql`, 1.2.9) | Change to `v3.1.0` unless the user wants v3.2.0 |
 | Snowflake import: `NUMBER` (incl. `INT`, `BIGINT`) → `number`; precision and scale go to custom properties | Zero-scale `NUMBER` → `integer` ([full-guide.md](skill://datacontract-writing/references/full-guide.md#snowflake)) |
 | Snowflake import: `VARIANT`, `OBJECT`, `GEOGRAPHY`, `GEOMETRY` leave `logicalType` unset | Map to `object` per the same table |
 | Snowflake import: `unique` derived from `IS_IDENTITY` | `unique: true` only from a real UNIQUE/PK constraint |
 | SQL import rewrites `NUMBER(38,0)` to `physicalType: DECIMAL(38, 0)` | Keep `physicalType` exactly as in the source DDL |
 | Placeholder `id: my-data-contract`, `name: My Data Contract`, `my_host`/`my_database`/`my_schema` server values (observed on `import sql`) | Generate a UUID v4 `id`; take server values from the user; apply [Sanofi policy](skill://datacontract-writing/references/odcs-template.md#standard-vs-sanofi-policy) (`tenant`, `domain`, `dataProduct`) |
+| SQL import rewrites `TIMESTAMP_NTZ(9)` to `physicalType: TIMESTAMPNTZ(9)`; table-level `UNIQUE (col)` is dropped; foreign key `relationships` carry no `type` (observed, 1.2.9) | Keep source `physicalType`; set `unique: true` from the DDL constraint; add `type: foreignKey` |
 
 - The CLI's bundled v3.1.0 schema is older than the v3.2.0-tag schema: nested `id` values with `:` (for example `urn:uuid:...`) fail CLI lint but pass `validate_odcs.py`. Use `[A-Za-z0-9_-]` ids.
 - Put an `id` on quality rules if the user will filter with `datacontract test --quality-id`.

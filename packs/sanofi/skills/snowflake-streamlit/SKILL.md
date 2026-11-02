@@ -7,7 +7,7 @@ description: "Build, review, deploy, and troubleshoot Streamlit in Snowflake (Si
 
 Guardrails for Streamlit in Snowflake apps in Sanofi repos: explicit runtime choice, owner-rights least privilege, parameterized read-only queries, viewer-safe caching, source-version and `snow` CLI deployment, contract tests. Work from the repo's existing runtime and deployment contract; never from Snowflake's current default.
 
-Governing hazard: with the 2026_06 behavior bundle (enabled by default since Sept 2026), `CREATE STREAMLIT` without `RUNTIME_NAME` creates a container-runtime app. An unnamed runtime ⇒ silent migration or failed deploy. Local and Community Cloud Streamlit are out of scope. Runtime matrix, deployment mechanics, security constraints, current Snowflake links → [runtime-and-deployment.md](skill://snowflake-streamlit/references/runtime-and-deployment.md).
+Governing hazard: with the 2026_06 behavior bundle (generally enabled since release 10.37, October 2026; no opt-out), `CREATE STREAMLIT` without `RUNTIME_NAME` creates a container-runtime app. An unnamed runtime ⇒ silent migration or failed deploy. Local and Community Cloud Streamlit are out of scope. Runtime matrix, deployment mechanics, security constraints, current Snowflake links → [runtime-and-deployment.md](skill://snowflake-streamlit/references/runtime-and-deployment.md).
 
 <critical>
 
@@ -44,7 +44,7 @@ Governing hazard: with the 2026_06 behavior bundle (enabled by default since Sep
 - **New work:** source-version deployment — `CREATE STREAMLIT ... FROM '<stage path>'`, then `ALTER STREAMLIT ... ADD LIVE VERSION FROM LAST`. Source location: quoted string literal.
 - **`ROOT_LOCATION`:** keep only where the repo deliberately uses that legacy contract.
 - **CLI:** `snow streamlit deploy <entity_id> --replace` from a `definition_version: 2` `snowflake.yml`; set `runtime_name` there too; require CLI 3.27.0+; add `--prune` when staged files were removed.
-- **Changing `runtime_name`** in an existing project file moves the deployed app on next deploy (CLI 3.27.0+).
+- **Adding or changing `runtime_name`** on an entity whose app may already exist: CLI 3.27.0+ moves the deployed app to the named runtime on next deploy. Before writing it, confirm the deployed runtime with `DESCRIBE STREAMLIT <DB.SCHEMA.APP>` (`runtime_name` column) or an explicit repo/user statement; no connection → write the value the repo documents and list the `DESCRIBE STREAMLIT` check as a pre-deploy step in the handoff.
 - **Install CLI:** `uv tool install snowflake-cli`; NEVER `pip install` into a system or Homebrew Python.
 
 | Bad | Good |
@@ -69,7 +69,7 @@ alter streamlit DATABASE.SCHEMA.APP_NAME add live version from last;
 | Container | Snowflake installs with uv from `pyproject.toml` (preferred) or `requirements.txt`. New apps: `uv init --bare`, `uv add "streamlit[snowflake]==<pinned>"`, commit `uv.lock`, stage it with the app. |
 | Container | NEVER leave `requirements.txt` beside `pyproject.toml` — takes precedence, bypasses `uv.lock`. |
 | Container | Packages need an attached artifact repository (or EAI fallback); owner role without one cannot install them. |
-| Warehouse | `environment.yml` from Snowflake Anaconda channel only. uv cannot install it; NEVER convert to `pyproject.toml` unless migrating runtimes. |
+| Warehouse | `environment.yml` at the source root, `channels: [snowflake]` only; no `pip:` entries, no other channels; `requirements.txt`/`pyproject.toml` ignored. uv cannot install it; NEVER convert to `pyproject.toml` unless migrating runtimes. **Pin check:** the channel index is public, needs no Snowflake credentials; fetch `https://repo.anaconda.com/pkgs/snowflake/linux-64/repodata.json` (and `noarch/`) and confirm each pinned name and version, and confirm the Streamlit version is on Snowflake's warehouse list (Dependency management page). Only when the fetch fails ⇒ report the pin as unverified. |
 | Local dev | Repo already on `requirements.txt` → MAY `uv venv` + `uv pip install -r requirements.txt`; NEVER migrate its tooling unasked. |
 
 ## Verification

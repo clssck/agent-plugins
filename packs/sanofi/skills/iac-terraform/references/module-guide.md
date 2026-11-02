@@ -18,7 +18,7 @@ Module usage for Sanofi AWS Terraform: discovery, call pattern, validation, vers
 
 ## Discovery
 
-Use OMP's native GitHub device first. Each JSON object below is a separate `write` to `xd://github`, one object per call, in this order; NEVER join them into one payload. `file_read` reads repository files without cloning, and `search_code` discovers paths while applying the named repository scope automatically. Omit `branch` to use the default branch. No repository access → stop and report; NEVER guess module inputs.
+Use OMP's native GitHub device first. Each JSON object below is a separate `write` to `xd://github`, one object per call, in this order; NEVER join them into one payload. `file_read` reads repository files without cloning, and `search_code` discovers paths while applying the named repository scope automatically. Omit `branch` to use the default branch. No repository access → follow [Module evidence offline](skill://iac-terraform/SKILL.md#module-evidence-offline); NEVER guess module inputs.
 
 1. Library overview:
 

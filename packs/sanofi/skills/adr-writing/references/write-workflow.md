@@ -14,6 +14,7 @@ Ask ONE message covering all fields; NEVER split across turns:
 8. **Status** — proposed, accepted, rejected, deprecated, superseded
 9. **Deciders** (optional; omit the line when none supplied)
 
+- Notes, tickets, or files supplied with the request: extract every field above from them first; ask only for fields still missing. Mark what the notes leave unresolved (costs, owners, unconfirmed claims) as open items in Decision Outcome, never as facts.
 - Only a topic supplied: proceed, ask ONE follow-up for options and chosen option.
 - A Jira key or title in the request: treat as field 1, fetch the ticket, then one follow-up.
 - `atl` unavailable after its Setup: ask the user to paste the content; record the references as Links/sources; never publish.
@@ -23,7 +24,7 @@ Ask ONE message covering all fields; NEVER split across turns:
 | Input | Status | Decision Outcome |
 |---|---|---|
 | Decision made, no status given | `accepted` | Chosen option + justification |
-| "Undecided" or evaluation pending | `proposed` | "No option chosen yet; pending [evaluation/owner]". NEVER invent a choice. |
+| "Undecided" or evaluation pending | `proposed` | "No option chosen yet; pending [evaluation/owner]". NEVER invent a choice. A leaning in the source MAY be recorded as a leaning, with the open items that must resolve before `accepted`. Manifesto Alignment assesses the leading option and says so. |
 | User gives status | As given | As supplied |
 
 ## 2. Fetch Atlassian Context

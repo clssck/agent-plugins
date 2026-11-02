@@ -38,7 +38,7 @@ Runtime migration = architecture + deployment change, not a dependency-only edit
 
 ## Runtime default changed in the 2026_06 bundle
 
-BCR-2342 (2026_06 bundle, enabled by default since release 10.32, September 2026): `CREATE STREAMLIT` without `RUNTIME_NAME` creates a **container-runtime** app. Previously warehouse. Existing apps unaffected; every new `CREATE STREAMLIT`, including `CREATE OR REPLACE` in a redeploy script, follows the new default. Government regions, China regions, Native App Streamlits keep the warehouse default.
+BCR-2342 (2026_06 bundle: enabled by default in release 10.32, September 2026; generally enabled in 10.37, October 2026, so admins can no longer opt out): `CREATE STREAMLIT` without `RUNTIME_NAME` creates a **container-runtime** app. Previously warehouse. Existing apps unaffected; every new `CREATE STREAMLIT`, including `CREATE OR REPLACE` in a redeploy script, follows the new default. Government regions, China regions, Native App Streamlits keep the warehouse default.
 
 Warehouse-designed script omitting `RUNTIME_NAME` ⇒ fails or silently changes runtime. Container runtime ignores `environment.yml` and breaks wherever the app calls `get_active_session()` or `_snowflake`.
 
@@ -54,7 +54,7 @@ Warehouse-designed script omitting `RUNTIME_NAME` ⇒ fails or silently changes 
 ## Warehouse source layout
 
 - **Layout:** entrypoint + `environment.yml` at the root of the staged source directory. Imported modules MUST be inside the deployed source tree.
-- **Dependencies:** pin a Snowflake-supported Streamlit version. Packages come from the Snowflake Anaconda channel; pip entries inside `environment.yml` unsupported.
+- **Dependencies:** `channels: [snowflake]` only; Snowflake documents the Snowflake Anaconda channel as the sole package source. `pip:` entries, including relative local paths, unsupported — a PyPI-only package cannot be installed on this runtime (migrate to container, or vendor it into the source tree). Pin only Streamlit versions on Snowflake's warehouse list (1.22.0 … 1.52.2 at last read; see Dependency management). Check a pin: `https://repo.anaconda.com/pkgs/snowflake/<linux-64|noarch>/repodata.json` (package name and version), or the Snowsight package picker.
 - **Local environment:** uv cannot install `environment.yml`; Snowflake documents conda with channels `https://repo.anaconda.com/pkgs/snowflake` and `nodefaults`.
 
 ```sql

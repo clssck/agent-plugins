@@ -16,13 +16,13 @@ Copy-paste GitHub Actions workflows for Sanofi repositories. Every template uses
 
 ## Action pins
 
-Verified 2026-10-09 against each action's latest GitHub release; annotated tags dereferenced to the commit. All JavaScript actions below declare `runs.using: node24` (Node 20 was removed from Actions runners on 2026-09-23: <https://github.blog/changelog/2026-09-23-node-20-is-no-longer-available-in-github-actions/>).
+Verified 2026-11-02 against each action's latest GitHub release; annotated tags dereferenced to the commit. All JavaScript actions below declare `runs.using: node24` (Node 20 was removed from Actions runners on 2026-09-23: <https://github.blog/changelog/2026-09-23-node-20-is-no-longer-available-in-github-actions/>).
 
 | Action | Version | Commit SHA |
 | --- | --- | --- |
 | `actions/checkout` | v7.0.1 | `3d3c42e5aac5ba805825da76410c181273ba90b1` |
 | `actions/setup-node` | v7.1.0 | `949feb2413d6458794dcd2491c4babbbce0c15c1` |
-| `astral-sh/setup-uv` | v10.2.0 | `c18668ad3cf93ea998bef934396af7bb5c839dc7` |
+| `astral-sh/setup-uv` | v10.3.3 | `68559e99cc807c1eb7e9238fd43a15bba460eec2` |
 | `actions/upload-artifact` | v7.0.2 | `cf430e030ddbb5b0abf93d22962f4752f3646cd9` |
 | `actions/download-artifact` | v8.0.2 | `9000827ccba6bdab643e8b6fd33ac0654aef8333` |
 | `actions/cache` | v6.1.0 | `55cc8345863c7cc4c66a329aec7e433d2d1c52a9` |
@@ -31,11 +31,11 @@ Verified 2026-10-09 against each action's latest GitHub release; annotated tags 
 | `aws-actions/configure-aws-credentials` | v6.3.0 | `e1253824e5c10ff9df46874f81ed3ec929e19cfd` |
 | `aws-actions/amazon-ecr-login` | v2.1.7 | `03f1aad4c6c7ffd436567f42f9384779290529bd` |
 | `aws-actions/amazon-ecs-render-task-definition` | v1.9.1 | `8d79160660ad39c402a16e5fc7cd2a32e8f7d6b7` |
-| `aws-actions/amazon-ecs-deploy-task-definition` | v2.6.3 | `c465972ecbd160473f22e683363b422a5412a3de` |
+| `aws-actions/amazon-ecs-deploy-task-definition` | v2.6.4 | `a00d4d57ac0de1a99b39fe469f3d898d38717c2b` |
 | `docker/setup-buildx-action` | v4.4.1 | `f87e5991a6d7451dcb8d9637bfbc97413f497069` |
 | `docker/build-push-action` | v7.4.0 | `c3c9e263c25d99ce0380d002d59b67737d91b0dc` |
-| `SonarSource/sonarqube-scan-action` | v8.3.0 | `d209202bc7d53ff1cc128f7f907dac145c9d6ae9` |
-| `ossf/scorecard-action` | v2.4.4 | `2d1146689b8cda280b9bc96326124645441f03bc` |
+| `SonarSource/sonarqube-scan-action` | v8.4.0 | `4d1dc0c91ee400dcf8a6dddf2f705ac36542e304` |
+| `ossf/scorecard-action` | v2.5.0 | `fa7117db83c52d787ae5a89f350999701505d78e` |
 | `actions/attest` | v4.2.2 | `1e69f48acb82d1966a394da916b4c1698aa569d6` |
 
 Re-verify before reuse; pins age. Resolve a tag to its commit (dereferences annotated tags; same command in bash, zsh, and PowerShell):
@@ -229,7 +229,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
       - run: uv sync --locked
@@ -243,7 +243,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
       - run: uv sync --locked
@@ -256,7 +256,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
       - run: uv sync --locked
@@ -269,7 +269,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
       - run: uv sync --locked
@@ -289,7 +289,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
       - name: Export locked dependencies
@@ -367,7 +367,7 @@ jobs:
         with:
           name: coverage_result
           path: coverage/
-      - uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+      - uses: SonarSource/sonarqube-scan-action@4d1dc0c91ee400dcf8a6dddf2f705ac36542e304 # v8.4.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
@@ -758,7 +758,7 @@ jobs:
           container-name: my-service
           image: ${{ steps.image.outputs.image }}
       - name: Register, deploy, and wait for stability
-        uses: aws-actions/amazon-ecs-deploy-task-definition@c465972ecbd160473f22e683363b422a5412a3de # v2.6.3
+        uses: aws-actions/amazon-ecs-deploy-task-definition@a00d4d57ac0de1a99b39fe469f3d898d38717c2b # v2.6.4
         with:
           task-definition: ${{ steps.render.outputs.task-definition }}
           cluster: my-service-${{ needs.select.outputs.environment }}
