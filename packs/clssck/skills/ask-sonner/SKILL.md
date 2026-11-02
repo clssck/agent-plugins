@@ -44,7 +44,7 @@ import { toast } from 'sonner';   // anywhere client-side
 | Plain message | `toast('Title')` — add `{ description }` for a second line |
 | Success / error / info / warning icon | `toast.success('…')`, `toast.error('…')`, etc. |
 | Spinner while you manage state yourself | `toast.loading('…')`, then update it by id |
-| Loading → success/error tied to a promise | `toast.promise(promise, { loading, success, error })` — success/error accept functions receiving the resolved value/error |
+| Loading → success/error tied to a promise | `toast.promise(promise, { loading, success, error })` — success/error accept functions receiving the resolved value/error; return `{ message, action, duration, … }` from them to give the outcome its own options (an error toast with a Retry `action`) |
 | Button that does something | `{ action: { label, onClick } }` — closes the toast unless `onClick` calls `event.preventDefault()`; `cancel` is the secondary variant |
 | Custom JSX, default toast shell | `toast(<jsx />)` |
 | Custom JSX, no styles at all | `toast.custom((t) => <jsx />)` — headless, `t` gives you the id to dismiss |
@@ -58,13 +58,13 @@ const id = toast.loading('Uploading…');
 toast.success('Uploaded', { id });
 ```
 
-**Persist** — `{ duration: Infinity }`. **Dismiss** — `toast.dismiss(id)`, or `toast.dismiss()` for all. **Read active toasts** — `useSonner()` in React, `toast.getActiveToasts()` outside it.
+**Persist** — `{ duration: Infinity }`. **Dismiss** — `toast.dismiss(id)`, or `toast.dismiss()` for all. **Read active toasts** — `useSonner()` in React, `toast.getToasts()` outside it (`toast.getActiveToasts` does not exist).
 
 **Links or components in the text** — pass a function for the title or description: `toast(() => <a href="…">View</a>)`.
 
 **Multiple toasters** — give each an `id` and target with `toast('…', { toasterId: 'canvas' })`. A Toaster with an `id` renders only toasts whose `toasterId` matches; a toast without `toasterId` renders only in Toasters without an `id` — if every Toaster has an `id`, untargeted toasts never show.
 
-**Close callbacks** — `onDismiss` fires on close button or swipe; `onAutoClose` fires on timeout. They are separate; there is no single "closed" callback.
+**Close callbacks** — `onDismiss` fires on close button, swipe, or `toast.dismiss()`; `onAutoClose` fires on timeout. They are separate; there is no single "closed" callback.
 
 ## Styling — the escalation ladder
 
@@ -81,7 +81,7 @@ Climb only as far as the change requires; jumping to the top rung too early is f
 
 ## Troubleshooting
 
-If the user asked for diagnosis and a dev server is running, reproduce on the dedicated development surface (see directives) before matching a row: record the current toast state, trigger one toast with unique text or a stable test id, then use `tab.evaluate` to count only matching `[data-sonner-toast]` elements. Zero means that toast never rendered (read `tab.errors()` and `tab.console()`); more than one with the same identity is a duplicate; one that the user cannot see points to stacking or styling (`tab.screenshot()`, `tab.styles(...)`). A global count of every visible toast is not duplicate evidence. Without such a surface, work from the table.
+If the user asked for diagnosis and a dev server is running, reproduce on the dedicated development surface (see directives) before matching a row: record the current toast state, trigger one toast with unique text or a stable test id, then use `tab.evaluate` to count only matching `[data-sonner-toast]` elements. Zero means that toast never rendered (read `tab.errors()` and `tab.console()`); more than one with the same identity is a duplicate; one that the user cannot see points to stacking or styling (`tab.screenshot()`, `tab.styles(...)`). A global count of every visible toast is not duplicate evidence. The `[data-sonner-toaster]` element does not exist until the first toast fires, so its absence before a toast is not a missing `<Toaster />`. Without such a surface, work from the table.
 
 | Symptom | Cause → fix |
 | --- | --- |
@@ -97,4 +97,4 @@ If the user asked for diagnosis and a dev server is running, reproduce on the de
 | `toast.promise` stuck on loading | It needs a promise (or a function returning one) as its first argument, and the promise must actually resolve/reject. |
 | Swipe-to-dismiss goes the wrong way / doesn't work | Directions derive from `position`. Override with `swipeDirections` on the Toaster. |
 | Toast shows up in every toaster | Multiple toasters need targeting: give each Toaster an `id` and pass `toasterId` in the `toast()` call. |
-| Toasts too close to the screen edge on mobile | `offset` (desktop, default 32px) and `mobileOffset` (<600px, default 16px) — numbers, CSS strings, or per-side objects. |
+| Toasts too close to the screen edge on mobile | `offset` (desktop, default 24px) and `mobileOffset` (<600px, default 16px) — numbers, CSS strings, or per-side objects. |

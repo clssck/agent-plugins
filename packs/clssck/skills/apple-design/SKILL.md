@@ -47,14 +47,45 @@ The moment lag appears, the feeling of directness "falls off a cliff." Response 
 
 When the user drags something, it must stay glued to the finger — and respect the offset from *where they grabbed it*. Snapping to the element's center on grab breaks the illusion immediately.
 
-- Use Pointer Events with `setPointerCapture` so tracking continues even when the pointer leaves the element's bounds.
+- Use Pointer Events with `setPointerCapture` so tracking continues even when the pointer leaves the element's bounds. Capture has two costs: a captured pointer retargets the `click` to the capturing element, so a button inside the surface (a mini player's play button) stops getting its click; and until capture, `pointermove` goes to whatever is under the pointer, so a flick that leaves a small surface on its first move is lost if capture waits for the movement threshold. Capture at `pointerdown` when the surface holds no controls. When it does, listen for `pointermove`/`pointerup`/`pointercancel` on `window` from `pointerdown`, and capture once the threshold is crossed.
 - Track a short **velocity/position history** (last few `pointermove` events), not just the current point — you'll need velocity at release.
 
+Choose ONE of the two examples; registering both runs contradictory capture logic.
+
 ```js
+// A — surface with no nested controls: capture at pointerdown
 el.addEventListener('pointerdown', (e) => {
   el.setPointerCapture(e.pointerId);
   const grabOffset = e.clientY - el.getBoundingClientRect().top; // respect where they grabbed
   // ...track position + timestamp history for velocity
+});
+```
+
+```js
+// B — surface with nested controls (buttons, inputs): track on window, capture after the threshold.
+// One AbortController owns the temporary listeners, so every press ends with none left.
+el.addEventListener('pointerdown', (e) => {
+  const ac = new AbortController();
+  const startY = e.clientY;
+  let captured = false;
+  window.addEventListener('pointermove', (m) => {
+    if (m.pointerId !== e.pointerId) return;
+    if (!captured && Math.abs(m.clientY - startY) > 10) {
+      el.setPointerCapture(m.pointerId);
+      captured = true;
+    }
+    // ...once captured: update position + history
+  }, { signal: ac.signal });
+  window.addEventListener('pointerup', (u) => {
+    if (u.pointerId !== e.pointerId) return;
+    ac.abort();
+    // completed release: project velocity, settle (a press that never captured is a tap)
+  }, { signal: ac.signal });
+  window.addEventListener('pointercancel', (c) => {
+    if (c.pointerId !== e.pointerId) return;
+    ac.abort();
+    // interrupted by the system: no momentum; return to the pre-drag state or settle from here
+  }, { signal: ac.signal });
 });
 ```
 
@@ -95,14 +126,22 @@ Apple deliberately replaced the physics triplet (mass/stiffness/damping) with tw
 
 **Web mapping (Motion / Framer Motion):** the `bounce` + `duration` spring API maps closely to Apple's damping + response — Apple's damping ratio `1.0` is Motion's `bounce: 0`. Don't pass the ratio as Motion's `damping`: that is a physics force coefficient (default `10`), so `damping: 1` oscillates heavily. A safe house style is `bounce: 0` springs everywhere by default; reserve bounce for momentum-driven, physical interactions.
 
+**A spring defined only by `bounce`/`duration`/`visualDuration` carries no velocity** — neither an explicit `velocity` nor the velocity of the animation it interrupts (Motion 14.9 treats it as time-defined and starts it at 0; passing `stiffness`, `damping` or `mass` overrides that). Use time-defined springs for taps and programmatic moves. A release handoff or a mid-flight re-target takes physics parameters converted from Apple's pair with `mass: 1`: `stiffness = (2π / response)²`, `damping = 4π · ratio / response`.
+
 ```js
 import { animate } from 'motion';
 
-// Critically damped default (no overshoot)
+// Critically damped default (no overshoot); no incoming velocity
 animate(el, { y: 0 }, { type: 'spring', bounce: 0, duration: 0.4 });
 
-// Momentum interaction — a little bounce, only because a flick preceded it
-animate(el, { y: target }, { type: 'spring', bounce: 0.2, duration: 0.4 });
+// Release handoff — physics parameters, so `velocity` is honored. A little bounce
+// (ratio 0.8) only because a flick preceded it; y is a motionValue.
+const spring = (ratio, response) => ({
+  type: 'spring', mass: 1,
+  stiffness: (2 * Math.PI / response) ** 2,
+  damping: (4 * Math.PI * ratio) / response,
+});
+animate(y, target, { ...spring(0.8, 0.3), velocity: releaseVelocity });
 ```
 
 ## 5. Velocity handoff — the seam between drag and animation
@@ -115,7 +154,7 @@ Pass the pointer's release velocity as the spring's initial velocity. Some sprin
 relativeVelocity = gestureVelocity / (targetValue − currentValue)
 ```
 
-Example: element at `y=50`, target `y=150` (100px to go), finger moving 50px/s → initial spring velocity = `50 / 100 = 0.5`. Framer Motion / Motion take absolute px/s velocity directly (`velocity` option), so you usually hand it the raw value.
+Example: element at `y=50`, target `y=150` (100px to go), finger moving 50px/s → initial spring velocity = `50 / 100 = 0.5`. Framer Motion / Motion take absolute px/s velocity directly (`velocity` option) on a physics-parameter spring (§4), so you usually hand it the raw value.
 
 ## 6. Momentum projection — animate to where the gesture is *going*
 
@@ -223,7 +262,7 @@ Also: avoid full-viewport moving backgrounds, slow looping oscillations (near 0.
 }
 ```
 
-Verify the reduced-motion path rather than trusting the media query. When the app is running, open it from Eval with `browser.open({ …, app: { tern: false } })`, call `tab.emulate({ reducedMotion: true })`, trigger the transition, and check `tab.styles(selector, ['transform', 'transition'])`. If no app is running, or the tab cannot emulate reduced motion, inspect the CSS instead and report rendered reduced-motion behavior as unverified. Transparency and contrast preferences can't be emulated; verify those by reading the CSS.
+Verify the reduced-motion path rather than trusting the media query. When the app is running, open it from Eval with `browser.open({ …, app: { tern: false, relay: false } })` (`tern: false` alone still drives the user's Chrome when the relay is on, and a Tern tab cannot override reduced motion). Managed headless Chromium can start with reduced motion already on, so read `matchMedia('(prefers-reduced-motion: reduce)').matches` and pin the state with `tab.emulate({ reducedMotion: false })` before judging the full-motion path, then `true` for the reduced one. Trigger the transition and check `tab.styles(selector, ['transform', 'transition'])`. If no app is running, or the tab cannot emulate reduced motion, inspect the CSS instead and report rendered reduced-motion behavior as unverified. Transparency and contrast preferences can't be emulated; verify those by reading the CSS.
 
 ## 15. Typography — optical sizing, tracking, leading
 

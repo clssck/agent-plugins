@@ -55,6 +55,27 @@ bun build ./src/cli.ts --compile --minify --sourcemap \
 - Cross-compile with `--target`: `bun-linux-x64`, `bun-linux-arm64`, `bun-windows-x64`, `bun-windows-arm64`, `bun-darwin-x64`, `bun-darwin-arm64`; `-musl` variants exist for Linux. Windows output gets `.exe` automatically.
 - Binaries handed to other macOS users SHOULD be code-signed with `codesign` (Bun ≥ 1.2.4) to avoid Gatekeeper warnings.
 
+### Lint, format, typecheck
+
+New project with no toolchain convention only. Existing ESLint/Prettier/Biome/npm/pnpm repo → keep its commands. Authorized scaffolding/setup of a new project → install into that project: `bun add -d oxlint oxfmt typescript @types/bun` (no global install). Installs not permitted (offline, no new dependencies) → suggest this command, write the scripts below, and report lint/format/typecheck as not run.
+
+```json
+{
+  "scripts": {
+    "lint": "oxlint --deny-warnings src",
+    "lint:fix": "oxlint --fix --deny-warnings src",
+    "fmt": "oxfmt src",
+    "fmt:check": "oxfmt --check src",
+    "typecheck": "tsc --noEmit",
+    "check": "bun run typecheck && bun run lint && bun run fmt:check && bun test"
+  }
+}
+```
+
+- **Not substitutes:** `bun build`, `bun test`, and the `oxlint` command above do not type-check; keep `tsc --noEmit` (needs a `tsconfig.json` with `strict`, `noEmit`, `types: ["bun"]`). Bun is the runtime and package manager, not a devDependency. Oxlint warnings exit 0 unless `--deny-warnings`; `oxfmt --check` exits 1 on unformatted files, `oxfmt` rewrites them.
+- Oxfmt prints "No config found, using defaults" without a config file; that is not an error. Add `.oxlintrc.json`/`.oxfmtrc.json` only when the defaults need changing.
+- oh-my-pi's own root `package.json` runs the same pair (`oxlint .`, `oxfmt` in `check:tools`/`fmt:tools`).
+
 ## Node, npm, and pnpm (compatibility)
 
 Use this path when the repository already uses npm/pnpm (lockfile, scripts, CI), the install target requires Node/npm, or a dependency is verified to fail under Bun.
@@ -85,8 +106,8 @@ Scaffold with `uv init --package <tool-name>`: it creates `src/<package>/`, a `[
 <tool-name> = "<package>:main"
 ```
 
-- Install with `uv tool install --editable .`: the tool gets an isolated environment and source edits apply without a reinstall. After changing `[project.scripts]`, re-run with `--reinstall`.
-- Check the install with `uv tool dir --bin` (the executable directory), as in the table above.
+- Install with `uv tool install --editable .`: the tool gets an isolated environment and its entry point links back to the project source, so source edits apply without a reinstall. After changing `[project.scripts]`, re-run with `--reinstall`.
+- Check the install with `uv tool dir --bin` (the executable directory), as in the table above. Approved PATH directory differs from that default (or the install must stay inside a scratch tree): `UV_TOOL_BIN_DIR=<approved-dir> UV_TOOL_DIR=<private-tool-dir> uv tool install --editable .` links `<approved-dir>/<tool-name>` to an environment under `<private-tool-dir>`, so installed environments and entry points stay out of uv's default tool and bin directories. uv's shared wheel/build cache is separate (`UV_CACHE_DIR`, default user cache); set it too when nothing may be written there. Run the installed link by absolute path from a fresh directory. A symlink into the project's `.venv` bypasses the installer and tool-environment isolation: use `uv tool install`.
 - Run once without installing: `uvx --from <path-or-package> <tool-name>`.
 - NEVER `pip install` or `pipx install` into system or Homebrew Python; interpreters marked `EXTERNALLY-MANAGED` (PEP 668) make pip refuse, and `--break-system-packages` is the risky override. Use `uv tool install`.
 - `uv tool install` will not overwrite an executable it did not install (e.g. one from `pipx`). Treat that as a name collision: rename the tool or ask. Use `--force` only after the user agrees to replace the existing binary.

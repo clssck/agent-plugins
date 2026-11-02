@@ -85,7 +85,7 @@ Walk down; stop at the first that fits.
 
 Reach for a shared value only when the value is continuous or interruptible. A press scale is a CSS transition; a drag is a shared value. Using a worklet for a two-state toggle is the mobile equivalent of installing a motion library for a fade.
 
-**Dependencies.** Keep installed dependencies that already fit the SDK. NEVER upgrade or replace a working dependency just to reach a newer API. Adding a package or changing a version is a dependency change, so get the user's authorization first, then install with `npx expo install <package>`. It resolves the version that matches the project's SDK, which plain `npm install` won't. Without authorization, or when the project can't meet a prerequisite (Reanimated 4 on the Old Architecture), stop and name what's missing, or build with the APIs the installed versions provide:
+**Dependencies.** Keep installed dependencies that already fit the SDK. NEVER upgrade or replace a working dependency just to reach a newer API. Adding a package or changing a version is a dependency change, so get the user's authorization first, then install with `npx expo install <package>`. It resolves the version that matches the project's SDK, which plain `npm install` won't. Verification commands count as well: `npx expo lint` installs `eslint` and `eslint-config-expo`, writes `eslint.config.js` and edits `package.json` when ESLint isn't set up, and `npx <tool>` downloads a tool that isn't installed. Before authorization, run only checks the project already has installed and configured (a lint or typecheck script that needs no setup, `./node_modules/.bin/tsc --noEmit`) and report any other check as not run; never swap in another command that installs. Without authorization, or when the project can't meet a prerequisite (Reanimated 4 on the Old Architecture), stop and name what's missing, or build with the APIs the installed versions provide:
 
 | Need | Package |
 | --- | --- |
@@ -222,7 +222,7 @@ Check these first when "the animation just doesn't run":
 
 | Never | Instead |
 | --- | --- |
-| `PanResponder` | `Gesture.Pan()` from gesture-handler |
+| `PanResponder` | `Gesture.Pan()` from gesture-handler (v3: `usePanGesture`) |
 | `setState` in a gesture or scroll handler | shared value + `useAnimatedStyle` |
 | `runOnJS` (deprecated in Reanimated 4) | `scheduleOnRN` from `react-native-worklets` |
 | `scheduleOnRN` per frame | `onEnd`, or `useAnimatedReaction` at a threshold |

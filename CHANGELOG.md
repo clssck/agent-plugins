@@ -6,6 +6,19 @@ Published changes to the first-party packs in `packs/`, newest first. Format fol
 
 - Routing eval defaults to Haiku 5.5 with thinking off and a configurable 12-message budget. It now rejects failed or aborted responses as decisions, distinguishes errors and budget caps from completed no-skill answers, accepts a separately validated holdout through `--cases`, and accepts `--thinking LEVEL` (default `off`).
 
+## clssck 2.1.25 - 2026-11-02
+
+- `animate` pins and confirms normal and reduced-motion preferences before inspecting each variant, so the host's Reduce Motion setting cannot silently substitute one for the other.
+- `emil-design-eng` preserves submission, validation, data handling, and keyboard behavior in polish-only requests. Implementation checks cover the rendered UI and its interactions; motion recordings use explicit media preferences and separate output paths, with unsupported checks reported as unverified.
+- `review-animations` keeps fix requests inside its read-only review boundary and returns the complete findings table and verdict. `improve-animations` reports unmet execution prerequisites instead of offering to bypass isolation, and records motion in a dedicated tab with confirmed media preferences.
+- `remove-animations` preserves keyboard activation when formerly delayed callbacks restore focus synchronously. Verification starts from the return-focus control, checks the intended command outcome, and waits for the expected focus target rather than assuming a fixed frame count.
+- `break-ui` traces layout constraints through ancestor containers and labels unrendered findings as predictions. Stress data includes hyphen-free emails; fixes respect established or user-approved presentation choices, and readiness checks verify the intended development surface rather than trusting an HTTP status alone.
+- `ask-sonner` corrects its API reference against Sonner 2.0.8: `getToasts()`, dismissal callbacks, offsets, direction, supported defaults, and promise result variants. Installed types and runtime source take precedence when the project's version differs.
+- `skill-authoring` separates source requirements from invented conventions, checks helpers against differently phrased compliant input and genuinely missing information, and reports indeterminate checks as requiring manual review rather than a clean pass. Unregistered skills can receive explicitly labelled absolute-source trials without changing shared discovery settings.
+- `apple-design` distinguishes immediate pointer capture from control-preserving drag tracking, cleans up temporary listeners, and uses physics-parameter Motion springs when release velocity must carry through. Normal and reduced-motion checks explicitly control their media preference.
+- `animate-expo` accounts for SDK 58's Gesture Handler v3 and uses type-correct Reanimated CSS transition helpers. Verification uses already installed checks rather than commands that silently install lint or TypeScript dependencies; unavailable native execution remains unverified.
+- `cli-creator` prefers Bun with project-local Oxlint, Oxfmt, and separate TypeScript checking for new JS/TS projects; existing toolchains and installation restrictions take precedence. Explicit token inputs override ambient credentials, Python installation proof uses a real private `uv tool install`, and unregistered companion skills are tested by path without claiming discovery.
+
 ## sanofi 1.2.4 - 2026-11-01
 
 - `architecture-documentation` opens its routing preview with what users ask for ("Draw or document how a system's services talk to each other") and keeps the ADR boundary inside it. Over 36 thinking-off runs on its routing and holdout cases, Sonnet 5.5 selected it in 36 (was 28) and DeepSeek V4 Flash in 31 (was 26); Haiku 5.5 went from 9 to 5, all misses reading no skill. `adr-writing` held at 36 and 35–36.

@@ -17,7 +17,7 @@ A subtraction skill. It does ONE thing: put every existing animation on trial, t
 
 <directives>
 
-1. **Only subtract.** Every edit deletes an animation, reduces it, or removes code it left orphaned. Never add motion, change an easing curve, or retune a spring. If an animation should stay but is badly built, list it in Part 2 for `improve-animations` and leave it untouched.
+1. **Only subtract.** Every edit deletes an animation, reduces it, removes code it left orphaned, or repairs a Removal Hazard the deletion exposed (a moved callback, a `preventDefault()`). Never add motion, change an easing curve, or retune a spring. If an animation should stay but is badly built, list it in Part 2 for `improve-animations` and leave it untouched.
 2. **Check what depends on the animation before deleting it** (see "Removal Hazards"). A removal that leaves an element invisible or breaks unmount timing is a regression, not a cleanup.
 3. **Ask before removing a dependency.** Uninstalling a motion library touches the lockfile and other people's work; propose it in Part 3, don't do it. Never run the package manager's remove command or edit the lockfile yourself.
 4. **Respect documented decisions.** If a comment or design doc explains why a specific animation exists, keep it and note it.
@@ -123,7 +123,7 @@ Check each of these before deleting. They are why removal is not a find-and-repl
 - **Code that waits for the animation.** `onAnimationEnd`, `transitionend` listeners, `onExitComplete`, and `setTimeout` calls sized to a duration. Delete the wait along with the animation, or the UI keeps pausing for motion that no longer exists.
 - **Exit animations that delay unmount.** `AnimatePresence` holds a component in the DOM until its exit finishes, and `onExitComplete` fires after. Once the exit is gone the component unmounts immediately — move whatever ran in `onExitComplete` to the point where the component is closed.
 - **Layout animations hiding a jump.** Motion's `layout` prop or a FLIP animation can be masking a layout shift. Remove it and the jump appears. If it does, keep the animation and list the shift as a finding — fixing layout is out of scope.
-- **Focus timed after motion.** Focus moved in an animation callback must move immediately once the animation is gone.
+- **Focus timed after motion.** Focus moved in an animation callback must move immediately once the animation is gone. When a key handler (Enter, or another activation or confirmation key) started that callback, the move now happens inside the keydown: call `preventDefault()` for that key only, or its native default then activates the element that just received focus (the return-focus target, such as a button or tab).
 - **Reduced-motion branches.** A `prefers-reduced-motion` query or `useReducedMotion()` branch belongs to the animation it gates: delete it with a deleted animation, keep it for one that stays or is reduced. Never delete a reduced-motion fallback on its own — its gentle fade is the compliant fallback, not decoration.
 - **Tests and selectors.** Tests that wait for animation classes or durations need the same removal.
 
@@ -147,7 +147,7 @@ If the motion library is no longer imported anywhere, say so and propose removin
 Check what code cannot prove: that nothing stayed hidden and nothing still waits. Entry gate: the app is already running (or the user gave a URL) and Eval is available with its `browser` object enabled. Never start a dev server yourself. Otherwise skip this procedure and, in Part 3, list each Delete or Reduce that touched a hazard as unverified, with the interaction that confirms it.
 
 1. In Eval, open a dedicated named tab with `browser.open({ name, url, app: { tern: false, relay: false } })`. Read the open result to see which backend you got.
-2. For each edited surface that touched a hazard, trigger it the way users do (`tab.click(selector)`, `tab.press(key)` for keyboard-opened surfaces), then check at once: `tab.isVisible(selector)` and `tab.styles(selector)` show the element visible at full opacity, and `tab.screenshot()` shows the settled state in the first frame, with no layout jump and focus where it belongs.
+2. For each edited surface that touched a hazard, trigger it the way users do (`tab.click(selector)`, `tab.press(key)` for keyboard-opened surfaces), then check at once: `tab.isVisible(selector)` and `tab.styles(selector)` show the element visible at full opacity, and `tab.screenshot()` shows the settled state in the first frame, with no layout jump. For a surface a key closes or confirms, start with the control that will receive focus back focused, open the surface once, then confirm or dismiss it by keyboard and check that the surface's action decided the outcome, not that control's. Judge focus by a bounded wait: poll `document.activeElement` until it is the expected return-focus target or a timeout (about 1 s) expires, and report how long it took, or the timeout and the element that held focus. A first sample still naming a just-hidden element is pending, not a result.
 3. An element still hidden, a delayed close, or misplaced focus means a hazard survived: fix it with the `edit` tool and re-check before reporting.
 
 Exit gate: every hazard-bearing change inspected, or named as unverified in Part 3.
@@ -185,7 +185,7 @@ List orphaned code removed and any dependency you propose dropping. Then one sho
 When feel can't be judged from code alone, say so instead of guessing. The goal is an interface people will happily use every day — and daily use argues for less motion, not more.
 
 <critical>
-- NEVER add motion, change an easing curve, or retune a spring; every edit deletes, reduces, or removes orphaned code.
+- NEVER add motion, change an easing curve, or retune a spring; every edit deletes, reduces, removes orphaned code, or repairs a Removal Hazard.
 - MUST check every Removal Hazard before deleting; NEVER leave a hidden start state or a wait sized to a removed duration.
 - NEVER uninstall a dependency or edit the lockfile; propose it in Part 3.
 - MUST gate every candidate, and ALWAYS include the Kept section.

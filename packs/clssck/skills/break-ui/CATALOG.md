@@ -29,11 +29,12 @@ Use `example.com`, `example.org`, or `.test` domains for emails and URLs, so the
 
 ## Emails, URLs, identifiers
 
-Unbreakable strings: they have no spaces, so the browser has nowhere to wrap them.
+Strings with no spaces give the browser few places to wrap. Punctuation can add break opportunities (a hyphen usually allows a break after it), and `white-space` and `overflow-wrap` decide whether a long run may break at all. Pair a hyphenated sample with a space- and hyphen-free one so the unbreakable case is tested.
 
 | Value | Breaks |
 | --- | --- |
-| `bartholomew.fitzgerald@northwind-industries-holdings.example.com` | The classic. Pushes every sibling off the row without `overflow-wrap: anywhere` |
+| `bartholomew.fitzgerald@northwind-industries-holdings.example.com` | Realistic and 64 characters, but a browser may wrap it after the hyphens, so alone it can understate the break |
+| `bartholomew.fitzgerald.northwindindustriesholdings@example.com` | The same shape with no hyphen: a 62-character run with no break opportunity. Pushes siblings off the row unless `overflow-wrap: anywhere` (or an ellipsis) is set |
 | `a@b.co` | Shortest realistic; layout that assumed a long email looks empty |
 | `first.last+billing-notifications@example.com` | Plus-addressing; validation that rejects `+`, display that truncates the meaningful part |
 | `ops@sub.department.region.example.co.uk` | Many subdomains, two-part TLD; "domain" extraction logic |
