@@ -6,6 +6,16 @@ Published changes to the first-party packs in `packs/`, newest first. Format fol
 
 - Routing eval defaults to Haiku 5.5 with thinking off and a configurable 12-message budget. It now rejects failed or aborted responses as decisions, distinguishes errors and budget caps from completed no-skill answers, accepts a separately validated holdout through `--cases`, and accepts `--thinking LEVEL` (default `off`).
 
+## clssck 2.1.28 - 2026-11-03
+
+- `cli-creator` uses .NET's `GetTempPath()` for PowerShell smoke directories, so an unset Windows-style `TEMP` variable on Unix cannot make the smoke run in the caller's directory.
+
+## sanofi 1.2.5 - 2026-11-03
+
+- `dbt` documents the production-manifest defer path for unit-test type introspection, including its relation and access prerequisites. Dynamic-table scheduler guidance now names the dbt-snowflake 1.11.5 boundary, the `target_lag` combinations, and why successful parse/compile checks do not validate them.
+- `snowflake-streamlit` blocks unavailable exact dependency pins instead of substituting unapproved versions or changing Python/runtime, and distinguishes an unavailable check from an absent package. The deployment reference records CLI 3.32.1's rejection of `sharing:` despite contradictory documentation, with `grants:` as the manifest form.
+- `iac-security-review` uses the same portable PowerShell temp-directory API for raw scanner output without changing scanner authorization or secret-handling rules.
+
 ## clssck 2.1.27 - 2026-11-03
 
 - `evidence-led-exploration` keeps blocked branches out of `selected_next`, allows no runnable next branch in its handoff templates, and requires distinct outcome and stop-reason fields in compact inline handoffs.

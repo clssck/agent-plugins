@@ -93,7 +93,7 @@ Smallest command that proves the change. Prefer README, Makefile, CI, or project
 | YAML, source, package, project config | `dbt parse` |
 | Model SQL | `dbt compile --select <model_name>` |
 | Data tests | `dbt test --select <model_name>` or the changed test; add `+` only for downstream |
-| Unit tests | `dbt test --select "<model>,test_type:unit"`; in a fresh or disposable schema, parents MUST exist (`dbt run --select <parents> --empty`, no `+`), plus an incremental model's own `--empty` shell; exclude from production builds ([unit-tests.md](skill://dbt/references/unit-tests.md)) |
+| Unit tests | `dbt test --select "<model>,test_type:unit"`; in a fresh or disposable schema, parents of `dict`/`csv` inputs MUST exist (`dbt run --select <parents> --empty`, no `+`; or `--defer --state <prod-manifest-dir>` for parents that manifest holds; `format: sql` inputs need none), plus an incremental model's own `--empty` shell unless deferred or its `this` fixture is `format: sql`; exclude from production builds ([unit-tests.md](skill://dbt/references/unit-tests.md)) |
 | Deprecations (1.10+) | `dbt parse --no-partial-parse --show-all-deprecations`; fix with `uvx dbt-autofix deprecations --dry-run` first |
 | CI-style | `state:modified+ --state <manifest-dir>` when a prior manifest exists ([state-and-ci.md](skill://dbt/references/state-and-ci.md)) |
 | Docs artifacts or catalog | `dbt docs generate`, only when it matters |
