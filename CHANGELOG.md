@@ -6,6 +6,15 @@ Published changes to the first-party packs in `packs/`, newest first. Format fol
 
 - Routing eval defaults to Haiku 5.5 with thinking off and a configurable 12-message budget. It now rejects failed or aborted responses as decisions, distinguishes errors and budget caps from completed no-skill answers, accepts a separately validated holdout through `--cases`, and accepts `--thinking LEVEL` (default `off`).
 
+## clssck 2.1.29 - 2026-11-03
+
+- `skill-authoring` prepares owned fixtures and fresh private state before dispatch, separates parent probes from trial state, and distinguishes harness failures from skill defects. Validation follows the target loader rather than imposing the strict `plugin.json` format on standalone OMP skills. Manual-only skills get explicit-invocation checks instead of selection panels; active skills are judged on the actual shortened hint. Missing-target causes are reported only when known, and directory-loader checks do not claim live-catalog routing or filesystem confinement.
+
+## sanofi 1.2.6 - 2026-11-03
+
+- `sanofi-airflow` uses lint-clean TaskFlow examples with explicit UTC start dates. Explicit or existing DAG identifiers are preserved; naming-policy conflicts block deployment instead of silently renaming the DAG.
+- Validation uses installed project tools when installation is forbidden, preserves the checker's exit status, and accounts for syntax-check artifacts. Missing Airflow leaves import, DagBag, wiring, and execution unverified; mocked decorators and syntax checks are not substitutes for runtime proof.
+
 ## clssck 2.1.28 - 2026-11-03
 
 - `cli-creator` uses .NET's `GetTempPath()` for PowerShell smoke directories, so an unset Windows-style `TEMP` variable on Unix cannot make the smoke run in the caller's directory.

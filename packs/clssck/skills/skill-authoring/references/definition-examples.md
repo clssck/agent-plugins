@@ -50,21 +50,27 @@ if (!process.env.OMP_ROOT || !process.env.SKILLS_DIR) {
   throw new Error("Export OMP_ROOT and SKILLS_DIR first");
 }
 const src = `${process.env.OMP_ROOT}/packages/coding-agent/src`;
-const { loadSkillsFromDir } = await import(`${src}/extensibility/skills.ts`);
+const { loadSkillsFromDir, buildSkillPromptMessage } = await import(`${src}/extensibility/skills.ts`);
 const { previewSkillDescription } = await import(`${src}/extensibility/skill-descriptions.ts`);
 const { skills, warnings } = await loadSkillsFromDir({
   dir: process.env.SKILLS_DIR,
   source: "omp-plugins:project",
 });
 if (warnings.length) throw new Error(JSON.stringify(warnings));
-console.log(JSON.stringify(skills.filter(skill => skill.hide !== true).map(skill => ({
+const listed = skills.filter(skill => skill.hide !== true).map(skill => ({
   name: skill.name,
   description: previewSkillDescription(skill.description),
-})), null, 2));
+}));
+const manual = skills.filter(skill => skill.hide === true);
+const invoked = await Promise.all(manual.map(async skill => ({
+  name: skill.name,
+  invocation: (await buildSkillPromptMessage(skill, { args: "", prompt: `/skill:${skill.name}` }, "user")).message.slice(0, 120),
+})));
+console.log(JSON.stringify({ listed, manualOnly: invoked }, null, 2));
 '
 ```
 
-Use the returned name and description in the retrieval panel; keep expected labels out of the judged state. A missing target is a discovery problem, not permission to substitute full frontmatter.
+Use `listed` as the retrieval panel; keep expected labels out of the judged state. NEVER substitute full frontmatter for a missing target. A target under `manualOnly` is hidden on purpose and still loads: its check is "absent from `listed`, prompt builds on explicit invocation", not selection. A target in neither array was not loaded by this check. NEVER infer the cause from absence: investigate it and report it if known, otherwise as unknown. Causes include, e.g., frontmatter with `enabled: false` (even alongside `disable-model-invocation: true`), no `description`, a wrong directory, or a missing `SKILL.md`. A deliberate `enabled: false` is configuration, not a defect. The recipe does not apply the user's configured sources, toggles, or exclusions and does not read the live catalog, so it proves neither registration, configured availability, nor live routing.
 
 NEVER use the default `new SkillDescriptionCatalog()` for an isolated check: its constructor opens the shared user database. If catalog behavior itself is under test, pass `store: SkillDescriptionStore.open(ownedPath)` for a fresh session-owned path, await `store.close()`, and remove only that owned scratch after its process exits. An empty store still measures the cold-cache path; it does not prove cached compression or live model selection.
 

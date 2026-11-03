@@ -109,7 +109,7 @@ orchestration/
 
 - **One DAG per file;** filename = `dag_id` exactly, so an alert names the file. When `dag_id` embeds the environment at runtime (`f"..._{ENV}"`, see Deployment gates), the filename carries the static part only (no `_dev`/`_prod` suffix); the same file deploys to every environment.
 - **Lowercase `snake_case` only:** no capitals, no dots (dots break Python imports and DAG parsing).
-- **`dag_id`:** stable prefix + entity, `<prefix>_<entity>` (repos vary; some use `paa/caa/saa` domain prefixes). Follow the repo's convention.
+- **`dag_id`:** stable prefix + entity, `<prefix>_<entity>` (repos vary; some use `paa/caa/saa` domain prefixes). Follow the repo's convention when the id is not specified. An explicitly requested or already-existing `dag_id` is used verbatim: NEVER silently rename it (add an `{ENV}` suffix, prefix, etc.) to fit a convention. If a documented platform naming rule conflicts with it, report the conflict and block deployment; do not rename.
 - **`task_id`:** verb-first, one unit of work: `extract_*`, `validate_*`, `load_*`, `run_dbt_*`. Should read as a pipeline so a failure names what broke.
 - **Owner, emails, tags, schedules:** from shared constants/helpers, NEVER inline literals.
 
@@ -119,7 +119,7 @@ Every DAG MUST set these explicitly; implicit defaults cause surprise backfills 
 
 | Setting | Standard | Why |
 |---|---|---|
-| `start_date` | Static `datetime(...)`; never `datetime.now()` | Dynamic start dates break scheduling/backfills |
+| `start_date` | Static, timezone-aware (`datetime(..., tzinfo=timezone.utc)`, or the repo's convention); never `datetime.now()` | Dynamic start dates break scheduling/backfills; a naive value silently takes the deployment's `[core] default_timezone` |
 | `catchup` | `False` unless a backfill is genuinely intended | Stops a run storm when a paused DAG is enabled |
 | `schedule` | Explicit cron/preset; `None` for trigger-only | Removes ambiguity about when it runs |
 | `max_active_runs` | Deliberate; `1` for any stateful load | Prevents two runs racing on the same target |
@@ -153,15 +153,18 @@ default_args = {
 
 ```python
 import os
-from datetime import datetime, timedelta
-from airflow.decorators import dag, task  # 2.11; on 3.x: from airflow.sdk import dag, task
+from datetime import datetime, timedelta, timezone
+
+# 2.11 import; on 3.x use: from airflow.sdk import dag, task
+from airflow.decorators import dag, task
 
 ENV = os.environ.get("MWAA_ENV", "dev").lower()
+
 
 @dag(
     dag_id=f"<project>_pipeline_{ENV}",
     schedule="@daily",
-    start_date=datetime(2024, 1, 1),
+    start_date=datetime(2024, 1, 1, tzinfo=timezone.utc),
     catchup=False,
     max_active_runs=1,
     max_active_tasks=16,
@@ -190,6 +193,7 @@ def pipeline():
     dbt_run = run_dbt()
     extract() >> dbt_run
     dbt_run >> [cleanup(), mark_complete()]
+
 
 pipeline()
 ```
@@ -347,7 +351,7 @@ Queues back up → add workers. Tasks need more CPU/memory or scheduler headroom
 
 - No `Variable.get()` / secret / heavy import at module level: `grep` `Variable\.get|get_secret` over `orchestration/dags/**/*.py`; every hit MUST sit inside a function or Jinja template.
 - `default_args` sets `retries` and `execution_timeout`; DAG sets `dagrun_timeout`.
-- `dag_id` includes the environment (via `os.environ.get("MWAA_ENV")`).
+- `dag_id` includes the environment (via `os.environ.get("MWAA_ENV")`) when the id is not specified. An explicitly requested or existing `dag_id` is kept as given; a conflict with this gate is reported as a deployment blocker, not resolved by renaming.
 - Config from `ConfigLoader`/YAML, not hardcoded env dicts.
 - File parses fast locally (Validation Ladder step 1, target <30s); CI DagBag validation clean.
 - `access_control`, `max_active_runs`, `max_active_tasks` set.
@@ -376,7 +380,7 @@ Scheduler loop: scan S3 `dags/` → parse (import each `.py`; module-level code 
 
 Applies when a DAG targets a 3.x tenant or is being prepared to leave the shared 2.11 platform. Review order: lint → imports → scheduling semantics → DB access → config → requirements.
 
-1. **Lint first.** `uvx ruff@latest check <dags_dir> --select AIR301,AIR302` (ruff ≥ 0.13.1) flags removals and provider moves. `--fix` applies safe fixes; `--unsafe-fixes` also rewrites import paths (enable `F401` to drop leftovers). `AIR311`/`AIR312` = still working but deprecated. Preview rules `AIR003` (`Variable.get()` outside a task) and `AIR304` (`datetime.now()`/random in DAG or task arguments: each parse produces a new DAG version) match this skill's parse-safety rule. `airflow config lint` checks config.
+1. **Lint first.** `ruff check <dags_dir> --select AIR301,AIR302` (installed ruff ≥ 0.13.1; if unavailable and installs are permitted, `uvx ruff@latest`; otherwise report unavailable) flags removals and provider moves. `--fix` applies safe fixes; `--unsafe-fixes` also rewrites import paths (enable `F401` to drop leftovers). `AIR311`/`AIR312` = still working but deprecated. Preview rules `AIR003` (`Variable.get()` outside a task) and `AIR304` (`datetime.now()`/random in DAG or task arguments: each parse produces a new DAG version) match this skill's parse-safety rule. `airflow config lint` checks config.
 2. **Imports.**
 
    | 2.x import | 3.x import |
