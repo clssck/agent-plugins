@@ -77,7 +77,7 @@ Stable IDs shared across evidence, claims, branches, probes. Append or supersede
 |`<slug>-ledger.md`|Step 2 (Inventory), once persistence is warranted: context loss likely, work will branch, or a handoff is expected|[investigation-ledger.md](skill://evidence-led-exploration/references/investigation-ledger.md) sections: Header, Subject Ledger, Evidence Registry, Contradictions, Investigation Ledger, Decision Log, Current State; rewritten with `write`/`edit` after each step-7 merge, so `Last updated` and Frontier match the latest merge|
 |`<slug>-handoff.md`|Step 9, before stopping or crossing a worker or session boundary|[handoff-packet.md](skill://evidence-led-exploration/references/handoff-packet.md) Full Handoff: objective with outcome and stop reason, evidence-based state, frontier, artifacts table, one best next action|
 
-**Compact-inline exception:** a short investigation with no expected context loss, branching, or handoff keeps the ledger as inline tables in the reply and creates no `<slug>-ledger.md`. The handoff packet is still produced before stopping, inline in the final report. Parallel workers return a Worker Delta in their result, not a file; the coordinator merges it into `<slug>-ledger.md`.
+**Compact-inline exception:** a short investigation with no expected context loss, branching, or handoff keeps the ledger as inline tables in the reply and creates no `<slug>-ledger.md`. The handoff packet is still produced before stopping, inline in the final report, in short form: outcome and stop reason as separate fields, branch states, artifacts or `none`, one best next action. Parallel workers return a Worker Delta in their result, not a file; the coordinator merges it into `<slug>-ledger.md`.
 
 ## Branch lifecycle
 
@@ -94,7 +94,7 @@ Stable IDs shared across evidence, claims, branches, probes. Append or supersede
 
 Transitions: `open → active → terminal | blocked | deferred`; `blocked`/`deferred` → `open` when the predicate holds. Reopen a terminal branch only for new contradictory evidence; keep the previous conclusion + transition reason.
 
-**Ownership is literal.** A branch becomes `active` only after its named current worker accepts it, even before the first probe. At handoff a chosen branch without an accepted owner stays `open`: mark `selected_next`, include its prepared probe, leave the active frontier empty. The recipient moves it to `active` on acceptance. NEVER use a placeholder owner such as "next worker."
+**Ownership is literal.** A branch becomes `active` only after its named current worker accepts it, even before the first probe. At handoff a chosen branch without an accepted owner stays `open`: mark `selected_next`, include its prepared probe, leave the active frontier empty. The recipient moves it to `active` on acceptance. NEVER use a placeholder owner such as "next worker." `selected_next` applies only to an `open` branch: a `blocked` branch stays `blocked`, and the one best next action is then the step that clears its `unblock_when`, or the best `open` branch when one can proceed.
 
 **A wake condition MUST be testable:** "when the deployment version is known", "when evidence shows the request reached the origin" — not "later", not "if useful".
 

@@ -26,7 +26,7 @@ Use stable ledger IDs. A recipient should be able to resume without reading the 
 ### Frontier
 
 - **Active branch:** ID, current owner, question, expected discriminator; write `none` when no current worker owns a probe
-- **Selected next branch:** open branch ID + prepared probe + expected discriminator; omit after a recipient accepts it
+- **Selected next branch:** open branch ID + prepared probe + expected discriminator; `none` when no open branch can proceed (the Resume action then clears the blocker); omit after a recipient accepts it
 - **Open branches:** IDs in priority order
 - **Deferred branches:** ID + observable `wake_when`
 - **Blocked branches:** ID + `blocked_by` + observable `unblock_when`

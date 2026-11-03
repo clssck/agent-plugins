@@ -75,7 +75,7 @@ Write the expected discriminator before running the probe. A tool failure is not
 ### Frontier
 
 - **Active:** named current owner, or `none`
-- **Selected next:** open branch + prepared probe when no worker has accepted it
+- **Selected next:** open branch + prepared probe when no worker has accepted it; `none` when no open branch can proceed
 - **Open:**
 - **Deferred:** branch + `wake_when`
 - **Blocked:** branch + `blocked_by` + `unblock_when`

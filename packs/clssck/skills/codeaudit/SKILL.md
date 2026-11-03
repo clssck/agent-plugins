@@ -33,7 +33,7 @@ Three modes share one discipline: establish reachability and attacker control, r
 | EDR/AV telemetry mapping, hook survey, detection-gap measurement, adversary simulation in a lab | Endpoint telemetry | [endpoint telemetry](skill://codeaudit/references/edr-telemetry.md) |
 
 - Engagement scope, records, and handoff → `pentest-tradecraft`; finding strength and proof basis → [finding quality](skill://pentest-tradecraft/references/finding-quality.md).
-- Write to `assessment/` under the task output directory unless the operator names another path. The skill tree is read-only.
+- Write to `assessment/` under the task output directory unless the operator names another path. Keep the operator's existing record filenames and formats; otherwise use the defaults for the selected mode below. The skill tree is read-only.
 - `read` for source ranges; `grep` for symbols and sinks; `find` when the location is unknown; `eval` for call graphs, path sets, and diffs; `glob` for repository shape; `bash` for real binaries and diff toolchains.
 - Partition large repositories by module or subgraph; pass paths, not live variables, to workers. One integration owner merges dispositions.
 
@@ -46,7 +46,7 @@ Three modes share one discipline: establish reachability and attacker control, r
 3. **Trace forward, one class at a time.** Injection, navigation/XSS, authorization and business logic, file operations, deserialization, cryptography, SSRF. Follow through assignments, interpolation, and calls until a sink, a sanitizer, or the boundary.
 4. **Apply the gates.** Reachable, attacker-controlled, new capability. A failure is a hardening note with cited evidence.
 5. **Verify across the codebase.** Read the shared defense to confirm it blocks the attack; an elimination cites the `file:line` of the defense, the type constraint, or the non-attacker origin.
-6. **Prove it.** Prefer executing against a local instance. When impossible, the static trace carries the entry value, `file:line` at every propagation step, the dangerous value at the sink, and the impact; label it `static-analysis-unexecuted`.
+6. **Prove it.** Execute a local proof only when execution is explicitly authorized. Otherwise retain the static trace with the entry value, `file:line` at every propagation step, the dangerous value at the sink, and the inferred impact; label it `potential` with `static-analysis-unexecuted` proof basis, not confirmed.
 7. **Sweep.** Grep the whole codebase for each confirmed root cause; every instance gets its own disposition.
 8. **Record.** Inventory, dispositions, sweep table, findings, and the next question.
 
@@ -65,11 +65,13 @@ Three modes share one discipline: establish reachability and attacker control, r
 
 ## Deliverables
 
+The table is for source audit. Patch diff uses its [build/diff/PoC deliverables](skill://codeaudit/references/patch-diff.md#deliverables); endpoint telemetry uses its [baseline/experiment/report deliverables](skill://codeaudit/references/edr-telemetry.md#deliverables). Report unavailable proof as a limitation, not an invented result.
+
 | File | Content |
 |---|---|
 | `inventory.json` | Every input, handler location, final disposition |
 | `dispositions.jsonl` | Candidate, gate results, cited defense or sink, status |
-| `findings.json` | Confirmed findings with PoC, measured impact, proof basis, retest state |
+| `findings.jsonl` | One finding or clearly labelled potential lead per line; evidence, proof basis, limitations, retest state; PoC and measured impact only when observed |
 | `sweep.txt` | Root cause, every instance, per-instance disposition |
 
 Zero confirmed findings is valid: deliver the coverage statement — classes hunted, method, surfaces, result. Measured impact carries a denominator; gates and self-check live in the finding-quality reference.

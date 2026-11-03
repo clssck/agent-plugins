@@ -18,7 +18,7 @@ A divergence skill. It does ONE thing: take a described piece of UI ("a toast", 
 
 <critical>
 
-1. **Never touch production code during exploration.** Everything lives in an isolated prototype surface (see Phase 4). Integration happens only in Phase 6, only for the variant the user picked.
+1. **Never touch production code during exploration.** Everything lives in an isolated prototype surface (see Phase 4). Integration happens only in Phase 6, only for the variant the user picked, wired to data and actions the product already has.
 2. **Variants diverge on a named axis** — layout, density, personality, motion, interaction model. Before building, you must be able to state each variant's axis in a phrase. Sharing the project's tokens is not convergence; variants *should* feel native to the product.
 3. **Every variant fully works.** Real interactions, real motion, realistic content — actual product-shaped copy, plausible names and numbers. No lorem ipsum, no dead buttons, no "imagine this part".
 4. **The picker is chrome, not a contestant.** Its exact markup, styles, and behavior are specified in [PICKER.md](skill://prototype/references/PICKER.md) — copy them verbatim. Its look is not a design decision and never adapts to the project.
@@ -96,7 +96,15 @@ Close with where the picker is running (URL or file path) and the keys to flip.
 
 ### Phase 6 — Promote on selection
 
-When the user picks: integrate that variant where it belongs, following the project's existing conventions (file layout, naming, token usage), then delete the prototype surface per Hard Rule 5. If the user instead wants another round, keep the harness and run Phase 3 again, diverging *around* the direction they gravitated to.
+When the user picks: integrate that variant where it belongs, following the project's existing conventions (file layout, naming, token usage). Promotion is wiring, not transplanting: replace the variant's stand-ins — sample copy, counts, file names, simulated handlers — with the data and actions the product already has at the integration point. Promotion never builds new product capability (endpoints, file generation, share links), and never ships a control that only looks functional.
+
+**Gate — before touching production code:** map every control, displayed data field, and success/status claim to the real product data, action, or event backing it. Sample metadata is part of this check, not disposable decoration. A simulated delay, mock response, or placeholder handler does not establish that the underlying operation completed.
+
+Missing backing is a promotion blocker. Approval to omit named parts covers only those parts, not other fields or claims. Unless the user already approved the omission, stop: leave production code and the prototype surface untouched, name each blocked part with its missing prerequisite, and ask the user to supply it or approve the omission. Promotion stays incomplete until they answer. Once they approve an omission, integrate without that part; once they supply a prerequisite, wire it.
+
+After integration, delete the prototype surface per Hard Rule 5; `keep <variant>, leave the picker` keeps it in place. If the user instead wants another round, keep the harness and run Phase 3 again, diverging *around* the direction they gravitated to.
+
+**Completion criterion:** every control, displayed field, and status claim is backed by real data, actions, or events, or its omission was explicitly approved by the user; the promoted piece renders and behaves in the real page; no prototype stand-in remains in production code; the prototype surface is deleted or kept exactly as the invocation said. While a blocker is unresolved, the outcome is blocked, never complete, and the prototype surface stays.
 </procedure>
 
 ## Tone

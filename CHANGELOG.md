@@ -6,6 +6,16 @@ Published changes to the first-party packs in `packs/`, newest first. Format fol
 
 - Routing eval defaults to Haiku 5.5 with thinking off and a configurable 12-message budget. It now rejects failed or aborted responses as decisions, distinguishes errors and budget caps from completed no-skill answers, accepts a separately validated holdout through `--cases`, and accepts `--thinking LEVEL` (default `off`).
 
+## clssck 2.1.27 - 2026-11-03
+
+- `evidence-led-exploration` keeps blocked branches out of `selected_next`, allows no runnable next branch in its handoff templates, and requires distinct outcome and stop-reason fields in compact inline handoffs.
+- `prototype` gives standalone variants explicit interaction setup and teardown, cancels superseded mounts, and gates promotion on real backing for controls, displayed data, and status claims. Missing capabilities or unapproved omissions leave production and the prototype untouched; successful promotion removes or retains the picker as requested.
+- `api-recon` separates exposure observations from credential validity and exploit impact, keeps credential testing out of recon scans, and stores binary artifacts under the chosen recon root. BBOT recipes now name their 3.x target/seed semantics and classify IIS shortname checks as loud.
+- `codeaudit` requires execution authorization for local proofs, preserves unexecuted traces as potential leads, and selects deliverables by audit mode. Its default finding store is now `findings.jsonl`, while existing operator filenames and formats remain authoritative.
+- `exploitation` uses the same JSONL finding default and routes include-based execution through the canonical passive-fingerprint, lab-reproduction, and one-shot prerequisites rather than a shorter alternate procedure.
+- `pentest-tradecraft` makes non-owned-object sampling conditional on necessity and authorization; three objects is a ceiling, not a quota.
+- Fresh investigation and UI trials exercised the changed workflows; the four security skills received static source review only because provider refusals blocked behavior trials. Descriptions and manual-only settings are unchanged.
+
 ## clssck 2.1.26 - 2026-11-02
 
 - `cli-creator` records exact smoke-test scratch paths and adds scoped Bash and PowerShell cleanup on success or failure. The Bash recipe honors `TMPDIR`, preserves the caller's directory, and propagates command failure. Generated tests must own unique config/token fixture directories and register cleanup before setup or assertions can fail.
