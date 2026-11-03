@@ -12,7 +12,7 @@ Published changes to the first-party packs in `packs/`, newest first. Format fol
 
 ## sanofi 1.2.6 - 2026-11-03
 
-- `sanofi-airflow` uses lint-clean TaskFlow examples with explicit UTC start dates. Explicit or existing DAG identifiers are preserved; naming-policy conflicts block deployment instead of silently renaming the DAG.
+- `sanofi-airflow` makes the TaskFlow example's start date explicitly UTC; the example remains a context-dependent fragment, not a standalone lint-clean module. Explicit or existing DAG identifiers are preserved; naming-policy conflicts block deployment instead of silently renaming the DAG.
 - Validation uses installed project tools when installation is forbidden, preserves the checker's exit status, and accounts for syntax-check artifacts. Missing Airflow leaves import, DagBag, wiring, and execution unverified; mocked decorators and syntax checks are not substitutes for runtime proof.
 
 ## clssck 2.1.28 - 2026-11-03
