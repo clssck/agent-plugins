@@ -74,16 +74,16 @@ tool-name --json drafts list --social-set <id>
 tool-name --json request get /v2/me
 ```
 
-Useful shapes from mature CLIs; implement filtering or templating only when the user needs it:
+Useful shapes borrowed from mature CLIs (`gh` field-selected JSON and `--jq`, `kubectl` human-text default). They are substitution templates, not runnable commands: `tool-name`, nouns, and fields are placeholders. They use this contract's boolean global `--json`; `gh`'s `--json <fields>` and `kubectl`'s `-o json` are other ecosystems' spellings, so do not mix them into the same CLI. Implement filtering or templating only when the user needs it:
 
 ```bash
 # Field-selected output
-tool-name issues list --json number,title,url,state
-tool-name issues list --json number,title --jq '.[] | select(.state == "open")'
+tool-name --json issues list --fields number,title,url,state
+tool-name --json issues list --fields number,title --jq '.[] | select(.state == "open")'
 
 # Human text by default, full API object on request
 tool-name pods get <name>
-tool-name pods get <name> -o json
+tool-name --json pods get <name>
 
 # Workflow commands, not just REST nouns
 tool-name logs tail

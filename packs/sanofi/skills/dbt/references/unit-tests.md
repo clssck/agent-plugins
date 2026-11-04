@@ -12,6 +12,8 @@ skill (see `licenses/sanofi/dbt/ATTRIBUTION`).
 
 ## Spec
 
+Schematic, NOT copy-ready: `|` separates alternatives and `<...>` marks a value to fill; choose one alternative per key. The runnable example is under [Incremental Models](#incremental-models).
+
 ```yaml
 unit_tests:
   - name: <scenario__expected>        # unique

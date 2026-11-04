@@ -66,7 +66,7 @@ A watermark on the driving table alone loses changes arriving on another parent:
 7. **Schedule a periodic full refresh** or bounded backfill to repair drift, unless the layer is history-bearing with `full_refresh: false`; there, bounded backfill only.
 8. **Prove it:** unit-test the `is_incremental: true` branch with a late child row ([unit-tests.md](skill://dbt/references/unit-tests.md#incremental-models)); in dev, add a late child row for an old parent, run incrementally, compare with a full-refresh build of a copy (`audit_helper.compare_relations`).
 
-Shape of a multi-parent key set (adapt names, windows, grain):
+Shape of a multi-parent key set (adapt names, windows, grain). **Assumed grain:** `stg_orders` one row per `order_id` (tested `unique` + `not_null`), `stg_payments` many rows per `order_id`. `orders.updated_at` then depends on `order_id`, so grouping by it adds no rows and the batch holds one row per `unique_key`. Parent at a finer grain (CDC/history, one row per change) → reduce it to one current row per key before the join (the `qualify row_number()` dedup above) and test that CTE's key `unique`; NEVER wrap the fan-out in `max(updated_at)`, which keeps one row but has already multiplied `sum(amount)`.
 
 ```sql
 {{ config(materialized='incremental', unique_key='order_id',

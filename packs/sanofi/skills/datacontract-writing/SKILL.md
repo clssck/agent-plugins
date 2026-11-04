@@ -60,7 +60,7 @@ uv run "$(realpath skill://datacontract-writing/scripts/validate_odcs.py)" datac
 | 2 | validator unavailable (no network, unreadable input) |
 
 - **No `uv`, or exit 2:** say validation did not run. NEVER claim the contract is valid.
-- **Second opinion (optional):** `uvx --from datacontract-cli datacontract lint FILE --all-errors --no-inline-references` ([datacontract-cli.md](skill://datacontract-writing/references/datacontract-cli.md)). Since CLI 1.2.5, lint exits 0 with only a warning on unknown fields (`isNullable`), and it accepts v3.2.0 fields such as `enum` under v3.1.0 without any message. Lint exit 0 therefore NEVER replaces `validate_odcs.py` exit 0 or the forbidden-field check below.
+- **Second opinion (optional):** `uvx --from datacontract-cli datacontract lint FILE --all-errors --no-inline-references` ([datacontract-cli.md](skill://datacontract-writing/references/datacontract-cli.md)). Since CLI 1.2.5, lint exits 0 with only a warning on unknown fields (`isNullable`), and it accepts v3.2.0 fields such as `enum` under v3.1.0 without any message. Lint exit 0 therefore NEVER replaces `validate_odcs.py` exit 0 or the schema-invalid field check below.
 - **Changing an existing contract:** run `datacontract breaking OLD NEW` the same way, and report the result before bumping `version`.
 
 ## Before reporting
@@ -71,7 +71,8 @@ Check the artifact against each of these before handing it back:
 |-------|-------------|
 | Validator | exit 0, or unavailability reported |
 | Root | has `apiVersion`, `kind`, `id`, `version`, `status` |
-| Forbidden fields | no `isPrimaryKey`, `isNullable`, `isUnique`, `serviceLevel`, `links`, `slaDefaultElement`, root `classification`/`quality` |
+| Schema-invalid fields | none of `isPrimaryKey`, `isNullable`, `isUnique`, `serviceLevel`, `links`, root `classification`/`quality`; each fails the schema |
+| Deprecated fields | `slaDefaultElement` is schema-valid in v3.1.0 and v3.2.0 (deprecated, to be removed in ODCS 4.0). This skill's authoring policy (not an external mandate): do not write it; set `slaProperties[].element`. A schema-valid imported draft carrying it is NOT invalid: report it as a deprecation finding, migrate per [odcs-template.md](skill://datacontract-writing/references/odcs-template.md#root-fields) only when asked to rewrite it |
 | Version fit | fields match the declared `apiVersion`; no v3.2.0 fields under v3.1.0 |
 | Team | uses `team.members[].username` |
 | Quality | args use `validValues`; composite keys use `arguments.properties` |

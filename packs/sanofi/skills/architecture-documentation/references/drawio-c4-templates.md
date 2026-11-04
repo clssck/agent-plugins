@@ -280,42 +280,52 @@ For persons (no technology):
 For diagrams requiring a detailed legend:
 
 ```xml
-<mxCell id="100" value="" style="rounded=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;arcSize=5;" vertex="1" parent="1">
-  <mxGeometry x="820" y="560" width="300" height="200" as="geometry"/>
-</mxCell>
-<mxCell id="101" value="&lt;b&gt;Legend&lt;/b&gt;" style="text;html=1;fontSize=13;fontColor=#333333;" vertex="1" parent="1">
-  <mxGeometry x="830" y="570" width="100" height="20" as="geometry"/>
-</mxCell>
-<mxCell id="102" value="" style="rounded=1;fillColor=#0047BB;strokeColor=none;" vertex="1" parent="1">
-  <mxGeometry x="840" y="600" width="20" height="15" as="geometry"/>
-</mxCell>
-<mxCell id="103" value="Person / System (in scope)" style="text;html=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
-  <mxGeometry x="870" y="598" width="200" height="18" as="geometry"/>
-</mxCell>
-<mxCell id="104" value="" style="rounded=1;fillColor=#4B9CD3;strokeColor=none;" vertex="1" parent="1">
-  <mxGeometry x="840" y="625" width="20" height="15" as="geometry"/>
-</mxCell>
-<mxCell id="105" value="Container" style="text;html=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
-  <mxGeometry x="870" y="623" width="200" height="18" as="geometry"/>
-</mxCell>
-<mxCell id="106" value="" style="rounded=1;fillColor=#00A3E0;strokeColor=none;" vertex="1" parent="1">
-  <mxGeometry x="840" y="650" width="20" height="15" as="geometry"/>
-</mxCell>
-<mxCell id="107" value="Component" style="text;html=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
-  <mxGeometry x="870" y="648" width="200" height="18" as="geometry"/>
-</mxCell>
-<mxCell id="108" value="" style="rounded=1;fillColor=#6D6E71;strokeColor=none;" vertex="1" parent="1">
-  <mxGeometry x="840" y="675" width="20" height="15" as="geometry"/>
-</mxCell>
-<mxCell id="109" value="External System" style="text;html=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
-  <mxGeometry x="870" y="673" width="200" height="18" as="geometry"/>
-</mxCell>
-<mxCell id="110" value="____" style="text;html=1;fontSize=11;fontColor=#707070;" vertex="1" parent="1">
-  <mxGeometry x="840" y="698" width="20" height="18" as="geometry"/>
-</mxCell>
-<mxCell id="111" value="Solid = Synchronous | Dashed = Async" style="text;html=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
-  <mxGeometry x="870" y="698" width="240" height="18" as="geometry"/>
-</mxCell>
+<mxfile host="draw.io">
+  <diagram name="Legend" id="legend">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="100" value="" style="rounded=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="820" y="560" width="300" height="200" as="geometry"/>
+        </mxCell>
+        <mxCell id="101" value="&lt;b&gt;Legend&lt;/b&gt;" style="text;html=1;fontSize=13;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="830" y="570" width="100" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="102" value="" style="rounded=1;fillColor=#0047BB;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="840" y="600" width="20" height="15" as="geometry"/>
+        </mxCell>
+        <mxCell id="103" value="Person / System (in scope)" style="text;html=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="870" y="598" width="200" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="104" value="" style="rounded=1;fillColor=#4B9CD3;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="840" y="625" width="20" height="15" as="geometry"/>
+        </mxCell>
+        <mxCell id="105" value="Container" style="text;html=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="870" y="623" width="200" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="106" value="" style="rounded=1;fillColor=#00A3E0;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="840" y="650" width="20" height="15" as="geometry"/>
+        </mxCell>
+        <mxCell id="107" value="Component" style="text;html=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="870" y="648" width="200" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="108" value="" style="rounded=1;fillColor=#6D6E71;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="840" y="675" width="20" height="15" as="geometry"/>
+        </mxCell>
+        <mxCell id="109" value="External System" style="text;html=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="870" y="673" width="200" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="110" value="____" style="text;html=1;fontSize=11;fontColor=#707070;" vertex="1" parent="1">
+          <mxGeometry x="840" y="698" width="20" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="111" value="Solid = Synchronous | Dashed = Async" style="text;html=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="870" y="698" width="240" height="18" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
 ```
 
 ---

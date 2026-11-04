@@ -132,7 +132,7 @@ In a framework, keep the class names and structure; only the rendering syntax ch
 
 The contract is fixed regardless of how the harness renders:
 
-- Number keys `1–N` and `←`/`→` switch variants; `R` replays. Ignore key events when focus is in an input, textarea, select, or contenteditable, or when a modifier is held.
+- Number keys `1–N` and `←`/`→` switch variants; `R` (or `r`) replays. Ignore key events when focus is in an input, textarea, select, or contenteditable, or when Meta, Ctrl, or Alt is held, so browser and OS shortcuts such as Cmd+R keep working. Shift is not checked: Shift+R replays.
 - Clicking an item switches to it; exactly one item carries `data-active` and `aria-current="true"` at all times, and the highlight slides to it.
 - Selection persists across reload via a URL param (`?v=2`), falling back to variant 1. The highlight takes its initial position without animating (`data-ready` is added after first paint).
 - Switching re-mounts the variant (so entrance animations re-run); the replay key re-mounts without switching. Every re-mount first tears down the outgoing variant's listeners and timers, so a hold, countdown, or auto-dismiss started in one variant never fires into the next.

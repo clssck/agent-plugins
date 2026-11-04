@@ -128,20 +128,7 @@ Every DAG MUST set these explicitly; implicit defaults cause surprise backfills 
 | `tags` | From a shared helper; team, priority, schedule | Findable in a crowded UI |
 | `default_args` | Shared dict; `email_on_failure=False`, `on_failure_callback` set | Consistent, predictable failure behavior |
 
-Recommended `default_args`:
-
-```python
-from datetime import timedelta
-
-default_args = {
-    "owner": "<team>",
-    "retries": 2,
-    "retry_delay": timedelta(seconds=30),
-    "retry_exponential_backoff": True,
-    "execution_timeout": timedelta(hours=2),
-    "on_failure_callback": task_error_alert,
-}
-```
+Canonical `default_args` and the `on_failure_callback` it references: `DEFAULT_ARGS` and `task_error_alert` in the module under [TaskFlow API](#taskflow-api). The example keeps them in one file so it is complete; in a real repo define them once in the shared helper module (`dag_utils`) and import them. NEVER copy the dict per DAG.
 
 - **Retries and timeouts are mandatory.** Celery workers can be OOM-killed (SIGKILL); `task_acks_late=True` re-queues killed tasks ⇒ without retries a killed task = permanent failure.
 - **Timeout ordering:** `execution_timeout` > platform `killed_task_cleanup_time` (120s); `dagrun_timeout` > longest legitimate run.
@@ -151,54 +138,139 @@ default_args = {
 
 `@dag`/`@task` = recommended authoring style: less boilerplate, data via return values (implicit XCom) instead of manual push/pull.
 
+Complete module `dags/example_pipeline.py` (Airflow 2.11; the filename is the static part of the `dag_id`). It holds the canonical `DEFAULT_ARGS` and `task_error_alert` and has no definition outside the file.
+
 ```python
+"""Example daily pipeline: extract, scoped dbt run, cleanup, failure sentinel."""
+
+import html
+import logging
 import os
 from datetime import datetime, timedelta, timezone
 
-# 2.11 import; on 3.x use: from airflow.sdk import dag, task
+# Airflow 2.11 only: cleanup reads the metadata DB; see Airflow 3 Migration for 3.x
 from airflow.decorators import dag, task
+from airflow.models import Variable
+from airflow.utils.email import send_email
+
+log = logging.getLogger(__name__)
 
 ENV = os.environ.get("MWAA_ENV", "dev").lower()
+# EXAMPLE VALUES, each overridable by environment variable. The project owns the
+# real values; they are passed to dbt through the task `env`, never into the shell.
+DBT_ENV = {
+    "DBT_PROJECT_DIR": os.environ.get(
+        "DBT_PROJECT_DIR", "/usr/local/airflow/dags/example/transformation"
+    ),
+    "DBT_TARGET": os.environ.get("DBT_TARGET", ENV),
+    "EXAMPLE_DBT_SELECT": os.environ.get("EXAMPLE_DBT_SELECT", "tag:example_daily"),
+}
+
+
+def task_error_alert(context):
+    """Email the recipients in Variable `example_alert_recipients`; never raises."""
+    try:
+        recipients = [
+            address.strip()
+            for address in Variable.get("example_alert_recipients").split(",")
+            if address.strip()
+        ]
+        if not recipients:
+            raise ValueError("Variable example_alert_recipients is empty")
+        ti = context["task_instance"]
+        send_email(
+            to=recipients,
+            subject=f"[{ENV}] Airflow task failed: {ti.dag_id}.{ti.task_id}",
+            html_content=(
+                f"<p>Task <b>{ti.dag_id}.{ti.task_id}</b> failed, "
+                f"logical date {context.get('logical_date')}.</p>"
+                f"<p>Error: {html.escape(str(context.get('exception', '')))}</p>"
+                f'<p><a href="{ti.log_url}">Task log</a></p>'
+            ),
+        )
+    except Exception:
+        # Delivery failed: this log line is NOT a notification. Never re-raise.
+        ti = context.get("task_instance")
+        log.exception("failure alert NOT delivered for %s", ti)
+
+
+DEFAULT_ARGS = {
+    "owner": "example-team",
+    "retries": 2,
+    "retry_delay": timedelta(seconds=30),
+    "retry_exponential_backoff": True,
+    "execution_timeout": timedelta(hours=2),
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "on_failure_callback": task_error_alert,
+}
 
 
 @dag(
-    dag_id=f"<project>_pipeline_{ENV}",
+    dag_id=f"example_pipeline_{ENV}",
     schedule="@daily",
     start_date=datetime(2024, 1, 1, tzinfo=timezone.utc),
     catchup=False,
     max_active_runs=1,
     max_active_tasks=16,
-    default_args=default_args,
-    tags=["<project>", "daily"],
+    dagrun_timeout=timedelta(hours=6),
+    default_args=DEFAULT_ARGS,
+    tags=["example", "daily"],
+    doc_md=__doc__,
 )
 def pipeline():
-
     @task
     def extract(**context) -> dict:
-        import pandas as pd  # heavy import inside the task
-        ...
+        # Heavy imports (pandas, snowflake.connector) belong inside the task.
+        # Sample data derived from the run's data interval, so retries and
+        # backfills reproduce the same partition.
+        partition = context["data_interval_start"].strftime("%Y-%m-%d")
+        rows = [{"id": n, "partition": partition} for n in range(1, 4)]
+        return {"partition": partition, "row_count": len(rows)}
 
-    @task.bash
+    @task.bash(env=DBT_ENV, append_env=True)
     def run_dbt() -> str:
-        return "dbt run --project-dir /path --target {{ var.value.MWAA_ENV }} --select tag:<x>"
+        # Fixed command; runtime values arrive as environment variables.
+        return (
+            'dbt run --project-dir "$DBT_PROJECT_DIR" --target "$DBT_TARGET"'
+            ' --select "$EXAMPLE_DBT_SELECT"'
+        )
 
     @task(trigger_rule="all_done")
-    def cleanup(**context) -> bool:
-        ...  # runs even if upstream fails
+    def cleanup(**context) -> dict:
+        # Workers do not share a filesystem: never rely on files other tasks wrote.
+        # This example logs the current task states from the metadata DB (siblings may
+        # still be running); release external resources (stages, temp tables) here by
+        # name, not by local path.
+        own_id = context["task_instance"].task_id
+        states = {
+            ti.task_id: str(ti.state)
+            for ti in context["dag_run"].get_task_instances()
+            if ti.task_id != own_id
+        }
+        log.info("run %s task states: %s", context["run_id"], states)
+        return states
 
     @task
-    def mark_complete() -> None:
-        ...  # default all_success: becomes upstream_failed when run_dbt fails
+    def mark_complete(extracted: dict) -> None:
+        # Default all_success: becomes upstream_failed when run_dbt fails.
+        count = extracted["row_count"]
+        log.info("partition %s done: %s rows", extracted["partition"], count)
 
+    extracted = extract()
     dbt_run = run_dbt()
-    extract() >> dbt_run
-    dbt_run >> [cleanup(), mark_complete()]
+    extracted >> dbt_run
+    dbt_run >> [cleanup(), mark_complete(extracted)]
 
 
 pipeline()
 ```
 
-`--select tag:<x>` scopes the run to one tag; replace it with the project's real selector. Omitting selection builds the whole project: only when the user explicitly asked for that (see [orchestrating-dbt.md](orchestrating-dbt.md)).
+- **Loads without project configuration.** `DagBag` import needs only the `airflow` package (2.11). The Variable, SMTP and dbt are touched only when a task or callback runs.
+- **Config knobs.** dbt: `DBT_PROJECT_DIR`, `DBT_TARGET`, `EXAMPLE_DBT_SELECT` (one selector expression) are read from the scheduler/DAG-processor environment at parse time and handed to `run_dbt` as task `env`; `append_env=True` keeps the worker's `PATH` and `DBT_PROFILES_DIR`, which must be set on the worker. Alerts: Variable `example_alert_recipients` (comma-separated; or env `AIRFLOW_VAR_EXAMPLE_ALERT_RECIPIENTS`) and the `[smtp]` options `smtp_host`, `smtp_port`, `smtp_mail_from`, `smtp_starttls`, `smtp_ssl` (env `AIRFLOW__SMTP__SMTP_HOST` etc.). A plain unauthenticated loopback receiver needs `smtp_starttls=False`, `smtp_ssl=False` and no `smtp_user`.
+- **Example-only values:** `example-team`, `example_alert_recipients`, tags, the `DBT_PROJECT_DIR` default, `EXAMPLE_DBT_SELECT`, and the generated `extract` rows. Replace them from the target repo; NEVER ship them.
+- **Production prerequisites (not in this file):** an existing dbt project dir on the workers; a selector that resolves (`dbt ls`); a dbt profile whose target matches `DBT_TARGET`; Variable `example_alert_recipients` per environment plus a working Airflow email backend (SMTP); for production only, the platform's ServiceNow/TACO incident path (project-owned, absent from this module); `access_control` roles from the platform team. Until these exist the DAG is a pattern, not deployment-ready.
+- **Selection stays scoped.** `--select` limits the run to the selector; omitting it builds the whole project, only when the user explicitly asked for that (see [orchestrating-dbt.md](orchestrating-dbt.md)).
 
 ### Run state and failure masking
 
@@ -273,25 +345,7 @@ Dominant Sanofi orchestration use case; own reference: [`orchestrating-dbt.md`](
 
 Every production DAG MUST alert on failure with actionable context (which task, why, log link) via a shared `on_failure_callback`, not per-task `email_on_failure=True`. Common Sanofi pattern: callback sends a custom failure email and, for production failures needing human action, auto-creates a ServiceNow incident through the TACO architecture.
 
-```python
-import logging
-
-logger = logging.getLogger(__name__)
-
-
-def task_error_alert(context):
-    info = {
-        "dag_id": context["dag"].dag_id,
-        "task_id": context["task_instance"].task_id,
-        "logical_date": str(context.get("logical_date") or "unknown"),
-        "exception": str(context.get("exception", "")),
-        "log_url": context["task_instance"].log_url,
-    }
-    try:
-        send_alert(info)  # email helper in sanofi-airflow-utils; add incident on PROD
-    except Exception:
-        logger.exception("failure alert delivery failed for %s.%s", info["dag_id"], info["task_id"])  # log, never re-raise
-```
+`task_error_alert` in the [TaskFlow API](#taskflow-api) module is the canonical callback. It sends one HTML email with dag, task, logical date, exception and log link through core `airflow.utils.email.send_email`, to recipients read from a Variable inside the callback. When delivery fails it logs an error saying so; that log line is not a notification. Incident creation is not implemented there: the ServiceNow/TACO call is a project-owned integration that this reference has no API for, so add it in the shared helper module, not inline.
 
 - **A failure callback MUST NEVER raise.** Catch and log internally so the original task error and other callbacks still propagate.
 - **Gate incident creation to production.**
