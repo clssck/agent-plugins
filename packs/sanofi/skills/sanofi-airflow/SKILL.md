@@ -40,9 +40,9 @@ This skill holds platform facts only. Run omp `/review` on the diff for generic 
 
 Run the smallest step that proves the change. Steps 1-3 are static or import-only. Step 4 executes task code.
 
-1. **Import and parse time** (always first): `uv run --no-project python -c "import <dag_module>"`.
+1. **Import and parse time** (always first): `python -c "import <dag_module>"` with the project's existing interpreter/venv, called directly (e.g. `.venv/bin/python`). `uv run` may sync or provision, so use it only where installs are permitted.
    - Parse budget under ~30s. Hard `dagbag_import_timeout`: 180s on the shared platform (Airflow default 30s).
-   - Timing: POSIX → prefix `time`; PowerShell → `Measure-Command { uv run --no-project python -c "import <dag_module>" }`.
+   - Timing: POSIX → prefix `time`; PowerShell → `Measure-Command { python -c "import <dag_module>" }`.
 2. **Project-wide import errors:** `airflow dags list-import-errors --local` and `airflow dags list --local` on local or containerized Airflow 3.x (flags present in 3.0.6, 3.1.x, 3.2.x). Without `--local` they read stored metadata, so an unparsed project can look clean. Where the flags are unavailable (3.0.0, 2.x), use an explicit `DagBag` import gate and fail on `import_errors`.
    - MWAA parity: `aws/amazon-mwaa-docker-images` at the target version (`./run.sh`; PowerShell `.\run.ps1`).
    - CI: load every DAG through `DagBag` (or the Sanofi `airflow-validate` action), with dummy Variables as `AIRFLOW_VAR_<KEY>` env vars.
@@ -51,12 +51,15 @@ Run the smallest step that proves the change. Steps 1-3 are static or import-onl
    - `airflow tasks test <dag_id> <task_id> <date>`: one task, ignores dependencies, records no state.
    - `airflow dags test <dag_id> <date>`: full DAG run in one process.
    - **MUST** use local or containerized Airflow with DEV connections only. NEVER shared MWAA or PROD credentials.
-5. **Lint/type:** the repo's configured `ruff`, `pylint`, `pyright`, `pre-commit`.
-   - Any DAG targeting 3.x: `uvx ruff@latest check <dags_dir> --select AIR3` (ruff ≥ 0.13.1; AIR301/AIR302 breaking) must be clean.
-   - Preview parse checks: `uvx ruff@latest check <dags_dir> --preview --select AIR003,AIR304` (`Variable.get()` outside a task; runtime-changing DAG args).
+5. **Lint/type:** the repo's configured `ruff`, `pylint`, `pyright`, `pre-commit`, run from tools already installed (PATH or project env).
+   - Any DAG targeting 3.x: `ruff check <dags_dir> --select AIR3` (ruff ≥ 0.13.1; AIR301/AIR302 breaking) must be clean. Older or absent ruff → report the check as unavailable; do not fetch a newer one when installs/network are not permitted.
+   - Preview parse checks: `ruff check <dags_dir> --preview --select AIR003,AIR304` (`Variable.get()` outside a task; runtime-changing DAG args), same availability rule.
+   - **Read the checker's own exit status and full output.** NEVER pipe it through `tail`/`grep`/`head` and report the filter's status; if piping, use `set -o pipefail` or capture the exit code separately. A Ruff exit 0 covers only the rules actually enabled (repo config or `--select`); disabled or unselected rules (`AIR*`, `I`, ...) stay unverified, and printed warnings (e.g. "unsafe fixes available") are not "0 findings".
 6. **dbt side:** validate with the dbt skill (`dbt parse`/`dbt compile`). Confirm `--select` resolves with `dbt ls` before wiring it into a DAG.
 
 No local Airflow → state the exact command and the missing prerequisite. NEVER discover parse errors by deploying.
+
+**Airflow absent:** `ast.parse` proves syntax only and writes nothing, so prefer it under a no-extra-files scope. `python -m py_compile` writes `__pycache__/*.pyc`: use it only if you report and own that file. NEVER substitute stub or mock `airflow.*` modules or decorators for the import, `DagBag`, or task-wiring checks, and NEVER run task bodies through such a workaround. Report import/parse, `DagBag`, `tasks list`, and execution as unverified, not "passed (stubbed)".
 
 </procedure>
 
@@ -96,8 +99,8 @@ uv pip install "apache-airflow==<version>" -r requirements.txt \
 uv run --no-project airflow dags list-import-errors --local   # Airflow 3.x; parses local files, not stored metadata
 ```
 
-- **Existing tooling wins.** If the repo already uses poetry, pip-tools, or `uv.lock`, keep it (`uv run` for uv projects). Recommend uv only for new work.
-- **One-off CLIs without install:** `uvx ruff@latest ...`, `uvx pre-commit run --all-files`.
+- **Existing tooling wins.** If the repo already uses poetry, pip-tools, or `uv.lock`, keep it. When installs are forbidden, call the project's existing interpreter/tools directly: `uv run`, `poetry run` and similar may sync or install.
+- **One-off CLIs without install** (only when installs/network are permitted): `uvx ruff@latest ...`, `uvx pre-commit run --all-files`. If not permitted, use the installed tool or report the check unavailable.
 
 ## Review Gates
 

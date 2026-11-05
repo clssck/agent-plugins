@@ -6,6 +6,32 @@ Published changes to the first-party packs in `packs/`, newest first. Format fol
 
 - Routing eval defaults to Haiku 5.5 with thinking off and a configurable 12-message budget. It now rejects failed or aborted responses as decisions, distinguishes errors and budget caps from completed no-skill answers, accepts a separately validated holdout through `--cases`, and accepts `--thinking LEVEL` (default `off`).
 
+## clssck 2.1.29 - 2026-11-04
+
+- `skill-authoring` prepares owned fixtures and fresh private state before dispatch, separates parent probes from trial state, and distinguishes harness failures from skill defects. Validation follows the target loader rather than imposing the strict `plugin.json` format on standalone OMP skills. Manual-only skills get explicit-invocation checks instead of selection panels; active skills are judged on the actual shortened hint. Missing-target causes are reported only when known, and directory-loader checks do not claim live-catalog routing or filesystem confinement.
+- `cli-creator` names Bun's compiled-config isolation flags and version floor, keeps its Python entry-point template valid TOML, and uses one consistent JSON-output flag convention in CLI examples.
+- `prototype` documents the picker's actual modifier behavior: Meta/Ctrl/Alt suppress shortcuts; Shift+R replays. The reference wiring is unchanged.
+
+## sanofi 1.2.6 - 2026-11-04
+
+- `sanofi-airflow` consolidates TaskFlow, `DEFAULT_ARGS`, and the failure callback into one complete Airflow 2.11 module with a UTC start date, scoped dbt execution, and a failure-preserving leaf task. Import, success/failure propagation, and the SMTP callback were exercised on real Airflow 2.11; production dbt, SMTP, and platform integrations remain explicit prerequisites. Explicit or existing DAG identifiers are preserved; naming-policy conflicts block deployment instead of silently renaming the DAG.
+- Validation uses installed project tools when installation is forbidden, preserves the checker's exit status, and accounts for syntax-check artifacts. Missing Airflow leaves import, DagBag, wiring, and execution unverified; mocked decorators and syntax checks are not substitutes for runtime proof.
+- `cicd-engineering` removes the retired CodeGuard workflow, which succeeds without scanning, from active templates. SHA-pinned CodeQL replaces it; alerts require code-scanning merge protection to block merges, and internal Sanofi GHAS requirements remain unverified.
+- CI examples keep private-module PR validation secretless, pass JFrog credentials through environment variables, supply required reusable-workflow secrets, and write filtered PR titles as one quoted `GITHUB_OUTPUT` line.
+- `dbt` states the aggregate example's one-row-per-order input grain and labels schematic unit-test grammar. Airflow orchestration snippets explicitly require project context; the unavailable private `DbtClient` interface is not invented.
+- `datacontract-writing` distinguishes deprecated-but-valid `slaDefaultElement` from schema-invalid fields. Requested migrations preserve explicit SLA elements; paired bad/good YAML examples are separate documents.
+- `architecture-documentation` wraps the standalone DrawIO legend in a complete `mxfile` document. XML parsing was checked; rendered verification was blocked by the embed endpoint's HTTP 403.
+
+## clssck 2.1.28 - 2026-11-03
+
+- `cli-creator` uses .NET's `GetTempPath()` for PowerShell smoke directories, so an unset Windows-style `TEMP` variable on Unix cannot make the smoke run in the caller's directory.
+
+## sanofi 1.2.5 - 2026-11-03
+
+- `dbt` documents the production-manifest defer path for unit-test type introspection, including its relation and access prerequisites. Dynamic-table scheduler guidance now names the dbt-snowflake 1.11.5 boundary, the `target_lag` combinations, and why successful parse/compile checks do not validate them.
+- `snowflake-streamlit` blocks unavailable exact dependency pins instead of substituting unapproved versions or changing Python/runtime, and distinguishes an unavailable check from an absent package. The deployment reference records CLI 3.32.1's rejection of `sharing:` despite contradictory documentation, with `grants:` as the manifest form.
+- `iac-security-review` uses the same portable PowerShell temp-directory API for raw scanner output without changing scanner authorization or secret-handling rules.
+
 ## clssck 2.1.27 - 2026-11-03
 
 - `evidence-led-exploration` keeps blocked branches out of `selected_next`, allows no runnable next branch in its handoff templates, and requires distinct outcome and stop-reason fields in compact inline handoffs.

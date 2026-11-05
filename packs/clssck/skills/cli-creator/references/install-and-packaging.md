@@ -50,7 +50,7 @@ bun build ./src/cli.ts --compile --minify --sourcemap \
   --define BUILD_VERSION='"0.1.0"' --outfile <tool-name>
 ```
 
-- Compiled executables load `.env` and `bunfig.toml` by default; the Bun docs offer the `--no-compile-autoload-*` flags for deterministic execution. A CLI run from arbitrary directories SHOULD disable both unless it deliberately reads them.
+- Compiled executables load `.env` and `bunfig.toml` from the working directory by default. Bun ≥ 1.3.3 disables them at build time with `--no-compile-autoload-dotenv` and `--no-compile-autoload-bunfig`, as in the build above; a CLI run from arbitrary directories SHOULD pass both unless it deliberately reads those files. `tsconfig.json` and `package.json` autoload are already off by default.
 - `--define` bakes the version into the binary for `--version` and `doctor`.
 - Cross-compile with `--target`: `bun-linux-x64`, `bun-linux-arm64`, `bun-windows-x64`, `bun-windows-arm64`, `bun-darwin-x64`, `bun-darwin-arm64`; `-musl` variants exist for Linux. Windows output gets `.exe` automatically.
 - Binaries handed to other macOS users SHOULD be code-signed with `codesign` (Bun ≥ 1.2.4) to avoid Gatekeeper warnings.
@@ -101,9 +101,11 @@ pnpm build && pnpm add -g .
 
 Scaffold with `uv init --package <tool-name>`: it creates `src/<package>/`, a `[build-system]` (`uv_build`), and a `[project.scripts]` entry. Commit `uv.lock` (`uv lock`; `uv sync --locked` in CI).
 
+Substitute `<tool-name>` and `<package>` before building or installing; the quoted placeholder key keeps this template syntactically valid TOML:
+
 ```toml
 [project.scripts]
-<tool-name> = "<package>:main"
+"<tool-name>" = "<package>:main"
 ```
 
 - Install with `uv tool install --editable .`: the tool gets an isolated environment and its entry point links back to the project source, so source edits apply without a reinstall. After changing `[project.scripts]`, re-run with `--reinstall`.
@@ -133,7 +135,8 @@ On Windows use a `.cmd` or `.ps1` wrapper that runs `uv run --script <path>\<too
 - npm `package.json` `bin` field: https://docs.npmjs.com/cli/v11/configuring-npm/package-json
 - pnpm `link` (v11 breaking changes): https://pnpm.io/cli/link
 - pnpm `setup`: https://pnpm.io/cli/setup
-- Bun single-file executables: https://bun.com/docs/bundler/executables
+- Bun single-file executables: https://bun.com/docs/compiler/executables
+- Bun v1.3.3 release notes (`--no-compile-autoload-dotenv`, `--no-compile-autoload-bunfig`): https://bun.sh/blog/bun-v1.3.3
 - uv tools concept (isolation, executable directory, overwrite rules): https://docs.astral.sh/uv/concepts/tools/
 - uv project creation (`uv init --package`, `[project.scripts]`): https://docs.astral.sh/uv/concepts/projects/init/
 - uv build and publish (trusted publishing, `--index`): https://docs.astral.sh/uv/guides/package/

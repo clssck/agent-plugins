@@ -26,7 +26,7 @@ An **org-level allowlist** governs GitHub Actions at Sanofi: a well-formed workf
 | --- | --- |
 | GitHub-published, verified creators | Allowed broadly; SHOULD pin full 40-char commit SHA + version comment, so a compromised maintainer tag cannot swap the code running with your `GITHUB_TOKEN` |
 | Other third-party | MUST be explicitly allowlisted before it runs. Entries are tag-based, not SHA-based → a SHA pin for a non-listed action is rejected however secure. Use the exact registered reference (normally a tag such as `@v2`); request new actions/versions from the platform team. NEVER invent SHA pins the allowlist has not cleared |
-| Sanofi-managed reusable workflows (e.g. CodeGuard `cyber-AST-Action_reusable`) | MAY use `@main`: centrally reviewed, no third-party supply-chain risk. Comment the exception |
+| Sanofi-managed reusable workflows (e.g. Tyr) | Use the reference the platform team currently documents; NEVER assume `@main`. The former `@main` exception for CodeGuard `cyber-AST-Action_reusable` is gone: that workflow is retired (§3.3) |
 
 ```yaml
 # GOOD — GitHub-published action, pinned SHA, version comment for humans
@@ -95,7 +95,7 @@ env:
 - **Storage**: **GitHub Environments** or **AWS Secrets Manager** (the approved Sanofi vault).
 - **Prod approval**: production environments SHOULD require manual approval via environment protection rules; MUST for GxP — regulatory change control requires a recorded approval step.
 - **Scanning**: secret scanning MUST be enabled org-wide (GitHub secret scanning; GitGuardian for Sanofi). Exposed credentials MUST be revoked and rotated immediately.
-- **Avoid `secrets: inherit`** to reusable workflows unless the callee is org-managed. Declare `on.workflow_call.secrets` for every secret the caller passes; pass only the named secrets it needs. A callee job setting `environment` receives that environment's secrets without the caller passing them (the `SONAR_TOKEN` pattern in §2.2). See [security-hardening.md](skill://cicd-engineering/references/security-hardening.md#8-environment-scoped-secrets-vs-secrets-inherit).
+- **Avoid `secrets: inherit`** to reusable workflows unless the callee is org-managed. Declare `on.workflow_call.secrets` for every secret the caller passes, mark it `required: true` when the callee cannot run without it, and pass only the named secrets it needs. The caller job cannot set `environment:`, so an environment-only secret is still passed by name (`SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}`); the callee job's `environment` supplies the value and it takes precedence over a repository or organization secret of the same name. An unpassed secret resolves to an empty string with no error; `required: true` makes the run fail on a missing mapping, not on an empty value (the `SONAR_TOKEN` pattern in §2.2; source: <https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows>). See [security-hardening.md](skill://cicd-engineering/references/security-hardening.md#8-environment-scoped-secrets-vs-secrets-inherit).
 
 ### 1.4 Prefer OIDC over long-lived cloud credentials
 
@@ -203,7 +203,7 @@ Three pieces make the gate real; full workflow in [pipeline-templates.md](skill:
       -Dsonar.qualitygate.timeout=300
 ```
 
-`SONAR_TOKEN` is an Environment secret on a `sonarcloud` environment with required reviewers; the reusable workflow's job sets `environment: sonarcloud` and callers pass no secret. Unapproved PR validation stays secretless.
+`SONAR_TOKEN` is an Environment secret on a `sonarcloud` environment with required reviewers; the reusable workflow declares it `required: true` and its job sets `environment: sonarcloud`. Each caller job passes it by name (`secrets: SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}`) because a caller cannot set `environment:` and an unpassed secret resolves to an empty string. Unapproved PR validation stays secretless.
 
 ---
 
@@ -231,7 +231,7 @@ Critical vulnerabilities MUST block merge until remediated.
 | High | within 14 days |
 | Medium / low | team discretion, tracked |
 
-Sanofi: use a Cybersecurity-provided tool (Checkmarx / CodeGuard SCA, or GitHub Dependabot) via the standard reusable workflows. Minimal inline examples:
+Sanofi: the CodeGuard / Checkmarx SCA workflow is retired (§3.3), so no Cybersecurity-provided SCA workflow is documented here; take the current reference from the platform/Cybersecurity team. Until then use GitHub Dependabot alerts and the minimal inline examples below:
 
 ```yaml
 # Node.js — lightweight gate
@@ -246,22 +246,9 @@ Dependabot or Renovate SHOULD open PRs for vulnerable packages automatically.
 
 ### 3.3 Run SAST in the pipeline
 
-**Every repo MUST integrate a SAST tool into CI** with blocking results. Preferred: **CodeGuard** (Checkmarx-based) via the org-level reusable workflow. **SonarCloud** adds quality + security scanning. **CodeQL**: acceptable fallback when CodeGuard is unavailable.
+**Every repo MUST integrate a SAST tool into CI** with blocking results. Default: **CodeQL** (`github/codeql-action`; full workflow: [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md#codeql-sast)). **SonarCloud** adds quality + security scanning. `analyze` uploads results to code scanning and the job passes while alerts exist, so blocking comes from a ruleset with code scanning merge protection (<https://docs.github.com/en/code-security/code-scanning/managing-your-code-scanning-configuration/set-code-scanning-merge-protection>). CodeQL alone does not show that Sanofi's internal GHAS requirements are met: those stay unverified until the platform/Cybersecurity team's authoritative reference is available.
 
-```yaml
-jobs:
-  codeguard:
-    # Org-managed reusable workflow — @main acceptable (see §1.1 exception)
-    uses: Sanofi-Shared-GitHub-Apps/cyber-AST-Action_reusable/.github/workflows/code_guard_ast.yml@main
-    with:
-      production-branch: main
-      groups: Digital-Accelerator
-      cmdb: ${{ vars.cmdb }}
-      codeguard-gate: true
-    secrets:
-      CX_CLIENT_ID: ${{ secrets.CHECKMARX_CX_CLIENT_ID }}
-      CX_CLIENT_SECRET: ${{ secrets.CHECKMARX_CX_CLIENT_SECRET }}
-```
+> **Retired: CodeGuard (Checkmarx).** `Sanofi-Shared-GitHub-Apps/cyber-AST-Action_reusable/.github/workflows/code_guard_ast.yml` has been a retirement stub since commit `5690b8b53dc51ec7f3e744d9cf1d4c58134a3a41` (2026-09-16; latest `d927b0ab3215f04c39885a986514e3823e78d0c2`, 2026-09-29). Its only job warns "No scan was performed" and succeeds with `result=TRUE`. NEVER call it as a SAST gate. A request or workflow that references CodeGuard, `codeguard-gate`, or `CHECKMARX_*` secrets → migrate it to the CodeQL template and drop those secrets. Source: <https://github.com/Sanofi-Shared-GitHub-Apps/cyber-AST-Action_reusable/commit/5690b8b53dc51ec7f3e744d9cf1d4c58134a3a41>.
 
 SAST findings MUST NOT be gated by `continue-on-error: true`.
 
@@ -420,13 +407,13 @@ jobs:
     runs-on: ubuntu-latest
 ```
 
-### 6.2 CodeGuard (Checkmarx SAST)
+### 6.2 CodeQL SAST (CodeGuard retired)
 
-Org-level reusable workflow satisfying the SAST requirement (§3.3). Runs on `schedule`, `push` to main, and via `workflow_call`. MAY use `@main` (§1.1 exception). Full template: [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md#codeguard--checkmarx-sast).
+CodeQL satisfies the repository SAST step (§3.3) as the documented fallback; internal GHAS requirements beyond it are unverified. The CodeGuard (Checkmarx) org workflow is a retirement stub that scans nothing: do not call it. Full template: [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md#codeql-sast).
 
 ### 6.3 Tyr compliance scanning
 
-Tyr (`tsg-tyr`): org-managed governance and policy-compliance workflow. No Tyr template or interface documentation here; take the current reference and inputs from the platform team, and apply the same `@main` exception and explicit-secrets rule as CodeGuard.
+Tyr (`tsg-tyr`): org-managed governance and policy-compliance workflow. No Tyr template or interface documentation here; take the current reference, pin and inputs from the platform team, pass secrets explicitly by name, and NEVER assume `@main`.
 
 ### 6.4 SonarCloud quality gating
 
@@ -434,7 +421,7 @@ One reusable workflow (`sonarcloud.yaml`) serves pull-request analysis and the m
 
 ### 6.5 JFrog Artifactory for Terraform modules
 
-Private Terraform modules come from Sanofi's JFrog Artifactory. The JFrog token MUST be a GitHub Environment secret (not repo-level) → every job receiving it MUST set `environment:`, and that environment MUST have required reviewers or a `main`-only deployment branch rule. `pull_request` validation MUST be secretless: no `environment:`, no `secrets.*`, no `id-token: write`. Same-repository PRs run PR-controlled Terraform, so credentialed `init`/`plan` MUST run only after an environment approval gate or from a trusted ref (`workflow_dispatch` on `main`). Credentials written at runtime only (`hashicorp/setup-terraform` `cli_config_credentials_*` inputs, or a `.terraformrc` created in the job). See [security-hardening.md](skill://cicd-engineering/references/security-hardening.md#7-jfrog-credentials-via-terraformrc) and the [Terraform template](skill://cicd-engineering/references/pipeline-templates.md#terraform-plan--apply).
+Private Terraform modules come from Sanofi's JFrog Artifactory. The JFrog token MUST be a GitHub Environment secret (not repo-level) → every job receiving it MUST set `environment:`, and that environment MUST have required reviewers or a `main`-only deployment branch rule. `pull_request` validation MUST be secretless: no `environment:`, no `secrets.*`, no `id-token: write`. Same-repository PRs run PR-controlled Terraform, so credentialed `init`/`plan` MUST run only after an environment approval gate or from a trusted ref (`workflow_dispatch` on `main`). Pass the token at runtime only: `TF_TOKEN_sanofi_jfrog_io: ${{ secrets.JFROG_TOKEN }}` in the `env:` of the `init`/`plan` steps, or the `hashicorp/setup-terraform` `cli_config_credentials_*` inputs; NEVER interpolate `${{ secrets.* }}` into a `run:` script or hand-write a `.terraformrc`. See [security-hardening.md](skill://cicd-engineering/references/security-hardening.md#7-jfrog-credentials-for-terraform) and the [Terraform template](skill://cicd-engineering/references/pipeline-templates.md#terraform-plan--apply).
 
 ---
 
@@ -445,7 +432,7 @@ When reviewing `.github/workflows/*.yml`:
 **Workflow security**
 
 - [ ] All jobs use `runs-on: atmos-aws-arc-runner-set`
-- [ ] Actions referenced in a form the Sanofi allowlist accepts: GitHub-published / verified-creator actions pinned to 40-char SHA; other third-party actions use the exact tag registered in the allowlist; Sanofi org-managed reusable workflows on `@main`
+- [ ] Actions referenced in a form the Sanofi allowlist accepts: GitHub-published / verified-creator actions pinned to 40-char SHA; other third-party actions use the exact tag registered in the allowlist; org-managed reusable workflows use the reference the platform team documents
 - [ ] `permissions:` block present at workflow level, minimal and explicit
 - [ ] No `permissions: write-all` or `read-all`
 - [ ] No hardcoded secrets; secrets scoped per environment
@@ -466,8 +453,8 @@ When reviewing `.github/workflows/*.yml`:
 **Supply chain**
 
 - [ ] Lockfile present and enforced (`npm ci` / `uv sync --locked` / etc.)
-- [ ] Dependency audit job (CodeGuard SCA, `npm audit`, `pip-audit`)
-- [ ] SAST job (CodeGuard preferred, SonarCloud or CodeQL acceptable)
+- [ ] Dependency audit job (`npm audit`, `pip-audit`, Dependabot alerts)
+- [ ] SAST job (CodeQL; SonarCloud adds quality gating; no call to the retired CodeGuard workflow)
 - [ ] SBOM generated for production-bound artifacts
 - [ ] Artifact signing for production releases (recommended)
 - [ ] Provenance attestation for production images (confirm the plan and allowlist first)
@@ -495,8 +482,8 @@ When reviewing `.github/workflows/*.yml`:
 | GitHub-published action pinned to tag (`@v4`) not SHA | MUST-fix | Replace with full SHA + version comment |
 | Third-party action not on the Sanofi allowlist | MUST-fix | Use the reference registered in the allowlist, or request an update from the platform team — do not invent SHA pins |
 | Missing `permissions:` block | MUST-fix | Add explicit minimal block at workflow level |
-| No dependency scanning step | MUST-fix | Add CodeGuard SCA reusable workflow or `npm audit --audit-level=high` |
-| No SAST | MUST-fix | Add CodeGuard reusable workflow (preferred) or CodeQL |
+| No dependency scanning step | MUST-fix | Add `npm audit --audit-level=high` / `pip-audit` and enable Dependabot alerts |
+| No SAST | MUST-fix | Add the CodeQL template and a code scanning merge-protection ruleset |
 | Coverage uploaded but no threshold | MUST-fix | Wire into SonarCloud quality gate |
 | No artifact `retention-days` | MUST-fix | Add `retention-days: 7` (or team policy) |
 | `continue-on-error: true` on security steps | MUST-fix | Remove — failures MUST block merge |
@@ -515,4 +502,4 @@ When reviewing `.github/workflows/*.yml`:
 | --- | --- |
 | No workflow files found | No `.github/workflows/` directory → new CI setup; generate from [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md) |
 | Action SHA lookup fails | GitHub API rate limit or action repo inaccessible → authenticate `gh` and retry |
-| Sanofi shared workflows not accessible | `Sanofi-Shared-GitHub-Apps` org requires specific access → verify org membership; if blocked, fall back to CodeQL for SAST while access is granted |
+| Sanofi shared workflows not accessible | `Sanofi-Shared-GitHub-Apps` org requires specific access → verify org membership with the platform team; SAST does not depend on it (CodeQL) |

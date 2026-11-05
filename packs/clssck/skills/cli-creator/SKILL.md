@@ -115,7 +115,7 @@ Installed on PATH (substitute the chosen command name). Record each exact scratc
 ```
 
 ```powershell
-$scratch = (New-Item -ItemType Directory -Path (Join-Path $env:TEMP ([IO.Path]::GetRandomFileName())) -ErrorAction Stop).FullName
+$scratch = (New-Item -ItemType Directory -Path (Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName())) -ErrorAction Stop).FullName
 try {
     Write-Host "Smoke directory: $scratch"
     Push-Location -LiteralPath $scratch -ErrorAction Stop

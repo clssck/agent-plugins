@@ -159,7 +159,7 @@ snow streamlit deploy app_name --replace --connection <name>
 | `--replace` uploads and overwrites, never deletes staged files | Add `--prune` when files were removed or renamed |
 | `--legacy` deploys with `ROOT_LOCATION`, cannot carry `runtime_name` | Only for apps already on the legacy contract |
 | Omitting `tags:` leaves existing tags alone; `tags: []` clears them (3.22.1+) | Do not add `tags: []` by accident |
-| `grants:` entries take exactly one of `role:` or `user:` (`user:` 3.28.0+); the model forbids extra fields, so `sharing:` is not valid | Write every `USAGE` grant as `grants: [{privilege: USAGE, role: ...}]`, or `user:` in place of `role:` on 3.28.0+ |
+| `grants:` entries take exactly one of `role:` or `user:` (`user:`, `with_grant_option:` 3.28.0+). `sharing:` is not accepted: the model forbids extra fields, and CLI 3.32.1 (parser and generated JSON schema) rejects `entities.<id>.sharing` with "Extra inputs are not permitted", although one Snowflake docs page ("Creating a Streamlit app") calls `sharing:` the older spelling of USAGE grants | Write every `USAGE` grant as `grants: [{privilege: USAGE, role: ...}]`. A `sharing:` key already in a repo file fails validation on 3.32.1: report it and, when asked to fix or author that file, rewrite it as `grants:`. Trust the parser over the docs sentence; `snow streamlit share` changes live grants, so run it only on request |
 
 - **Validate in CI (3.20.0+):** `snow helpers generate-project-schema -o snowflake-schema.json`, then `uvx check-jsonschema --schemafile snowflake-schema.json snowflake.yml`. Schema checks structure only; cross-field rules still fail at deploy time.
 - **Logs:** `snow streamlit logs` streams container-runtime logs (3.18.0+).
