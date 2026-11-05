@@ -50,10 +50,31 @@ bun build ./src/cli.ts --compile --minify --sourcemap \
   --define BUILD_VERSION='"0.1.0"' --outfile <tool-name>
 ```
 
-- Compiled executables load `.env` and `bunfig.toml` by default; the Bun docs offer the `--no-compile-autoload-*` flags for deterministic execution. A CLI run from arbitrary directories SHOULD disable both unless it deliberately reads them.
+- Compiled executables load `.env` and `bunfig.toml` from the working directory by default. Bun ≥ 1.3.3 disables them at build time with `--no-compile-autoload-dotenv` and `--no-compile-autoload-bunfig`, as in the build above; a CLI run from arbitrary directories SHOULD pass both unless it deliberately reads those files. `tsconfig.json` and `package.json` autoload are already off by default.
 - `--define` bakes the version into the binary for `--version` and `doctor`.
 - Cross-compile with `--target`: `bun-linux-x64`, `bun-linux-arm64`, `bun-windows-x64`, `bun-windows-arm64`, `bun-darwin-x64`, `bun-darwin-arm64`; `-musl` variants exist for Linux. Windows output gets `.exe` automatically.
 - Binaries handed to other macOS users SHOULD be code-signed with `codesign` (Bun ≥ 1.2.4) to avoid Gatekeeper warnings.
+
+### Lint, format, typecheck
+
+New project with no toolchain convention only. Existing ESLint/Prettier/Biome/npm/pnpm repo → keep its commands. Authorized scaffolding/setup of a new project → install into that project: `bun add -d oxlint oxfmt typescript @types/bun` (no global install). Installs not permitted (offline, no new dependencies) → suggest this command, write the scripts below, and report lint/format/typecheck as not run.
+
+```json
+{
+  "scripts": {
+    "lint": "oxlint --deny-warnings src",
+    "lint:fix": "oxlint --fix --deny-warnings src",
+    "fmt": "oxfmt src",
+    "fmt:check": "oxfmt --check src",
+    "typecheck": "tsc --noEmit",
+    "check": "bun run typecheck && bun run lint && bun run fmt:check && bun test"
+  }
+}
+```
+
+- **Not substitutes:** `bun build`, `bun test`, and the `oxlint` command above do not type-check; keep `tsc --noEmit` (needs a `tsconfig.json` with `strict`, `noEmit`, `types: ["bun"]`). Bun is the runtime and package manager, not a devDependency. Oxlint warnings exit 0 unless `--deny-warnings`; `oxfmt --check` exits 1 on unformatted files, `oxfmt` rewrites them.
+- Oxfmt prints "No config found, using defaults" without a config file; that is not an error. Add `.oxlintrc.json`/`.oxfmtrc.json` only when the defaults need changing.
+- oh-my-pi's own root `package.json` runs the same pair (`oxlint .`, `oxfmt` in `check:tools`/`fmt:tools`).
 
 ## Node, npm, and pnpm (compatibility)
 
@@ -80,13 +101,15 @@ pnpm build && pnpm add -g .
 
 Scaffold with `uv init --package <tool-name>`: it creates `src/<package>/`, a `[build-system]` (`uv_build`), and a `[project.scripts]` entry. Commit `uv.lock` (`uv lock`; `uv sync --locked` in CI).
 
+Substitute `<tool-name>` and `<package>` before building or installing; the quoted placeholder key keeps this template syntactically valid TOML:
+
 ```toml
 [project.scripts]
-<tool-name> = "<package>:main"
+"<tool-name>" = "<package>:main"
 ```
 
-- Install with `uv tool install --editable .`: the tool gets an isolated environment and source edits apply without a reinstall. After changing `[project.scripts]`, re-run with `--reinstall`.
-- Check the install with `uv tool dir --bin` (the executable directory), as in the table above.
+- Install with `uv tool install --editable .`: the tool gets an isolated environment and its entry point links back to the project source, so source edits apply without a reinstall. After changing `[project.scripts]`, re-run with `--reinstall`.
+- Check the install with `uv tool dir --bin` (the executable directory), as in the table above. Approved PATH directory differs from that default (or the install must stay inside a scratch tree): `UV_TOOL_BIN_DIR=<approved-dir> UV_TOOL_DIR=<private-tool-dir> uv tool install --editable .` links `<approved-dir>/<tool-name>` to an environment under `<private-tool-dir>`, so installed environments and entry points stay out of uv's default tool and bin directories. uv's shared wheel/build cache is separate (`UV_CACHE_DIR`, default user cache); set it too when nothing may be written there. Run the installed link by absolute path from a fresh directory. A symlink into the project's `.venv` bypasses the installer and tool-environment isolation: use `uv tool install`.
 - Run once without installing: `uvx --from <path-or-package> <tool-name>`.
 - NEVER `pip install` or `pipx install` into system or Homebrew Python; interpreters marked `EXTERNALLY-MANAGED` (PEP 668) make pip refuse, and `--break-system-packages` is the risky override. Use `uv tool install`.
 - `uv tool install` will not overwrite an executable it did not install (e.g. one from `pipx`). Treat that as a name collision: rename the tool or ask. Use `--force` only after the user agrees to replace the existing binary.
@@ -112,7 +135,8 @@ On Windows use a `.cmd` or `.ps1` wrapper that runs `uv run --script <path>\<too
 - npm `package.json` `bin` field: https://docs.npmjs.com/cli/v11/configuring-npm/package-json
 - pnpm `link` (v11 breaking changes): https://pnpm.io/cli/link
 - pnpm `setup`: https://pnpm.io/cli/setup
-- Bun single-file executables: https://bun.com/docs/bundler/executables
+- Bun single-file executables: https://bun.com/docs/compiler/executables
+- Bun v1.3.3 release notes (`--no-compile-autoload-dotenv`, `--no-compile-autoload-bunfig`): https://bun.sh/blog/bun-v1.3.3
 - uv tools concept (isolation, executable directory, overwrite rules): https://docs.astral.sh/uv/concepts/tools/
 - uv project creation (`uv init --package`, `[project.scripts]`): https://docs.astral.sh/uv/concepts/projects/init/
 - uv build and publish (trusted publishing, `--index`): https://docs.astral.sh/uv/guides/package/

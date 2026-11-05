@@ -21,7 +21,7 @@ A fix-it skill. It does ONE thing: take a web app that feels like a website on a
 2. **Media queries over device sniffing.** `(hover: hover)`, `(pointer: fine)`, `env()`, `dvh` — the platform tells you what it can do. Never branch on user agent strings or screen width to guess at touch.
 3. **Touch and mouse are not exclusive.** iPads with trackpads, laptops with touchscreens, phones with a mouse. Write for both at once; gate by capability, not by device.
 4. **Never disable zoom.** `user-scalable=no` and `maximum-scale=1` are accessibility failures. Fix the input font size instead, which is what was causing the zoom.
-5. **Test on hardware before calling it done.** Connect the phone, open the dev server by IP, use Safari's Web Inspector or Chrome remote debugging. Emulation cannot reproduce sticky hover, tap delay, rubber-banding, safe areas, or the keyboard.
+5. **Test on hardware before calling it done.** Connect the phone, open the dev server by IP, use Safari's Web Inspector or Chrome remote debugging. Emulation can verify declarations and layout; tactile feel (sticky hover after a real tap, tap delay, rubber-banding), the mobile browser chrome (URL bar, safe areas, status bar), and the platform software keyboard need a device check.
 </critical>
 
 <instruction>
@@ -32,7 +32,7 @@ The user's phone is the source of truth. If you can't run it on hardware, say wh
 
 Two failure modes, and the first is worse:
 
-1. **Fixing what the desktop shows you.** The bugs in this skill don't reproduce in Chrome's device emulation. If you only test there, you ship all of them.
+1. **Fixing what the desktop shows you.** Chrome's device emulation checks declarations and layout, not touch feel, mobile browser chrome, or the platform keyboard. If you only test there, you ship the bugs it cannot show.
 2. **Reaching for JavaScript when CSS or a meta tag does it.** Almost every item here is one declaration. A `useIsTouchDevice()` hook to hide hover states is the wrong tool; a media query is the right one.
 </instruction>
 
@@ -43,10 +43,10 @@ Run this before you finish.
 | Never | Instead |
 | --- | --- |
 | `user-scalable=no` or `maximum-scale=1` | 16px inputs — fix the cause |
-| Ungated `:hover` | `@media (hover: hover) and (pointer: fine)` |
+| Ungated `:hover` | `@media (hover: hover)` |
 | `100vh` for an app shell or bottom-pinned UI | `100dvh` |
 | `100dvh` on a marketing hero | `100svh` (no layout shift on scroll) |
-| Press feedback on `click` only | `:active` / `pointerdown` |
+| Press feedback on `click` only | `:active` / `pointerdown` feedback; the action stays on `click` |
 | `touchmove` + `preventDefault()` to stop overscroll | `overscroll-behavior` |
 | `user-select: none` on `body` | Only on controls |
 | `touch-action: none` on something the user needs to scroll or zoom | `pan-x pinch-zoom` / `pan-y pinch-zoom` |
@@ -61,15 +61,15 @@ Start here. Match what the user is seeing, then read the matching section for th
 
 | Problem | Solution |
 | --- | --- |
-| Hover state stuck after tap | Wrap in `@media (hover: hover) and (pointer: fine)` |
+| Hover state stuck after tap | Wrap in `@media (hover: hover)` |
 | Gray/blue flash on tap | Kill `-webkit-tap-highlight-color` |
 | Layout has wrong height | `100dvh` (app) or `100svh` (hero) |
 | Page zooms into input | Input font size 16px at the minimum |
-| Tap feels laggy | Feedback on pointer-down + `touch-action: manipulation` |
+| Tap feels laggy | Press feedback on pointer-down (action stays on `click`) + `touch-action: manipulation` |
 | Pull-to-refresh hijacks scroll | `overscroll-behavior: none` on `html, body` |
 | Content stops at the notch | `viewport-fit=cover` + `env(safe-area-inset-*)` |
 | Long-press selects button text | Add `user-select: none` |
-| Carousel scrolls vertically | `touch-action: pan-y pinch-zoom` on the gesture surface |
+| Carousel scrolls vertically | Native scroller: scroll-snap, keep native horizontal panning · JS drag: `touch-action: pan-y pinch-zoom` on the gesture surface |
 | Status bar color doesn't match | `theme-color` per color scheme |
 | Right in Chrome, wrong on phone | Test on real hardware |
 
@@ -80,7 +80,7 @@ Start here. Match what the user is seeing, then read the matching section for th
 Touch has no hover, so browsers fake one: the first tap on an element applies `:hover` and leaves it there until the user taps somewhere else. A button that scales up on hover stays scaled up after being tapped. Gate every hover style behind a capability query.
 
 ```css
-@media (hover: hover) and (pointer: fine) {
+@media (hover: hover) {
   .button:hover {
     background: var(--gray-3);
     transform: scale(1.02);
@@ -88,9 +88,9 @@ Touch has no hover, so browsers fake one: the first tap on an element applies `:
 }
 ```
 
-Both conditions matter. `(hover: hover)` means the primary input can hover. `(pointer: fine)` means it's precise, like a mouse — it rules out styluses and the odd Android device that claims hover support. In Tailwind v4 the `hover:` variant already compiles to `@media (hover: hover)`; in v3 set `future.hoverOnlyWhenSupported`.
+`(hover: hover)` means the primary input can hover, which is all a hover effect needs. `(pointer: fine)` describes the primary pointer's accuracy, not the device: mice, touchpads, and drawing styluses all report `fine`, and a stylus can also hover. Add `and (pointer: fine)` only when the effect itself depends on precise pointing, never as a touch filter. In Tailwind v4 the `hover:` variant already compiles to `@media (hover: hover)` — hover capability only, no pointer condition; in v3 set `future.hoverOnlyWhenSupported`.
 
-Touch users still need press feedback. Give it to them through `:active` (see §5), which works on every input type.
+Touch users still need press feedback. Give it to them through `:active` (see §5), and check it on each target platform: whether and when `:active` shows on touch varies by browser and input.
 
 ### 2. Gray/blue flash on tap
 
@@ -120,7 +120,7 @@ Set it once, globally. Then make sure every tappable element has its own `:activ
 
 ### 4. Page zooms into the input
 
-iOS Safari zooms the page when focus lands on an input whose font size is under 16px, and it does not zoom back out on blur. The user is left looking at a cropped, drifted layout. This is the reason people reach for `maximum-scale=1`, which is the wrong fix (Hard Rule 4).
+iOS Safari can zoom the page when focus lands on an input whose computed font size is under 16px. Fix the input's text size rather than suppressing focus zoom with `maximum-scale=1` (Hard Rule 4).
 
 ```css
 input, textarea, select {
@@ -142,7 +142,7 @@ While you're in the inputs, set the keyboard: `inputmode="numeric"` for codes, `
 
 Two separate causes stack here.
 
-**The 300ms click delay.** Browsers wait after a tap to see whether a second tap is coming, because double-tap zooms. Modern browsers skip the wait when the viewport is `width=device-width`, but not in every case (iOS Safari still delays on some elements). `touch-action: manipulation` tells the browser this element never double-tap-zooms, so it fires `click` immediately:
+**The double-tap delay.** A browser may wait after a tap to distinguish a second tap for zooming. WebKit's [fast-tap behavior](https://webkit.org/blog/5610/more-responsive-tapping-on-ios/) gives `width=device-width` pages fast taps at the initial scale; `touch-action: manipulation` removes the double-tap delay at other zoom levels too, while preserving pinch zoom:
 
 ```css
 button, a, [role="button"], .tappable {
@@ -150,7 +150,7 @@ button, a, [role="button"], .tappable {
 }
 ```
 
-**Feedback on release instead of press.** Native buttons respond the instant your finger lands. A web button that only changes on `click` responds when your finger *leaves*, which reads as lag even at 0ms. Style `:active`, and if you need JavaScript, listen to `pointerdown`, not `click`:
+**Feedback on release instead of press.** Native buttons respond the instant your finger lands. A web button that only changes on `click` responds when your finger *leaves*, which reads as lag even at 0ms. Style `:active`. If you need JavaScript feedback, set a pressed state on `pointerdown` and clear it on `pointerup`, `pointercancel`, and `pointerleave`. That is feedback, not activation: use semantic controls and keep the action on their native `click` or form submission so keyboard activation remains available. Custom handlers must support cancellation and reject an out-of-bounds release. Never submit or navigate on `pointerdown`.
 
 ```css
 .button {
@@ -223,11 +223,15 @@ Never put `user-select: none` on `body`. Users copy addresses, error messages, a
 
 ### 9. Carousel scrolls vertically
 
-A horizontal swipe on a carousel is ambiguous to the browser — it doesn't know whether you're scrolling the page or the track, so it guesses, and the guess is often the page jittering up while the carousel moves. Tell it which axes the element owns:
+A horizontal swipe on a carousel is ambiguous to the browser — it doesn't know whether you're scrolling the page or the track, so it guesses, and the guess is often the page jittering up while the carousel moves. First decide who owns the horizontal movement.
+
+**Native scroller** (an `overflow-x: auto` track): the browser owns horizontal panning. Use `scroll-snap-type: x mandatory` on the track and `scroll-snap-align: start` on slides — the browser's own physics beat a hand-rolled spring. Leave `touch-action` at its default; never set `pan-y` on the track or its slides, because that removes the horizontal panning the track scrolls with.
+
+**JS-owned drag** (pointer events move the track): tell the browser which axes it keeps:
 
 ```css
-.carousel {
-  touch-action: pan-y pinch-zoom; /* the carousel handles horizontal; the browser keeps vertical and pinch */
+.drag-carousel {
+  touch-action: pan-y pinch-zoom; /* JS handles horizontal; the browser keeps vertical and pinch */
 }
 .drag-surface {
   touch-action: pinch-zoom;       /* a custom gesture (a drag-to-dismiss sheet, a slider) owns both pan axes; pinch stays with the browser */
@@ -237,9 +241,7 @@ A horizontal swipe on a carousel is ambiguous to the browser — it doesn't know
 }
 ```
 
-The values name what the *browser* may still do. `pan-y pinch-zoom` on a horizontal carousel means "browser, you keep vertical panning and zoom; I'm handling horizontal". Always list `pinch-zoom`: any value without it — `pan-x`, `pan-y`, and especially `none` — also disables pinch-zoom on that element, which is the same accessibility failure as `user-scalable=no` (Hard Rule 4). `none` means the element handles everything, pinch included — use it only on an element that ships its own equivalent zoom control (zoom buttons, a scale slider), or the user can neither zoom nor scroll past it.
-
-If the carousel is native scroll rather than a JS gesture, prefer `scroll-snap-type: x mandatory` on the track and `scroll-snap-align: start` on slides — the browser's own physics beat a hand-rolled spring, and `touch-action` becomes unnecessary.
+The values name what the *browser* may still do. `pan-y pinch-zoom` on a JS-dragged carousel means "browser, you keep vertical panning and zoom; I'm handling horizontal". Always list `pinch-zoom`: any value without it — `pan-x`, `pan-y`, and especially `none` — also disables pinch-zoom on that element, which is the same accessibility failure as `user-scalable=no` (Hard Rule 4). `none` means the element handles everything, pinch included — use it only on an element that ships its own equivalent zoom control (zoom buttons, a scale slider), or the user can neither zoom nor scroll past it.
 
 ### 10. Status bar color doesn't match
 
@@ -255,7 +257,7 @@ Match the value to the color at the very top of your page — the header backgro
 
 ### 11. Right in Chrome, wrong on phone
 
-Nothing above reproduces in device emulation. Sticky hover, the tap highlight, the URL bar's effect on `vh`, input zoom, the click delay, overscroll, safe areas, the software keyboard — every one is a real-hardware behavior.
+Emulation verifies declarations and layout: computed styles, media-query gating, which viewport unit a layout uses, how it reflows at a phone's width. It cannot show tactile feel — sticky hover after a real tap, the tap highlight, the click delay, rubber-banding and overscroll — the mobile browser chrome — the URL bar's effect on `vh`, safe areas, the status bar — or the platform software keyboard and the input zoom it triggers. Those need a device.
 
 - Connect the phone over USB, run the dev server on `0.0.0.0`, open it by the machine's LAN IP.
 - iOS: Safari → Develop → the device. Android: `chrome://inspect`.
@@ -277,7 +279,7 @@ When starting a mobile-facing app, this is the floor. Ship it before the first c
 ```css
 html {
   -webkit-tap-highlight-color: transparent;
-  -webkit-text-size-adjust: 100%; /* no font inflation in landscape */
+  -webkit-text-size-adjust: 100%;
   overscroll-behavior: none;
 }
 
@@ -291,7 +293,7 @@ button, a, [role="button"] {
   -webkit-user-select: none;
 }
 
-@media (hover: hover) and (pointer: fine) {
+@media (hover: hover) {
   /* all :hover rules live here */
 }
 ```
@@ -314,7 +316,7 @@ Opinionated and brief. Most of these are one line; say the line and the reason a
 
 <critical>
 - NEVER disable zoom (`user-scalable=no`, `maximum-scale=1`); MUST fix input font size instead.
-- MUST gate every `:hover` rule behind `(hover: hover) and (pointer: fine)`.
+- MUST gate every `:hover` rule behind `(hover: hover)`; NEVER require `(pointer: fine)` unless the effect needs precise pointing.
 - MUST handle the iOS keyboard via `visualViewport`; `resizes-content` covers Android only.
-- NEVER declare a fix verified from device emulation; MUST name what needs real hardware.
+- NEVER claim device-only behavior verified from emulation; MUST separate code/layout checks from hardware checks.
 </critical>

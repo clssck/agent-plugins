@@ -38,7 +38,7 @@ Runtime migration = architecture + deployment change, not a dependency-only edit
 
 ## Runtime default changed in the 2026_06 bundle
 
-BCR-2342 (2026_06 bundle, enabled by default since release 10.32, September 2026): `CREATE STREAMLIT` without `RUNTIME_NAME` creates a **container-runtime** app. Previously warehouse. Existing apps unaffected; every new `CREATE STREAMLIT`, including `CREATE OR REPLACE` in a redeploy script, follows the new default. Government regions, China regions, Native App Streamlits keep the warehouse default.
+BCR-2342 (2026_06 bundle: enabled by default in release 10.32, September 2026; generally enabled in 10.37, October 2026, so admins can no longer opt out): `CREATE STREAMLIT` without `RUNTIME_NAME` creates a **container-runtime** app. Previously warehouse. Existing apps unaffected; every new `CREATE STREAMLIT`, including `CREATE OR REPLACE` in a redeploy script, follows the new default. Government regions, China regions, Native App Streamlits keep the warehouse default.
 
 Warehouse-designed script omitting `RUNTIME_NAME` ⇒ fails or silently changes runtime. Container runtime ignores `environment.yml` and breaks wherever the app calls `get_active_session()` or `_snowflake`.
 
@@ -54,7 +54,7 @@ Warehouse-designed script omitting `RUNTIME_NAME` ⇒ fails or silently changes 
 ## Warehouse source layout
 
 - **Layout:** entrypoint + `environment.yml` at the root of the staged source directory. Imported modules MUST be inside the deployed source tree.
-- **Dependencies:** pin a Snowflake-supported Streamlit version. Packages come from the Snowflake Anaconda channel; pip entries inside `environment.yml` unsupported.
+- **Dependencies:** `channels: [snowflake]` only; Snowflake documents the Snowflake Anaconda channel as the sole package source. `pip:` entries, including relative local paths, unsupported — a PyPI-only package cannot be installed on this runtime (migrate to container, or vendor it into the source tree). Pin only Streamlit versions on Snowflake's warehouse list (1.22.0 … 1.52.2 at last read; see Dependency management). Check a pin: `https://repo.anaconda.com/pkgs/snowflake/<linux-64|noarch>/repodata.json` (package name and version), or the Snowsight package picker.
 - **Local environment:** uv cannot install `environment.yml`; Snowflake documents conda with channels `https://repo.anaconda.com/pkgs/snowflake` and `nodefaults`.
 
 ```sql
@@ -159,7 +159,7 @@ snow streamlit deploy app_name --replace --connection <name>
 | `--replace` uploads and overwrites, never deletes staged files | Add `--prune` when files were removed or renamed |
 | `--legacy` deploys with `ROOT_LOCATION`, cannot carry `runtime_name` | Only for apps already on the legacy contract |
 | Omitting `tags:` leaves existing tags alone; `tags: []` clears them (3.22.1+) | Do not add `tags: []` by accident |
-| `grants:` entries take exactly one of `role:` or `user:` (`user:` 3.28.0+); the model forbids extra fields, so `sharing:` is not valid | Write every `USAGE` grant as `grants: [{privilege: USAGE, role: ...}]`, or `user:` in place of `role:` on 3.28.0+ |
+| `grants:` entries take exactly one of `role:` or `user:` (`user:`, `with_grant_option:` 3.28.0+). `sharing:` is not accepted: the model forbids extra fields, and CLI 3.32.1 (parser and generated JSON schema) rejects `entities.<id>.sharing` with "Extra inputs are not permitted", although one Snowflake docs page ("Creating a Streamlit app") calls `sharing:` the older spelling of USAGE grants | Write every `USAGE` grant as `grants: [{privilege: USAGE, role: ...}]`. A `sharing:` key already in a repo file fails validation on 3.32.1: report it and, when asked to fix or author that file, rewrite it as `grants:`. Trust the parser over the docs sentence; `snow streamlit share` changes live grants, so run it only on request |
 
 - **Validate in CI (3.20.0+):** `snow helpers generate-project-schema -o snowflake-schema.json`, then `uvx check-jsonschema --schemafile snowflake-schema.json snowflake.yml`. Schema checks structure only; cross-field rules still fail at deploy time.
 - **Logs:** `snow streamlit logs` streams container-runtime logs (3.18.0+).

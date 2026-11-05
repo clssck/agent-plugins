@@ -189,7 +189,8 @@ customProperties:
 | `description` | Optional object | `purpose`, `usage`, `limitations`, `authoritativeDefinitions`, `customProperties` |
 | `tags` | Optional | Free strings |
 | `servers`, `schema`, `team`, `roles`, `support`, `price` | Optional | |
-| `slaDefaultElement`, `slaProperties` | Optional | SLAs; NEVER `serviceLevel`; NEVER `slaDefaultElement` (deprecated since v3.1.0, removed in ODCS v4) |
+| `slaProperties` | Optional | SLAs; NEVER `serviceLevel` |
+| `slaDefaultElement` | Optional, deprecated | Valid in the v3.1.0 and v3.2.0 schemas (`deprecated: true`, to be removed in ODCS 4.0), so `validate_odcs.py` accepts it. Authoring policy of this skill (no external Sanofi source): do not write it; set `slaProperties[].element` per SLA. Imported draft carries it → it is not invalid; flag the deprecation. When migrating: keep every existing `slaProperties[].element` unchanged, copy the old default only into SLAs with no `element`, then remove the root field |
 | `authoritativeDefinitions`, `customProperties`, `contractCreatedTs` | Optional | Links go in `authoritativeDefinitions` |
 
 NEVER emit root `classification`, `quality`, `links`, or `serviceLevel`. The schema sets `additionalProperties: false`.
@@ -280,7 +281,7 @@ Set `apiVersion: v3.2.0` only when the user asks for it or the consuming tool re
 | `deprecated` | schema object, property | Boolean, default `false` |
 | `context` | root, schema object | String, or `{instructions, verifiedStatements, constraints}` for AI tools |
 | `${VAR}`, `${VAR:-default}` | any string value | Resolved by tooling at run time; secrets and hostnames stay out of the file. Server `port` may be a string |
-| Server `type` | `servers[]` | New: `hana`, `iceberg`, `exasol`, `teradata`, `ingres`, `vectorwise`, `versant`, `poet`; optional `encoding` on file/stream servers; Athena `workgroup` |
+| Server `type` | `servers[]` | New: `btrieve`, `exasol`, `fastobjects`, `hana`, `iceberg`, `ingres`, `poet`, `teradata`, `vectorwise`, `versant`; optional `encoding` on file/stream servers; Athena `workgroup` |
 | `vendor`, `id` | `customProperties[]`, `relationships[]` | Optional strings |
 | `customProperties`, `authoritativeDefinitions` | `slaProperties[]` | Optional |
 

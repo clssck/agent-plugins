@@ -1,6 +1,6 @@
 # Post-Mortem Template
 
-Copy to `docs/postmortems/YYYY-MM-DD-short-slug.md`; date = **incident start date**, slug describes impact (e.g. `2026-04-28-checkout-500s.md`).
+Copy the structure to `docs/postmortems/YYYY-MM-DD-short-slug.md`; date = **incident start date (UTC)**, slug describes impact (e.g. `2026-04-28-checkout-500s.md`). Every value below is a worked example: replace each with evidence from this incident or `unknown`; NEVER carry an example value over.
 
 Sections marked **Required** MUST be filled. Optional sections: omit when empty; NEVER leave `TBD` placeholders.
 
@@ -21,10 +21,13 @@ Sections marked **Required** MUST be filled. Optional sections: omit when empty;
 > **Severity**: record **live severity** (set during the incident) and
 > **final severity** (after post-mortem review); differ → add short
 > reason. NEVER reclassify down to dodge the 5-business-day deadline.
+>
+> **Status**: `Draft` until every action item has owner, deadline, and tracking link; then `Final`.
 
 | Field                                                 | Value                                                 |
 | ----------------------------------------------------- | ----------------------------------------------------- |
 | **Incident ID**                                       | PD-INC-88421 (PagerDuty)                              |
+| **Status**                                            | Final                                                 |
 | **Severity (live → final)**                           | SEV2 → SEV2 (confirmed; measured impact matched live) |
 | **Trigger (deploy completed, UTC)**                   | 2026-04-28 14:03                                      |
 | **Incident start (first customer impact, UTC)**       | 2026-04-28 14:07                                      |

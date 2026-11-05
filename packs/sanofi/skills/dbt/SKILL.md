@@ -48,7 +48,7 @@ Every command that writes to Snowflake rebuilds whatever it selects, so scope pr
 
 ## Version-Sensitive Rules
 
-Confirm engine and version with `dbt --version` before applying any row.
+Confirm engine and version with `dbt --version` before applying any row. `dbt` not runnable → take the version from the lockfile, else the `pyproject.toml`/requirements pin, and report it as unverified; a range pin (`1.10.*`) spanning a row's boundary → use the form valid across the whole range, or ask.
 
 | Rule | Check before applying |
 |---|---|
@@ -93,11 +93,11 @@ Smallest command that proves the change. Prefer README, Makefile, CI, or project
 | YAML, source, package, project config | `dbt parse` |
 | Model SQL | `dbt compile --select <model_name>` |
 | Data tests | `dbt test --select <model_name>` or the changed test; add `+` only for downstream |
-| Unit tests | `dbt test --select "test_type:unit"`; in a fresh or disposable schema, parents MUST exist (`dbt run --select <parents> --empty`, no `+`), plus an incremental model's own `--empty` shell; exclude from production builds ([unit-tests.md](skill://dbt/references/unit-tests.md)) |
+| Unit tests | `dbt test --select "<model>,test_type:unit"`; in a fresh or disposable schema, parents of `dict`/`csv` inputs MUST exist (`dbt run --select <parents> --empty`, no `+`; or `--defer --state <prod-manifest-dir>` for parents that manifest holds; `format: sql` inputs need none), plus an incremental model's own `--empty` shell unless deferred or its `this` fixture is `format: sql`; exclude from production builds ([unit-tests.md](skill://dbt/references/unit-tests.md)) |
 | Deprecations (1.10+) | `dbt parse --no-partial-parse --show-all-deprecations`; fix with `uvx dbt-autofix deprecations --dry-run` first |
 | CI-style | `state:modified+ --state <manifest-dir>` when a prior manifest exists ([state-and-ci.md](skill://dbt/references/state-and-ci.md)) |
 | Docs artifacts or catalog | `dbt docs generate`, only when it matters |
 | Format/lint | `sqlfluff`, `ruff`, pre-commit, repo scripts, only when configured; `uv run` them in uv projects |
 
 - **Tools:** `grep`, `glob`, `read` for files; `bash` only for dbt and other real CLIs.
-- **Blocked:** validation cannot run locally → state the exact command and missing prerequisite; report profile, credential, or Snowflake blockers exactly.
+- **Blocked:** validation cannot run locally → state the exact command and missing prerequisite; report profile, credential, or Snowflake blockers exactly. The repo's own install (`uv sync --locked`, requirements) fails once → stop; NEVER substitute another dbt version, package cache, or ad-hoc environment, since its parse result does not prove the pinned one.

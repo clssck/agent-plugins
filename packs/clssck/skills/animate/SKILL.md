@@ -1,6 +1,6 @@
 ---
 name: animate
-description: Implement an animation, transition, or motion in code, or decide it shouldn't animate: easing, duration, curve, properties. Use when explicitly asked to animate a named element, add motion to it, build a transition, or choose timing and easing. For discovering what could animate or feel more alive use find-animation-opportunities; for critiquing existing motion use review-animations; for auditing a whole codebase use improve-animations; for stutter, jank, or dropped frames use animation-performance.
+description: "Add new motion: make a panel slide or fade in, pick easing and duration; not review or jank. Use when asked to animate a named element, add an enter/exit or open/close transition, make a panel slide or fade in, or choose easing, duration, curve, or spring config for motion being built; runs a should-it-animate gate first and writes the code with reduced-motion and hover gating. Not for critiquing motion that already exists (review-animations), whether a property will cause jank or why it stutters (animation-performance), toning down or deleting motion (remove-animations), iOS-like web gestures, drag-to-fling, momentum, or materials (apple-design), React Native or Expo (animate-expo), naming an effect (animation-vocabulary), finding what could animate (find-animation-opportunities), or auditing a whole app (improve-animations)."
 ---
 
 # Building Animations
@@ -208,11 +208,12 @@ Check what code cannot prove. Entry gate: the page runs locally and Eval is avai
 
 1. In Eval, open a dedicated named tab with `browser.open({ name, url, app: { tern: false, relay: false } })`. That skips Tern and the relay but does not guarantee Chromium: a configured CDP URL or cmux still wins. Read the open result to see which backend you got.
 2. Check support on that backend before relying on it. cmux rejects `tab.recordStart`; Tern's native webview throws on any `reducedMotion` emulation. If `recordStart` or `tab.emulate({ reducedMotion: true })` throws or the backend is known not to support it, skip that check and name it in the feel-check as unverified.
-3. If recording is supported, start `tab.recordStart(path, { contactSheet: true })`, trigger the motion, then call `tab.recordStop()`.
-4. Treat the returned contact sheet as a coarse overview. If a small motion, origin, or stagger is absent, inspect the recording at intermediate timestamps instead of assuming it did not happen.
-5. If reduced-motion emulation is supported, apply `tab.emulate({ reducedMotion: true })` to the same tab, then repeat steps 3–4 there without opening a second tab: a new tab would not carry the emulation and would record normal motion again.
+3. Pin the normal variant before recording: `await tab.emulate({ reducedMotion: false })`, then confirm `await tab.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches)` returns `false`. An unpinned tab inherits the OS preference: on a host with Reduce Motion on, the "normal" recording silently shows only the reduced path. If the pin throws, record which variant `matchMedia` reports and mark the other unverified.
+4. If recording is supported, start `tab.recordStart(path, { contactSheet: true })`, trigger the motion, then call `tab.recordStop()`.
+5. Treat the returned contact sheet as a coarse overview. If a small motion, origin, or stagger is absent, inspect the recording at intermediate timestamps instead of assuming it did not happen.
+6. If reduced-motion emulation is supported, apply `tab.emulate({ reducedMotion: true })` to the same tab, confirm `matchMedia` now returns `true`, then repeat steps 4–5 there without opening a second tab: a new tab drops the emulation and falls back to the OS preference.
 
-Exit gate: both variants inspected, or each unsupported or skipped check named as unverified in the feel-check.
+Exit gate: both variants inspected, each with `matchMedia` confirming its state, or each unsupported or skipped check named as unverified in the feel-check.
 </procedure>
 
 ## Recipes

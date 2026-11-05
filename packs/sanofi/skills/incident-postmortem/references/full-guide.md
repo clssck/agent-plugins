@@ -137,7 +137,7 @@ Post-mortems are not failure catalogs; call out what worked so it gets reinforce
 
 ### 7. Action items
 
-Every item MUST have the fields below. Owner or tracking link unknown → `UNASSIGNED`/blank, NEVER invent, keep the document in Draft.
+Every item MUST have the fields below. Owner, deadline, or tracking link unknown → `UNASSIGNED`/blank, NEVER invent, keep the document in Draft.
 
 | Field | Required | Notes |
 |---|---|---|
@@ -179,7 +179,7 @@ Changing human behaviour (training, "be careful") is less reliable than changing
 
 ### 8. Write the document
 
-Use [post-mortem-template.md](skill://incident-postmortem/references/post-mortem-template.md) as the exact template. Fill every required section; omit optional sections only when empty — no "TBD" placeholders. File at `docs/postmortems/YYYY-MM-DD-short-slug.md` (create directory if missing); date = incident **start**, not authoring date.
+Use [post-mortem-template.md](skill://incident-postmortem/references/post-mortem-template.md) as the exact structure; its values are examples to replace. Fill every required section; omit optional sections only when empty — no "TBD" placeholders. File at `docs/postmortems/YYYY-MM-DD-short-slug.md` (create directory if missing); date = incident **start** (UTC), not authoring date.
 
 ### 9. Review and publish
 

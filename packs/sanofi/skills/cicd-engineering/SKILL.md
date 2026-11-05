@@ -5,14 +5,14 @@ description: "Write, review, and fix Sanofi GitHub Actions workflows and CI secu
 
 # CI/CD Engineering
 
-Sanofi GitHub Actions rules and verified templates: workflows, quality and security gates (SAST, SCA, coverage), SonarCloud, CodeGuard, AWS OIDC, image promotion, action pinning, attestations. Complements the built-in `/review` and `/security` commands: those find generic defects; this skill supplies the Sanofi runner, allowlist, gate, and promotion policy. Governing principle: pick the strongest control the Sanofi allowlist and platform accept, not the strongest in principle. Pins, trust policies, and gate wiring that look correct but contradict the allowlist or the repo's real `sub` format fail at runtime.
+Sanofi GitHub Actions rules and verified templates: workflows, quality and security gates (SAST, SCA, coverage), SonarCloud, CodeQL, AWS OIDC, image promotion, action pinning, attestations. Complements the built-in `/review` and `/security` commands: those find generic defects; this skill supplies the Sanofi runner, allowlist, gate, and promotion policy. Governing principle: pick the strongest control the Sanofi allowlist and platform accept, not the strongest in principle. Pins, trust policies, and gate wiring that look correct but contradict the allowlist or the repo's real `sub` format fail at runtime.
 
 ## Reference Map
 
 | File | Holds |
 | --- | --- |
 | [cicd-rules.md](skill://cicd-engineering/references/cicd-rules.md) | Requirements by domain, review checklist, compliance gaps, troubleshooting |
-| [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md) | Verified action pins; Node, Python, Terraform, SonarCloud, container, CD, CodeGuard workflows |
+| [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md) | Verified action pins; Node, Python, Terraform, SonarCloud, container, CD, CodeQL workflows |
 | [security-hardening.md](skill://cicd-engineering/references/security-hardening.md) | Supply chain, `pull_request_target`, injection, runners, OIDC trust policies, secrets, attestations, cache poisoning, sources |
 
 Load only what the task needs.
@@ -25,14 +25,14 @@ Load only what the task needs.
 | **Permissions** | Declare a read-only `permissions:` at workflow level; expand per job only where needed; NEVER `write-all`/`read-all` |
 | **Pinning** | GitHub-published and verified-creator actions → full commit SHA + version comment |
 | **Allowlist** | Other third-party actions → the exact tag the allowlist registers; NEVER invent SHA pins |
-| **Org workflows** | Sanofi org-managed reusable workflows (CodeGuard) are the only `@main` exception; comment it |
+| **Org workflows** | NEVER assume `@main` for an org-managed reusable workflow; use the reference the platform team documents. The CodeGuard workflow `cyber-AST-Action_reusable` is retired: it scans nothing and succeeds ([cicd-rules.md §3.3](skill://cicd-engineering/references/cicd-rules.md#33-run-sast-in-the-pipeline)) |
 | **Secrets** | Scope per Environment; NEVER in files or logs; prefer OIDC over long-lived cloud keys |
 | **Reusable workflows** | Callee declares `on.workflow_call.secrets`; caller passes named secrets; `secrets: inherit` only to org-managed workflows |
 | **Injection** | Untrusted PR/issue text via `env:`; NEVER interpolate attacker-controlled `${{ }}` expressions inside `run:` |
 | **Untrusted triggers** | `pull_request_target`, `workflow_run` MUST NOT check out or execute PR code or trust downloaded artifacts: they run from the default branch and see secrets. Caches stay `cache-mode: read` |
 | **Security steps** | NEVER `continue-on-error: true` on SAST, SCA, secret scan, or gate steps |
 | **Installs** | Commit lockfiles; deterministic installs (`npm ci`, `uv sync --locked`). Python CI: `astral-sh/setup-uv` + `uv run`, not `setup-python` + `pip install`; keep a repo's existing tooling (poetry, pip-tools) and say how to adopt uv |
-| **SCA/SAST** | Every repo runs both in CI, blocking. CodeGuard preferred; SonarCloud adds quality gating; CodeQL fallback |
+| **SCA/SAST** | Every repo runs both in CI, blocking. SAST: CodeQL ([template](skill://cicd-engineering/references/pipeline-templates.md#codeql-sast)); SonarCloud adds quality gating; CodeGuard is retired. CodeQL alone does not show Sanofi's internal GHAS requirements are met: unverified until the platform/Cybersecurity team's reference is available |
 | **Coverage** | Sonar imports reports via `sonar-project.properties`; scan waits for the gate (`sonar.qualitygate.wait=true`); the aggregate required check MUST depend on the Sonar job |
 | **Artifacts** | Build once; promote the same image digest dev → test → prod; NEVER rebuild per environment |
 | **Deploy** | Render a new ECS task-definition revision with the digest, deploy it, wait for stability |
@@ -61,7 +61,7 @@ Production images SHOULD carry a build-provenance attestation ([security-hardeni
    - Neither → keep the local/static results; GitHub verification is unverified, naming the missing prerequisite (GitHub tool, xd transport, `gh`, or `gh` auth).
 
    Diagnose from the failure log, not from the YAML alone.
-7. Report changed behavior, required secrets/environments/variables, manual platform setup, and GitHub verification: passed/failed with the run ID, or unverified with the missing prerequisite.
+7. Report changed behavior, required secrets/environments/variables, manual platform setup, and verification. List each local check you ran (command, result) and each you did not run as unverified; NEVER write "tests pass" or "lint passes" without a command you ran. GitHub verification: passed/failed with the run ID, or unverified with the missing prerequisite.
 </procedure>
 
 <caution>
@@ -76,6 +76,7 @@ Production images SHOULD carry a build-provenance attestation ([security-hardeni
 | Callee requests `pull-requests: read` the caller never granted | Grant at the calling job; callee cannot elevate |
 | Job receiving `JFROG_TOKEN`/`SONAR_TOKEN`/AWS credentials, or running credentialed `terraform init`/plan/apply, without `environment:` | Bind the protected environment and approval gate on every credentialed job; secretless PR `init -backend=false`/`validate` needs none |
 | Sonar scan without gate wait, excluded from `Build Complete` | `sonar.qualitygate.wait=true`, job in `needs` |
+| Call the retired CodeGuard workflow `code_guard_ast.yml@main` (or pass `CHECKMARX_*` secrets) as the SAST gate | CodeQL template; the org workflow is a retirement stub: no scan, job succeeds with `result=TRUE` |
 | OIDC trust copied as `repo:ORG/REPO:...` | Confirm the repo's `sub` format (name or owner/repo IDs) first |
 | Tag pin of an action still on `node20` | Upgrade to a release declaring `node24`; Node 20 is gone from runners. Check `runs.using` with the top-level `github` tool or `xd://github` device (whichever is usable) `op: file_read`, `path: action.yml` (or `action.yaml`), `branch: <tag>`; no usable GitHub tool or device route → `gh api 'repos/O/R/contents/action.yml?ref=TAG' --jq .content \| base64 --decode`; neither → report the runtime unverified, naming the missing prerequisite (GitHub tool, xd transport, `gh`, or `gh` auth) |
 | Delete `cache-mode`/`vulnerability-alerts` because `actionlint` flags them | Keep them; valid GitHub syntax that `actionlint` v1.7.12 does not know yet |

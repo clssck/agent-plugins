@@ -18,7 +18,7 @@ Governing principle: source metadata is the only authority. A contract that gues
 | [source-parsing.md](skill://datacontract-writing/references/source-parsing.md) | dbt, Snowflake (`snow` CLI), SQL DDL extraction |
 | [datacontract-cli.md](skill://datacontract-writing/references/datacontract-cli.md) | `datacontract` CLI: lint, diff, import drafts, tests; import output fixes |
 
-<critical>
+<directives>
 
 - **Precedence:** source metadata beats inferred names or examples.
 - **No fabrication:** NEVER fabricate owners, SLAs, thresholds, or types.
@@ -32,7 +32,7 @@ Governing principle: source metadata is the only authority. A contract that gues
 - **Snowflake:** metadata queries only. NEVER read data rows; this includes `datacontract test` without `--metadata-only`.
 - **Nested `id` values:** use `[A-Za-z0-9_-]` only. Colons fail the CLI's v3.1.0 lint ([odcs-template.md](skill://datacontract-writing/references/odcs-template.md#v320-delta)).
 
-</critical>
+</directives>
 
 <procedure>
 
@@ -51,7 +51,7 @@ Governing principle: source metadata is the only authority. A contract that gues
 uv run "$(realpath skill://datacontract-writing/scripts/validate_odcs.py)" datacontracts/my-schema.odcs.yaml
 ```
 
-`uv run` reads the script's inline dependencies (`jsonschema`, `pyyaml`) into an isolated environment. NEVER `pip install` them. The script fetches the schema for the contract's `apiVersion` (v3.1.0 or v3.2.0) over the network; `--schema <file>` forces a specific schema and also works offline.
+`uv run` reads the script's inline dependencies (`jsonschema`, `pyyaml`) into an isolated environment. NEVER `pip install` them. The script fetches the schema for the contract's `apiVersion` (v3.1.0 or v3.2.0) over the network. `--schema <file>` forces a specific schema; offline it helps only if a local copy of the official schema file already exists. The skill ships none, so NEVER hand-write one.
 
 | Exit | Meaning |
 |------|---------|
@@ -60,7 +60,7 @@ uv run "$(realpath skill://datacontract-writing/scripts/validate_odcs.py)" datac
 | 2 | validator unavailable (no network, unreadable input) |
 
 - **No `uv`, or exit 2:** say validation did not run. NEVER claim the contract is valid.
-- **Second opinion (optional):** `uvx --from datacontract-cli datacontract lint FILE --all-errors --no-inline-references` ([datacontract-cli.md](skill://datacontract-writing/references/datacontract-cli.md)).
+- **Second opinion (optional):** `uvx --from datacontract-cli datacontract lint FILE --all-errors --no-inline-references` ([datacontract-cli.md](skill://datacontract-writing/references/datacontract-cli.md)). Since CLI 1.2.5, lint exits 0 with only a warning on unknown fields (`isNullable`), and it accepts v3.2.0 fields such as `enum` under v3.1.0 without any message. Lint exit 0 therefore NEVER replaces `validate_odcs.py` exit 0 or the schema-invalid field check below.
 - **Changing an existing contract:** run `datacontract breaking OLD NEW` the same way, and report the result before bumping `version`.
 
 ## Before reporting
@@ -71,10 +71,20 @@ Check the artifact against each of these before handing it back:
 |-------|-------------|
 | Validator | exit 0, or unavailability reported |
 | Root | has `apiVersion`, `kind`, `id`, `version`, `status` |
-| Forbidden fields | no `isPrimaryKey`, `isNullable`, `isUnique`, `serviceLevel`, `links`, `slaDefaultElement`, root `classification`/`quality` |
+| Schema-invalid fields | none of `isPrimaryKey`, `isNullable`, `isUnique`, `serviceLevel`, `links`, root `classification`/`quality`; each fails the schema |
+| Deprecated fields | `slaDefaultElement` is schema-valid in v3.1.0 and v3.2.0 (deprecated, to be removed in ODCS 4.0). This skill's authoring policy (not an external mandate): do not write it; set `slaProperties[].element`. A schema-valid imported draft carrying it is NOT invalid: report it as a deprecation finding, migrate per [odcs-template.md](skill://datacontract-writing/references/odcs-template.md#root-fields) only when asked to rewrite it |
 | Version fit | fields match the declared `apiVersion`; no v3.2.0 fields under v3.1.0 |
 | Team | uses `team.members[].username` |
 | Quality | args use `validValues`; composite keys use `arguments.properties` |
 | Descriptions | present; unknowns flagged `# REVIEW:` |
 | Imported drafts | reconciled: `id`, `apiVersion`, `physicalType`, server placeholders |
 | Placeholders | no placeholder text or invented values |
+
+<critical>
+
+- NEVER fabricate owners, SLAs, thresholds, types, classification, or server values; omit them and flag `# REVIEW:`.
+- NEVER emit fields outside the declared `apiVersion` schema, and NEVER bump to v3.2.0 unprompted.
+- NEVER report a contract valid without `validate_odcs.py` exit 0. Exit 2 or no `uv` means you report that validation did not run.
+- NEVER read Snowflake data rows: metadata queries only.
+
+</critical>

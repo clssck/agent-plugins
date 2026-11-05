@@ -2,10 +2,13 @@
 
 Use bbot when breadth matters more than request control: every discovery becomes an event and seeds the next module. Keep single-purpose tools (subfinder, httpx, katana, ffuf, nuclei) for exact requests. Verify `bbot --version` and the live module table before planning; a missing binary is a blocker unless the operator authorizes `uv tool install bbot`.
 
+These recipes use [BBOT 3.x target/seed semantics](https://www.blacklanternsecurity.com/bbot/Dev/migration/3.0_breaking_changes/): `-s` means seeds, but meant silent in 2.x. Do not run them unchanged on another major version; derive a plan from that version's documentation without weakening the selected mode's contact boundary, or report the compatibility gap.
+
 <critical>
 
 - Targets and seeds stay inside the recorded scope. Third-party sources are queried about the target, never exploited.
 - Derive the mode from program policy: scanner bans or limits at or below 5 req/s mean passive only; active requires permission; loud families require explicit permission.
+- NEVER enable credential-testing modules as recon. Route credential testing through the separately authorized [credential workflow](skill://exploitation/references/network.md#credentials); loud-scan permission is not credential-testing permission.
 - In-scope targets go in `-t`, exclusions in `-b`; `--strict-scope` when subdomains are not implicitly in scope. Events with `scope_distance > 0` are intel, never probe targets.
 - Keyless modules by default. A vault key goes into a private YAML config created for the run and passed as `-c <file>`; never on the command line, in output, or in the transcript. Delete the file after the scan.
 - Never run the `kitchen-sink` preset against a live target.
@@ -18,8 +21,8 @@ Use bbot when breadth matters more than request control: every discovery becomes
 | Mode | When | Modules |
 |---|---|---|
 | P — passive | Scanners banned, strict rate limit, zero-touch | `crt`, `crt_db`, `certspotter`, `dnsdumpster`, `hackertarget`, `anubisdb`, `rapiddns`, `subdomaincenter`, `urlscan`, `myssl`, `wayback`, `asn`, `shodan_idb`, `ipneighbor`; email family |
-| A — active-safe | Active scanning permitted | P plus `dnsresolve`, `dnscommonsrv`, `baddns*`, `sslcert`, `robots`, `securitytxt`, `oauth`, `graphql_introspection`, `fingerprintx`, `reflected_parameters`, `retirejs`, `badsecrets`, `iis_shortnames`, `filedownload`, `newsletters`, `hunt`, capped spider |
-| Loud | Explicit permission only | `paramminer_*`, `virtualhost`, `waf_bypass`, `bypass403`, `dnsbrute*`, `portscan`, `lightfuzz`, `nuclei`, `legba`, `medusa`, `host_header`, `url_manipulation`, `generic_ssrf` |
+| A — active-safe | Active scanning permitted | P plus `dnsresolve`, `dnscommonsrv`, `baddns*`, `sslcert`, `robots`, `securitytxt`, `oauth`, `graphql_introspection`, `fingerprintx`, `reflected_parameters`, `retirejs`, `badsecrets`, `filedownload`, `newsletters`, `hunt`, capped spider |
+| Loud | Explicit permission only | `paramminer_*`, `virtualhost`, `iis_shortnames`, `waf_bypass`, `bypass403`, `dnsbrute*`, `portscan`, `lightfuzz`, `nuclei`, `host_header`, `url_manipulation`, `generic_ssrf` |
 
 Mode P runs with seeds only (`-s`, no `-t`) so no module contacts the target. Never mix passive and active modules in one run.
 

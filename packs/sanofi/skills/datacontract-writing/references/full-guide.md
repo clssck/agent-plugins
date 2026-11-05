@@ -91,7 +91,9 @@ Bad/Good:
   quality: [{type: library, metric: duplicateValues, mustBe: 0}]
 - name: line_id
   quality: [{type: library, metric: duplicateValues, mustBe: 0}]
+```
 
+```yaml
 # Good: one tuple rule at schema level
 quality:
   - type: library
@@ -103,6 +105,9 @@ quality:
 ```yaml
 # Bad: values is not an ODCS argument
 arguments: {values: [placed, shipped]}
+```
+
+```yaml
 # Good
 arguments: {validValues: [placed, shipped]}
 ```

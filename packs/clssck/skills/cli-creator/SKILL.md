@@ -39,7 +39,7 @@ $env:TEMP
 ```
 
 - Repo has a package manager and install convention → use it (existing convention wins over any default here).
-- New TypeScript/JavaScript CLI, no existing convention or Node-only constraint → **prefer Bun** (`bun install`, `bun run`, `bun test`, `bun build --compile`). Fall back to npm/pnpm when the repo already uses them, the target requires Node/npm, or a dependency fails under Bun; Bun is not compatible with every Node SDK.
+- New TypeScript/JavaScript CLI, no existing convention or Node-only constraint → **prefer Bun** as runtime and package manager (`bun install`, `bun run`, `bun test`, `bun build --compile`), with **Oxlint** (lint), **Oxfmt** (format), and **TypeScript** `tsc --noEmit` (type check) plus `@types/bun` as project `devDependencies`; scripts and commands → [install-and-packaging.md](skill://cli-creator/references/install-and-packaging.md#lint-format-typecheck). Repo already uses npm/pnpm/ESLint/Prettier/Biome or another toolchain → keep it. Fall back to npm/pnpm when the target requires Node/npm or a dependency fails under Bun; Bun is not compatible with every Node SDK.
 - Search source material with `grep`, `glob`, `read`.
 
 </instruction>
@@ -49,7 +49,7 @@ $env:TEMP
 |Runtime|Choose when|Defaults|
 |---|---|---|
 |Rust (default)|Durable CLI: one fast binary, strong arg parsing, good JSON|`clap`, `reqwest`, `serde`/`serde_json`, `toml`, `anyhow`|
-|TypeScript/JavaScript (Bun preferred)|Official SDK, auth helper, browser automation, or existing repo tooling is the advantage|Bun for package management, running, testing, and `bun build --compile` single binary (no Node needed on target); npm/pnpm/Node only when the repo or target requires it; `commander` or `cac`; native `fetch` or official SDK; `zod` only where payload validation prevents real breakage; `package.json` `bin`; build tool per repo (`tsup`, `tsx`, `tsc`)|
+|TypeScript/JavaScript (Bun preferred)|Official SDK, auth helper, browser automation, or existing repo tooling is the advantage|Bun for package management, running, testing, and `bun build --compile` single binary (no Node needed on target); Oxlint + Oxfmt + `tsc --noEmit` for a new project with no convention; npm/pnpm/Node only when the repo or target requires it; `commander` or `cac`; native `fetch` or official SDK; `zod` only where payload validation prevents real breakage; `package.json` `bin`; build tool per repo (`tsup`, `tsx`, `tsc`)|
 |Python|Data work, local file transforms, SQLite/CSV/JSON analysis, Python-heavy admin tooling|uv project from `uv init --package` with `[project.scripts]` and committed `uv.lock`; `argparse` (or `typer` for deep subcommands); `httpx`/`requests`/`urllib` matching nearby code; PEP 723 single file for one-module tools|
 |Go|Repo or team already uses Go; one static binary, easy cross-compile|Standard `flag` for flat commands; a subcommand library only for nested trees|
 
@@ -65,8 +65,9 @@ $env:TEMP
 - **Source search:** use `grep`, `glob`, `read`; NEVER shell `rg`/`find`/`Select-String`.
 - **Runtime choice:** MUST be stated in one sentence before scaffolding (reason + toolchain found). NEVER pick a language that adds setup friction without material benefit.
 - **Install target:** MUST be user-approved and user-writable; NEVER assume `~/.local/bin`. NEVER `pip install` into system Python (PEP 668).
+- **JS/TS tooling:** the Bun/Oxlint/Oxfmt default is for new projects only. MUST keep an existing project's chosen toolchain; preference alone NEVER authorizes migrating it, and an explicit user request for migration does. Oxlint/Oxfmt/TypeScript missing in a new project the user authorized you to scaffold and set up → add them with `bun add -d`, no further approval. Install or network restrictions in force (no installs, offline, no new dependencies) → they win: suggest the setup commands, write the scripts, mark the lint/format/typecheck steps unrun, and report them as unverified. NEVER install them globally or into an existing project merely to match this default.
 
-Precedence: env var with the service's standard name (`GITHUB_TOKEN`) > user config in a documented OS-appropriate directory (`~/.config/<tool-name>`; Windows `$env:APPDATA\<tool-name>`) > `--token-file <path>` or token on stdin (`--with-token`, as `gh auth login` does) for headless setup.
+Precedence, highest first: explicit `--token-file <path>` or token on stdin (`--with-token`, as `gh auth login` does; also the headless setup path) > env var with the service's standard name (`GITHUB_TOKEN`) > user config in a documented OS-appropriate directory (`~/.config/<tool-name>`; Windows `$env:APPDATA\<tool-name>`). An explicit per-invocation input MUST beat ambient state; `doctor` reports which source won.
 
 - **NEVER accept a secret as a plain flag value** — it leaks into `ps` output and shell history.
 - **NEVER print full tokens.**
@@ -85,7 +86,7 @@ Precedence: env var with the service's standard name (`GITHUB_TOKEN`) > user con
 4. Implement `doctor`, discovery, resolve, reads, one narrow draft or dry-run write if requested, raw escape hatch.
 5. **Install on PATH only when the user asks** for a globally callable command; state the target first. Otherwise keep the verified local wrapper.
 6. Smoke test from a fresh directory — not `cargo run`, `uv run`, or other package-manager wrappers.
-7. Run format, typecheck/build, unit tests (request builders, pagination, body builders), no-auth `doctor`, help output, and one fixture, dry-run, or live read-only call.
+7. Run format, typecheck/build, unit tests (request builders, pagination, body builders), no-auth `doctor`, help output, and one fixture, dry-run, or live read-only call. Generated tests MUST use unique, owned temporary directories with scoped cleanup or teardown registered immediately after creation, including config and token fixtures; setup or assertion failure must not bypass cleanup.
 
 ### Source shapes
 
@@ -102,15 +103,34 @@ Precedence: env var with the service's standard name (`GITHUB_TOKEN`) > user con
 
 <procedure>
 
-Installed on PATH:
+Installed on PATH (substitute the chosen command name). Record each exact scratch path before use; clean it after the command exits, on success or failure. Unknown ownership → leave it and report the path, not a pattern-based deletion.
 
 ```bash
-cd "$(mktemp -d)" && command -v <tool-name> && <tool-name> --help && <tool-name> --json doctor
+(
+  scratch=$(mktemp -d "${TMPDIR:-/tmp}/cli-smoke.XXXXXX") || exit
+  trap 'status=$?; rm -rf -- "$scratch" || exit 1; exit "$status"' EXIT
+  printf 'Smoke directory: %s\n' "$scratch" >&2
+  cd -- "$scratch" && command -v <tool-name> && <tool-name> --help && <tool-name> --json doctor
+)
 ```
 
 ```powershell
-Set-Location (New-Item -ItemType Directory (Join-Path $env:TEMP "smoke-$(Get-Random)"))
-Get-Command <tool-name>; <tool-name> --help; <tool-name> --json doctor
+$scratch = (New-Item -ItemType Directory -Path (Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName())) -ErrorAction Stop).FullName
+try {
+    Write-Host "Smoke directory: $scratch"
+    Push-Location -LiteralPath $scratch -ErrorAction Stop
+    try {
+        Get-Command <tool-name> -ErrorAction Stop
+        <tool-name> --help
+        if (-not $?) { throw "CLI help failed" }
+        <tool-name> --json doctor
+        if (-not $?) { throw "CLI doctor failed" }
+    } finally {
+        Pop-Location
+    }
+} finally {
+    Remove-Item -LiteralPath $scratch -Recurse -Force -ErrorAction Stop
+}
 ```
 
 Not on PATH → run the wrapper or binary by absolute path from the fresh directory; NEVER install just to pass the smoke test.
@@ -135,13 +155,13 @@ After the CLI works, create or update a normal omp skill that teaches it.
 - **Frontmatter:** `name` + `description`; `disable-model-invocation: true` only for a manual-only skill (OMP extension frontmatter — omit it from standard `plugin.json` packages; strict validation rejects unknown fields). Description = retrieval surface: purpose + concrete "Use when" triggers; `Not for …` only against sibling confusion. Authoring style → `skill-authoring`.
 - **Body:** `# Title`, dense intro, `##` sections (task names for procedures, noun names for reference), bold-lead rules. Detail in `references/*.md`; link every runtime asset with `skill://<tool-name>/...`. Skeleton → [agent-cli-patterns.md](skill://cli-creator/references/agent-cli-patterns.md#companion-skill).
 - **Bundled scripts:** PEP 723 header with `#!/usr/bin/env -S uv run --script`; invoke as `uv run "$(realpath skill://<tool-name>/scripts/<file>.py)"` in the omp `bash` tool. Bare `skill://` path fails in external programs; `realpath` prints the physical path.
-- **Verify:** `read skill://<tool-name>` resolves, every link resolves, example commands run from a fresh directory. Pack skill → also `bun scripts/sync.ts --local` from the repo root (`skill-authoring` → Validate).
+- **Verify:** every link target exists on disk and example commands run from a fresh directory. `read skill://<tool-name>` resolves only when OMP loads the skills root; when the skill was written to a root OMP does not load (a trial or scratch directory, no registration authorized), `read` the files by path, confirm frontmatter `name` = folder name and every `skill://<tool-name>/...` target exists on disk, and report `skill://` routing and discovery as unverified. NEVER edit OMP settings or shared plugin/skill roots to make it resolve. Pack skill → also `bun scripts/sync.ts --local` from the repo root (`skill-authoring` → Validate).
 
 <critical>
 
 - MUST meet every Done condition, smoke-tested from a fresh directory, before calling the CLI finished.
 - MUST create or update the companion skill after the CLI works.
-- MUST confirm `read skill://<tool-name>` resolves, every link resolves, and example commands run from a fresh directory.
+- MUST confirm `read skill://<tool-name>` resolves when the root is loaded; otherwise label `skill://` routing unverified. Either way every link target MUST exist on disk and example commands MUST run from a fresh directory.
 - NEVER accept secrets as plain flag values, print full tokens, or perform a live write without approval.
 
 </critical>

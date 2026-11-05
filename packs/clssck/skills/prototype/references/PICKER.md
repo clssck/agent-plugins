@@ -132,23 +132,28 @@ In a framework, keep the class names and structure; only the rendering syntax ch
 
 The contract is fixed regardless of how the harness renders:
 
-- Number keys `1–N` and `←`/`→` switch variants; `R` replays. Ignore key events when focus is in an input, textarea, select, or contenteditable, or when a modifier is held.
+- Number keys `1–N` and `←`/`→` switch variants; `R` (or `r`) replays. Ignore key events when focus is in an input, textarea, select, or contenteditable, or when Meta, Ctrl, or Alt is held, so browser and OS shortcuts such as Cmd+R keep working. Shift is not checked: Shift+R replays.
 - Clicking an item switches to it; exactly one item carries `data-active` and `aria-current="true"` at all times, and the highlight slides to it.
 - Selection persists across reload via a URL param (`?v=2`), falling back to variant 1. The highlight takes its initial position without animating (`data-ready` is added after first paint).
-- Switching re-mounts the variant (so entrance animations re-run); the replay key re-mounts without switching.
+- Switching re-mounts the variant (so entrance animations re-run); the replay key re-mounts without switching. Every re-mount first tears down the outgoing variant's listeners and timers, so a hold, countdown, or auto-dismiss started in one variant never fires into the next.
 
 ## Reference wiring
 
-Verbatim for the standalone-HTML branch; in a framework, keep the same behavior but express it idiomatically (state instead of `innerHTML`, a keyed re-mount instead of `requestAnimationFrame`, refs + a layout effect for the highlight measurement).
+Verbatim for the standalone-HTML branch. Each variant's interactions live in its own `setup`, never in edits to this wiring. In a framework, keep the same behavior but express it idiomatically (state instead of `innerHTML`, a keyed re-mount instead of `requestAnimationFrame`, refs + a layout effect for the highlight measurement, each variant component clearing its own listeners and timers in its effect cleanup).
 
 ```js
-// `variants` is an array of render functions, one per variant, in picker order.
+// `variants` is an array, one entry per variant, in picker order:
+// { render: () => htmlString, setup?: (root) => cleanup }.
+// `setup` wires the variant's interactions on its freshly rendered markup; the
+// function it returns removes those listeners and clears its timers.
 const stage = document.getElementById('stage');
 const picker = document.querySelector('.proto-picker');
 const highlight = picker.querySelector('.proto-picker-highlight');
 const items = [...picker.querySelectorAll('.proto-picker-item:not(.proto-picker-replay)')];
 const replay = picker.querySelector('.proto-picker-replay');
 let current = 0;
+let frame = 0;
+let cleanup = null;
 
 function moveHighlight() {
   const el = items[current];
@@ -157,9 +162,15 @@ function moveHighlight() {
 }
 
 function mount(i) {
+  cancelAnimationFrame(frame);
+  cleanup?.();
+  cleanup = null;
   stage.innerHTML = '';
   // Clear first, render next frame, so entrance animations re-run.
-  requestAnimationFrame(() => { stage.innerHTML = variants[i](); });
+  frame = requestAnimationFrame(() => {
+    stage.innerHTML = variants[i].render();
+    cleanup = variants[i].setup?.(stage) ?? null;
+  });
 }
 
 function setActive(i) {

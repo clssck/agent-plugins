@@ -56,6 +56,14 @@ Pitfalls:
 - A `relationships` test with one built parent and one deferred parent compares data across environments — meaningless with sampled data. Exclude it in CI: `--exclude "test_name:relationships"`.
 - `--defer` needs a manifest from a prior run; no manifest, no deferral.
 
+## Production Manifest in CI
+
+`state:` and `--defer` are only as good as the manifest they read. Before writing or changing a slim-CI job:
+
+1. **Find the repo's mechanism** (existing artifact upload, object-store path, documented artifacts job) and reuse it.
+2. **None exists** → the production deploy job MUST publish `target/manifest.json` after each successful production run, and CI downloads the latest into `state/`. Add both steps, name the artifact, and state that slim CI cannot select anything until one production run has published it.
+3. **No manifest at run time** (first PR, expired artifact, failed download) → the fetch step decides explicitly: fail with a message, or run a documented bootstrap. A bootstrap is a full build and MUST say so in the job log, run only in the disposable PR schema, and NEVER target prod. NEVER let a failed download silently turn into an unselected build.
+
 ## `dbt clone`
 
 `dbt clone --state <dir> --select <selector>` copies the selected nodes from the state's relations into the target schema. On Snowflake a table in state becomes a **zero-copy clone**; views become pointer views (`select * from` the source). Existing relations are not recreated unless `--full-refresh`; raise `--threads` since each clone is independent. Use instead of deferral when real objects are needed:
@@ -90,7 +98,7 @@ Cheap checks first; stop at the first failure:
 ## Verification
 
 - Every `dbt build|run|test|seed|snapshot` in CI has a selector (or a documented reason).
-- `--state` points to a copied production manifest, NEVER `target/`.
+- `--state` points to a copied production manifest, NEVER `target/`; the job that publishes it and the missing-manifest behavior are defined ([Production Manifest in CI](#production-manifest-in-ci)).
 - Deferred or cloned runs account for cross-environment reads; `relationships` tests excluded.
 - PR schemas created through an approved path, named per PR, dropped on close with prefix-guarded cleanup.
 - `dbt parse` gate runs before warehouse-touching steps.

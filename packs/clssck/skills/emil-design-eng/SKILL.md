@@ -1,6 +1,6 @@
 ---
 name: emil-design-eng
-description: "Use when polishing UI components, dialogs, toasts, or micro-interactions with Emil Kowalski's craft guidance: hierarchy, spacing, typography, motion taste, and the invisible details that make software feel great. Not for motion review (review-animations), motion implementation (animate), Sonner API work (ask-sonner), or worst-case UI stress tests (break-ui)."
+description: "Make UI feel polished, crafted, or premium instead of cheap or unfinished: refine components, forms, dialogs, toasts, and micro-interactions (spacing, typography, hierarchy, the invisible details) with Emil Kowalski's craft guidance and motion taste. Not for motion review (review-animations), motion implementation (animate), Sonner API work (ask-sonner), or worst-case UI stress tests (break-ui)."
 ---
 
 # Design Engineering
@@ -38,7 +38,8 @@ People select tools based on the overall experience, not just functionality. Goo
 <directives>
 
 - **Critique is read-only.** Reviewing, auditing, or critiquing UI returns findings and a Before/After table; it NEVER edits files.
-- **Implement only on request.** Apply changes only when the request asks to implement, fix, or build, and only on a named isolated development surface; get approval before integrating into a shared checkout.
+- **Implement only on request.** Apply changes only when the request asks to implement, fix, or build, and only on a named isolated development surface; get approval before integrating into a shared checkout. For polish-only requests, preserve submission, validation, data handling, and keyboard behavior; report incidental functional or security issues separately unless their repair is requested.
+- **Verify what you implement.** Before reporting an implementation done, MUST check the changed UI in a real browser, not from source or a bare DOM probe: screenshot each changed state, exercise each changed interaction (open, close, validation, submit, keyboard), and for changed motion MUST run both recordings in Frame-by-frame inspection below. Report each check that cannot run as unverified, never as passed.
 - **Route motion and tooling work.** Motion review → `skill://review-animations`; motion implementation → `skill://animate`; Sonner API work → `skill://ask-sonner`; worst-case UI stress → `skill://break-ui`.
 
 </directives>
@@ -678,10 +679,10 @@ Step through animations frame by frame in Chrome DevTools (Animations panel). Th
 
 With no one at the screen, record through Eval's `browser` object:
 
-1. Open a dedicated named tab: `const tab = await browser.open({ name: 'motion-inspect', url })`. Never record a borrowed relay tab or an adopted Tern block.
-2. Confirm recording capability before triggering anything: `ffmpeg` must be on `PATH` and `await tab.recordStart('motion.mp4', { fps: 60, contactSheet: true })` must resolve. Backends without screencast support (cmux, for example) reject it.
-3. Trigger the interaction, then call `await tab.recordStop()` and close the tab.
-4. Treat the changed-frame contact sheet as an overview; if a subtle or small-area motion is missing, inspect the recording at intermediate timestamps rather than assuming only the first/last states occurred.
+1. Open a dedicated named tab: `const tab = await browser.open({ name: 'motion-inspect', url, app: { tern: false, relay: false } })`. The default backend can be Tern or the user's Chrome through the relay, and a hidden or inactive view can prevent valid motion observation. Read the open result, report the actual backend, and confirm `document.visibilityState` is `visible` before recording. Never record a borrowed relay tab or an adopted Tern block.
+2. Record each variant on the same tab, normal first, each to its own path: `await tab.emulate({ reducedMotion: false })` and confirm `matchMedia('(prefers-reduced-motion: reduce)').matches` is `false` (an unpinned tab can record only the reduced path when the OS Reduce Motion setting is on); then `await tab.recordStart('motion-normal.mp4', { fps: 60, contactSheet: true })`, trigger the interaction, `await tab.recordStop()`. Then `await tab.emulate({ reducedMotion: true })`, confirm `matchMedia` is `true`, and repeat with `'motion-reduced.mp4'`. Close the tab.
+3. The first `recordStart` is the capability check: it needs `ffmpeg` on `PATH` and a backend with screencast support (cmux rejects it). A rejected `reducedMotion` emulation (Tern's native webview rejects any value) leaves that variant unverified; report which variant `matchMedia` shows.
+4. Treat each changed-frame contact sheet as an overview; if a subtle or small-area motion is missing, inspect the recording at intermediate timestamps rather than assuming only the first/last states occurred.
 
 If Eval or its `browser` object is unavailable, `ffmpeg` is missing, or `recordStart` rejects: close the tab, report source-only observations (declared durations, easings, properties, and coordination read from the code), and mark the frame-by-frame check unverified.
 

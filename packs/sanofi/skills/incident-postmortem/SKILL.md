@@ -19,9 +19,9 @@ Scope split: `/security` finds vulnerabilities; this skill records an incident t
 
 <procedure>
 
-1. **Gather facts** — dates, impact, affected users/systems, detection path, mitigation, recovery, evidence links. `read`/`grep`/`glob` over chat exports, alert history, deploy logs; `ask` for anything not in evidence.
+1. **Gather facts** — dates, impact, affected users/systems, detection path, mitigation, recovery, evidence links. `read`/`grep`/`glob` over chat exports, alert history, deploy logs; `ask` for anything not in evidence. No `ask` tool or no answer → write `unknown` in the document and list each open question in the hand-off; NEVER fill the gap from inference.
 2. **Confirm severity** against [severity-levels.md](skill://incident-postmortem/references/severity-levels.md); record live and final severity.
-3. **Build the UTC timeline** forward from before the trigger (avoids hindsight bias); source link per entry; fact separate from inference.
+3. **Build the UTC timeline** forward from before the trigger (avoids hindsight bias); source link per entry; fact separate from inference. Per source, record its clock (stated zone, export setting, or a UTC-stamped event it can be matched against) and convert using the offset in force on that date — check DST changeovers. Zone unlabelled or ambiguous → state the assumption beside the entry and mark the time `est.`.
 4. **Root-cause analysis** — 5 Whys plus ALL contributing factors.
 5. **Went well / went wrong / got lucky.**
 6. **Action items** with required fields.
@@ -38,7 +38,7 @@ Process detail, interview prompts, anti-patterns, sources: [full-guide.md](skill
 Document is complete only when every line holds:
 
 - Live and final severity recorded; Incident ID and IC present.
-- Timeline UTC with detection, acknowledgement, mitigation, resolution; each entry sourced.
+- Timeline UTC with detection, acknowledgement, mitigation, resolution (or `not reached`, with TTR omitted); each entry sourced.
 - Impact quantified (users, requests, duration, revenue/data/compliance) or marked `unknown`.
 - Every duration states its endpoints; metrics consistent across header, summary, impact, timeline.
 - Root cause: 5 Whys, contributing factors, category; not "human error" or bare vendor fault.
@@ -99,7 +99,7 @@ Every item MUST have:
 | Priority | P0, P1, P2 |
 | Type | `prevent`, `detect`, `mitigate`, `process`, `documentation` |
 
-- **Unknown owner or link** → `UNASSIGNED` or blank; NEVER invent. Document stays **Draft**.
+- **Unknown owner, deadline, or link** → `UNASSIGNED` or blank; NEVER invent. Document stays **Draft** (header `Status` row).
 - **Coverage:** ≥1 `detect` AND ≥1 `prevent`/`mitigate` aimed at the root cause, not only the trigger.
 - **Distinct priorities** so order of work is clear; NOT everything P0.
 - **Wording MUST be actionable** (starts with a verb), **specific** (scope stated), **bounded** (clear done-state):

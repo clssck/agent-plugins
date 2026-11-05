@@ -15,7 +15,7 @@ Static analysis answers a specific question about a build: which secrets and end
 
 ## Artifact classes
 
-ELF, PE, Mach-O, APK, IPA, HAP, WASM, ZIP/JAR, Electron archives, and obfuscated JavaScript bundles. Save downloads under `assessment/`, hash them, and retain the raw file only when the engagement permits.
+ELF, PE, Mach-O, APK, IPA, HAP, WASM, ZIP/JAR, Electron archives, and obfuscated JavaScript bundles. Save downloads under the chosen recon output directory (`recon/` by default), hash them, and retain the raw file only when the engagement permits.
 
 ## Primitives
 

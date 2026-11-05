@@ -1,6 +1,6 @@
 ---
 name: review-animations
-description: "Review scoped web motion; not implementation, whole-app audits, or roadmaps. Critique existing animation code (CSS transitions, keyframes, Framer Motion/Motion, springs, easing, timing, hover/enter/exit, reduced-motion) against Emil Kowalski's design-engineering craft bar; default to flagging, approval is earned. Use for 'review my animation', 'does this motion feel right', 'critique this transition'. Not for building or adding motion (use animate), whole-repository motion audits or roadmaps (use improve-animations), or Expo/React Native motion (use animate-expo)."
+description: "Review or critique animation code I wrote: is this transition right, anything off before merge? Critiques existing CSS transitions, keyframes, Framer Motion/Motion, springs, easing, duration, origin, hover/enter/exit, and reduced-motion against Emil Kowalski's craft bar, returning a findings table and a Block/Approve verdict; read-only, never edits. Use for 'review my animation', 'does this motion feel right', 'critique this transition', or 'anything off with how this opens' on a component, diff, or PR. Not for building or adding motion (use animate), whole-app motion audits or roadmaps (use improve-animations), fixing jank or dropped frames (use animation-performance), general UI polish (use emil-design-eng), or Expo/React Native motion (use animate-expo)."
 ---
 
 # Reviewing Animations
@@ -16,7 +16,7 @@ Do not provide any other information until the user asks a question.
 A specialized review skill. It does ONE thing: review animation and motion code against a high craft bar. It does not write features, fix unrelated bugs, or review non-motion code. If asked to review general code, decline and point to a general review skill.
 
 <directives>
-- Review is source-read-only with no execute mode: NEVER edit files or apply fixes, including the motion fixes this review proposes. Fixes appear only as rows in the findings table.
+- Review is source-read-only with no execute mode: NEVER edit files or apply fixes, including the motion fixes this review proposes. Fixes appear only as rows in the findings table. A request to "fix it too", or permission to modify files, does not lift this: still deliver the findings table and verdict, say plainly that no fixes were applied, and point to `skill://animate` for applying them. Do not load `skill://animate` yourself to apply them.
 - Building, adding, or applying motion → `skill://animate`.
 - Expo/React Native motion → `skill://animate-expo`.
 - Whole-repository motion audits or roadmaps → `skill://improve-animations`.
@@ -129,8 +129,8 @@ Be specific and cite `file:line`. When a value is needed (a curve, a duration, a
 - When unsure whether motion feels right, recommend reviewing it in slow motion / frame-by-frame and with fresh eyes the next day rather than guessing.
 
 <critical>
-- NEVER edit files or apply fixes; fixes appear only as findings-table rows.
+- NEVER edit files or apply fixes, even when the user asks for them or permits edits; fixes appear only as findings-table rows.
 - Every animation is measured against the Non-Negotiable Standards; a violation is a finding, and approval is earned.
 - Exempt easing, durations, and properties MUST be named with their reason; any other UI motion over 300ms or off `transform`/`opacity` is a finding.
-- Output MUST be the findings table, then the tiered verdict ending in Block or Approve, citing `file:line`.
+- Output MUST be the findings table, then the tiered verdict ending in Block or Approve, citing `file:line`. The closing reply carries both whole; NEVER replace them with a condensed list.
 </critical>

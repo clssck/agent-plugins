@@ -52,7 +52,7 @@ Three conventions, explained once here instead of in every recipe:
 - **`scheduleOnRN(fn, ...args)` replaces the deprecated `runOnJS(fn)(...args)`** for calling back to the React Native runtime from a worklet.
 - **Gestures are wrapped in `useMemo`.** Rebuilding a gesture on every render can reattach the recognizer and drop a drag that's mid-flight.
 
-**Gesture Handler v3:** Expo installs v2, and the recipes use its `Gesture.Pan()` builder. If the project is already on v3, the builder is legacy — each gesture is a hook taking one config object, with `onStart` → `onActivate`, `onEnd` → `onDeactivate`, and the `success` flag replaced by `event.canceled` (inverted). The hook manages its own identity, so drop the `useMemo`:
+**Gesture Handler v3:** SDK 58 bundles v3 (`~3.3`); SDK 53–57 bundled v2 (`~2.24`–`~2.32`). Don't assume Expo means v2 — read the installed major from `package.json` and the lockfile. The recipes use the v2 `Gesture.Pan()` builder, which v3 marks `@deprecated` (it still runs). On v3, each gesture is a hook taking one config object, with `onStart` → `onActivate`, `onEnd` → `onDeactivate`, and the `success` flag replaced by `event.canceled` (inverted). The hook manages its own identity, so drop the `useMemo`:
 
 ```jsx
 const pan = usePanGesture({
@@ -91,8 +91,8 @@ function rubberband(overshoot, dimension, constant = 0.55) {
 Every pressable in the app. This passes the frequency gate only because it's near-imperceptible: 120ms and a 3% scale is the ceiling for something touched this often — anything longer or larger belongs to rarer moments, per step 1 in SKILL.md. No gesture, no shared value — a CSS transition is the whole implementation.
 
 ```jsx
-import Animated from 'react-native-reanimated';
-import { Pressable, StyleSheet } from 'react-native';
+import Animated, { css, cubicBezier } from 'react-native-reanimated';
+import { Pressable } from 'react-native';
 
 function PressableScale({ onPress, children }) {
   const [pressed, setPressed] = useState(false);
@@ -109,18 +109,18 @@ function PressableScale({ onPress, children }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = css.create({
   box: {
     transform: [{ scale: 1 }],
     transitionProperty: 'transform',
     transitionDuration: '120ms',
-    transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.32, 1)',
+    transitionTimingFunction: cubicBezier(0.23, 1, 0.32, 1),
   },
   pressed: { transform: [{ scale: 0.97 }] },
 });
 ```
 
-`setState` is fine here — it fires twice per press, not per frame. `hitSlop` brings a small icon up to the 44pt target without growing it; `pressRetentionOffset` stops a slight finger drift from cancelling.
+`setState` is fine here — it fires twice per press, not per frame. `hitSlop` brings a small icon up to the 44pt target without growing it; `pressRetentionOffset` stops a slight finger drift from cancelling. `css.create`, not `StyleSheet.create`, and `cubicBezier(...)`, not a `'cubic-bezier(...)'` string: React Native's style types reject the transition keys and Reanimated's timing-function type rejects the string (both fail `tsc` on SDK 58).
 
 ---
 

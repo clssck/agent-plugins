@@ -104,7 +104,7 @@ const BUILD_FORMAT = 8;
 /** Generated packs contain source and prompt assets, never individual files larger than this. */
 const MAX_GENERATED_FILE_BYTES = 16 * 1024 * 1024;
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 

@@ -10,7 +10,7 @@ GitHub Actions attack vectors and mitigations for Sanofi CI/CD pipelines. Rules 
 - [4. Workflow Injection via Untrusted Input](#4-workflow-injection-via-untrusted-input)
 - [5. Self-Hosted Runner Risks](#5-self-hosted-runner-risks)
 - [6. OIDC for AWS: Role-Per-Environment Pattern](#6-oidc-for-aws-role-per-environment-pattern)
-- [7. JFrog Credentials via .terraformrc](#7-jfrog-credentials-via-terraformrc)
+- [7. JFrog Credentials for Terraform](#7-jfrog-credentials-for-terraform)
 - [8. Environment-Scoped Secrets vs `secrets: inherit`](#8-environment-scoped-secrets-vs-secrets-inherit)
 - [9. `continue-on-error: true` Risks on Security Steps](#9-continue-on-error-true-risks-on-security-steps)
 - [10. OpenSSF Scorecard Checks](#10-openssf-scorecard-checks)
@@ -36,11 +36,11 @@ An attacker takes over the maintainer account and rewrites the `v2` tag to a mal
 **Mitigation: SHA pinning (within the limits of the allowlist)**
 
 ```yaml
-# Safe: immutable reference to a specific commit
-- uses: popular-org/useful-action@a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2 # v2.3.1
+# Safe: immutable reference to a specific commit (GitHub-published action, tag commit verified)
+- uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 ```
 
-**Sanofi allowlist and `@main` exception.** The allowlist is tag-based, so pin only GitHub-published and verified-creator actions to SHAs; other third-party actions use the registered tag, and org-managed reusable workflows MAY use `@main` with a comment. Rules and wording: [cicd-rules.md §1.1](skill://cicd-engineering/references/cicd-rules.md#11-reference-actions-in-a-form-the-sanofi-allowlist-accepts).
+**Sanofi allowlist.** The allowlist is tag-based, so pin only GitHub-published and verified-creator actions to SHAs; other third-party actions use the registered tag. Org-managed reusable workflows use the reference the platform team documents; NEVER assume `@main`. Rules and wording: [cicd-rules.md §1.1](skill://cicd-engineering/references/cicd-rules.md#11-reference-actions-in-a-form-the-sanofi-allowlist-accepts).
 
 **Additional mitigations:**
 
@@ -131,7 +131,8 @@ jobs:
 
 - Since 2025-12-08, `pull_request_target` always takes the workflow file and `GITHUB_REF`/`GITHUB_SHA` from the default branch, whatever the PR's base. Fixing the default branch fixes the vulnerability; outdated branches no longer run.
 - Environment branch rules now evaluate the executing ref: `refs/pull/N/merge` for `pull_request`, `pull_request_review`, and `pull_request_review_comment`; the default branch for `pull_request_target`. A rule matching only the head branch stops matching.
-- Workflow execution protections (GA 2026-09-17) add actor/event allowlists. For public repositories GitHub's default rule disables `pull_request_target`, enforced from 2026-11-02 where the default policy was in use. Internal and private repositories are unaffected.
+- Workflow execution protections (GA 2026-09-17) add actor/event allowlists. For public repositories GitHub's default rule disables `pull_request_target`, enforced from 2026-12-02 (moved from 2026-11-02) where the default policy was in use. Internal and private repositories are unaffected.
+- `actions/checkout` v7 refuses fork-PR head/merge checkouts in `pull_request_target` (and in `workflow_run` triggered by a PR event). The same guard was backported on 2026-07-20 as `v3.7.0`, `v4.4.0`, `v5.1.0`, `v6.1.0`: floating major tags pick it up, SHA and exact-version pins do not until upgraded. The opt-out input is `allow-unsafe-pr-checkout`: treat any workflow that sets it as a finding, not a fix. The guard does not cover `issue_comment`, `git`/`gh` fetches in `run:`, or checkouts of other untrusted repositories ([changelog](https://github.blog/changelog/2026-06-18-safer-pull_request_target-defaults-for-github-actions-checkout/)).
 - `workflow_run` is privileged too: treat artifacts from the triggering run as untrusted input and NEVER execute them.
 - Enable CodeQL analysis of the `actions` language to catch these patterns.
 
@@ -223,8 +224,8 @@ jobs:
 - name: Sanitize input
   id: sanitize
   run: |
-    SAFE_TITLE=$(echo "$PR_TITLE" | tr -cd '[:alnum:] [:space:]-_')
-    echo "title=$SAFE_TITLE" >> $GITHUB_OUTPUT
+    SAFE_TITLE=$(printf '%s' "$PR_TITLE" | tr -cd 'A-Za-z0-9 ._-')
+    echo "title=${SAFE_TITLE}" >> "$GITHUB_OUTPUT"
   env:
     PR_TITLE: ${{ github.event.pull_request.title }}
 ```
@@ -342,25 +343,22 @@ Trust-policy rules:
 
 ---
 
-## 7. JFrog Credentials via .terraformrc
+## 7. JFrog Credentials for Terraform
 
-For Terraform workflows that pull private modules from Sanofi's JFrog Artifactory:
+For Terraform workflows that pull private modules from Sanofi's JFrog Artifactory, bind the token to the host-specific environment variable (Terraform 1.2+; periods in the hostname become underscores) on the steps that run `init`/`plan`. The secret reaches the process environment, never the shell script text or a file:
 
 ```yaml
-- name: Configure JFrog Credentials
-  run: |
-    cat <<EOF > ~/.terraformrc
-    credentials "sanofi.jfrog.io" {
-      token = "${{ secrets.JFROG_TOKEN }}"
-    }
-    EOF
+- name: Terraform init
+  run: terraform init
+  env:
+    TF_TOKEN_sanofi_jfrog_io: ${{ secrets.JFROG_TOKEN }}
 ```
 
 **Security considerations:**
 
 - `JFROG_TOKEN` MUST be a GitHub Environment secret (not repo-level), so every job that receives it sets `environment:`; that environment MUST have required reviewers or a `main`-only deployment branch rule, and PR-triggered jobs MUST NOT bind it without the approval gate
-- Secretless `pull_request` validation (`terraform fmt -check`, plus `init -backend=false` and `validate` when every module source resolves without credentials) sets no `environment:` and uses no JFrog token; credentialed `init` and `plan` run in a gated job
-- The credentials file lives only on the runner; `hashicorp/setup-terraform` writes it from `cli_config_credentials_hostname` and `cli_config_credentials_token`
+- Secretless `pull_request` validation (`terraform fmt -check`, plus `init -backend=false` and `validate` only when every module source resolves without credentials) sets no `environment:` and uses no JFrog token; credentialed `init` and `plan` run in a gated job
+- The alternative `hashicorp/setup-terraform` inputs `cli_config_credentials_hostname` and `cli_config_credentials_token` (used in [pipeline-templates.md](skill://cicd-engineering/references/pipeline-templates.md#terraform-plan--apply)) write a runtime-only CLI config on the runner; NEVER interpolate `${{ secrets.* }}` into `run:` scripts or write a `.terraformrc` by hand
 - Never commit `.terraformrc` to the repository
 - Scope the JFrog token to read-only access for CI (write only for publish jobs)
 - Rotate the token regularly
@@ -373,7 +371,7 @@ For Terraform workflows that pull private modules from Sanofi's JFrog Artifactor
 
 **When `secrets: inherit` is acceptable:**
 
-- Calling org-level reusable workflows (CodeGuard) that need specific org secrets
+- Calling an org-managed reusable workflow whose documented interface needs specific org secrets
 - The reusable workflow is owned by a trusted team within the org
 
 **When to scope secrets explicitly:**
@@ -393,7 +391,7 @@ jobs:
       # Only pass what the workflow needs
 ```
 
-The caller job cannot use `environment:`; the called job sets it and receives the environment secret. A secret the caller does not pass resolves to an empty string unless the callee declares it `required: true`. A reusable workflow cannot elevate the caller's `permissions`.
+The caller job cannot use `environment:`; the called job sets it and receives the environment secret's value, which takes precedence over a repository or organization secret of the same name. The caller MUST still pass the secret by name (`SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}` is accepted although the secret exists only in the environment). A secret the caller does not pass resolves to an empty string with no error; `required: true` in the callee's `on.workflow_call.secrets` fails the run on a missing mapping, not on an empty value. A reusable workflow cannot elevate the caller's `permissions`. Source: <https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows>.
 
 Reusable workflow limits: 10 levels of nesting and 50 unique called workflows per top-level workflow file (raised from 4 and 20 in 2025-11). Workflow-level `env` does not propagate across the call boundary; pass values with `with:` or outputs. A reusable workflow is called at job level, so `GITHUB_ENV` cannot hand values to the caller's steps. Inside a called workflow, `job.workflow_ref`, `job.workflow_sha`, `job.workflow_repository`, and `job.workflow_file_path` identify the reusable workflow itself (github.com only, since 2026-09).
 
@@ -455,7 +453,7 @@ The OpenSSF Scorecard assesses repository security practices. Checks relevant to
 
 ```yaml
 - name: OSSF Scorecard
-  uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc # v2.4.4
+  uses: ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e # v2.5.0
   with:
     results_file: results.sarif
     results_format: sarif

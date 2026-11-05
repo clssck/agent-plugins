@@ -1,0 +1,13 @@
+.dropdown { position: absolute; }
+.sidebar { position: fixed; left: 0; transform: translateX(-100%); }
+.sidebar-open { transform: none; }
+.tab { transition: all 300ms; }
+.tab-panel { animation: slideIn 350ms ease-out; }
+@keyframes slideIn { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.card { transition: all 300ms; }
+.card:hover { transform: scale(1.05); box-shadow: 0 12px 32px rgb(0 0 0 / 0.2); }
+.carousel .track { position: relative; transition: left 600ms; }
+.drawer { position: fixed; bottom: 0; transform: translateY(100%); }
+.drawer-open { transform: none; }
+.tooltip { opacity: 0; }
+.tooltip-anchor:hover .tooltip { opacity: 1; }

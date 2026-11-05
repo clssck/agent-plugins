@@ -76,11 +76,11 @@ Public access = public ACL or policy grant AND no effective Block Public Access 
 
 | Framework | Check |
 |-----------|-------|
-| TF | `publicly_accessible = true` on `aws_db_instance` or `aws_rds_cluster_instance` (Aurora: instances, NOT `aws_rds_cluster`); `aws_redshift_cluster` (default `false` only on provider ≥ 6.0, so check the provider constraint); `aws_dms_replication_instance` |
+| TF | `publicly_accessible = true` on `aws_db_instance` or `aws_rds_cluster_instance` (Aurora: instances, NOT `aws_rds_cluster`); `aws_redshift_cluster` with `publicly_accessible = true`, or absent on provider 5.x (default `true`; default `false` on provider ≥ 6.0 — read `required_providers` and `.terraform.lock.hcl`; version unknown → Needs confirmation); `aws_dms_replication_instance` |
 | CDK | `publiclyAccessible: true` on `DatabaseInstance`; Aurora: `ClusterInstance` options |
 | CFN | `PubliclyAccessible: true` on `AWS::RDS::DBInstance` |
 
-Confirm reachability: subnet routes to an internet gateway AND security group ingress from broad CIDRs. A public DNS setting alone is not unauthenticated access; report as High when network reachability is also confirmed, Medium otherwise.
+Confirm reachability: subnets route to an internet gateway AND security group ingress from broad CIDRs on the engine port. A public DNS setting alone is not unauthenticated access; report as High (Confirmed) only when both are shown in scope, Medium otherwise. Security group not defined here or the default VPC group in use (rules not in scope) → Medium, Needs confirmation, even when `publicly_accessible` is true by provider default.
 
 ### PE-05: OpenSearch / Elasticsearch
 
@@ -153,7 +153,7 @@ Absent = `false` (provider default `false`; only `engine_mode = "serverless"` cl
 
 Requiring an AWS KMS key is policy only: if policy requires a CMK and `kms_key_id` / `KmsKeyId` is absent, report Medium, "CMK policy".
 
-`aws_redshift_cluster` `encrypted` defaults to `true` only on provider ≥ 6.0: on 5.x or an unknown version, absent = Needs confirmation.
+`aws_redshift_cluster` `encrypted` absent or `false` is not evidence of unencrypted storage: since 2025-01-10 the service encrypts every newly created provisioned cluster (AWS owned key when no KMS key is given), and provider ≥ 6.0 defaults `encrypted = true`. Only a cluster restored from an unencrypted snapshot, or one created before 2025-01-10, can be unencrypted: no evidence of either → Needs confirmation, Low; CMK policy applies as above.
 
 ### EN-03: EBS
 

@@ -1,6 +1,6 @@
 ---
 name: architecture-documentation
-description: "Document a system's architecture with the C4 model at Sanofi: system context, container, component, deployment, landscape, and dynamic views. Use when reverse-engineering architecture from a codebase, editing Structurizr DSL, C4-PlantUML, Mermaid C4 or Draw.io sources, versioning diagrams, preparing Confluence architecture page content, or arc42 mapping. Not for ADRs — use adr-writing; not for live Confluence publishing — use the atl skill; API specs out of scope."
+description: "Draw or document how a system's services talk to each other (C4 architecture, not ADRs). Use when asked to diagram a system, map how services and data stores connect, document the architecture of a repo, reverse-engineer context, container, component, landscape, deployment, or dynamic views from code, edit Structurizr DSL, C4-PlantUML, Mermaid C4 or Draw.io sources, version diagrams, prepare Confluence architecture page content, or map to arc42, following Sanofi conventions. Not for ADRs or decision records — use adr-writing; not for live Confluence publishing — use the atl skill; API specs out of scope."
 ---
 
 # Architecture Documentation
@@ -18,28 +18,18 @@ Classification follows runtime responsibility, never repo layout or team ownersh
 | Decisions behind the architecture | `adr-writing` |
 | API specifications | out of scope |
 
-- **No storage format here:** NEVER build or paste a Confluence storage-format payload.
+- **No hand-built storage format:** NEVER author Confluence macro or storage-format markup from scratch; the only storage-format body you edit is one fetched with `atl page get --format storage` (step 7).
 - **Tool-neutral visuals:** use the repository's native format or a tool-neutral diagram spec. Model and narrative MUST stay useful without an editable visual.
-
-<critical>
-
-- Boundary and audience stated before modeling.
-- Each element classified by responsibility, not repo or team.
-- Version, changelog, attribution recorded.
-- [c4-notation-checklist.md](skill://architecture-documentation/references/c4-notation-checklist.md) passed.
-- Existing diagram-as-code source edited in place, not replaced.
-- Live publishing handed to the `atl` skill.
-</critical>
 
 <procedure>
 
-1. **Boundary and audience first.** Establish the user-facing system boundary and audience BEFORE inferring from teams, repos, or deployment config. Unclear → `ask`.
+1. **Boundary and audience first.** Establish the user-facing system boundary and audience BEFORE inferring from teams, repos, or deployment config. Unclear → `ask`. `ask` unavailable or unanswered → infer from the README and code, state boundary and audience as explicit assumptions at the top of the output, continue.
 2. **Smallest scope.** Inspect the least code and infrastructure that answers the C4 question; widen only on evidence. Use `glob` and `grep`; NEVER shell `rg`/`find`. Patterns → [codebase-analysis-patterns.md](skill://architecture-documentation/references/codebase-analysis-patterns.md).
 3. **Classify** systems, containers, components, externals by runtime responsibility and relationships.
-4. **Produce** model narrative, relationship labels, requested diagram content. Repository holds C4 as code (Structurizr DSL, C4-PlantUML, Mermaid C4) → detect with `glob`/`grep`, edit that format in place → [diagrams-as-code.md](skill://architecture-documentation/references/diagrams-as-code.md).
+4. **Produce** model narrative, relationship labels, requested diagram content. Repository holds C4 as code (Structurizr DSL, C4-PlantUML, Mermaid C4) → detect with `glob`/`grep`, edit that format in place → [diagrams-as-code.md](skill://architecture-documentation/references/diagrams-as-code.md). None exists and diagrams are requested → pick per its "Choosing a Format" table; write to the repository's existing architecture-docs directory, else `docs/architecture/`.
 5. **Version** the logical artifact and record change history.
 6. **Validate** with [c4-notation-checklist.md](skill://architecture-documentation/references/c4-notation-checklist.md) before presenting or handing off.
-7. **Hand off** live Confluence work to the `atl` skill with prepared content and target-page context. Save the content with `write` as `.md` (new or plain page) or `.xhtml` (existing rich page, read via `atl page get --format storage`), run `atl page create|update ... --file <path> --plan`, read every warning, then run its `next`; a long body stays out of the conversation. `atl` unavailable after its Setup → ask the user to paste the content and record the references as Links/sources; never publish. `atl` does not upload attachments: tell the user to upload them in the Confluence UI.
+7. **Hand off** live Confluence work to the `atl` skill ONLY when the user asks to publish or names a target page; otherwise skip this step and add no page metadata, publishing notes, or handoff section. Save the content with `write` as `.md` (new or plain page) or `.xhtml` (existing rich page, read via `atl page get --format storage`), run `atl page create|update ... --file <path> --plan`, read every warning, then run its `next`; a long body stays out of the conversation. `atl` unavailable after its Setup → ask the user to paste the content and record the references as Links/sources; never publish. `atl` does not upload attachments: tell the user to upload them in the Confluence UI.
 </procedure>
 
 ## Classify Elements
@@ -84,6 +74,8 @@ Match requested scope and audience. L1 + L2 suffice for most teams; NEVER add le
 
 ## References
 
+Repo → L1/L2 needs only codebase-analysis-patterns, c4-abstractions-guide, diagrams-as-code, and c4-notation-checklist. Read any other file only when its row applies; NEVER load every reference up front.
+
 | File | Read when |
 |---|---|
 | [c4-abstractions-guide.md](skill://architecture-documentation/references/c4-abstractions-guide.md) | Classifying elements |
@@ -95,3 +87,13 @@ Match requested scope and audience. L1 + L2 suffice for most teams; NEVER add le
 | [versioning-guide.md](skill://architecture-documentation/references/versioning-guide.md) | Versions, changelog, Jira links |
 | [c4-notation-checklist.md](skill://architecture-documentation/references/c4-notation-checklist.md) | Pre-publish validation |
 | [drawio-c4-templates.md](skill://architecture-documentation/references/drawio-c4-templates.md) | ONLY when an existing Draw.io source MUST stay compatible |
+
+<critical>
+
+- Boundary and audience stated before modeling.
+- Each element classified by responsibility, not repo or team.
+- Version, changelog, attribution recorded.
+- [c4-notation-checklist.md](skill://architecture-documentation/references/c4-notation-checklist.md) passed.
+- Existing diagram-as-code source edited in place, not replaced.
+- Publishing requested → handed to the `atl` skill; never published from here.
+</critical>

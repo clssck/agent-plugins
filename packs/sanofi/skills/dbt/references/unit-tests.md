@@ -12,6 +12,8 @@ skill (see `licenses/sanofi/dbt/ATTRIBUTION`).
 
 ## Spec
 
+Schematic, NOT copy-ready: `|` separates alternatives and `<...>` marks a value to fill; choose one alternative per key. The runnable example is under [Incremental Models](#incremental-models).
+
 ```yaml
 unit_tests:
   - name: <scenario__expected>        # unique
@@ -95,8 +97,9 @@ Unit tests assert values, not types. A literal that does not cast cleanly for a 
 
 ## Running Unit Tests
 
-- **Direct parents MUST exist in the target schema** so dbt can read column types. Clean CI or dev schema → build empty shells **for the parents only**: `dbt run --select "<parent_a> <parent_b>" --empty`.
-- **Incremental model with an `is_incremental: true` case:** dbt also reads columns from the model's own relation (`this`); on a fresh schema `dbt build` runs the unit test before the model and fails with `Not able to get columns for unit test '<model>'` ([dbt-core#10844](https://github.com/dbt-labs/dbt-core/issues/10844)). In CI and fresh dev schemas only, run `dbt run --select "<model>" --empty` (or an explicit list of affected incremental models) before the build; prove it by building once from an empty schema.
+- **Direct parents of `dict`/`csv` inputs MUST exist** so dbt can read column types: in the target schema, or on a production manifest through `--defer`. `format: sql` inputs read no columns, so their parents need not exist. Clean CI or dev schema with no prod manifest → build empty shells **for the parents only**: `dbt run --select "<parent_a> <parent_b>" --empty`.
+- **`--defer` supplies fixture types:** `dbt test --select "<model>,test_type:unit" --defer --state <prod-manifest-dir>` reads a missing parent's columns from its production relation (`describe`; fixtures stay static), so no shell build. The target relation wins when it exists. It does not cover sources, parents absent from the state manifest (new or renamed → shell build), or a prod relation the role cannot describe (Snowflake returns no columns for "does not exist or not authorized" → the `Not able to get columns` error below). The manifest only names the relation; types come from the current production relation (table or view), so a prod schema change since the manifest was saved changes the fixture casts. Behavior comes from the `get_fixture_sql` macro; the docs do not describe it ([source](https://github.com/dbt-labs/dbt-adapters/blob/main/dbt-adapters/src/dbt/include/global_project/macros/unit_test_sql/get_fixture_sql.sql)).
+- **Incremental model with an `is_incremental: true` case:** a `dict`/`csv` `this` fixture makes dbt read columns from the model's own relation; on a fresh schema `dbt build` runs the unit test before the model and fails with `Not able to get columns for unit test '<model>'` ([dbt-core#10844](https://github.com/dbt-labs/dbt-core/issues/10844)). With `--defer --state` and the model in the prod manifest, `this` resolves from the prod relation too. Otherwise, in CI and fresh dev schemas only, run `dbt run --select "<model>" --empty` (or an explicit list of affected incremental models) before the build; prove it by building once from an empty schema. A `format: sql` `this` fixture (with `format: sql` parents) skips that introspection: the test passes on an empty database with no shell, state, or defer.
 - **`--empty` semantics:** refs and sources read zero rows; selected tables and views are rebuilt empty, an existing incremental gets a zero-row incremental run. Use only on the target model, its parents, or explicitly scoped incremental models in a fresh or disposable schema. NEVER aim it at data-bearing relations or combine it with an unchecked `+` upstream selector. All parents of one model: `--select "1+<model>" --exclude "<model>"`. `dbt build --select "+<model>"` builds parents for real instead, in lineage order with unit tests before the model — use when those builds are cheap.
 - **Commands:**
 
@@ -123,8 +126,8 @@ Unit tests assert values, not types. A literal that does not cast cleanly for a 
 
 - YAML under `model-paths`, not `tests/`; every `ref`/`source` mocked.
 - `is_incremental` (and `dbt_utils.star`) overridden where used; ephemeral parents use `format: sql`.
-- Parents built with `--empty` without `+`, only in a fresh or disposable schema.
-- Incremental unit tests pass from an empty schema (model's own `--empty` shell pre-built).
+- Parents of `dict`/`csv` inputs exist: built with `--empty` without `+`, only in a fresh or disposable schema, or deferred to a prod manifest that holds them (not sources or new parents); `format: sql` inputs need no parent.
+- Incremental unit tests pass from an empty schema (`dict`/`csv` `this`: model's own `--empty` shell pre-built, or `--defer` with the model in the prod manifest; `format: sql` `this`: nothing pre-built).
 - Unit tests excluded from production builds.
 - A deliberately broken expectation fails, proving the test can fail.
 

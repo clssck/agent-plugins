@@ -12,17 +12,17 @@ Copy-paste GitHub Actions workflows for Sanofi repositories. Every template uses
 - [Terraform plan + apply](#terraform-plan--apply)
 - [Container build + push to ECR (reusable)](#container-build--push-to-ecr-reusable)
 - [CD: auto-deploy + manual promotion to ECS](#cd-auto-deploy--manual-promotion-to-ecs)
-- [CodeGuard / Checkmarx SAST](#codeguard--checkmarx-sast)
+- [CodeQL SAST](#codeql-sast)
 
 ## Action pins
 
-Verified 2026-10-09 against each action's latest GitHub release; annotated tags dereferenced to the commit. All JavaScript actions below declare `runs.using: node24` (Node 20 was removed from Actions runners on 2026-09-23: <https://github.blog/changelog/2026-09-23-node-20-is-no-longer-available-in-github-actions/>).
+Verified 2026-11-02 against each action's latest GitHub release; annotated tags dereferenced to the commit. All JavaScript actions below declare `runs.using: node24` (Node 20 was removed from Actions runners on 2026-09-23: <https://github.blog/changelog/2026-09-23-node-20-is-no-longer-available-in-github-actions/>).
 
 | Action | Version | Commit SHA |
 | --- | --- | --- |
 | `actions/checkout` | v7.0.1 | `3d3c42e5aac5ba805825da76410c181273ba90b1` |
 | `actions/setup-node` | v7.1.0 | `949feb2413d6458794dcd2491c4babbbce0c15c1` |
-| `astral-sh/setup-uv` | v10.2.0 | `c18668ad3cf93ea998bef934396af7bb5c839dc7` |
+| `astral-sh/setup-uv` | v10.3.3 | `68559e99cc807c1eb7e9238fd43a15bba460eec2` |
 | `actions/upload-artifact` | v7.0.2 | `cf430e030ddbb5b0abf93d22962f4752f3646cd9` |
 | `actions/download-artifact` | v8.0.2 | `9000827ccba6bdab643e8b6fd33ac0654aef8333` |
 | `actions/cache` | v6.1.0 | `55cc8345863c7cc4c66a329aec7e433d2d1c52a9` |
@@ -31,12 +31,15 @@ Verified 2026-10-09 against each action's latest GitHub release; annotated tags 
 | `aws-actions/configure-aws-credentials` | v6.3.0 | `e1253824e5c10ff9df46874f81ed3ec929e19cfd` |
 | `aws-actions/amazon-ecr-login` | v2.1.7 | `03f1aad4c6c7ffd436567f42f9384779290529bd` |
 | `aws-actions/amazon-ecs-render-task-definition` | v1.9.1 | `8d79160660ad39c402a16e5fc7cd2a32e8f7d6b7` |
-| `aws-actions/amazon-ecs-deploy-task-definition` | v2.6.3 | `c465972ecbd160473f22e683363b422a5412a3de` |
+| `aws-actions/amazon-ecs-deploy-task-definition` | v2.6.4 | `a00d4d57ac0de1a99b39fe469f3d898d38717c2b` |
 | `docker/setup-buildx-action` | v4.4.1 | `f87e5991a6d7451dcb8d9637bfbc97413f497069` |
 | `docker/build-push-action` | v7.4.0 | `c3c9e263c25d99ce0380d002d59b67737d91b0dc` |
-| `SonarSource/sonarqube-scan-action` | v8.3.0 | `d209202bc7d53ff1cc128f7f907dac145c9d6ae9` |
-| `ossf/scorecard-action` | v2.4.4 | `2d1146689b8cda280b9bc96326124645441f03bc` |
+| `SonarSource/sonarqube-scan-action` | v8.4.0 | `4d1dc0c91ee400dcf8a6dddf2f705ac36542e304` |
+| `ossf/scorecard-action` | v2.5.0 | `fa7117db83c52d787ae5a89f350999701505d78e` |
 | `actions/attest` | v4.2.2 | `1e69f48acb82d1966a394da916b4c1698aa569d6` |
+| `github/codeql-action` (`init`, `analyze`) | v4.39.2 | `1fc58d04a4d4374f921bdac573c3811c240f9c26` |
+
+`github/codeql-action` verified 2026-11-04 (release `v4.39.2`, commit resolved with the command below); its `init` and `analyze` actions declare `runs.using: node24`.
 
 Re-verify before reuse; pins age. Resolve a tag to its commit (dereferences annotated tags; same command in bash, zsh, and PowerShell):
 
@@ -54,7 +57,7 @@ NEVER use `gh api repos/OWNER/REPO/git/ref/tags/TAG --jq .object.sha` alone: for
 - **Python jobs**: `setup-uv` downloads uv, and `uv sync` downloads the `.python-version` interpreter when the image lacks it; confirm runner egress. Private package index: `[[tool.uv.index]]` in `pyproject.toml` or `UV_DEFAULT_INDEX`.
 - **Environments** `dev`, `test`, `prod`: each holds `AWS_ACCOUNT_ID` and `JFROG_TOKEN` (Terraform repos). Every environment holding `JFROG_TOKEN` or trusted by an AWS role MUST have required reviewers or a `main`-only deployment branch rule: same-repository `pull_request` runs and feature-branch dispatches otherwise reach its secrets unreviewed. `prod` has both.
 - **Environment** `sonarcloud`: holds `SONAR_TOKEN` as an Environment secret and MUST have required reviewers. A `main`-only deployment branch rule does not work here: PR analysis runs on `refs/pull/N/merge`, which such a rule blocks. A repository or org `SONAR_TOKEN` reaches same-repository `pull_request` runs unreviewed; NEVER store it there. Each Sonar run waits for approval, and `Build Complete` waits with it.
-- **Repository/org secrets**: CodeGuard `CHECKMARX_*` secrets.
+- **Code scanning (CodeQL)**: needs code scanning enabled for the repository (organization-owned repositories need GitHub Code Security: <https://docs.github.com/en/code-security/code-scanning/managing-your-code-scanning-configuration/set-code-scanning-merge-protection>). `analyze` uploads results and does not fail the job on alerts; a ruleset with code scanning merge protection makes the result block merges. Confirm runner egress for the CodeQL bundle download. CodeGuard `CHECKMARX_*` secrets are no longer used.
 - **Branch protection**: require the `Build Complete` check. It fails unless every quality, audit, and Sonar job succeeded.
 
 ---
@@ -160,6 +163,8 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/sonarcloud.yaml
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   build:
     name: Build Complete
@@ -229,7 +234,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
       - run: uv sync --locked
@@ -243,7 +248,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
       - run: uv sync --locked
@@ -256,7 +261,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
       - run: uv sync --locked
@@ -269,7 +274,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
       - run: uv sync --locked
@@ -289,7 +294,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
       - name: Export locked dependencies
@@ -303,6 +308,8 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/sonarcloud.yaml
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   build:
     name: Build Complete
@@ -342,13 +349,16 @@ jobs:
 
 `.github/workflows/sonarcloud.yaml`, called by both CI templates on pull requests and pushes. The scanner auto-detects PR vs branch context in GitHub Actions, so one workflow serves PR analysis and the main-branch baseline. `sonar.qualitygate.wait=true` makes the step fail on a failed quality gate, which fails `Build Complete`.
 
-The called job binds the `sonarcloud` environment (required reviewers), so credentials are released only after approval. Callers pass no secret, and PR jobs that run without approval (format, lint, test, audit) stay secretless. The caller job cannot set `environment:` ([security-hardening.md §8](skill://cicd-engineering/references/security-hardening.md#8-environment-scoped-secrets-vs-secrets-inherit)).
+The called job binds the `sonarcloud` environment (required reviewers), so credentials are released only after approval. The caller job cannot set `environment:` and MUST still pass the secret by name: `SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}` is accepted even though the secret exists only in the environment, the environment value takes precedence in the called job, and an unpassed secret resolves to an empty string without an error. The callee declares it `required: true` so a missing mapping fails the run (the check covers the mapping, not the value). PR jobs that run without approval (format, lint, test, audit) stay secretless ([security-hardening.md §8](skill://cicd-engineering/references/security-hardening.md#8-environment-scoped-secrets-vs-secrets-inherit)). Source: <https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows>.
 
 ```yaml
 name: "SonarCloud"
 
 on:
   workflow_call:
+    secrets:
+      SONAR_TOKEN:
+        required: true
 
 permissions:
   contents: read
@@ -367,7 +377,7 @@ jobs:
         with:
           name: coverage_result
           path: coverage/
-      - uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+      - uses: SonarSource/sonarqube-scan-action@4d1dc0c91ee400dcf8a6dddf2f705ac36542e304 # v8.4.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
@@ -399,7 +409,7 @@ PR validation and credentialed planning are separate jobs. `pull_request` runs f
 - `validate` runs on every trigger with no `environment:`, no secrets, and no `id-token`.
 - `plan` and `apply` run only on `workflow_dispatch` and bind the target environment. `JFROG_TOKEN` is an Environment secret (see [cicd-rules.md §6.5](skill://cicd-engineering/references/cicd-rules.md#65-jfrog-artifactory-for-terraform-modules)); `setup-terraform` writes it into a runtime-only CLI config file.
 - Prerequisite: each target environment has required reviewers or a `main`-only deployment branch rule ([Prerequisites](#prerequisites)). Without one, anyone who can push a branch can dispatch `plan` from it and reach the credentials.
-- Secretless `terraform init -backend=false` works only when every module source resolves without credentials (local paths, public registry). Root module sources private JFrog modules? Keep only `terraform fmt -check` in `validate`; the gated `plan` job runs `terraform validate` after `init`.
+- Secretless `terraform init -backend=false` and `terraform validate` work only when every module source resolves without credentials (local paths, public registry). This template's root module sources private JFrog modules, so `validate` keeps only `terraform fmt -check`, and the gated `plan` job runs `terraform validate` after `init`. Add `init -backend=false` and `validate` to the PR job only for a root module with no private sources.
 - Need a plan on the PR itself? Bind that job to a dedicated environment with required reviewers, so each PR run waits for approval before it receives credentials.
 
 ```yaml
@@ -433,7 +443,7 @@ concurrency:
 
 jobs:
   validate:
-    name: Validate (secretless)
+    name: Format (secretless)
     runs-on: atmos-aws-arc-runner-set
     defaults:
       run:
@@ -444,8 +454,6 @@ jobs:
           persist-credentials: false
       - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
       - run: terraform fmt -check -recursive
-      - run: terraform init -backend=false
-      - run: terraform validate
 
   plan:
     name: Plan (${{ inputs.env }})
@@ -758,7 +766,7 @@ jobs:
           container-name: my-service
           image: ${{ steps.image.outputs.image }}
       - name: Register, deploy, and wait for stability
-        uses: aws-actions/amazon-ecs-deploy-task-definition@c465972ecbd160473f22e683363b422a5412a3de # v2.6.3
+        uses: aws-actions/amazon-ecs-deploy-task-definition@a00d4d57ac0de1a99b39fe469f3d898d38717c2b # v2.6.4
         with:
           task-definition: ${{ steps.render.outputs.task-definition }}
           cluster: my-service-${{ needs.select.outputs.environment }}
@@ -783,45 +791,59 @@ jobs:
 
 ---
 
-## CodeGuard / Checkmarx SAST
+## CodeQL SAST
 
-Org-managed reusable workflow; `@main` is the documented exception ([cicd-rules.md §1.1](skill://cicd-engineering/references/cicd-rules.md#11-reference-actions-in-a-form-the-sanofi-allowlist-accepts)). Secrets are passed explicitly.
+Standalone workflow built from GitHub's `CodeQL Advanced` starter workflow (`actions/starter-workflows`, `code-scanning/codeql.yml`; `init`/`analyze` inputs checked against `github/codeql-action` v4.39.2 `action.yml`), with the ARC runner, SHA pins from [Action pins](#action-pins) and a read-only default `permissions:`. No secrets, no `environment:`. Keep one matrix entry per language the repository contains (`actions` analyzes `.github/workflows`); `build-mode: none` suits all three listed. A compiled language needs `autobuild` or `manual` per <https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning>.
 
 ```yaml
 name: "SAST"
-run-name: ${{ github.workflow }} - CodeGuard
+run-name: ${{ github.workflow }} - CodeQL
 
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   schedule:
     - cron: "0 6 * * 1" # Weekly Monday 06:00 UTC
-  workflow_call:
-    secrets:
-      CHECKMARX_DOCKER_AUTH_CONFIG:
-        required: true
-      CHECKMARX_CX_CLIENT_ID:
-        required: true
-      CHECKMARX_CX_CLIENT_SECRET:
-        required: true
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
-  codeguard:
-    name: CodeGuard SAST
-    # @main exception: org-managed reusable workflow
-    uses: Sanofi-Shared-GitHub-Apps/cyber-AST-Action_reusable/.github/workflows/code_guard_ast.yml@main
-    with:
-      production-branch: main
-      groups: Digital-Accelerator
-      cmdb: ${{ vars.cmdb }}
-      summary-output: true
-      codeguard-gate: true
-    secrets:
-      DOCKER_AUTH_CONFIG: ${{ secrets.CHECKMARX_DOCKER_AUTH_CONFIG }}
-      CX_CLIENT_ID: ${{ secrets.CHECKMARX_CX_CLIENT_ID }}
-      CX_CLIENT_SECRET: ${{ secrets.CHECKMARX_CX_CLIENT_SECRET }}
+  analyze:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: atmos-aws-arc-runner-set
+    permissions:
+      security-events: write # upload results to code scanning
+      packages: read # fetch internal or private CodeQL packs
+      actions: read # private repositories: workflow run information
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+          - language: javascript-typescript
+            build-mode: none
+          - language: python
+            build-mode: none
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+        with:
+          category: "/language:${{ matrix.language }}"
 ```
+
+- Blocking: add a ruleset with code scanning merge protection that requires CodeQL ([docs](https://docs.github.com/en/code-security/code-scanning/managing-your-code-scanning-configuration/set-code-scanning-merge-protection)); the job itself passes while alerts exist. Never add `continue-on-error: true`.
+- Scope: CodeQL is the SAST fallback this skill documents. It does not show that Sanofi's internal GHAS or CodeGuard-replacement requirements are met; those stay unverified until the platform/Cybersecurity team's authoritative reference is available.
+- Retired: the CodeGuard / Checkmarx org workflow (`Sanofi-Shared-GitHub-Apps/cyber-AST-Action_reusable/.github/workflows/code_guard_ast.yml`) has been a retirement stub since commit `5690b8b53dc51ec7f3e744d9cf1d4c58134a3a41` (2026-09-16; latest `d927b0ab3215f04c39885a986514e3823e78d0c2`, 2026-09-29): its only job warns "No scan was performed" and succeeds. NEVER call it as a gate or pass `CHECKMARX_*` secrets; migrate any legacy caller to this template. Source: <https://github.com/Sanofi-Shared-GitHub-Apps/cyber-AST-Action_reusable/commit/5690b8b53dc51ec7f3e744d9cf1d4c58134a3a41>.
